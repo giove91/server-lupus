@@ -38,7 +38,7 @@ def logout_view(request):
 
 
 def setup(request):
-    setup_roles()
+    #setup_roles()
     setup_game()
     setup_dummy_players()
     

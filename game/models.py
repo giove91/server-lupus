@@ -272,6 +272,42 @@ class Player(CommonInfo):
     can_vote.boolean = True
     
 
+
+class Event(models.Model):
+    # Generic event
+    
+    timestamp = models.DateTimeField(default=datetime.now)
+    turn = models.ForeignKey(Turn)
+    
+    class Meta:
+        ordering = ['turn', 'timestamp', 'pk']
+    
+    def __unicode__(self):
+        return u"Event %d" % self.pk
+    
+    event_name = property(__unicode__)
+
+
+class CommandEvent(Event):
+    # A command submitted by a player
+    
+    player = models.ForeignKey(Player, related_name='action_set')
+    
+    ACTION_TYPES = (
+        ('P', 'UsePower'),
+        ('V', 'Vote'),
+        ('E', 'Elect'),
+    )
+    type = models.CharField(max_length=1, choices=ACTION_TYPES)
+    
+    target = models.ForeignKey(Player, null=True, blank=True, related_name='action_target_set')
+    target2 = models.ForeignKey(Player, null=True, blank=True, related_name='action_target2_set')
+    
+    def __unicode__(self):
+        return u"CommandEvent %d" % self.pk
+
+
+'''
 class Action(models.Model):
     player = models.ForeignKey(Player, related_name='action_set')
     
@@ -294,5 +330,5 @@ class Action(models.Model):
         return u"Action %d" % self.pk
     
     action_name = property(__unicode__)
-
+'''
 

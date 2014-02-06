@@ -19,14 +19,14 @@ class RoleAdmin(admin.ModelAdmin):
     list_filter = ['team', 'aura', 'is_mystic', 'has_power']
     search_fields = ['role_name']
 
-class ActionAdmin(admin.ModelAdmin):
-    list_display = ('action_name', 'day', 'type', 'player', 'target', 'param', 'time')
+class EventAdmin(admin.ModelAdmin):
+    list_display = ('event_name', 'turn', 'timestamp')
 
 # admin.site.register(Time, TimeAdmin)
 admin.site.register(Player, PlayerAdmin)
 admin.site.register(Team)
 admin.site.register(Role, RoleAdmin)
-admin.site.register(Action, ActionAdmin)
+admin.site.register(Event, EventAdmin)
 admin.site.register(Game, GameAdmin)
 admin.site.register(Turn, TurnAdmin)
 
