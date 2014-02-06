@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="style.css" />
+    <title>{% block title %}Realtime Lupus 4{% endblock %}</title>
+</head>
+
+<body>
+    <div id="sidebar">
+        {% block sidebar %}
+        
+        <ul>
+            <li><a href="/">Home</a></li>
+            {% if user.is_authenticated %}
+            <li><a href="{% url 'logout' %}">Logout</a> ({{ user.username }})</li>
+            {% else %}
+            <li><a href="{% url 'login' %}">Login</a></li>
+            {% endif %}
+            
+            <li><a href="{% url 'status' %}">Stato del villaggio</a></li>
+            <li><a href="">Eventi</a></li>
+        </ul>
+        
+        Area riservata
+        
+        <ul>
+            <li><a href="{% url 'personalinfo' %}">Informazioni personali</a></li>
+            <li><a href="{% url 'vote' %}">Votazione per il rogo</a></li>
+            <li><a href="{% url 'elect' %}">Elezione del Sindaco</a></li>
+            <li><a href="{% url 'usepower' %}">Potere notturno</a></li>
+        </ul>
+        
+        {% endblock %}
+    </div>
+
+    <div id="content">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

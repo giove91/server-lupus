@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Stato del villaggio</h1>
+    
+    {% if game_running %}
+        <p>{{ phase }} {{ day }}</p>
+    {% else %}
+        <p>La partita non è in corso</p>
+    {% endif %}
+    
+    <h3>Giocatori vivi</h3>
+    <ul>
+        {% for player in alive_players %}
+            <li>{{ player.full_name }}</li>
+        {% empty %}
+            <p>Non ci sono giocatori vivi.</p>
+        {% endfor %}
+    </ul>
+    
+    <h3>Giocatori morti</h3>
+    <ul>
+        {% for player in dead_players %}
+            <li>{{ player.full_name }}</li>
+        {% empty %}
+            <p>Non ci sono giocatori morti.</p>
+        {% endfor %}
+    </ul>
+    
+    <h3>Giocatori esiliati</h3>
+    <ul>
+        {% for player in exiled_players %}
+            <li>{{ player.full_name }}</li>
+        {% empty %}
+            <p>Non ci sono giocatori esiliati.</p>
+        {% endfor %}
+    </ul>
+{% endblock %}
+
