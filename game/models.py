@@ -3,7 +3,6 @@ from datetime import datetime
 from django.db import models
 from django import forms
 from django.utils.text import capfirst
-from django.db.models.fields import Field, IntegerField
 from django.contrib.auth.models import User
 
 
@@ -24,7 +23,9 @@ class Turn(models.Model):
     
     TURN_PHASES = (
         ('D', 'Day'),
+        ('S', 'Sunset'),
         ('N', 'Night'),
+        ('W', 'Dawn' ),
     )
     phase = models.CharField(max_length=1, choices=TURN_PHASES)
     begin = models.DateTimeField(default=datetime.now)
@@ -39,27 +40,47 @@ class Turn(models.Model):
     def is_night(self):
         return self.phase=='N'
     
+    def is_sunset(self):
+        return self.phase=='S'
+    
+    def is_dawn(self):
+        return self.phase=='W'
+    
     def __unicode__(self):
         if self.is_day():
             return u"Day %d" % self.day
-        else:
+        elif self.is_night():
             return u"Night %d" % self.day
+        elif self.is_sunset():
+            return u"Sunset %d" % self.day
+        elif self.is_dawn():
+            return u"Dawn %d" %self.day
+        
     as_string = property(__unicode__)
     
     def phase_as_italian_string(self):
         if self.is_day():
             return 'Giorno'
-        else:
+        elif self.is_night():
             return 'Notte'
+        elif self.is_sunset():
+            return 'Tramonto'
+        elif self.is_dawn():
+            return 'Alba'
     
     def next_turn(self):
         phase='D'
-        day=0
+        day=self.day
+        
         if self.is_day():
-            self.phase='N'
-        else:
-            self.day+=1
-            self.phase='D'
+            phase='S'
+        elif self.is_sunset():
+            phase='N'
+        elif self.is_night():
+            phase='W'
+        elif self.is_dawn():
+            phase='D'
+            day+=1
         next_turn = Turn(game=self.game, day=day, phase=phase)
         return next_turn
 
