@@ -38,11 +38,10 @@ def logout_view(request):
 
 
 def setup(request):
-    #setup_roles()
     setup_game()
     setup_dummy_players()
     
-    return HttpResponse("Aggiunti al database i Ruoli e le Fazioni indicate.")
+    return HttpResponse("Setup completato.")
 
 
 class VillageStatusView(View):

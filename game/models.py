@@ -131,8 +131,6 @@ class Player(models.Model):
     alive = models.BooleanField(default=True)
     active = models.BooleanField(default=True)  # False if exiled (i.e. the team lost)
     
-    # last_usage = models.ForeignKey(Turn, null=True, blank=True, default=None) # Last power usage (None = never used)
-    # last_target = models.ForeignKey('self', null=True, blank=True, default=None)   # Last target -- should be set to NULL if role changes
     
     class Meta:
         ordering = ['user']
