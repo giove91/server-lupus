@@ -5,8 +5,6 @@ from django import forms
 from django.utils.text import capfirst
 from django.contrib.auth.models import User
 
-
-
 class Game(models.Model):
     running = models.BooleanField(default=False)
     current_turn = models.ForeignKey('Turn', null=True, blank=True, related_name='+')
@@ -85,63 +83,56 @@ class Turn(models.Model):
         return next_turn
 
 
-
-class Team(models.Model):
-    team_name = models.CharField(max_length=64, unique=True)
+class Role(models.Model):
+    role_name = 'Generic role'
+    team = 'P'
+    aura = 'W'
+    is_mystic = False
+    
+    last_usage = models.ForeignKey(Turn, null=True, blank=True, default=None)
+    last_target = models.ForeignKey('Player', null=True, blank=True, default=None, related_name='target_inv_set')
     
     def __unicode__(self):
-        return u"%s" % self.team_name
+        return u"%s" % self.role_name
     
-    class Meta:
-        ordering = ['pk']
+    def get_team_name(self):
+        teams = { 'P': 'Popolani', 'L': 'Lupi', 'N': 'Negromanti' }
+        return teams[self.team]
+    
+    def get_aura(self):
+        auras = { 'W': 'White', 'B': 'Black' }
+        return auras[self.aura]
+    
+    def can_use_power(self):
+        return False
 
 
 
-class CommonInfo(models.Model):
+class Player(models.Model):
     AURA_COLORS = (
         ('W', 'White'),
         ('B', 'Black'),
     )
     
-    class Meta:
-        abstract = True
-
-
-class Role(CommonInfo):
-    role_name = models.CharField(max_length=64, unique=True)
-    team = models.ForeignKey(Team)
-    aura = models.CharField(max_length=1, choices=CommonInfo.AURA_COLORS, default='W')
-    is_mystic = models.BooleanField(default=False)
+    TEAMS = (
+        ('P', 'Popolani'),
+        ('L', 'Lupi'),
+        ('N', 'Negromanti'),
+    )
     
-    has_power = models.BooleanField(default=True)
-    frequency = models.IntegerField(default=1)      # 0 = infty (i.e. the power can be used only once)
-    reflexive = models.BooleanField(default=False)  # The player can use his power on herself
-    on_living = models.BooleanField(default=True)   # The power can be used on the living
-    on_dead = models.BooleanField(default=True)     # The power can be used on the dead
-    reusable_on_same_target = models.BooleanField(default=True) # The power can be used in consecutive nights on the same target
-    is_ghost = models.BooleanField(default=False)
-    
-    def __unicode__(self):
-        return u"%s" % self.role_name
-    
-    class Meta:
-        ordering = ['team', 'role_name']
-
-
-class Player(CommonInfo):
     user = models.OneToOneField(User, primary_key=True)
     game = models.ForeignKey(Game)
-    team = models.ForeignKey(Team, null=True, blank=True, default=None)
+    team = models.CharField(max_length=1, choices=TEAMS, null=True, blank=True, default=None)
     
     role = models.ForeignKey(Role, null=True, blank=True, default=None)
-    aura = models.CharField(max_length=1, choices=CommonInfo.AURA_COLORS, null=True, blank=True, default=None)
+    aura = models.CharField(max_length=1, choices=AURA_COLORS, null=True, blank=True, default=None)
     is_mystic = models.BooleanField(default=False)
     
     alive = models.BooleanField(default=True)
     active = models.BooleanField(default=True)  # False if exiled (i.e. the team lost)
     
-    last_usage = models.ForeignKey(Turn, null=True, blank=True, default=None) # Last power usage (None = never used)
-    last_target = models.ForeignKey('self', null=True, blank=True, default=None)   # Last target -- should be set to NULL if role changes
+    # last_usage = models.ForeignKey(Turn, null=True, blank=True, default=None) # Last power usage (None = never used)
+    # last_target = models.ForeignKey('self', null=True, blank=True, default=None)   # Last target -- should be set to NULL if role changes
     
     class Meta:
         ordering = ['user']
@@ -168,6 +159,7 @@ class Player(CommonInfo):
         else:
             return "Esiliato"
     
+    
     def can_use_power(self):
         if not self.game.running:
             # The game is not running
@@ -182,30 +174,13 @@ class Player(CommonInfo):
         if not self.active:
             # The player has been exiled
             return False
-        if not self.role.has_power:
-            # The player doesn't have a power
-            return False
         
         turn = self.game.current_turn
-        if turn.is_day():
+        if not turn.is_night():
             # Players can use their powers only during the night
             return False
-            
-        # Checking if the power can be used, considering the dead/alive property of the user
-        if self.role.is_ghost:
-            if self.alive:
-                return False
-        else:
-            if not self.alive:
-                return False
         
-        if self.last_usage is None:
-            # The power has never been used
-            return True
-        if self.role.frequency==0:
-            # The power could be used only once
-            return False
-        return turn.day - self.last_usage.day >= self.role.frequency
+        return self.role.can_use_power()
     
     can_use_power.boolean = True
     
@@ -218,20 +193,9 @@ class Player(CommonInfo):
         if not target.active:
             # Target has been exiled
             return False
-        if target.pk==self.pk and not self.role.reflexive:
-            # Target is herself but the power is not reflexive
-            return False
-        if target.alive and not self.role.on_living:
-            # Target is alive but the power cannot be used on the living
-            return False
-        if not target.alive and not self.role.on_dead:
-            # Target is dead but the power cannot be used on the dead
-            return False
         
-        if not self.role.reusable_on_same_target and self.last_target is not None and self.last_target.pk==target.pk and self.last_usage is not None and self.last_usage.day==self.game.current_turn.day-1:
-            # The power cannot be used on the same target in consecutive nights
-            return False
-        return True
+        return self.role.can_use_power_on(target)
+    
     
     def get_targets(self):
         # Returns the list of Players that can be used as targets
@@ -262,8 +226,8 @@ class Player(CommonInfo):
             return False
         
         turn = self.game.current_turn
-        if turn.is_night():
-            # Players cannot vote during the night
+        if not turn.is_day():
+            # Players can vote only during the day
             return False
         
         # Everything seems to be OK

@@ -1,5 +1,6 @@
 from game.models import *
 
+
 def setup_roles():
     p = Team(team_name='Popolani')
     l = Team(team_name='Lupi')
@@ -32,6 +33,7 @@ def setup_roles():
     Role.objects.create(
         role_name='Divinatore',
         team=p,
+        is_mystic=True,
         has_power=False,
     )
     
@@ -46,15 +48,11 @@ def setup_roles():
         role_name='Espansivo',
         team=p,
         frequency=2,
-        on_living=True,
-        on_dead=False,
     )
     
     Role.objects.create(
         role_name='Guardia del corpo',
         team=p,
-        on_living=True,
-        on_dead=False,
     )
     
     Role.objects.create(
