@@ -5,6 +5,7 @@ from django import forms
 from django.utils.text import capfirst
 from django.contrib.auth.models import User
 
+
 class Game(models.Model):
     running = models.BooleanField(default=False)
     current_turn = models.ForeignKey('Turn', null=True, blank=True, related_name='+')
@@ -12,7 +13,18 @@ class Game(models.Model):
     def __unicode__(self):
         return u"Game %d" % self.pk
     game_name = property(__unicode__)
-
+    
+    def get_players(self):
+        return Player.objects.filter(game=self)
+    
+    def get_active_players(self):
+        return self.get_players().filter(active=True)
+    
+    def get_alive_players(self):
+        return self.get_active_players().filter(alive=True)
+    
+    def get_dead_players(self):
+        return self.get_active_players().filter(alive=False)
 
 
 class Turn(models.Model):
@@ -89,6 +101,10 @@ class Role(models.Model):
     aura = 'W'
     is_mystic = False
     
+    message = 'Usa il tuo potere su:'
+    message2 = 'Parametro secondario:'
+    message_ghost = 'Potere soprannaturale:'
+    
     last_usage = models.ForeignKey(Turn, null=True, blank=True, default=None)
     last_target = models.ForeignKey('Player', null=True, blank=True, default=None, related_name='target_inv_set')
     
@@ -105,7 +121,10 @@ class Role(models.Model):
     
     def can_use_power(self):
         return False
-
+    
+    def get_targets(self):
+        # Returns the list of possible targets
+        return None
 
 
 class Player(models.Model):
@@ -124,7 +143,7 @@ class Player(models.Model):
     game = models.ForeignKey(Game)
     team = models.CharField(max_length=1, choices=TEAMS, null=True, blank=True, default=None)
     
-    role = models.ForeignKey(Role, null=True, blank=True, default=None)
+    role = models.OneToOneField(Role, null=True, blank=True, default=None)
     aura = models.CharField(max_length=1, choices=AURA_COLORS, null=True, blank=True, default=None)
     is_mystic = models.BooleanField(default=False)
     

@@ -1,5 +1,5 @@
 from django.db import models
-from models import Role
+from models import Role, Player
 
 
 # Fazione dei Popolani
@@ -16,12 +16,8 @@ class Cacciatore(Role):
     def can_use_power(self):
         return self.player.alive
     
-    def can_use_power_on(self, target):
-        if self.player.pk == target.pk:
-            return False
-        if not target.alive:
-            return False
-        return True
+    def get_targets(self):
+        return self.player.game.get_alive_players().exclude(pk=self.pk)
 
 
 class Custode(Role):
@@ -31,10 +27,8 @@ class Custode(Role):
     def can_use_power(self):
         return self.player.alive
     
-    def can_use_power_on(self, target):
-        if target.alive:
-            return False
-        return True
+    def get_targets(self):
+        return self.player.game.get_dead_players().exclude(pk=self.pk)
 
 
 class Divinatore(Role):
@@ -48,11 +42,16 @@ class Esorcista(Role):
     team = 'P'
     is_mystic = True
     
+    message = 'Benedici la casa di:'
+    
     def can_use_power(self):
         return self.player.alive
     
     def can_use_power_on(self, target):
         return True
+    
+    def get_targets(self):
+        return self.player.game.get_active_players()
 
 
 class Espansivo(Role):
@@ -62,27 +61,21 @@ class Espansivo(Role):
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or (self.player.game.current_turn.day - self.last_usage.day >= 2) )
     
-    def can_use_power_on(self, target):
-        if self.player.pk == target.pk:
-            return False
-        if not target.alive:
-            return False
-        return True
+    def get_targets(self):
+        return self.player.game.get_alive_players().exclude(pk=self.pk)
 
 
 class Guardia(Role):
     role_name = 'Guardia'
     team = 'P'
     
+    message = 'Proteggi:'
+    
     def can_use_power(self):
         return self.player.alive
     
-    def can_use_power_on(self, target):
-        if self.player.pk == target.pk:
-            return False
-        if not target.alive:
-            return False
-        return True
+    def get_targets(self):
+        return self.player.game.get_alive_players().exclude(pk=self.pk)
 
 
 class Investigatore(Role):
@@ -92,12 +85,8 @@ class Investigatore(Role):
     def can_use_power(self):
         return self.player.alive
     
-    def can_use_power_on(self, target):
-        if self.player.pk == target.pk:
-            return False
-        if target.alive:
-            return False
-        return True
+    def get_targets(self):
+        return self.player.game.get_dead_players().exclude(pk=self.pk)
 
 
 class Mago(Role):
@@ -273,9 +262,10 @@ class Sequestratore(Role):
             return False
         if not target.alive:
             return False
-        if self.last_target.pk == target.pk:
+        if self.last_usage is not None and self.last_target.pk == target.pk and (self.player.game.current_turn.day - self.last_usage.day == 1):
             return False
         return True
+
 
 
 # Fazione dei Negromanti
