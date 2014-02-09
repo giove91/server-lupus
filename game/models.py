@@ -96,7 +96,7 @@ class Turn(models.Model):
 
 
 class Role(models.Model):
-    role_name = 'Generic role'
+    name = 'Generic role'
     team = 'P'
     aura = 'W'
     is_mystic = False
@@ -105,11 +105,19 @@ class Role(models.Model):
     message2 = 'Parametro secondario:'
     message_ghost = 'Potere soprannaturale:'
     
+    role_name = models.CharField(max_length=30)
+    
     last_usage = models.ForeignKey(Turn, null=True, blank=True, default=None)
     last_target = models.ForeignKey('Player', null=True, blank=True, default=None, related_name='target_inv_set')
     
+    def __init__(self, *args, **kwargs):
+        super(Role, self).__init__(*args, **kwargs)
+        if self.name != Role.name:
+            self.role_name = self.name
+    
     def __unicode__(self):
         return u"%s" % self.role_name
+    
     
     def get_team_name(self):
         teams = { 'P': 'Popolani', 'L': 'Lupi', 'N': 'Negromanti' }
@@ -125,6 +133,12 @@ class Role(models.Model):
     def get_targets(self):
         # Returns the list of possible targets
         return None
+    
+    def days_from_last_usage(self):
+        if last_usage is None:
+            return None
+        else:
+            return self.player.game.current_turn.day - self.last_usage.day
 
 
 class Player(models.Model):

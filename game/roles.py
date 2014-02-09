@@ -5,12 +5,12 @@ from models import Role, Player
 # Fazione dei Popolani
 
 class Contadino(Role):
-    role_name = 'Contadino'
+    name = 'Contadino'
     team = 'P'
 
 
 class Cacciatore(Role):
-    role_name = 'Cacciatore'
+    name = 'Cacciatore'
     team = 'P'
     
     def can_use_power(self):
@@ -21,7 +21,7 @@ class Cacciatore(Role):
 
 
 class Custode(Role):
-    role_name = 'Custode del cimitero'
+    name = 'Custode del cimitero'
     team = 'P'
     
     def can_use_power(self):
@@ -32,13 +32,13 @@ class Custode(Role):
 
 
 class Divinatore(Role):
-    role_name = 'Divinatore'
+    name = 'Divinatore'
     team = 'P'
     is_mystic = True
 
 
 class Esorcista(Role):
-    role_name = 'Esorcista'
+    name = 'Esorcista'
     team = 'P'
     is_mystic = True
     
@@ -55,18 +55,18 @@ class Esorcista(Role):
 
 
 class Espansivo(Role):
-    role_name = 'Espansivo'
+    name = 'Espansivo'
     team = 'P'
     
     def can_use_power(self):
-        return self.player.alive and ( self.last_usage is None or (self.player.game.current_turn.day - self.last_usage.day >= 2) )
+        return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
     
     def get_targets(self):
         return self.player.game.get_alive_players().exclude(pk=self.pk)
 
 
 class Guardia(Role):
-    role_name = 'Guardia'
+    name = 'Guardia'
     team = 'P'
     
     message = 'Proteggi:'
@@ -79,7 +79,7 @@ class Guardia(Role):
 
 
 class Investigatore(Role):
-    role_name = 'Investigatore'
+    name = 'Investigatore'
     team = 'P'
     
     def can_use_power(self):
@@ -90,131 +90,107 @@ class Investigatore(Role):
 
 
 class Mago(Role):
-    role_name = 'Mago'
+    name = 'Mago'
     team = 'P'
     is_mystic = True
     
     def can_use_power(self):
         return self.player.alive
     
-    def can_use_power_on(self, target):
-        if self.player.pk == target.pk:
-            return False
-        return True
+    def get_targets(self):
+        return self.player.game.get_active_players().exclude(pk=self.pk)
 
 
 class Massone(Role):
-    role_name = 'Massone'
+    name = 'Massone'
     team = 'P'
 
 
 class Messia(Role):
-    role_name = 'Messia'
+    name = 'Messia'
     team = 'P'
     is_mystic = True
     
     def can_use_power(self):
         return self.player.alive and self.last_usage is None
     
-    def can_use_power_on(self, target):
-        if target.alive:
-            return False
-        return True
+    def get_targets(self):
+        return self.player.game.get_dead_players().exclude(pk=self.pk)
 
 
 class Necrofilo(Role):
-    role_name = 'Necrofilo'
+    name = 'Necrofilo'
     team = 'P'
     
     def can_use_power(self):
         return self.player.alive and self.last_usage is None
     
-    def can_use_power_on(self, target):
-        if target.alive:
-            return False
-        return True
+    def get_targets(self):
+        return self.player.game.get_dead_players().exclude(pk=self.pk)
 
 
 class Stalker(Role):
-    role_name = 'Stalker'
+    name = 'Stalker'
     team = 'P'
     
     def can_use_power(self):
-        return self.player.alive and ( self.last_usage is None or (self.player.game.current_turn.day - self.last_usage.day >= 2) )
+        return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
     
-    def can_use_power_on(self, target):
-        if self.player.pk == target.pk:
-            return False
-        if not target.alive:
-            return False
-        return True
+    def get_targets(self):
+        return self.player.game.get_alive_players().exclude(pk=self.pk)
 
 
 class Veggente(Role):
-    role_name = 'Veggente'
+    name = 'Veggente'
     team = 'P'
     is_mystic = True
     
     def can_use_power(self):
         return self.player.alive
     
-    def can_use_power_on(self, target):
-        if self.player.pk == target.pk:
-            return False
-        if not target.alive:
-            return False
-        return True
+    def get_targets(self):
+        return self.player.game.get_alive_players().exclude(pk=self.pk)
 
 
 class Voyeur(Role):
-    role_name = 'Stalker'
+    name = 'Stalker'
     team = 'P'
     
     def can_use_power(self):
-        return self.player.alive and ( self.last_usage is None or (self.player.game.current_turn.day - self.last_usage.day >= 2) )
+        return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
     
-    def can_use_power_on(self, target):
-        if self.player.pk == target.pk:
-            return False
-        return True
+    def get_targets(self):
+        return self.player.game.get_active_players().exclude(pk=self.pk)
 
 
 # Fazione dei Lupi
 
 class Lupo(Role):
-    role_name = 'Lupo'
+    name = 'Lupo'
     team = 'L'
     aura = 'B'
     
     def can_use_power(self):
         return self.player.alive
     
-    def can_use_power_on(self, target):
-        if self.player.pk == target.pk:
-            return False
-        if not target.alive:
-            return False
-        return True
+    def get_targets(self):
+        return self.player.game.get_alive_players().exclude(pk=self.pk)
 
 
 class Avvocato(Role):
-    role_name = 'Avvocato del diavolo'
+    name = 'Avvocato del diavolo'
     team = 'L'
     aura = 'B'
     
     def can_use_power(self):
-        return self.player.alive and ( self.last_usage is None or (self.player.game.current_turn.day - self.last_usage.day >= 2) )
+        return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
     
-    def can_use_power_on(self, target):
-        if self.player.pk == target.pk:
-            return False
-        if not target.alive:
-            return False
-        return True
+    def get_targets(self):
+        return self.player.game.get_alive_players().exclude(pk=self.pk)
 
 
 class Diavolo(Role):
-    role_name = 'Diavolo'
+    name = 'Diavolo'
     team = 'L'
     aura = 'B'
     is_mystic = True
@@ -222,16 +198,12 @@ class Diavolo(Role):
     def can_use_power(self):
         return self.player.alive
     
-    def can_use_power_on(self, target):
-        if self.player.pk == target.pk:
-            return False
-        if not target.alive:
-            return False
-        return True
+    def get_targets(self):
+        return self.player.game.get_alive_players().exclude(pk=self.pk)
 
 
 class Fattucchiera(Role):
-    role_name = 'Fattucchiera'
+    name = 'Fattucchiera'
     team = 'L'
     aura = 'B'
     is_mystic = True
@@ -239,39 +211,35 @@ class Fattucchiera(Role):
     def can_use_power(self):
         return self.player.alive
     
-    def can_use_power_on(self, target):
-        return True
+    def get_targets(self):
+        return self.player.game.get_active_players()
 
 
 class Rinnegato(Role):
-    role_name = 'Rinnegato'
+    name = 'Rinnegato'
     team = 'L'
     aura = 'W'
 
 
 class Sequestratore(Role):
-    role_name = 'Sequestratore'
+    name = 'Sequestratore'
     team = 'L'
     aura = 'B'
     
     def can_use_power(self):
         return self.player.alive
     
-    def can_use_power_on(self, target):
-        if self.player.pk == target.pk:
-            return False
-        if not target.alive:
-            return False
-        if self.last_usage is not None and self.last_target.pk == target.pk and (self.player.game.current_turn.day - self.last_usage.day == 1):
-            return False
-        return True
-
+    def get_targets(self):
+        targets = self.player.game.get_alive_players().exclude(pk=self.pk)
+        if self.last_usage is not None and self.days_from_last_usage <= 1:
+            targets = targets.exclude(pk=self.last_target.pk)
+        return targets
 
 
 # Fazione dei Negromanti
 
 class Negromante(Role):
-    role_name = 'Negromante'
+    name = 'Negromante'
     team = 'N'
     is_mystic = True
     
@@ -279,50 +247,42 @@ class Negromante(Role):
         # TODO: aggiungere la condizione sul fatto che non siano stati creati spettri durante la notte precedente
         return self.player.alive
     
-    def can_use_power_on(self, target):
-        if target.alive:
-            return False
-        return True
+    def get_targets(self):
+        return self.player.game.get_dead_players().exclude(pk=self.pk)
     
     # TODO: gestire la scelta del potere dello spettro
 
 
 class Fantasma(Role):
-    role_name = 'Fantasma'
+    name = 'Fantasma'
     team = 'N'
 
 
 class Ipnotista(Role):
-    role_name = 'Ipnotista'
+    name = 'Ipnotista'
     team = 'N'
     
     def can_use_power(self):
-        return self.player.alive and ( self.last_usage is None or (self.player.game.current_turn.day - self.last_usage.day >= 2) )
+        return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
     
-    def can_use_power_on(self, target):
-        if self.player.pk == target.pk:
-            return False
-        if not target.alive:
-            return False
-        return True
+    def get_targets(self):
+        return self.player.game.get_alive_players().exclude(pk=self.pk)
 
 
 class Medium(Role):
-    role_name = 'Medium'
+    name = 'Medium'
     team = 'N'
     is_mystic = True
     
     def can_use_power(self):
         return self.player.alive
     
-    def can_use_power_on(self, target):
-        if target.alive:
-            return False
-        return True
+    def get_targets(self):
+        return self.player.game.get_dead_players().exclude(pk=self.pk)
 
 
 class Spettro(Role):
-    role_name = 'Spettro'
+    name = 'Spettro'
     team = 'N'
     
     def can_use_power(self):

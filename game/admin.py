@@ -25,6 +25,7 @@ class EventAdmin(admin.ModelAdmin):
     list_display = ('event_name', 'turn', 'timestamp')
 
 admin.site.register(Player, PlayerAdmin)
+admin.site.register(Role)
 # admin.site.register(Team)
 # admin.site.register(Role, RoleAdmin)
 admin.site.register(Event, EventAdmin)
