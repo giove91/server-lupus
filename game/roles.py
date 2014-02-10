@@ -259,14 +259,19 @@ class Negromante(Role):
     
     def can_use_power(self):
         # TODO: aggiungere la condizione sul fatto che non siano stati creati spettri durante la notte precedente
+        if Player.objects.filter(role__subclass='Spettro').filter(role__spettro__power=MORTE).count() >= 1:
+            # Lo Spettro della Morte e' gia' stato creato
+            return False
         return self.player.alive
     
     def get_targets(self):
         return self.player.game.get_dead_players().exclude(pk=self.pk)
     
     def get_targets_ghost(self):
-        used_powers = Player.objects.filter(role__role_name=Spettro.name)
-        # TODO: gestire la scelta del potere dello spettro
+        players = Player.objects.filter(role__subclass='Spettro')
+        powers = set(Spettro.POWER_NAMES.keys())
+        available_powers = powers - set([x.role.as_child().power for x in players])
+        return list(available_powers)
 
 
 class Fantasma(Role):
@@ -322,13 +327,28 @@ class Spettro(Role):
     has_power = models.BooleanField(default=True)   # Should be set to False when revived by the Messiah
     
     def can_use_power(self):
-        # TODO: aggiungere informazioni sul potere soprannaturale
         return not self.player.alive and self.has_power
-        return {
-            AMNESIA: lambda: not self.player.alive and self.has_power,
-            }[self.power]()
-
-
+    
+    def get_targets(self):
+        if self.power == AMNESIA:
+            targets = self.player.game.get_alive_players().exclude(pk=self.pk)
+            if self.last_usage is not None and self.days_from_last_usage <= 1:
+                targets = targets.exclude(pk=self.last_target.pk)
+        elif self.power == DUPLICAZIONE or self.power == ILLUSIONE or self.power == MORTE or self.power == OMBRA or self.power == VISIONE:
+            targets = self.player.game.get_alive_players().exclude(pk=self.pk)
+        elif self.power == MISTIFICAZIONE or self.power == OCCULTAMENTO:
+            targets = self.player.game.get_active_players().exclude(pk=self.pk)
+        else:
+            raise Exception('Supernatural power not considered.')
+        return targets
+    
+    def get_targets2(self):
+        if self.power == ILLUSIONE:
+            return self.player.game.get_active_players()
+        elif self.power == OMBRA:
+            return self.player.game.get_alive_players()
+        else:
+            return None
 
 
 

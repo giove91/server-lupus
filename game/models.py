@@ -102,18 +102,18 @@ class Turn(models.Model):
 
 class KnowsChild(models.Model):
     # Make a place to store the class name of the child
-    # (copied from http://blog.headspin.com/?p=474)
-    _my_subclass = models.CharField(max_length=200)
+    # (copied almost entirely from http://blog.headspin.com/?p=474)
+    subclass = models.CharField(max_length=200)
  
     class Meta:
         abstract = True
  
     def as_child(self):
-        return getattr(self, self._my_subclass)
+        return getattr(self, self.subclass.lower())
  
     def save(self, *args, **kwargs):
         # save what kind we are.
-        self._my_subclass = self.__class__.__name__.lower()
+        self.subclass = self.__class__.__name__
         super(KnowsChild, self).save(*args, **kwargs)
 
 
@@ -127,14 +127,8 @@ class Role(KnowsChild):
     message2 = 'Parametro secondario:'
     message_ghost = 'Potere soprannaturale:'
     
-    role_name = models.CharField(max_length=30)
-    
     last_usage = models.ForeignKey(Turn, null=True, blank=True, default=None)
     last_target = models.ForeignKey('Player', null=True, blank=True, default=None, related_name='target_inv_set')
-    
-    def save(self, *args,**kwargs):
-        self.role_name = self.name
-        super(Role, self).save(*args, **kwargs)
     
     def __unicode__(self):
         return u"%s" % self.name
@@ -144,6 +138,14 @@ class Role(KnowsChild):
     
     def get_targets(self):
         # Returns the list of possible targets
+        return None
+    
+    def get_targets2(self):
+        # Returns the list of possible second targets
+        return None
+    
+    def get_targets_ghost(self):
+        # Returns the list of possible ghost-power targets
         return None
     
     def days_from_last_usage(self):
