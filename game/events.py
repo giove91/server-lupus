@@ -1,5 +1,6 @@
 from django.db import models
 from models import Event, Role, Player
+from roles import *
 
 
 class CommandEvent(Event):
@@ -20,6 +21,7 @@ class CommandEvent(Event):
     
     target = models.ForeignKey(Player, null=True, blank=True, related_name='action_target_set')
     target2 = models.ForeignKey(Player, null=True, blank=True, related_name='action_target2_set')
+    target_ghost = models.CharField(max_length=1, choices=Spettro.POWERS_LIST)
     
     def __unicode__(self):
         return u"CommandEvent %d" % self.pk

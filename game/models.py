@@ -143,8 +143,14 @@ class Role(KnowsChild):
     message2 = 'Parametro secondario:'
     message_ghost = 'Potere soprannaturale:'
     
+    role_name = models.CharField(max_length=30)
+    
     last_usage = models.ForeignKey(Turn, null=True, blank=True, default=None)
     last_target = models.ForeignKey('Player', null=True, blank=True, default=None, related_name='target_inv_set')
+    
+    def save(self, *args,**kwargs):
+        self.role_name = self.name
+        super(Role, self).save(*args, **kwargs)
     
     def __unicode__(self):
         return u"%s" % self.name

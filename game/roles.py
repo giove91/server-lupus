@@ -266,7 +266,9 @@ class Negromante(Role):
     def get_targets(self):
         return self.player.game.get_dead_players().exclude(pk=self.pk)
     
-    # TODO: gestire la scelta del potere dello spettro
+    def get_targets_ghost(self):
+        used_powers = Player.objects.filter(role__role_name=Spettro.name)
+        # TODO: gestire la scelta del potere dello spettro
 
 
 class Fantasma(Role):
@@ -314,18 +316,29 @@ class Spettro(Role):
     OMBRA = 'B'
     VISIONE = 'V'
     
-    POWERS = (
-        (AMNESIA, 'Amnesia'),
-        (DUPLICAZIONE, 'Duplicazione'),
-        (ILLUSIONE, 'Illusione'),
-        (MISTIFICAZIONE, 'Mistificazione'),
-        (MORTE, 'Morte'),
-        (OCCULTAMENTO, 'Occultamento'),
-        (OMBRA, 'Ombra'),
-        (VISIONE, 'Visione'),
+    POWER_NAMES = {
+        AMNESIA: 'Amnesia',
+        DUPLICAZIONE: 'Duplicazione',
+        ILLUSIONE: 'Illusione',
+        MISTIFICAZIONE: 'Mistificazione',
+        MORTE: 'Morte',
+        OCCULTAMENTO: 'Occultamento',
+        OMBRA: 'Ombra',
+        VISIONE: 'Visione',
+    }
+    
+    POWERS_LIST = (
+        (AMNESIA, POWER_NAMES[AMNESIA]),
+        (DUPLICAZIONE, POWER_NAMES[DUPLICAZIONE]),
+        (ILLUSIONE, POWER_NAMES[ILLUSIONE]),
+        (MISTIFICAZIONE, POWER_NAMES[MISTIFICAZIONE]),
+        (MORTE, POWER_NAMES[MORTE]),
+        (OCCULTAMENTO, POWER_NAMES[OCCULTAMENTO]),
+        (OMBRA, POWER_NAMES[OMBRA]),
+        (VISIONE, POWER_NAMES[VISIONE]),
     )
     
-    power = models.CharField(max_length=1, choices=POWERS)
+    power = models.CharField(max_length=1, choices=POWERS_LIST)
     has_power = models.BooleanField(default=True)   # Should be set to False when revived by the Messiah
     
     def can_use_power(self):
