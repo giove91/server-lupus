@@ -1,14 +1,11 @@
 from django.db import models
 from models import Event, Role, Player
 from roles import *
+from constants import *
 
 
 class CommandEvent(Event):
     # A command submitted by a player
-    
-    USEPOWER = 'P'
-    VOTE = 'V'
-    ELECT = 'E'
     
     player = models.ForeignKey(Player, related_name='action_set')
     

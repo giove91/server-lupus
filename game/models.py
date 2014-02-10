@@ -5,29 +5,13 @@ from django import forms
 from django.utils.text import capfirst
 from django.contrib.auth.models import User
 
+from constants import *
 
-class Global:
-    # A class with the global constants
-    
-    # Turn phases
-    DAY = 'D'
-    SUNSET = 'S'
-    NIGHT = 'N'
-    DAWN = 'W'
-    
-    # Teams
-    POPOLANI = 'P'
-    LUPI = 'L'
-    NEGROMANTI = 'N'
-    
-    # Auras
-    WHITE = 'W'
-    BLACK = 'B'
 
 
 class Game(models.Model):
     running = models.BooleanField(default=False)
-    current_turn = models.ForeignKey('Turn', null=True, blank=True, related_name='+')
+    current_turn = models.ForeignKey('Turn', null=True, blank=True, related_name='_game')
     
     def __unicode__(self):
         return u"Game %d" % self.pk
@@ -51,10 +35,10 @@ class Turn(models.Model):
     day = models.IntegerField()
     
     TURN_PHASES = (
-        (Global.DAY, 'Day'),
-        (Global.SUNSET, 'Sunset'),
-        (Global.NIGHT, 'Night'),
-        (Global.DAWN, 'Dawn' ),
+        (DAY, 'Day'),
+        (SUNSET, 'Sunset'),
+        (NIGHT, 'Night'),
+        (DAWN, 'Dawn' ),
     )
     phase = models.CharField(max_length=1, choices=TURN_PHASES)
     begin = models.DateTimeField(default=datetime.now)
@@ -64,16 +48,16 @@ class Turn(models.Model):
         ordering = ['day', 'phase']
     
     def is_day(self):
-        return self.phase==Global.DAY
+        return self.phase==DAY
     
     def is_night(self):
-        return self.phase==Global.NIGHT
+        return self.phase==NIGHT
     
     def is_sunset(self):
-        return self.phase==Global.SUNSET
+        return self.phase==SUNSET
     
     def is_dawn(self):
-        return self.phase==Global.DAWN
+        return self.phase==DAWN
     
     def __unicode__(self):
         if self.is_day():
@@ -98,19 +82,19 @@ class Turn(models.Model):
             return 'Alba'
     
     def next_turn(self):
-        phase=Global.DAY
+        phase=DAY
         day=self.day
         # TODO: decidere quando avviene il cambio giorno
         
         if self.is_day():
-            phase=Global.SUNSET
+            phase=SUNSET
         elif self.is_sunset():
-            phase=Global.NIGHT
-        elif self.is_night():
-            phase=Global.DAWN
-        elif self.is_dawn():
-            phase=Global.DAY
+            phase=NIGHT
             day+=1
+        elif self.is_night():
+            phase=DAWN
+        elif self.is_dawn():
+            phase=DAY
         next_turn = Turn(game=self.game, day=day, phase=phase)
         return next_turn
 
@@ -119,7 +103,7 @@ class Turn(models.Model):
 class KnowsChild(models.Model):
     # Make a place to store the class name of the child
     # (copied from http://blog.headspin.com/?p=474)
-    _my_subclass = models.CharField(max_length=200) 
+    _my_subclass = models.CharField(max_length=200)
  
     class Meta:
         abstract = True
@@ -129,7 +113,7 @@ class KnowsChild(models.Model):
  
     def save(self, *args, **kwargs):
         # save what kind we are.
-        self._my_subclass = self.__class__.__name__.lower() 
+        self._my_subclass = self.__class__.__name__.lower()
         super(KnowsChild, self).save(*args, **kwargs)
 
 
@@ -171,14 +155,14 @@ class Role(KnowsChild):
 
 class Player(models.Model):
     AURA_COLORS = (
-        (Global.WHITE, 'White'),
-        (Global.BLACK, 'Black'),
+        (WHITE, 'White'),
+        (BLACK, 'Black'),
     )
     
     TEAMS = (
-        (Global.POPOLANI, 'Popolani'),
-        (Global.LUPI, 'Lupi'),
-        (Global.NEGROMANTI, 'Negromanti'),
+        (POPOLANI, 'Popolani'),
+        (LUPI, 'Lupi'),
+        (NEGROMANTI, 'Negromanti'),
     )
     
     user = models.OneToOneField(User, primary_key=True)
@@ -246,31 +230,6 @@ class Player(models.Model):
     
     can_use_power.boolean = True
     
-    
-    def can_use_power_on(self, target):
-        if not self.can_use_power():
-            # The player cannot use her power
-            return False
-        
-        if not target.active:
-            # Target has been exiled
-            return False
-        
-        return self.role.can_use_power_on(target)
-    
-    
-    def get_targets(self):
-        # Returns the list of Players that can be used as targets
-        res = Player.objects.filter(game=self.game).filter(active=True)
-        if not self.role.reflexive:
-            res = res.exclude(pk=self.pk)
-        if not self.role.on_living:
-            res = res.exclude(alive=True)
-        if not self.role.on_dead:
-            res = res.exclude(alive=False)
-        if not self.role.reusable_on_same_target and self.last_usage is not None and self.last_usage.day==self.game.current_turn.day-1 and self.last_target is not None:
-            res = res.exclude(pk=self.last_target.pk)
-        return res
     
     def can_vote(self):
         if not self.game.running:
