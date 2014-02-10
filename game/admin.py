@@ -7,7 +7,7 @@ class GameAdmin(admin.ModelAdmin):
     list_display = ('game_name', 'running', 'current_turn')
 
 class TurnAdmin(admin.ModelAdmin):
-    list_display = ('as_string', 'day', 'phase', 'begin', 'end')
+    list_display = ('as_string', 'date', 'phase', 'begin', 'end')
 
 class PlayerAdmin(admin.ModelAdmin):
     list_display = ('full_name', 'team', 'role', 'aura', 'alive', 'active', 'can_use_power', 'can_vote')

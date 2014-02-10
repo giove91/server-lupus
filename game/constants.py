@@ -4,6 +4,15 @@ SUNSET = 'S'
 NIGHT = 'N'
 DAWN = 'W'
 
+PHASE_CYCLE = {
+    DAY: SUNSET,
+    SUNSET: NIGHT,
+    NIGHT: DAWN,
+    DAWN: DAY,
+}
+
+FIRST_PHASE = DAY
+
 # Teams
 POPOLANI = 'P'
 LUPI = 'L'
