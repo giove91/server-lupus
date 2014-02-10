@@ -6,6 +6,25 @@ from django.utils.text import capfirst
 from django.contrib.auth.models import User
 
 
+class Global:
+    # A class with the global constants
+    
+    # Turn phases
+    DAY = 'D'
+    SUNSET = 'S'
+    NIGHT = 'N'
+    DAWN = 'W'
+    
+    # Teams
+    POPOLANI = 'P'
+    LUPI = 'L'
+    NEGROMANTI = 'N'
+    
+    # Auras
+    WHITE = 'W'
+    BLACK = 'B'
+
+
 class Game(models.Model):
     running = models.BooleanField(default=False)
     current_turn = models.ForeignKey('Turn', null=True, blank=True, related_name='+')
@@ -32,10 +51,10 @@ class Turn(models.Model):
     day = models.IntegerField()
     
     TURN_PHASES = (
-        ('D', 'Day'),
-        ('S', 'Sunset'),
-        ('N', 'Night'),
-        ('W', 'Dawn' ),
+        (Global.DAY, 'Day'),
+        (Global.SUNSET, 'Sunset'),
+        (Global.NIGHT, 'Night'),
+        (Global.DAWN, 'Dawn' ),
     )
     phase = models.CharField(max_length=1, choices=TURN_PHASES)
     begin = models.DateTimeField(default=datetime.now)
@@ -45,16 +64,16 @@ class Turn(models.Model):
         ordering = ['day', 'phase']
     
     def is_day(self):
-        return self.phase=='D'
+        return self.phase==Global.DAY
     
     def is_night(self):
-        return self.phase=='N'
+        return self.phase==Global.NIGHT
     
     def is_sunset(self):
-        return self.phase=='S'
+        return self.phase==Global.SUNSET
     
     def is_dawn(self):
-        return self.phase=='W'
+        return self.phase==Global.DAWN
     
     def __unicode__(self):
         if self.is_day():
@@ -79,46 +98,59 @@ class Turn(models.Model):
             return 'Alba'
     
     def next_turn(self):
-        phase='D'
+        phase=Global.DAY
         day=self.day
+        # TODO: decidere quando avviene il cambio giorno
         
         if self.is_day():
-            phase='S'
+            phase=Global.SUNSET
         elif self.is_sunset():
-            phase='N'
+            phase=Global.NIGHT
         elif self.is_night():
-            phase='W'
+            phase=Global.DAWN
         elif self.is_dawn():
-            phase='D'
+            phase=Global.DAY
             day+=1
         next_turn = Turn(game=self.game, day=day, phase=phase)
         return next_turn
 
 
-class Role(models.Model):
+
+class KnowsChild(models.Model):
+    # Make a place to store the class name of the child
+    # (copied from http://blog.headspin.com/?p=474)
+    _my_subclass = models.CharField(max_length=200) 
+ 
+    class Meta:
+        abstract = True
+ 
+    def as_child(self):
+        return getattr(self, self._my_subclass)
+ 
+    def save(self, *args, **kwargs):
+        # save what kind we are.
+        self._my_subclass = self.__class__.__name__.lower() 
+        super(KnowsChild, self).save(*args, **kwargs)
+
+
+class Role(KnowsChild):
     name = 'Generic role'
-    team = 'P'
-    aura = 'W'
+    team = None
+    aura = None
     is_mystic = False
     
     message = 'Usa il tuo potere su:'
     message2 = 'Parametro secondario:'
     message_ghost = 'Potere soprannaturale:'
     
-    role_name = models.CharField(max_length=30)
-    
     last_usage = models.ForeignKey(Turn, null=True, blank=True, default=None)
     last_target = models.ForeignKey('Player', null=True, blank=True, default=None, related_name='target_inv_set')
     
-    def __init__(self, *args, **kwargs):
-        super(Role, self).__init__(*args, **kwargs)
-        if self.name != Role.name:
-            self.role_name = self.name
-    
     def __unicode__(self):
-        return u"%s" % self.role_name
+        return u"%s" % self.name
     
-    
+    # Le due funzioni che seguono probabilmente non dovrebbero stare qui
+    '''
     def get_team_name(self):
         teams = { 'P': 'Popolani', 'L': 'Lupi', 'N': 'Negromanti' }
         return teams[self.team]
@@ -126,6 +158,7 @@ class Role(models.Model):
     def get_aura(self):
         auras = { 'W': 'White', 'B': 'Black' }
         return auras[self.aura]
+    '''
     
     def can_use_power(self):
         return False
@@ -143,14 +176,14 @@ class Role(models.Model):
 
 class Player(models.Model):
     AURA_COLORS = (
-        ('W', 'White'),
-        ('B', 'Black'),
+        (Global.WHITE, 'White'),
+        (Global.BLACK, 'Black'),
     )
     
     TEAMS = (
-        ('P', 'Popolani'),
-        ('L', 'Lupi'),
-        ('N', 'Negromanti'),
+        (Global.POPOLANI, 'Popolani'),
+        (Global.LUPI, 'Lupi'),
+        (Global.NEGROMANTI, 'Negromanti'),
     )
     
     user = models.OneToOneField(User, primary_key=True)
@@ -175,11 +208,14 @@ class Player(models.Model):
     def __unicode__(self):
         return u"%s %s" % (self.user.first_name, self.user.last_name)
     
+    # TODO: questa funzione forse non deve stare qui
+    '''
     def aura_as_italian_string(self):
         if self.aura=='W':
             return "Bianca"
         else:
             return "Nera"
+    '''
     
     def status_as_italian_string(self):
         if self.active:
@@ -286,12 +322,16 @@ class Event(models.Model):
 class CommandEvent(Event):
     # A command submitted by a player
     
+    USEPOWER = 'P'
+    VOTE = 'V'
+    ELECT = 'E'
+    
     player = models.ForeignKey(Player, related_name='action_set')
     
     ACTION_TYPES = (
-        ('P', 'UsePower'),
-        ('V', 'Vote'),
-        ('E', 'Elect'),
+        (USEPOWER, 'UsePower'),
+        (VOTE, 'Vote'),
+        (ELECT, 'Elect'),
     )
     type = models.CharField(max_length=1, choices=ACTION_TYPES)
     
