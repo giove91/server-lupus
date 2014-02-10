@@ -149,17 +149,6 @@ class Role(KnowsChild):
     def __unicode__(self):
         return u"%s" % self.name
     
-    # Le due funzioni che seguono probabilmente non dovrebbero stare qui
-    '''
-    def get_team_name(self):
-        teams = { 'P': 'Popolani', 'L': 'Lupi', 'N': 'Negromanti' }
-        return teams[self.team]
-    
-    def get_aura(self):
-        auras = { 'W': 'White', 'B': 'Black' }
-        return auras[self.aura]
-    '''
-    
     def can_use_power(self):
         return False
     
@@ -318,28 +307,6 @@ class Event(models.Model):
     
     event_name = property(__unicode__)
 
-
-class CommandEvent(Event):
-    # A command submitted by a player
-    
-    USEPOWER = 'P'
-    VOTE = 'V'
-    ELECT = 'E'
-    
-    player = models.ForeignKey(Player, related_name='action_set')
-    
-    ACTION_TYPES = (
-        (USEPOWER, 'UsePower'),
-        (VOTE, 'Vote'),
-        (ELECT, 'Elect'),
-    )
-    type = models.CharField(max_length=1, choices=ACTION_TYPES)
-    
-    target = models.ForeignKey(Player, null=True, blank=True, related_name='action_target_set')
-    target2 = models.ForeignKey(Player, null=True, blank=True, related_name='action_target2_set')
-    
-    def __unicode__(self):
-        return u"CommandEvent %d" % self.pk
 
 
 '''

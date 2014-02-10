@@ -1,17 +1,19 @@
 from django.db import models
-from models import Role, Player
+from models import Role, Player, Global
 
 
 # Fazione dei Popolani
 
 class Contadino(Role):
     name = 'Contadino'
-    team = 'P'
+    team = Global.POPOLANI
+    aura = Global.WHITE
 
 
 class Cacciatore(Role):
     name = 'Cacciatore'
-    team = 'P'
+    team = Global.POPOLANI
+    aura = Global.WHITE
     
     def can_use_power(self):
         return self.player.alive
@@ -22,7 +24,8 @@ class Cacciatore(Role):
 
 class Custode(Role):
     name = 'Custode del cimitero'
-    team = 'P'
+    team = Global.POPOLANI
+    aura = Global.WHITE
     
     def can_use_power(self):
         return self.player.alive
@@ -33,13 +36,15 @@ class Custode(Role):
 
 class Divinatore(Role):
     name = 'Divinatore'
-    team = 'P'
+    team = Global.POPOLANI
+    aura = Global.WHITE
     is_mystic = True
 
 
 class Esorcista(Role):
     name = 'Esorcista'
-    team = 'P'
+    team = Global.POPOLANI
+    aura = Global.WHITE
     is_mystic = True
     
     message = 'Benedici la casa di:'
@@ -56,7 +61,8 @@ class Esorcista(Role):
 
 class Espansivo(Role):
     name = 'Espansivo'
-    team = 'P'
+    team = Global.POPOLANI
+    aura = Global.WHITE
     
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
@@ -67,7 +73,8 @@ class Espansivo(Role):
 
 class Guardia(Role):
     name = 'Guardia'
-    team = 'P'
+    team = Global.POPOLANI
+    aura = Global.WHITE
     
     message = 'Proteggi:'
     
@@ -80,7 +87,8 @@ class Guardia(Role):
 
 class Investigatore(Role):
     name = 'Investigatore'
-    team = 'P'
+    team = Global.POPOLANI
+    aura = Global.WHITE
     
     def can_use_power(self):
         return self.player.alive
@@ -91,7 +99,8 @@ class Investigatore(Role):
 
 class Mago(Role):
     name = 'Mago'
-    team = 'P'
+    team = Global.POPOLANI
+    aura = Global.WHITE
     is_mystic = True
     
     def can_use_power(self):
@@ -103,12 +112,14 @@ class Mago(Role):
 
 class Massone(Role):
     name = 'Massone'
-    team = 'P'
+    team = Global.POPOLANI
+    aura = Global.WHITE
 
 
 class Messia(Role):
     name = 'Messia'
-    team = 'P'
+    team = Global.POPOLANI
+    aura = Global.WHITE
     is_mystic = True
     
     def can_use_power(self):
@@ -120,7 +131,8 @@ class Messia(Role):
 
 class Necrofilo(Role):
     name = 'Necrofilo'
-    team = 'P'
+    team = Global.POPOLANI
+    aura = Global.WHITE
     
     def can_use_power(self):
         return self.player.alive and self.last_usage is None
@@ -131,7 +143,8 @@ class Necrofilo(Role):
 
 class Stalker(Role):
     name = 'Stalker'
-    team = 'P'
+    team = Global.POPOLANI
+    aura = Global.WHITE
     
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
@@ -142,7 +155,8 @@ class Stalker(Role):
 
 class Veggente(Role):
     name = 'Veggente'
-    team = 'P'
+    team = Global.POPOLANI
+    aura = Global.WHITE
     is_mystic = True
     
     def can_use_power(self):
@@ -154,21 +168,22 @@ class Veggente(Role):
 
 class Voyeur(Role):
     name = 'Stalker'
-    team = 'P'
+    team = Global.POPOLANI
+    aura = Global.WHITE
     
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
     
     def get_targets(self):
-        return self.player.game.get_active_players().exclude(pk=self.pk)
+        return self.player.game.get_alive_players().exclude(pk=self.pk)
 
 
 # Fazione dei Lupi
 
 class Lupo(Role):
     name = 'Lupo'
-    team = 'L'
-    aura = 'B'
+    team = Global.LUPI
+    aura = Global.BLACK
     
     def can_use_power(self):
         return self.player.alive
@@ -179,8 +194,8 @@ class Lupo(Role):
 
 class Avvocato(Role):
     name = 'Avvocato del diavolo'
-    team = 'L'
-    aura = 'B'
+    team = Global.LUPI
+    aura = Global.BLACK
     
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
@@ -191,8 +206,8 @@ class Avvocato(Role):
 
 class Diavolo(Role):
     name = 'Diavolo'
-    team = 'L'
-    aura = 'B'
+    team = Global.LUPI
+    aura = Global.BLACK
     is_mystic = True
     
     def can_use_power(self):
@@ -204,8 +219,8 @@ class Diavolo(Role):
 
 class Fattucchiera(Role):
     name = 'Fattucchiera'
-    team = 'L'
-    aura = 'B'
+    team = Global.LUPI
+    aura = Global.BLACK
     is_mystic = True
     
     def can_use_power(self):
@@ -217,14 +232,14 @@ class Fattucchiera(Role):
 
 class Rinnegato(Role):
     name = 'Rinnegato'
-    team = 'L'
-    aura = 'W'
+    team = Global.LUPI
+    aura = Global.WHITE
 
 
 class Sequestratore(Role):
     name = 'Sequestratore'
-    team = 'L'
-    aura = 'B'
+    team = Global.LUPI
+    aura = Global.BLACK
     
     def can_use_power(self):
         return self.player.alive
@@ -240,7 +255,8 @@ class Sequestratore(Role):
 
 class Negromante(Role):
     name = 'Negromante'
-    team = 'N'
+    team = Global.NEGROMANTI
+    aura = Global.WHITE
     is_mystic = True
     
     def can_use_power(self):
@@ -255,12 +271,14 @@ class Negromante(Role):
 
 class Fantasma(Role):
     name = 'Fantasma'
-    team = 'N'
+    team = Global.NEGROMANTI
+    aura = Global.WHITE
 
 
 class Ipnotista(Role):
     name = 'Ipnotista'
-    team = 'N'
+    team = Global.NEGROMANTI
+    aura = Global.WHITE
     
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
@@ -271,7 +289,8 @@ class Ipnotista(Role):
 
 class Medium(Role):
     name = 'Medium'
-    team = 'N'
+    team = Global.NEGROMANTI
+    aura = Global.WHITE
     is_mystic = True
     
     def can_use_power(self):
@@ -283,11 +302,35 @@ class Medium(Role):
 
 class Spettro(Role):
     name = 'Spettro'
-    team = 'N'
+    team = Global.NEGROMANTI
+    aura = None
+    
+    AMNESIA = 'A'
+    DUPLICAZIONE = 'D'
+    ILLUSIONE = 'I'
+    MISTIFICAZIONE = 'M'
+    MORTE = 'R'
+    OCCULTAMENTO = 'O'
+    OMBRA = 'B'
+    VISIONE = 'V'
+    
+    POWERS = (
+        (AMNESIA, 'Amnesia'),
+        (DUPLICAZIONE, 'Duplicazione'),
+        (ILLUSIONE, 'Illusione'),
+        (MISTIFICAZIONE, 'Mistificazione'),
+        (MORTE, 'Morte'),
+        (OCCULTAMENTO, 'Occultamento'),
+        (OMBRA, 'Ombra'),
+        (VISIONE, 'Visione'),
+    )
+    
+    power = models.CharField(max_length=1, choices=POWERS)
+    has_power = models.BooleanField(default=True)   # Should be set to False when revived by the Messiah
     
     def can_use_power(self):
         # TODO: aggiungere informazioni sul potere soprannaturale
-        return not self.player.alive
+        return not self.player.alive and self.has_power
 
 
 
