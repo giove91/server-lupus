@@ -35,20 +35,21 @@ class Game(models.Model):
 
 class Turn(models.Model):
     game = models.ForeignKey(Game)
-    day = models.IntegerField()
+    date = models.IntegerField()
     
-    TURN_PHASES = (
+    TURN_PHASES = dict((
         (DAY, 'Day'),
         (SUNSET, 'Sunset'),
         (NIGHT, 'Night'),
         (DAWN, 'Dawn' ),
-    )
+    ))
     phase = models.CharField(max_length=1, choices=TURN_PHASES)
-    begin = models.DateTimeField(default=datetime.now)
+    begin = models.DateTimeField(null=True, blank=True)
     end = models.DateTimeField(null=True, blank=True)
     
     class Meta:
-        ordering = ['day', 'phase']
+        ordering = ['date', 'phase']
+        unique_together = (('game', 'date', 'phase'),)
     
     def is_day(self):
         return self.phase==DAY
@@ -63,44 +64,31 @@ class Turn(models.Model):
         return self.phase==DAWN
     
     def __unicode__(self):
-        if self.is_day():
-            return u"Day %d" % self.day
-        elif self.is_night():
-            return u"Night %d" % self.day
-        elif self.is_sunset():
-            return u"Sunset %d" % self.day
-        elif self.is_dawn():
-            return u"Dawn %d" %self.day
+        return "%s %d" % (Turn.TURN_PHASES[self.phase], self.date)
         
     as_string = property(__unicode__)
     
     def phase_as_italian_string(self):
-        if self.is_day():
-            return 'Giorno'
-        elif self.is_night():
-            return 'Notte'
-        elif self.is_sunset():
-            return 'Tramonto'
-        elif self.is_dawn():
-            return 'Alba'
+        return {
+            DAY: 'Giorno',
+            SUNSET: 'Tramonto',
+            NIGHT: 'Notte',
+            DAWN: 'Alba',
+            }[self.phase]
     
     def next_turn(self):
-        phase=DAY
-        day=self.day
-        # TODO: decidere quando avviene il cambio giorno
-        
-        if self.is_day():
-            phase=SUNSET
-        elif self.is_sunset():
-            phase=NIGHT
-            day+=1
-        elif self.is_night():
-            phase=DAWN
-        elif self.is_dawn():
-            phase=DAY
-        next_turn = Turn(game=self.game, day=day, phase=phase)
-        return next_turn
+        phase = PHASE_CYCLE[self.phase]
+        date = self.date
+        if phase == FIRST_PHASE:
+            date += 1
 
+        try:
+            next_turn = Turn.objects.get(game=self.game, date=date, phase=phase)
+        except Turn.DoesNotExist:
+            next_turn = Turn(game=self.game, date=date, phase=phase)
+            next_turn.save()
+
+        return next_turn
 
 
 class KnowsChild(models.Model):
