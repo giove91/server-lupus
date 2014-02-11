@@ -37,13 +37,13 @@ class Turn(models.Model):
     game = models.ForeignKey(Game)
     date = models.IntegerField()
     
-    TURN_PHASES = dict((
-        (DAY, 'Day'),
-        (SUNSET, 'Sunset'),
-        (NIGHT, 'Night'),
-        (DAWN, 'Dawn' ),
-    ))
-    phase = models.CharField(max_length=1, choices=TURN_PHASES)
+    TURN_PHASES = {
+        DAY: 'Day',
+        SUNSET: 'Sunset',
+        NIGHT: 'Night',
+        DAWN: 'Dawn',
+        }
+    phase = models.CharField(max_length=1, choices=TURN_PHASES.items())
     begin = models.DateTimeField(null=True, blank=True)
     end = models.DateTimeField(null=True, blank=True)
     

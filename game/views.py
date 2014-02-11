@@ -51,12 +51,12 @@ class VillageStatusView(View):
         exiled_players = Player.objects.filter(active=False)
         
         game_running = None
-        day = None
+        date = None
         phase = None
         
         try:
             game = Game.objects.get()
-            day = game.current_turn.day
+            date = game.current_turn.date
             phase = game.current_turn.phase_as_italian_string()
             game_running = game.running
         except Game.DoesNotExist:
@@ -68,7 +68,7 @@ class VillageStatusView(View):
             'dead_players': dead_players,
             'exiled_players': exiled_players,
             'game_running': game_running,
-            'day': day,
+            'date': date,
             'phase': phase,
         }   
         return render(request, 'status.html', context)
