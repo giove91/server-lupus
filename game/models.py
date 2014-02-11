@@ -23,6 +23,9 @@ class Game(models.Model):
     def get_active_players(self):
         return self.get_players().filter(active=True)
     
+    def get_exiled_players(self):
+        return self.get_players().filter(active=False)
+    
     def get_alive_players(self):
         return self.get_active_players().filter(alive=True)
     
