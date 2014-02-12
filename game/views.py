@@ -46,22 +46,24 @@ def setup(request):
 
 class VillageStatusView(View):
     def get(self, request):
-        alive_players = Player.objects.filter(active=True).filter(alive=True)
-        dead_players = Player.objects.filter(active=True).filter(alive=False)
-        exiled_players = Player.objects.filter(active=False)
         
         game_running = None
         date = None
         phase = None
+        alive_players = None
+        dead_players = None
         
         try:
             game = Game.objects.get()
-            date = game.current_turn.date
-            phase = game.current_turn.phase_as_italian_string()
             game_running = game.running
+            if game.current_turn is not None:
+                date = game.current_turn.date
+                phase = game.current_turn.phase_as_italian_string()
+            alive_players = game.get_alive_players()
+            dead_players = game.get_dead_players()
+            exiled_players = game.get_exiled_players()
         except Game.DoesNotExist:
             game_running = False
-        
         
         context = {
             'alive_players': alive_players,
@@ -77,7 +79,7 @@ class VillageStatusView(View):
 
 
 
-class ActionForm(forms.Form):
+class CommandForm(forms.Form):
     # Generic form for submitting actions
     
     def __init__(self, *args, **kwargs):
@@ -93,46 +95,38 @@ class ActionForm(forms.Form):
             )
 
 
-class ActionView(View):
+class CommandView(View):
     
-    template_name = 'action.html'
+    template_name = 'command.html'
     
     def check(self, request):
         # Checks if the action can be done
-        return request.user.player.game.running
+        raise Exception ('Command not specified.')
     
     def get_fields(self, request):
         # Returns a description of the fields required
-        
-        queryset = Player.objects.all()
-        initial = None
-        
-        fields = [ {'name': 'target', 'queryset': queryset, 'initial': initial, 'label': 'Agisci su'} ]
-        return fields
+        raise Exception ('Command not specified.')
     
     def not_allowed(self, request):
-        return render(request, 'action_not_allowed.html', {'message': "Non puoi eseguire quest'azione."})
+        return render(request, 'command_not_allowed.html', {'message': 'Non puoi eseguire questa azione.'})
     
     def submitted(self, request):
-        return render(request, 'action_submitted.html')
+        return render(request, 'command_submitted.html')
     
-    def save_action(self, request, cleaned_data):
-        # Saves the form data
-        player = request.user.player
-        target = cleaned_data['target']
-        
-        action = Action(player=player, type='P', target=target, day=player.game.current_turn.day)
-        action.save()
-    
+    def save_command(self, request, cleaned_data):
+        # Validates the form data and possibly saves the command, returning True in case of success and False otherwise
+        raise Exception ('Command not specified.')
     
     def post(self, request):
         if not self.check(request):
             return self.not_allowed(request)
         
-        form = ActionForm(request.POST, fields=self.get_fields(request))
+        form = CommandForm(request.POST, fields=self.get_fields(request))
         if form.is_valid():
-            self.save_action(request, form.cleaned_data)
-            return self.submitted(request)
+            if self.save_command(request, form.cleaned_data):
+                return self.submitted(request)
+            else:
+                return render(request, 'command_not_allowed.html', {'message': 'La scelta effettuata non &egrave; valida.'})
         else:
             return render(request, self.template_name, {'form': form})
     
@@ -140,113 +134,148 @@ class ActionView(View):
         if not self.check(request):
             return self.not_allowed(request)
         
-        form = ActionForm(fields=self.get_fields(request))
+        form = CommandForm(fields=self.get_fields(request))
         return render(request, self.template_name, {'form': form})
 
 
 
-class UsePowerView(ActionView):
+class UsePowerView(CommandView):
     
-    template_name = 'action_usepower.html'
+    template_name = 'command_usepower.html'
     
     def check(self, request):
-        # Checks if the action can be done
         return request.user.player.can_use_power()
     
     def get_fields(self, request):
-        # Returns a description of the fields required
-        
-        #TODO: caso dei ruoli che devono agire su piu' personaggi
-        
         player = request.user.player
         game = player.game
-        queryset = player.get_targets()
+        
+        targets = player.get_targets()
+        targets2 = player.get_targets2()
+        targets_ghost = player.get_targets_ghost()
+        
         initial = None
+        initial2 = None
+        initial_ghost = None
         
         try:
-            old_action = Action.objects.filter(day=game.current_turn.day).filter(type='P').filter(player=player).order_by('-pk')[0:1].get()
-            initial = old_action.target
-        except Action.DoesNotExist:
-            initial = None
+            old_command = CommandEvent.objects.filter(turn=game.current_turn).filter(type=USEPOWER).filter(player=player).order_by('-pk')[0:1].get()
+            initial = old_command.target
+            initial2 = old_command.target2
+            initial_ghost = old_command.target_ghost
+        except CommandEvent.DoesNotExist:
+            pass
         
-        fields = [ {'name': 'target', 'queryset': queryset, 'initial': initial, 'label': 'Utilizza il tuo potere su'} ]
+        # "target" field is always assumed to be present
+        fields = [ {'name': 'target', 'queryset': targets, 'initial': initial, 'label': player.role.as_child().message} ]
+        if targets2 is not None:
+            fields.append( {'name': 'target2', 'queryset': targets2, 'initial': initial2, 'label': player.role.as_child().message2} )
+        if targets_ghost is not None:
+            fields.append( {'name': 'target_ghost', 'queryset': targets_ghost, 'initial': initial_ghost, 'label': player.role.as_child().message_ghost} )
+        
         return fields
     
-    def save_action(self, request, cleaned_data):
-        # Saves the form data
+    def save_command(self, request, cleaned_data):
         player = request.user.player
-        target = cleaned_data['target']
         
-        action = Action(player=player, type='P', target=target, day=player.game.current_turn.day)
-        action.save()
+        targets = player.get_targets()
+        targets2 = player.get_targets2()
+        targets_ghost = player.get_targets_ghost()
+        
+        target = cleaned_data['target']
+        target2 = None
+        target_ghost = None
+        
+        if target is not None and not target in targets:
+            return False
+        
+        if targets2 is not None:
+            target2 = cleaned_data['target2']
+            if not target2 in targets2:
+                return False
+        if targets_ghost is not None:
+            target_ghost = cleaned_data['target_ghost']
+            if not target_ghost in targets_ghost:
+                return False
+        
+        # If target is None, then the other fields are set to None
+        if target is None:
+            target2 = None
+            target_ghost = None
+        
+        command = CommandEvent(player=player, type=USEPOWER, target=target, target2=target2, target_ghost=target_ghost, turn=player.game.current_turn)
+        command.save()
+        return True
 
 
-class VoteView(ActionView):
+class VoteView(CommandView):
     
-    template_name = 'action_vote.html'
+    template_name = 'command_vote.html'
     
     def check(self, request):
-        # Checks if the action can be done
         return request.user.player.can_vote()
     
     def get_fields(self, request):
-        # Returns a description of the fields required
-        
         player = request.user.player
         game = player.game
-        queryset = Player.objects.filter(active=True).filter(alive=True)
+        queryset = game.get_alive_players()
         initial = None
         
         try:
-            old_action = Action.objects.filter(day=game.current_turn.day).filter(type='V').filter(player=player).order_by('-pk')[0:1].get()
-            initial = old_action.target
-        except Action.DoesNotExist:
+            old_command = CommandEvent.objects.filter(turn=game.current_turn).filter(type=VOTE).filter(player=player).order_by('-pk')[0:1].get()
+            initial = old_command.target
+        except CommandEvent.DoesNotExist:
             initial = None
         
-        fields = [ {'name': 'target', 'queryset': queryset, 'initial': initial, 'label': 'Vota per condannare a morte'} ]
+        fields = [ {'name': 'target', 'queryset': queryset, 'initial': initial, 'label': 'Vota per condannare a morte:'} ]
         return fields
     
     def save_action(self, request, cleaned_data):
-        # Saves the form data
         player = request.user.player
+        game = player.game
         target = cleaned_data['target']
         
-        action = Action(player=player, type='V', target=target, day=player.game.current_turn.day)
+        if target is not None and target not in game.get_alive_players():
+            return False
+        
+        action = CommandEvent(player=player, type=VOTE, target=target, turn=game.current_turn)
         action.save()
+        return True
 
 
-class ElectView(ActionView):
+class ElectView(CommandView):
     
-    template_name = 'action_elect.html'
+    template_name = 'command_elect.html'
     
     def check(self, request):
-        # Checks if the action can be done
         return request.user.player.can_vote()
     
     def get_fields(self, request):
-        # Returns a description of the fields required
-        
         player = request.user.player
         game = player.game
-        queryset = Player.objects.filter(active=True).filter(alive=True)
+        queryset = game.get_alive_players()
         initial = None
         
         try:
-            old_action = Action.objects.filter(day=game.current_turn.day).filter(type='E').filter(player=player).order_by('-pk')[0:1].get()
-            initial = old_action.target
-        except Action.DoesNotExist:
+            old_command = CommandEvent.objects.filter(turn=game.current_turn).filter(type=ELECT).filter(player=player).order_by('-pk')[0:1].get()
+            initial = old_command.target
+        except CommandEvent.DoesNotExist:
             initial = None
         
-        fields = [ {'name': 'target', 'queryset': queryset, 'initial': initial, 'label': 'Vota per eleggere'} ]
+        fields = [ {'name': 'target', 'queryset': queryset, 'initial': initial, 'label': 'Vota per eleggere:'} ]
         return fields
     
     def save_action(self, request, cleaned_data):
-        # Saves the form data
         player = request.user.player
+        game = player.game
         target = cleaned_data['target']
         
-        action = Action(player=player, type='E', target=target, day=player.game.current_turn.day)
+        if target is not None and target not in game.get_alive_players():
+            return False
+        
+        action = CommandEvente(player=player, type=ELECT, target=target, turn=game.current_turn)
         action.save()
+        return True
 
 
 class PersonalInfoView(View):
