@@ -32,6 +32,7 @@ class KnowsChild(models.Model):
 class Game(models.Model):
     running = models.BooleanField(default=False)
     current_turn = models.ForeignKey('Turn', null=True, blank=True, related_name='_game')
+    mayor = models.ForeignKey('Player', null=True, blank=True, related_name='_game')
     
     def __unicode__(self):
         return u"Game %d" % self.pk
@@ -362,6 +363,13 @@ class Player(models.Model):
     
     can_vote.boolean = True
     
+    def is_mayor(self):
+        # True if this player is the Mayor
+        if self.game.mayor is None:
+            return False
+        return self.pk == self.game.mayor.pk
+    
+    is_mayor.boolean = True
 
 
 class Event(KnowsChild):

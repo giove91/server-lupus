@@ -5,13 +5,13 @@ from game.events import *
 
 
 class GameAdmin(admin.ModelAdmin):
-    list_display = ('game_name', 'running', 'current_turn')
+    list_display = ('game_name', 'running', 'current_turn', 'mayor')
 
 class TurnAdmin(admin.ModelAdmin):
     list_display = ('as_string', 'date', 'phase', 'begin', 'end')
 
 class PlayerAdmin(admin.ModelAdmin):
-    list_display = ('full_name', 'team', 'role_name', 'aura', 'alive', 'active', 'can_use_power', 'can_vote')
+    list_display = ('full_name', 'team', 'role_name', 'aura', 'alive', 'active', 'can_use_power', 'can_vote', 'is_mayor')
     list_filter = ['team', 'alive', 'active']
     search_fields = ['user__first_name', 'user__last_name']
 

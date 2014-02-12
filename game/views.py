@@ -54,6 +54,7 @@ class VillageStatusView(View):
         phase = None
         alive_players = None
         dead_players = None
+        exiled_players = None
         
         try:
             game = Game.objects.get()
