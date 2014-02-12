@@ -1,5 +1,8 @@
 
-import datetime
+# The leading underscore is required, because otherwise importing *
+# from constants would also import datetime (and overwrite the real
+# definition of datetime there)
+import datetime as _datetime
 
 # Turn phases
 DAY = 'D'
@@ -16,14 +19,14 @@ PHASE_CYCLE = {
 
 FIRST_PHASE = NIGHT
 FIRST_DATE = 1
-FIRST_PHASE_BEGIN_TIME = datetime.time(hour=22)
+FIRST_PHASE_BEGIN_TIME = _datetime.time(hour=22)
 
 HALF_PHASES = [SUNSET, DAWN]
 FULL_PHASES = [DAY, NIGHT]
 
 FULL_PHASE_END_TIMES = {
-    NIGHT: datetime.time(hour=8),
-    DAY: datetime.time(hour=22),
+    NIGHT: _datetime.time(hour=8),
+    DAY: _datetime.time(hour=22),
     }
 
 # Teams
