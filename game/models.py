@@ -10,6 +10,23 @@ from constants import *
 from utils import advance_to_time
 
 
+class KnowsChild(models.Model):
+    # Make a place to store the class name of the child
+    # (copied almost entirely from http://blog.headspin.com/?p=474)
+    subclass = models.CharField(max_length=200)
+ 
+    class Meta:
+        abstract = True
+ 
+    def as_child(self):
+        return getattr(self, self.subclass.lower())
+ 
+    def save(self, *args, **kwargs):
+        # save what kind we are.
+        self.subclass = self.__class__.__name__
+        super(KnowsChild, self).save(*args, **kwargs)
+
+
 class Game(models.Model):
     running = models.BooleanField(default=False)
     current_turn = models.ForeignKey('Turn', null=True, blank=True, related_name='_game')
@@ -145,23 +162,6 @@ class Turn(models.Model):
     def set_begin_end(self, prev_turn):
         self.begin = prev_turn.end
         self.set_end()
-
-
-class KnowsChild(models.Model):
-    # Make a place to store the class name of the child
-    # (copied almost entirely from http://blog.headspin.com/?p=474)
-    subclass = models.CharField(max_length=200)
- 
-    class Meta:
-        abstract = True
- 
-    def as_child(self):
-        return getattr(self, self.subclass.lower())
- 
-    def save(self, *args, **kwargs):
-        # save what kind we are.
-        self.subclass = self.__class__.__name__
-        super(KnowsChild, self).save(*args, **kwargs)
 
 
 class Role(KnowsChild):
@@ -311,7 +311,7 @@ class Player(models.Model):
     
 
 
-class Event(models.Model):
+class Event(KnowsChild):
     # Generic event
     
     timestamp = models.DateTimeField(default=datetime.now)
@@ -324,31 +324,3 @@ class Event(models.Model):
         return u"Event %d" % self.pk
     
     event_name = property(__unicode__)
-
-
-
-'''
-class Action(models.Model):
-    player = models.ForeignKey(Player, related_name='action_set')
-    
-    ACTION_TYPES = (
-        ('P', 'UsePower'),
-        ('V', 'Vote'),
-        ('E', 'Elect'),
-    )
-    type = models.CharField(max_length=1, choices=ACTION_TYPES)
-    
-    target = models.ForeignKey(Player, null=True, blank=True, related_name='action_target_set')
-    param = models.ForeignKey(Player, null=True, blank=True, related_name='action_param_set')
-    day = models.IntegerField()
-    time = models.DateTimeField(auto_now_add=True, blank=True)
-    
-    class Meta:
-        ordering = ['time', 'pk']
-    
-    def __unicode__(self):
-        return u"Action %d" % self.pk
-    
-    action_name = property(__unicode__)
-'''
-
