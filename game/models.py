@@ -234,20 +234,18 @@ class Player(models.Model):
     full_name = property(get_full_name)
     
     def get_role_name(self):
-        return self.role.subclass
+        return self.role.as_child().name
     role_name = property(get_role_name)
     
     def __unicode__(self):
         return u"%s %s" % (self.user.first_name, self.user.last_name)
     
-    # TODO: questa funzione forse non deve stare qui
-    '''
+    # TODO: questa funzione forse non deve stare qui, e sicuramente nel caso va resa un po' piu' decente
     def aura_as_italian_string(self):
-        if self.aura=='W':
+        if self.aura==WHITE:
             return "Bianca"
         else:
             return "Nera"
-    '''
     
     def status_as_italian_string(self):
         if self.active:
@@ -322,5 +320,4 @@ class Event(KnowsChild):
     
     def __unicode__(self):
         return u"Event %d" % self.pk
-    
     event_name = property(__unicode__)

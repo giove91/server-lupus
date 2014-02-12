@@ -15,7 +15,11 @@ def setup_game():
 def setup_dummy_players():
     g = Game.objects.get()
     users = User.objects.all()
+    
+    roles = [ Contadino, Lupo, Negromante, Fattucchiera ]
+    
     for user in users:
-        r = Cacciatore()
+        rtype = roles.pop()
+        r = rtype()
         r.save()
         Player.objects.create(user=user, game=g, role=r, team=POPOLANI, aura=WHITE)

@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from game.models import *
+from game.events import *
 
 
 class GameAdmin(admin.ModelAdmin):
@@ -18,12 +19,12 @@ class RoleAdmin(admin.ModelAdmin):
     list_display = ('subclass', 'player')
     search_fields = ['role_name']
 
-class EventAdmin(admin.ModelAdmin):
-    list_display = ('event_name', 'turn', 'timestamp')
+class CommandEventAdmin(admin.ModelAdmin):
+    list_display = ('event_name', 'turn', 'timestamp', 'player', 'type', 'target', 'target2', 'target_ghost')
 
 admin.site.register(Player, PlayerAdmin)
 admin.site.register(Role, RoleAdmin)
-admin.site.register(Event, EventAdmin)
+admin.site.register(CommandEvent, CommandEventAdmin)
 admin.site.register(Game, GameAdmin)
 admin.site.register(Turn, TurnAdmin)
 

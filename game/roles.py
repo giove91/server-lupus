@@ -339,7 +339,7 @@ class Spettro(Role):
         elif self.power == MISTIFICAZIONE or self.power == OCCULTAMENTO:
             targets = self.player.game.get_active_players().exclude(pk=self.pk)
         else:
-            raise Exception('Supernatural power not considered.')
+            raise Exception('Missing supernatural power.')
         return targets
     
     def get_targets2(self):

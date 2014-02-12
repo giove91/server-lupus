@@ -13,6 +13,8 @@ from django import forms
 
 from django.contrib.auth.models import User
 from game.models import *
+from game.events import *
+from game.roles import *
 from game.ruleset import *
 
 
@@ -84,7 +86,7 @@ class CommandForm(forms.Form):
     
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
-        super(ActionForm, self).__init__(*args, **kwargs)
+        super(CommandForm, self).__init__(*args, **kwargs)
         for field in fields:
             self.fields[field['name']] = forms.ModelChoiceField(
                 queryset=field['queryset'],
@@ -149,10 +151,11 @@ class UsePowerView(CommandView):
     def get_fields(self, request):
         player = request.user.player
         game = player.game
+        role = player.role.as_child()
         
-        targets = player.get_targets()
-        targets2 = player.get_targets2()
-        targets_ghost = player.get_targets_ghost()
+        targets = role.get_targets()
+        targets2 = role.get_targets2()
+        targets_ghost = role.get_targets_ghost()
         
         initial = None
         initial2 = None
@@ -177,10 +180,11 @@ class UsePowerView(CommandView):
     
     def save_command(self, request, cleaned_data):
         player = request.user.player
+        role = player.role.as_child()
         
-        targets = player.get_targets()
-        targets2 = player.get_targets2()
-        targets_ghost = player.get_targets_ghost()
+        targets = role.get_targets()
+        targets2 = role.get_targets2()
+        targets_ghost = role.get_targets_ghost()
         
         target = cleaned_data['target']
         target2 = None
@@ -230,7 +234,7 @@ class VoteView(CommandView):
         fields = [ {'name': 'target', 'queryset': queryset, 'initial': initial, 'label': 'Vota per condannare a morte:'} ]
         return fields
     
-    def save_action(self, request, cleaned_data):
+    def save_command(self, request, cleaned_data):
         player = request.user.player
         game = player.game
         target = cleaned_data['target']
@@ -238,8 +242,8 @@ class VoteView(CommandView):
         if target is not None and target not in game.get_alive_players():
             return False
         
-        action = CommandEvent(player=player, type=VOTE, target=target, turn=game.current_turn)
-        action.save()
+        command = CommandEvent(player=player, type=VOTE, target=target, turn=game.current_turn)
+        command.save()
         return True
 
 
@@ -265,7 +269,7 @@ class ElectView(CommandView):
         fields = [ {'name': 'target', 'queryset': queryset, 'initial': initial, 'label': 'Vota per eleggere:'} ]
         return fields
     
-    def save_action(self, request, cleaned_data):
+    def save_command(self, request, cleaned_data):
         player = request.user.player
         game = player.game
         target = cleaned_data['target']
@@ -273,8 +277,8 @@ class ElectView(CommandView):
         if target is not None and target not in game.get_alive_players():
             return False
         
-        action = CommandEvente(player=player, type=ELECT, target=target, turn=game.current_turn)
-        action.save()
+        command = CommandEvent(player=player, type=ELECT, target=target, turn=game.current_turn)
+        command.save()
         return True
 
 
@@ -291,8 +295,8 @@ class PersonalInfoView(View):
         if game.running:
             # Everything should be set
             player = request.user.player
-            team = player.team.team_name
-            role = player.role.role_name
+            team = player.team
+            role = player.role.as_child().name
             aura = player.aura_as_italian_string()
             is_mystic = player.is_mystic
             status = player.status_as_italian_string()
