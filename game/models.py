@@ -100,18 +100,6 @@ class Turn(models.Model):
         ordering = ['date', 'phase']
         unique_together = (('game', 'date', 'phase'),)
     
-    def is_day(self):
-        return self.phase==DAY
-    
-    def is_night(self):
-        return self.phase==NIGHT
-    
-    def is_sunset(self):
-        return self.phase==SUNSET
-    
-    def is_dawn(self):
-        return self.phase==DAWN
-    
     def __unicode__(self):
         return "%s %d" % (Turn.TURN_PHASES[self.phase], self.date)
         
@@ -273,7 +261,7 @@ class Player(models.Model):
             return False
         
         turn = self.game.current_turn
-        if not turn.is_night():
+        if turn.phase != NIGHT:
             # Players can use their powers only during the night
             return False
         
@@ -298,7 +286,7 @@ class Player(models.Model):
             return False
         
         turn = self.game.current_turn
-        if not turn.is_day():
+        if turn.phase != DAY:
             # Players can vote only during the day
             return False
         
