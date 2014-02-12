@@ -173,9 +173,13 @@ class Player(models.Model):
     class Meta:
         ordering = ['user']
     
-    def _get_full_name(self):
+    def get_full_name(self):
         return "%s %s" % (self.user.first_name, self.user.last_name)
-    full_name = property(_get_full_name)
+    full_name = property(get_full_name)
+    
+    def get_role_name(self):
+        return self.role.subclass
+    role_name = property(get_role_name)
     
     def __unicode__(self):
         return u"%s %s" % (self.user.first_name, self.user.last_name)
@@ -219,7 +223,7 @@ class Player(models.Model):
             # Players can use their powers only during the night
             return False
         
-        return self.role.can_use_power()
+        return self.role.as_child().can_use_power()
     
     can_use_power.boolean = True
     
