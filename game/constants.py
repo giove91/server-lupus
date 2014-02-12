@@ -1,3 +1,6 @@
+
+import datetime
+
 # Turn phases
 DAY = 'D'
 SUNSET = 'S'
@@ -11,7 +14,17 @@ PHASE_CYCLE = {
     DAWN: DAY,
 }
 
-FIRST_PHASE = DAY
+FIRST_PHASE = NIGHT
+FIRST_DATE = 1
+FIRST_PHASE_BEGIN_TIME = datetime.time(hour=22)
+
+HALF_PHASES = [SUNSET, DAWN]
+FULL_PHASES = [DAY, NIGHT]
+
+FULL_PHASE_END_TIMES = {
+    NIGHT: datetime.time(hour=8),
+    DAY: datetime.time(hour=22),
+    }
 
 # Teams
 POPOLANI = 'P'

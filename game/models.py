@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 
 from constants import *
 
+from utils import advance_to_time
 
 
 class Game(models.Model):
@@ -32,9 +33,40 @@ class Game(models.Model):
     def get_dead_players(self):
         return self.get_active_players().filter(alive=False)
 
+    def initialize(self, begin_date):
+        self.current_turn = Turn.first_turn(game)
+        self.current_turn.set_first_begin_end()
+
+    def compute_turn_advance(self):
+        assert self.current_turn.end is not None
+        next_turn = self.current_turn.next_turn()
+        next_turn.set_begin_end(self.current_turn)
+        self.current_turn = next_turn
+
+        # Call the appropriate phase handler
+        {
+            DAY: self._compute_entering_day,
+            NIGHT: self._compute_entering_night,
+            SUNSET: self._compute_entering_sunset,
+            DAWN: self._compute_entering_dawn,
+            }[self.current_turn.phase]()
+
+    def _compute_entering_night(self):
+        pass
+
+    def _compute_entering_dawn(self):
+        pass
+
+    def _compute_entering_day(self):
+        pass
+
+    def _compute_entering_sunset(self):
+        pass
 
 class Turn(models.Model):
     game = models.ForeignKey(Game)
+
+    # Date is counted starting from FIRST_DATE
     date = models.IntegerField()
     
     TURN_PHASES = {
@@ -89,6 +121,30 @@ class Turn(models.Model):
             next_turn.save()
 
         return next_turn
+
+    @staticmethod
+    def first_turn(game):
+        try:
+            ret = Turn.objects.get(game=game, date=FIRST_DATE, phase=FIRST_PHASE)
+        except Turn.DoesNotExist:
+            ret = Turn(game=game, date=FIRST_DATE, phase=FIRST_PHASE)
+            ret.save()
+
+        return ret
+
+    def set_end(self):
+        if self.phase in FULL_PHASES:
+            self.end = advance_to_time(self.begin, FULL_PHASE_END_TIMES[self.phase])
+        else:
+            self.end = None
+
+    def set_first_begin_end(self, begin_date):
+        self.begin = datetime.combine(begin_date, FIRST_PHASE_BEGIN_TIME)
+        self.set_end()
+
+    def set_begin_end(self, prev_turn):
+        self.begin = prev_turn.end
+        self.set_end()
 
 
 class KnowsChild(models.Model):
