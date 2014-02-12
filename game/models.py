@@ -370,6 +370,10 @@ class Player(models.Model):
         return self.pk == self.game.mayor.pk
     
     is_mayor.boolean = True
+    
+    def make_mayor(self):
+        self.game.mayor = self
+        self.game.save()
 
 
 class Event(KnowsChild):
