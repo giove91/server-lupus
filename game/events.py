@@ -16,8 +16,8 @@ class CommandEvent(Event):
     )
     type = models.CharField(max_length=1, choices=ACTION_TYPES)
     
-    target = models.ForeignKey(Player, null=True, blank=True, related_name='action_target_set')
-    target2 = models.ForeignKey(Player, null=True, blank=True, related_name='action_target2_set')
+    target = models.ForeignKey(Player, null=True, blank=True, related_name='commandevent_target_set')
+    target2 = models.ForeignKey(Player, null=True, blank=True, related_name='commandevent_target2_set')
     target_ghost = models.CharField(max_length=1, choices=Spettro.POWERS_LIST, null=True, blank=True)
     
     def __unicode__(self):
