@@ -16,6 +16,9 @@ PHASE_CYCLE = {
     NIGHT: DAWN,
     DAWN: DAY,
 }
+REV_PHASE_CYCLE = {}
+for key, value in PHASE_CYCLE.iteritems():
+    REV_PHASE_CYCLE[value] = key
 
 FIRST_PHASE = NIGHT
 FIRST_DATE = 1

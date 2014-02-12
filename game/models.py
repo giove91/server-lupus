@@ -9,6 +9,8 @@ from constants import *
 
 from utils import advance_to_time
 
+import my_random as random
+
 
 class KnowsChild(models.Model):
     # Make a place to store the class name of the child
@@ -78,7 +80,66 @@ class Game(models.Model):
         pass
 
     def _compute_entering_sunset(self):
-        pass
+        new_mayor = self._compute_elected_mayor()
+        if new_mayor is not None:
+            #TODO
+            pass
+
+        winner = self._compute_vote_winner()
+        if winner is not None:
+            # TODO
+            pass
+
+    def _compute_elected_mayor(self):
+        prev_turn = self.current_turn.prev_turn(must_exist=True)
+        votes = CommandEvents.objects.filter(turn=prev_turn).filter(type=ELECT).order_by(Event.timestamp)
+        new_mayor = None
+
+        # TODO
+
+        return new_mayor
+
+    def _compute_vote_winner(self):
+        prev_turn = self.current_turn.prev_turn(must_exist=True)
+        votes = CommandEvents.objects.filter(turn=prev_turn).filter(type=VOTE).order_by(Event.timestamp)
+        winner = None
+
+        # Count last ballot for each player
+        ballots = {}
+        mayor_ballot = None
+        for player in self.get_players():
+            ballots[player.pk] = None
+        for vote in votes:
+            ballots[vote.player.pk] = vote
+            if vote.player.is_mayor():
+                mayor_ballot = vote
+
+        # TODO: count Ipnotista and Spettro dell'Amnesia
+
+        # TODO: check that at least half of the alive people voted; if
+        # not, abort the voting
+
+        # TODO: count Spettro della Duplicazione
+
+        # Fill tally sheet
+        tally_sheet = {}
+        for player in self.get_alive_players():
+            tally_sheet[player.pk] = 0
+        for ballot in ballots.itervalues():
+            tally_sheet[ballot.target.pk] += 1
+
+        # Compute winners (or maybe loosers...)
+        tally_sheet = tally_sheet.items()
+        tally_sheet.sort(key=lambda x: x[1])
+        max_votes = tally_sheet[0][1]
+        winners = [x[0] for x in tally_sheet if x[1] == max_votes]
+        assert len(winners) > 0
+        if mayor_ballot.target.pk in winners:
+            winner = mayor_ballot.target.pk
+        else:
+            winner = random.choice(winners)
+
+        # TODO: kill the winner
 
 class Turn(models.Model):
     game = models.ForeignKey(Game)
@@ -113,29 +174,35 @@ class Turn(models.Model):
             DAWN: 'Alba',
             }[self.phase]
     
+    @staticmethod
+    def get_or_create(game, date, phase, must_exist=False):
+        try:
+            turn = Turn.objects.get(game=game, date=date, phase=phase)
+        except Turn.DoesNotExist:
+            if must_exist:
+                raise
+            turn = Turn(game=game, date=date, phase=phase)
+            turn.save()
+
+        return turn
+
     def next_turn(self):
         phase = PHASE_CYCLE[self.phase]
         date = self.date
         if phase == FIRST_PHASE:
             date += 1
+        return Turn.get_or_create(game, date, phase)
 
-        try:
-            next_turn = Turn.objects.get(game=self.game, date=date, phase=phase)
-        except Turn.DoesNotExist:
-            next_turn = Turn(game=self.game, date=date, phase=phase)
-            next_turn.save()
-
-        return next_turn
+    def prev_turn(self, must_exist=False):
+        phase = REV_PHASE_CYCLE[self.phase]
+        date = self.date
+        if self.phase == FIRST_PHASE:
+            date -= 1
+        return Turn.get_or_create(game, date, phase, must_exist=must_exist)
 
     @staticmethod
     def first_turn(game):
-        try:
-            ret = Turn.objects.get(game=game, date=FIRST_DATE, phase=FIRST_PHASE)
-        except Turn.DoesNotExist:
-            ret = Turn(game=game, date=FIRST_DATE, phase=FIRST_PHASE)
-            ret.save()
-
-        return ret
+        return Turn.get_or_create(game, FIRST_DATE, FIRST_PHASE)
 
     def set_end(self):
         if self.phase in FULL_PHASES:
