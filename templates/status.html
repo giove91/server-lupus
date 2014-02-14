@@ -29,7 +29,7 @@
     
     <h3>Giocatori esiliati</h3>
     <ul>
-        {% for player in exiled_players %}
+        {% for player in inactive_players %}
             <li>{{ player.full_name }}</li>
         {% empty %}
             <p>Non ci sono giocatori esiliati.</p>

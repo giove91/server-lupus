@@ -58,31 +58,29 @@ class VillageStatusView(View):
         phase = None
         alive_players = None
         dead_players = None
-        exiled_players = None
+        inactive_players = None
         
         try:
-            game = Game.objects.get()
+            game = Game.get_running_game()
             game_running = game.running
             if game.current_turn is not None:
                 date = game.current_turn.date
                 phase = game.current_turn.phase_as_italian_string()
             alive_players = game.get_alive_players()
             dead_players = game.get_dead_players()
-            exiled_players = game.get_exiled_players()
+            inactive_players = game.get_inactive_players()
         except Game.DoesNotExist:
             game_running = False
         
         context = {
             'alive_players': alive_players,
             'dead_players': dead_players,
-            'exiled_players': exiled_players,
+            'inactive_players': inactive_players,
             'game_running': game_running,
             'date': date,
             'phase': phase,
         }   
         return render(request, 'status.html', context)
-
-
 
 
 
@@ -100,7 +98,6 @@ class CommandForm(forms.Form):
                 initial=field['initial'],
                 label=field['label']
             )
-
 
 class CommandView(View):
     
@@ -143,7 +140,6 @@ class CommandView(View):
         
         form = CommandForm(fields=self.get_fields(request))
         return render(request, self.template_name, {'form': form})
-
 
 
 class UsePowerView(CommandView):
@@ -291,6 +287,14 @@ class PersonalInfoView(View):
     def get(self, request):
         game = request.user.player.game
         
+        
+        if request.session.get('has_visited', False):
+            prova = u'Non sei passato di qua recentemente'
+        else:
+            prova = u'Bentornato!'
+        request.session['has_visited'] = True
+        
+        
         team = '-'
         role = '-'
         aura = '-'
@@ -312,6 +316,7 @@ class PersonalInfoView(View):
             'aura': aura,
             'is_mystic': is_mystic,
             'status': status,
+            'prova': prova,
         }
         
         return render(request, 'personal_info.html', context)
