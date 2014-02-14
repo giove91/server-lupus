@@ -73,16 +73,16 @@ class Game(models.Model):
         return _dynamics_map[self.pk]
 
     def get_active_players(self):
-        return self.get_players().filter(active=True)
+        return [player for player in self.get_dynamics().players if player.active]
     
-    def get_exiled_players(self):
-        return self.get_players().filter(active=False)
+    def get_inactive_players(self):
+        return [player for player in self.get_dynamics().players if not player.active]
     
     def get_alive_players(self):
-        return self.get_active_players().filter(alive=True)
+        return [player for player in self.get_dynamics().players if player.alive]
     
     def get_dead_players(self):
-        return self.get_active_players().filter(alive=False)
+        return [player for player in self.get_dynamics().players if not player.alive]
 
     def initialize(self, begin_date):
         first_turn = Turn.first_turn(self)
