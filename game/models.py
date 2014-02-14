@@ -10,8 +10,6 @@ from constants import *
 
 from utils import advance_to_time
 
-import my_random as random
-
 
 class KnowsChild(models.Model):
     # Make a place to store the class name of the child
@@ -316,10 +314,6 @@ class Player(models.Model):
             return False
         return self.pk == mayor.pk
     is_mayor.boolean = True
-    
-    def make_mayor(self):
-        self.game.mayor = self
-        self.game.save()
 
 
 class Event(KnowsChild):
