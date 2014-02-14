@@ -46,8 +46,8 @@ class AvailableRoleEvent(Event):
     role_name = models.CharField(max_length=200)
 
     def apply(self, dynamics):
-        assert len(dynamics.available_roles) < len(dynamics.players)
-        dynamics.available_roles.append(role_name)
+        assert len(dynamics.available_roles) < len(dynamics.players), "%d %d" % (len(dynamics.available_roles), len(dynamics.players))
+        dynamics.available_roles.append(self.role_name)
 
         # If this is the last role, assign randomly the roles to the
         # players and then choose a random mayor
@@ -55,7 +55,7 @@ class AvailableRoleEvent(Event):
             players_pks = dynamics.players_dict.keys()
             players_pks.sort()
             mayor = dynamics.random.choice(players_pks)
-            dynamics.random.shuffle(player_pks)
+            dynamics.random.shuffle(players_pks)
 
             for player_pk, role_name in zip(players_pks, dynamics.available_roles):
                 event = SetRoleEvent()
@@ -76,7 +76,9 @@ class SetRoleEvent(Event):
     role_name = models.CharField(max_length=200)
 
     def apply(self, dynamics):
-        role = globals[role_name]()
+        [role_class] = [x for x in Role.__subclasses__() if x.__name__ == self.role_name]
+        role = role_class()
+        player = self.player.canonicalize()
         player.role = role
         player.team = role.team
         player.aura = role.aura
@@ -90,4 +92,4 @@ class SetMayorEvent(Event):
     player = models.ForeignKey(Player, related_name='+')
 
     def apply(self, dynamics):
-        dynamics.mayor = player
+        dynamics.mayor = self.player.canonicalize()

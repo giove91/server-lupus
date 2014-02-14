@@ -383,7 +383,7 @@ class Player(models.Model):
 class Event(KnowsChild):
     # Generic event
     
-    timestamp = models.DateTimeField(default=datetime.now)
+    timestamp = models.DateTimeField()
     turn = models.ForeignKey(Turn)
     
     class Meta:
