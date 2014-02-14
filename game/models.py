@@ -386,6 +386,7 @@ class Event(KnowsChild):
     
     timestamp = models.DateTimeField()
     turn = models.ForeignKey(Turn)
+    executed = models.BooleanField(default=False)
     
     class Meta:
         ordering = ['turn', 'timestamp', 'pk']

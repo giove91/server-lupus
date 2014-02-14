@@ -55,14 +55,13 @@ class Dynamics:
             return None
         else:
             self.event_num += 1
-            return event
+            return event.as_child()
 
     def _update_step(self):
         # First check for new events in current turn
         if self.current_turn is not None:
             event = self._pop_event_from_db()
             if event is not None:
-                event = event.as_child()
                 self._receive_event(event)
                 return True
 
@@ -113,7 +112,11 @@ class Dynamics:
         self._process_event(event)
 
     def _process_event(self, event):
-        event.as_child().apply(self)
+        self.check_mode = event.executed
+        event.apply(self)
+        self.check_mode = False
+        event.executed = True
+        event.save()
 
     def inject_event(self, event):
         """This is for non automatic events."""
@@ -131,8 +134,9 @@ class Dynamics:
         event.timestamp = self.current_turn.begin
 
         if self.check_mode:
-            # TODO
-            raise NotImplementedException("Check that the event already exist")
+            # I expect the new event to just already sit in the
+            # database. TODO: verify this assertion
+            pass
         else:
             event.save()
 
