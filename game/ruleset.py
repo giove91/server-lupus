@@ -6,6 +6,13 @@ from game.events import *
 
 import datetime
 
+def create_users(n):
+    for _ in xrange(n):
+        user = User.objects.create(first_name='Paperinik', last_name='', email='', password='ciaociao')
+        user.save()
+        user.last_name = str(user.pk)
+        user.save()
+
 def setup_game():
     game = Game(running=True)
     game.save()
