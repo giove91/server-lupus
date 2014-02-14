@@ -42,6 +42,7 @@ class Game(models.Model):
             return Turn.objects.filter(game=self).order_by('-date', '-phase')[0]
         except Turn.DoesNotExist:
             return None
+    current_turn = property(current_turn)
     
     def get_players(self):
         return Player.objects.filter(game=self)
@@ -318,7 +319,7 @@ class Player(models.Model):
             # The player has been exiled
             return False
         
-        turn = self.game.current_turn()
+        turn = self.game.current_turn
         if turn.phase != NIGHT:
             # Players can use their powers only during the night
             return False
