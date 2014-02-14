@@ -5,6 +5,7 @@ from django.db.models import Q
 from threading import RLock
 
 from models import Event, Turn
+from constants import *
 import roles
 
 class Dynamics:
