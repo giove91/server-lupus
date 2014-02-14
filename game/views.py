@@ -3,6 +3,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.views import generic
 from django.views.generic.base import View
+from django.views.generic.base import TemplateView
 from django.views.generic import ListView
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
@@ -284,7 +285,7 @@ class ElectView(CommandView):
 
 class PersonalInfoView(View):
     def get(self, request):
-        game = Game.objects.get()
+        game = request.user.player.game
         
         team = '-'
         role = '-'
@@ -312,4 +313,10 @@ class PersonalInfoView(View):
         return render(request, 'personal_info.html', context)
 
 
+class ContactsView(ListView):
+    
+    model = User
+    
+    def get_queryset(self):
+        return User.objects.filter(player__isnull=False)
 
