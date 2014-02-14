@@ -58,6 +58,8 @@ class Game(models.Model):
         return self.get_dynamics().mayor
 
     def get_dynamics(self):
+        """Obtain or create the Dynamics object globally assigned to
+        this game."""
         global _dynamics_map
         global _dynamics_map_lock
         if self.pk not in _dynamics_map:
@@ -89,92 +91,18 @@ class Game(models.Model):
         first_turn.set_first_begin_end(begin_date)
         first_turn.save()
 
-    def compute_turn_advance(self):
+    def turn_advance(self):
         assert self.current_turn.end is not None
         next_turn = self.current_turn.next_turn()
         next_turn.set_begin_end(self.current_turn)
-        self.current_turn = next_turn
-        self.current_turn.save()
-        self.save()
+        next_turn.save()
+        self.get_dynamics.update()
 
-        # Call the appropriate phase handler
-        {
-            DAY: self._compute_entering_day,
-            NIGHT: self._compute_entering_night,
-            SUNSET: self._compute_entering_sunset,
-            DAWN: self._compute_entering_dawn,
-            }[self.current_turn.phase]()
-
-    def _compute_entering_night(self):
-        pass
-
-    def _compute_entering_dawn(self):
-        pass
-
-    def _compute_entering_day(self):
-        pass
-
-    def _compute_entering_sunset(self):
-        new_mayor = self._compute_elected_mayor()
-        if new_mayor is not None:
-            #TODO
-            pass
-
-        winner = self._compute_vote_winner()
-        if winner is not None:
-            # TODO
-            pass
-
-    def _compute_elected_mayor(self):
-        prev_turn = self.current_turn.prev_turn(must_exist=True)
-        votes = CommandEvents.objects.filter(turn=prev_turn).filter(type=ELECT).order_by(Event.timestamp)
-        new_mayor = None
-
-        # TODO
-
-        return new_mayor
-
-    def _compute_vote_winner(self):
-        prev_turn = self.current_turn.prev_turn(must_exist=True)
-        votes = CommandEvents.objects.filter(turn=prev_turn).filter(type=VOTE).order_by(Event.timestamp)
-        winner = None
-
-        # Count last ballot for each player
-        ballots = {}
-        mayor_ballot = None
-        for player in self.get_players():
-            ballots[player.pk] = None
-        for vote in votes:
-            ballots[vote.player.pk] = vote
-            if vote.player.is_mayor():
-                mayor_ballot = vote
-
-        # TODO: count Ipnotista and Spettro dell'Amnesia
-
-        # TODO: check that at least half of the alive people voted; if
-        # not, abort the voting
-
-        # TODO: count Spettro della Duplicazione
-
-        # Fill tally sheet
-        tally_sheet = {}
-        for player in self.get_alive_players():
-            tally_sheet[player.pk] = 0
-        for ballot in ballots.itervalues():
-            tally_sheet[ballot.target.pk] += 1
-
-        # Compute winners (or maybe loosers...)
-        tally_sheet = tally_sheet.items()
-        tally_sheet.sort(key=lambda x: x[1])
-        max_votes = tally_sheet[0][1]
-        winners = [x[0] for x in tally_sheet if x[1] == max_votes]
-        assert len(winners) > 0
-        if mayor_ballot.target.pk in winners:
-            winner = mayor_ballot.target.pk
-        else:
-            winner = random.choice(winners)
-
-        # TODO: kill the winner
+    def check_turn_advance(self):
+        """Compare current timestamp against current turn's end time
+        and, if necessary, create the new turn."""
+        while self.current_turn.end is not None and datetime.now() >= self.current_turn.end:
+            self.turn_advance()
 
 class Turn(models.Model):
     game = models.ForeignKey(Game)
