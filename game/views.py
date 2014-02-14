@@ -295,9 +295,9 @@ class PersonalInfoView(View):
         
         if game.running:
             # Everything should be set
-            player = request.user.player
+            player = request.user.player.canonicalize()
             team = player.team
-            role = player.role.as_child().name
+            role = player.role.name
             aura = player.aura_as_italian_string()
             is_mystic = player.is_mystic
             status = player.status_as_italian_string()
@@ -315,8 +315,13 @@ class PersonalInfoView(View):
 
 class ContactsView(ListView):
     
-    model = User
+    model = Player
     
+    template_name = 'contacts.html'
+    
+    # TODO: forse un giorno bisognerebbe filtrare con il Game giusto
+    '''
     def get_queryset(self):
         return User.objects.filter(player__isnull=False)
+    '''
 

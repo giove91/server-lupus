@@ -11,5 +11,6 @@ urlpatterns = patterns('',
     url(r'^vote/$', user_passes_test(is_player_check)( VoteView.as_view() ), name='vote'),
     url(r'^elect/$', user_passes_test(is_player_check)( ElectView.as_view() ), name='elect'),
     url(r'^personalinfo/$', user_passes_test(is_player_check)( PersonalInfoView.as_view() ), name='personalinfo'),
+    url(r'^contacts/$', user_passes_test(is_player_check)( ContactsView.as_view() ), name='contacts'),
 )
 
