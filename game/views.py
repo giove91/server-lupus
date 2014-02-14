@@ -1,12 +1,15 @@
 from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse
+
 from django.views import generic
 from django.views.generic.base import View
 from django.views.generic.base import TemplateView
 from django.views.generic import ListView
+
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import user_passes_test
 from django.core import exceptions
 
@@ -17,17 +20,6 @@ from game.models import *
 from game.events import *
 from game.roles import *
 from game.ruleset import *
-
-
-def is_player_check(user):
-    # Checks that the user has an associated Player
-    if not user.is_authenticated():
-        return False
-    try:
-        p = user.player
-        return True
-    except Player.DoesNotExist:
-        return False
 
 
 
@@ -104,7 +96,6 @@ class CommandForm(forms.Form):
             )
 
 class CommandView(View):
-    
     template_name = 'command.html'
     
     def check(self, request):
@@ -144,6 +135,10 @@ class CommandView(View):
         
         form = CommandForm(fields=self.get_fields(request))
         return render(request, self.template_name, {'form': form})
+    
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(CommandView, self).dispatch(*args, **kwargs)
 
 
 class UsePowerView(CommandView):
@@ -289,15 +284,7 @@ class ElectView(CommandView):
 
 class PersonalInfoView(View):
     def get(self, request):
-        game = request.user.player.game
         
-        '''
-        if request.session.get('has_visited', False):
-            prova = u'Non sei passato di qua recentemente'
-        else:
-            prova = u'Bentornato!'
-        request.session['has_visited'] = True
-        '''
         
         team = '-'
         role = '-'
@@ -305,9 +292,9 @@ class PersonalInfoView(View):
         is_mystic = False
         status = '-'
         
-        if game.running:
-            # Everything should be set
-            player = request.user.player.canonicalize()
+        if request.player is not None:
+            player = request.player.canonicalize()
+            game = player.game
             team = player.team
             role = player.role.name
             aura = player.aura_as_italian_string()
@@ -320,10 +307,13 @@ class PersonalInfoView(View):
             'aura': aura,
             'is_mystic': is_mystic,
             'status': status,
-            'prova': prova,
         }
         
         return render(request, 'personal_info.html', context)
+    
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(PersonalInfoView, self).dispatch(*args, **kwargs)
 
 
 class ContactsView(ListView):
@@ -337,4 +327,8 @@ class ContactsView(ListView):
     def get_queryset(self):
         return User.objects.filter(player__isnull=False)
     '''
+    
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(ContactsView, self).dispatch(*args, **kwargs)
 
