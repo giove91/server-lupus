@@ -22,7 +22,6 @@ from game.roles import *
 from game.ruleset import *
 
 
-
 def home(request):
     return render(request, 'index.html')
 
@@ -130,6 +129,10 @@ class CommandView(View):
             return render(request, self.template_name, {'form': form})
     
     def get(self, request):
+        if request.player is None:
+            # TODO: fare qualcosa di piu' ragionevole, tipo reindirizzare alla pagina in cui l'amministratore puo' trasformarsi in un altro giocatore.
+            return render(request, 'index.html')
+        
         if not self.check(request):
             return self.not_allowed(request)
         
@@ -285,6 +288,9 @@ class ElectView(CommandView):
 class PersonalInfoView(View):
     def get(self, request):
         
+        if request.player is None:
+            # TODO: fare qualcosa di piu' ragionevole, tipo reindirizzare alla pagina in cui l'amministratore puo' trasformarsi in un altro giocatore.
+            return render(request, 'index.html')
         
         team = '-'
         role = '-'
@@ -331,4 +337,8 @@ class ContactsView(ListView):
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         return super(ContactsView, self).dispatch(*args, **kwargs)
+
+
+
+
 
