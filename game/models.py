@@ -324,7 +324,6 @@ class Player(models.Model):
             return False
         
         return canonical.role.can_use_power()
-    
     can_use_power.boolean = True
 
     def team(self):
@@ -366,7 +365,6 @@ class Player(models.Model):
         
         # Everything seems to be OK
         return True
-    
     can_vote.boolean = True
     
     def is_mayor(self):
@@ -375,7 +373,6 @@ class Player(models.Model):
         if mayor is None:
             return False
         return self.pk == mayor.pk
-    
     is_mayor.boolean = True
     
     def make_mayor(self):
