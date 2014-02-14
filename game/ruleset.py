@@ -20,6 +20,8 @@ def setup_game():
 
     users = User.objects.all()
     for user in users:
+        if user.is_staff:
+            continue
         player = Player.objects.create(user=user, game=game)
         player.save()
 
@@ -30,7 +32,7 @@ def setup_game():
     game.get_dynamics().inject_event(event)
 
     roles = [ Contadino, Lupo, Negromante, Fattucchiera ]
-    for i, user in enumerate(users):
+    for i in xrange(len(game.get_dynamics().players)):
         event = AvailableRoleEvent(role_name=roles[i%len(roles)].__name__)
         event.timestamp = first_turn.begin
         game.get_dynamics().inject_event(event)
