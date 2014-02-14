@@ -359,7 +359,7 @@ class Player(models.Model):
             # The player is dead
             return False
         
-        turn = self.game.current_turn()
+        turn = self.game.current_turn
         if turn.phase != DAY:
             # Players can vote only during the day
             return False
