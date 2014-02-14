@@ -43,7 +43,7 @@ def logout_view(request):
 def setup(request):
     setup_game()
     
-    return HttpResponse("Setup completato.")
+    return render(request, 'index.html')
 
 
 def ruleset(request):
