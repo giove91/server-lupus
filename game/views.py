@@ -46,6 +46,10 @@ def setup(request):
     return HttpResponse("Setup completato.")
 
 
+def ruleset(request):
+    return render(request, 'ruleset.html')
+
+
 class VillageStatusView(View):
     def get(self, request):
         
