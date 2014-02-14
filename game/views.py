@@ -291,13 +291,13 @@ class PersonalInfoView(View):
     def get(self, request):
         game = request.user.player.game
         
-        
+        '''
         if request.session.get('has_visited', False):
             prova = u'Non sei passato di qua recentemente'
         else:
             prova = u'Bentornato!'
         request.session['has_visited'] = True
-        
+        '''
         
         team = '-'
         role = '-'
