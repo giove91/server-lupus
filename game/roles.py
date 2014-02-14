@@ -1,6 +1,44 @@
 from django.db import models
-from models import Role, Player
+from models import KnowsChild, Player
 from constants import *
+
+class Role(KnowsChild):
+    name = 'Generic role'
+    team = None
+    aura = None
+    is_mystic = False
+    
+    message = 'Usa il tuo potere su:'
+    message2 = 'Parametro secondario:'
+    message_ghost = 'Potere soprannaturale:'
+    
+    def __init__(self):
+        self.last_usage = None
+        self.last_target = None
+
+    def __unicode__(self):
+        return u"%s" % self.name
+    
+    def can_use_power(self):
+        return False
+    
+    def get_targets(self):
+        '''Returns the list of possible targets.'''
+        return None
+    
+    def get_targets2(self):
+        '''Returns the list of possible second targets.'''
+        return None
+    
+    def get_targets_ghost(self):
+        '''Returns the list of possible ghost-power targets.'''
+        return None
+    
+    def days_from_last_usage(self):
+        if last_usage is None:
+            return None
+        else:
+            return self.player.game.current_turn.date - self.last_usage.date
 
 
 # Fazione dei Popolani

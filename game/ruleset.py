@@ -1,25 +1,25 @@
+
 from game.models import *
 from game.roles import *
 from game.constants import *
+from game.events import *
 
+import datetime
 
 def setup_game():
     game = Game(running=True)
     game.save()
-    turn = Turn(game=game, date=1, phase=NIGHT)
-    turn.save()
-    game.current_turn=turn
-    game.save()
+    game.initialize(datetime.date.today())
 
-
-def setup_dummy_players():
-    g = Game.objects.get()
     users = User.objects.all()
-    
-    roles = [ Contadino, Lupo, Negromante, Fattucchiera ]
-    
     for user in users:
-        rtype = roles.pop()
-        r = rtype()
-        r.save()
-        Player.objects.create(user=user, game=g, role=r, team=POPOLANI, aura=WHITE)
+        player = Player.objects.create(user=user, game=game)
+        player.save()
+
+    event = SeedEvent(seed=2204)
+    game.get_dynamics().inject_event(event)
+
+    roles = [ Contadino, Lupo, Negromante, Fattucchiera ]
+    for i, user in enumerate(users):
+        event = AvailableRoleEvent(role_name=roles[i%len(roles)].__name__)
+        game.get_dynamics().inject_event(event)

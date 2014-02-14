@@ -29,18 +29,35 @@ class KnowsChild(models.Model):
         super(KnowsChild, self).save(*args, **kwargs)
 
 
+_dynamics_map = {}
 class Game(models.Model):
     running = models.BooleanField(default=False)
-    current_turn = models.ForeignKey('Turn', null=True, blank=True, related_name='_game')
-    mayor = models.ForeignKey('Player', null=True, blank=True, related_name='_game')
     
     def __unicode__(self):
         return u"Game %d" % self.pk
     game_name = property(__unicode__)
+
+    def current_turn(self):
+        try:
+            return Turn.objects.filter(game=self).order_by('-date', '-phase')[0]
+        except Turn.DoesNotExist:
+            return None
     
     def get_players(self):
         return Player.objects.filter(game=self)
     
+    def mayor(self):
+        return self.get_dynamics().mayor
+
+    def get_dynamics(self):
+        # TODO: implement proper locking
+        global _dynamics_map
+        if self.pk not in _dynamics_map:
+            from dynamics import Dynamics
+            _dynamics_map[self.pk] = Dynamics(self)
+        _dynamics_map[self.pk].update()
+        return _dynamics_map[self.pk]
+
     def get_active_players(self):
         return self.get_players().filter(active=True)
     
@@ -54,14 +71,17 @@ class Game(models.Model):
         return self.get_active_players().filter(alive=False)
 
     def initialize(self, begin_date):
-        self.current_turn = Turn.first_turn(game)
-        self.current_turn.set_first_begin_end()
+        first_turn = Turn.first_turn(self)
+        first_turn.set_first_begin_end(begin_date)
+        first_turn.save()
 
     def compute_turn_advance(self):
         assert self.current_turn.end is not None
         next_turn = self.current_turn.next_turn()
         next_turn.set_begin_end(self.current_turn)
         self.current_turn = next_turn
+        self.current_turn.save()
+        self.save()
 
         # Call the appropriate phase handler
         {
@@ -153,8 +173,14 @@ class Turn(models.Model):
         SUNSET: 'Sunset',
         NIGHT: 'Night',
         DAWN: 'Dawn',
+        CREATION: 'Creation',
         }
     phase = models.CharField(max_length=1, choices=TURN_PHASES.items())
+
+    # begin must always be set (and coincide with the previous turn's
+    # end if it exists); end can be None only when it is the last turn
+    # of an ongoing game
+
     begin = models.DateTimeField(null=True, blank=True)
     end = models.DateTimeField(null=True, blank=True)
     
@@ -173,6 +199,7 @@ class Turn(models.Model):
             SUNSET: 'Tramonto',
             NIGHT: 'Notte',
             DAWN: 'Alba',
+            CREATION: 'Creazione',
             }[self.phase]
     
     @staticmethod
@@ -183,27 +210,27 @@ class Turn(models.Model):
             if must_exist:
                 raise
             turn = Turn(game=game, date=date, phase=phase)
-            turn.save()
+            #turn.save()
 
         return turn
 
-    def next_turn(self):
+    def next_turn(self, must_exist=False):
         phase = PHASE_CYCLE[self.phase]
         date = self.date
         if phase == FIRST_PHASE:
             date += 1
-        return Turn.get_or_create(game, date, phase)
+        return Turn.get_or_create(self.game, date, phase, must_exist=must_exist)
 
     def prev_turn(self, must_exist=False):
         phase = REV_PHASE_CYCLE[self.phase]
         date = self.date
         if self.phase == FIRST_PHASE:
             date -= 1
-        return Turn.get_or_create(game, date, phase, must_exist=must_exist)
+        return Turn.get_or_create(self.game, date, phase, must_exist=must_exist)
 
     @staticmethod
-    def first_turn(game):
-        return Turn.get_or_create(game, FIRST_DATE, FIRST_PHASE)
+    def first_turn(game, must_exist=False):
+        return Turn.get_or_create(game, FIRST_DATE, FIRST_PHASE, must_exist=must_exist)
 
     def set_end(self):
         if self.phase in FULL_PHASES:
@@ -220,44 +247,6 @@ class Turn(models.Model):
         self.set_end()
 
 
-class Role(KnowsChild):
-    name = 'Generic role'
-    team = None
-    aura = None
-    is_mystic = False
-    
-    message = 'Usa il tuo potere su:'
-    message2 = 'Parametro secondario:'
-    message_ghost = 'Potere soprannaturale:'
-    
-    last_usage = models.ForeignKey(Turn, null=True, blank=True, default=None)
-    last_target = models.ForeignKey('Player', null=True, blank=True, default=None, related_name='target_inv_set')
-    
-    def __unicode__(self):
-        return u"%s" % self.name
-    
-    def can_use_power(self):
-        return False
-    
-    def get_targets(self):
-        # Returns the list of possible targets
-        return None
-    
-    def get_targets2(self):
-        # Returns the list of possible second targets
-        return None
-    
-    def get_targets_ghost(self):
-        # Returns the list of possible ghost-power targets
-        return None
-    
-    def days_from_last_usage(self):
-        if last_usage is None:
-            return None
-        else:
-            return self.player.game.current_turn.day - self.last_usage.day
-
-
 class Player(models.Model):
     AURA_COLORS = (
         (WHITE, 'White'),
@@ -272,15 +261,6 @@ class Player(models.Model):
     
     user = models.OneToOneField(User, primary_key=True)
     game = models.ForeignKey(Game)
-    team = models.CharField(max_length=1, choices=TEAMS, null=True, blank=True, default=None)
-    
-    role = models.OneToOneField(Role, null=True, blank=True, default=None)
-    aura = models.CharField(max_length=1, choices=AURA_COLORS, null=True, blank=True, default=None)
-    is_mystic = models.BooleanField(default=False)
-    
-    alive = models.BooleanField(default=True)
-    active = models.BooleanField(default=True)  # False if exiled (i.e. the team lost)
-    
     
     class Meta:
         ordering = ['user']
@@ -290,12 +270,19 @@ class Player(models.Model):
     full_name = property(get_full_name)
     
     def get_role_name(self):
-        return self.role.as_child().name
+        canonical = self.canonicalize()
+        if canonical.role is not None:
+            return canonical.role.name
+        else:
+            return "Unassigned"
     role_name = property(get_role_name)
     
     def __unicode__(self):
         return u"%s %s" % (self.user.first_name, self.user.last_name)
     
+    def canonicalize(self):
+        return self.game.get_dynamics().get_canonical_player(self)
+
     # TODO: questa funzione forse non deve stare qui, e sicuramente nel caso va resa un po' piu' decente
     def aura_as_italian_string(self):
         if self.aura==WHITE:
@@ -320,22 +307,39 @@ class Player(models.Model):
         if self.game.current_turn is None:
             # The current turn has not been set -- this shouldn't happen if Game is running
             return False
-        if self.role is None:
+
+        canonical = self.canonicalize()
+
+        if canonical.role is None:
             # The role has not been set -- this shouldn't happen if Game is running
             return False
         
-        if not self.active:
+        if not canonical.active:
             # The player has been exiled
             return False
         
-        turn = self.game.current_turn
+        turn = self.game.current_turn()
         if turn.phase != NIGHT:
             # Players can use their powers only during the night
             return False
         
-        return self.role.as_child().can_use_power()
+        return canonical.role.can_use_power()
     
     can_use_power.boolean = True
+
+    def team(self):
+        return self.canonicalize().team
+
+    def aura(self):
+        return self.canonicalize().aura
+
+    def alive(self):
+        return self.canonicalize().alive
+    alive.boolean = True
+
+    def active(self):
+        return self.canonicalize().active
+    active.boolean = True
     
     
     def can_vote(self):
@@ -345,15 +349,17 @@ class Player(models.Model):
         if self.game.current_turn is None:
             # The current turn has not been set -- this shouldn't happen if Game is running
             return False
+
+        canonical = self.canonicalize()
         
-        if not self.active:
+        if not canonical.active:
             # The player has been exiled
             return False
-        if not self.alive:
+        if not canonical.alive:
             # The player is dead
             return False
         
-        turn = self.game.current_turn
+        turn = self.game.current_turn()
         if turn.phase != DAY:
             # Players can vote only during the day
             return False
@@ -365,9 +371,10 @@ class Player(models.Model):
     
     def is_mayor(self):
         # True if this player is the Mayor
-        if self.game.mayor is None:
+        mayor = self.game.get_dynamics().mayor
+        if mayor is None:
             return False
-        return self.pk == self.game.mayor.pk
+        return self.pk == mayor.pk
     
     is_mayor.boolean = True
     
@@ -388,3 +395,6 @@ class Event(KnowsChild):
     def __unicode__(self):
         return u"Event %d" % self.pk
     event_name = property(__unicode__)
+
+    def apply(self, dynamics):
+        raise NotImplementedError("Calling Events.apply() instead of a subclass")

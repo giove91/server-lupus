@@ -41,7 +41,6 @@ def logout_view(request):
 
 def setup(request):
     setup_game()
-    setup_dummy_players()
     
     return HttpResponse("Setup completato.")
 
