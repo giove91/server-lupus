@@ -1,4 +1,5 @@
 from datetime import datetime
+from threading import RLock
 
 from django.db import models
 from django import forms
@@ -30,6 +31,8 @@ class KnowsChild(models.Model):
 
 
 _dynamics_map = {}
+_dynamics_map_lock = RLock()
+
 class Game(models.Model):
     running = models.BooleanField(default=False)
     
@@ -51,11 +54,17 @@ class Game(models.Model):
         return self.get_dynamics().mayor
 
     def get_dynamics(self):
-        # TODO: implement proper locking
         global _dynamics_map
+        global _dynamics_map_lock
         if self.pk not in _dynamics_map:
-            from dynamics import Dynamics
-            _dynamics_map[self.pk] = Dynamics(self)
+            with _dynamics_map_lock:
+                # The previous "if" is not relevant, because it was
+                # tested before acquiring the lock; it is useful
+                # nevertheless, because it heavily limits the numer of
+                # times the lock has to be acquired
+                if self.pk not in _dynamics_map:
+                    from dynamics import Dynamics
+                    _dynamics_map[self.pk] = Dynamics(self)
         _dynamics_map[self.pk].update()
         return _dynamics_map[self.pk]
 

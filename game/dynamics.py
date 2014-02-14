@@ -7,8 +7,6 @@ from threading import RLock
 from models import Event, Turn
 import roles
 
-# TODO: implement proper locking
-
 class Dynamics:
 
     def __init__(self, game):
