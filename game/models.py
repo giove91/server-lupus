@@ -50,6 +50,10 @@ class Game(models.Model):
     def get_players(self):
         return Player.objects.filter(game=self)
     
+    @staticmethod
+    def get_running_game():
+        return Game.objects.get(running=True)
+
     def mayor(self):
         return self.get_dynamics().mayor
 
