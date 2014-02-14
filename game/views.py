@@ -46,6 +46,10 @@ def setup(request):
     return render(request, 'index.html')
 
 
+def advance_turn(request):
+    return render(request, 'index.html')
+
+
 def ruleset(request):
     return render(request, 'ruleset.html')
 
