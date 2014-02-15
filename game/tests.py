@@ -89,11 +89,24 @@ class GameTests(TestCase):
         roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
         game = create_test_game(2204, roles)
 
+        self.assertEqual(game.current_turn.phase, CREATION)
         self.assertEqual(game.mayor().user.username, 'pk4')
 
-        test_advance_turn(game)
-        test_advance_turn(game)
+    def test_turn_advance(self):
+        roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
+        game = create_test_game(2204, roles)
+
         test_advance_turn(game)
         test_advance_turn(game)
         test_advance_turn(game)
 
+        self.assertEqual(game.current_turn.phase, DAY)
+
+        test_advance_turn(game)
+        test_advance_turn(game)
+        test_advance_turn(game)
+
+        self.assertEqual(game.current_turn.phase, DAWN)
+
+    def test_stake_vote(self):
+        pass

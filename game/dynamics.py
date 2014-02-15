@@ -34,6 +34,10 @@ class Dynamics:
         self.last_pk_in_turn = None
         self.mayor = None
         self.available_roles = []
+        self.death_ghost_created = False
+        self.ghosts_created_last_night = False
+        self.used_ghost_powers = set()
+        self.giove_is_happy = False
         for player in self.players:
             self.players_dict[player.pk] = player
             player.team = None
@@ -192,7 +196,7 @@ class Dynamics:
         pass
 
     def _compute_entering_dawn(self):
-        pass
+        self.ghosts_created_last_night = False
 
     def _compute_entering_day(self):
         pass
