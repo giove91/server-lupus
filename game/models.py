@@ -84,23 +84,23 @@ class Game(models.Model):
     def get_dead_players(self):
         return [player for player in self.get_dynamics().players if not player.alive]
 
-    def initialize(self, begin_date):
+    def initialize(self, begin):
         first_turn = Turn.first_turn(self)
-        first_turn.set_first_begin_end(begin_date)
+        first_turn.set_first_begin_end(begin)
         first_turn.save()
 
-    def turn_advance(self):
+    def advance_turn(self):
         assert self.current_turn.end is not None
         next_turn = self.current_turn.next_turn()
         next_turn.set_begin_end(self.current_turn)
         next_turn.save()
-        self.get_dynamics.update()
+        self.get_dynamics().update()
 
     def check_turn_advance(self):
         """Compare current timestamp against current turn's end time
         and, if necessary, create the new turn."""
         while self.current_turn.end is not None and datetime.now() >= self.current_turn.end:
-            self.turn_advance()
+            self.advance_turn()
 
 class Turn(models.Model):
     game = models.ForeignKey(Game)
@@ -157,14 +157,14 @@ class Turn(models.Model):
     def next_turn(self, must_exist=False):
         phase = PHASE_CYCLE[self.phase]
         date = self.date
-        if phase == FIRST_PHASE:
+        if phase == DATE_CHANGE_PHASE:
             date += 1
         return Turn.get_or_create(self.game, date, phase, must_exist=must_exist)
 
     def prev_turn(self, must_exist=False):
         phase = REV_PHASE_CYCLE[self.phase]
         date = self.date
-        if self.phase == FIRST_PHASE:
+        if self.phase == DATE_CHANGE_PHASE:
             date -= 1
         return Turn.get_or_create(self.game, date, phase, must_exist=must_exist)
 
@@ -178,8 +178,9 @@ class Turn(models.Model):
         else:
             self.end = None
 
-    def set_first_begin_end(self, begin_date):
-        self.begin = datetime.combine(begin_date, FIRST_PHASE_BEGIN_TIME)
+    def set_first_begin_end(self, begin):
+        #self.begin = datetime.combine(begin_date, FIRST_PHASE_BEGIN_TIME)
+        self.begin = begin
         self.set_end()
 
     def set_begin_end(self, prev_turn):

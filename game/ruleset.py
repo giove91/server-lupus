@@ -13,10 +13,10 @@ def create_users(n):
         user.last_name = str(user.pk)
         user.save()
 
-def setup_game():
+def setup_game(begin):
     game = Game(running=True)
     game.save()
-    game.initialize(datetime.date.today())
+    game.initialize(begin)
 
     users = User.objects.all()
     for user in users:

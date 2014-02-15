@@ -21,6 +21,7 @@ from game.events import *
 from game.roles import *
 from game.ruleset import *
 
+from datetime import datetime
 
 def home(request):
     return render(request, 'index.html')
@@ -32,12 +33,16 @@ def logout_view(request):
 
 
 def setup(request):
-    setup_game()
-    
+    setup_game(datetime.now(REF_TZINFO))
     return render(request, 'index.html')
 
 
 def advance_turn(request):
+    game = Game.get_running_game()
+    turn = game.current_turn
+    turn.end = datetime.now(REF_TZINFO)
+    turn.save()
+    game.advance_turn()
     return render(request, 'index.html')
 
 

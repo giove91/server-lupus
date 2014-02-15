@@ -3,10 +3,14 @@
 from django.db.models import Q
 
 from threading import RLock
+from datetime import datetime
 
 from models import Event, Turn
 from constants import *
 import roles
+
+RELAX_TIME_CHECKS = True
+ANCIENT_DATETIME = datetime(year=1970, month=1, day=1, tzinfo=REF_TZINFO)
 
 class Dynamics:
 
@@ -15,6 +19,7 @@ class Dynamics:
         self.check_mode = False
         self.update_lock = RLock()
         self.event_num = 0
+        self._updating = False
         self.initialize_augmented_structure()
 
     def initialize_augmented_structure(self):
@@ -41,8 +46,12 @@ class Dynamics:
 
     def update(self):
         with self.update_lock:
+            if self._updating:
+                return
+            self._updating = True
             while self._update_step():
                 pass
+            self._updating = False
 
     def _pop_event_from_db(self):
         try:
@@ -79,8 +88,11 @@ class Dynamics:
         return False
 
     def _receive_turn(self, turn):
-        # Promote the new turn
-        self.prev_turn = self.current_turn
+        # Promote the new turn (we also update the old turn from the
+        # database, since we expect that end might have been set since
+        # last time we obtained it)
+        if self.current_turn is not None:
+            self.prev_turn = Turn.objects.get(pk=self.current_turn.pk)
         self.current_turn = turn
 
         # Do some checks on it
@@ -90,10 +102,14 @@ class Dynamics:
             assert self.prev_turn.end is not None
             assert self.prev_turn.begin <= self.prev_turn.end
             assert self.prev_turn.end == turn.begin
-            assert self.last_timestamp_in_turn <= self.prev_turn.end
+            if not RELAX_TIME_CHECKS:
+                assert self.last_timestamp_in_turn <= self.prev_turn.end
 
         # Prepare data for checking events
-        self.last_timestamp_in_turn = turn.begin
+        if RELAX_TIME_CHECKS:
+            self.last_timestamp_in_turn = ANCIENT_DATETIME
+        else:
+            self.last_timestamp_in_turn = turn.begin
         self.last_pk_in_turn = -1
 
         # Perform phase-dependant entering
@@ -111,7 +127,8 @@ class Dynamics:
         assert event.turn == self.current_turn
 
         # Do some check on the new event
-        assert event.timestamp >= self.current_turn.begin
+        if not RELAX_TIME_CHECKS:
+            assert event.timestamp >= self.current_turn.begin
         assert (event.timestamp > self.last_timestamp_in_turn) or (event.timestamp >= self.last_timestamp_in_turn and event.pk >= self.last_pk_in_turn)
         self.last_timestamp_in_turn = event.timestamp
         self.last_pk_in_turn = event.pk
@@ -166,6 +183,8 @@ class Dynamics:
         pass
 
     def _compute_entering_sunset(self):
+        # FIXME
+        '''
         new_mayor = self._compute_elected_mayor()
         if new_mayor is not None:
             #TODO
@@ -175,6 +194,8 @@ class Dynamics:
         if winner is not None:
             # TODO
             pass
+        '''
+        pass
 
     def _compute_elected_mayor(self):
         prev_turn = self.current_turn.prev_turn(must_exist=True)
