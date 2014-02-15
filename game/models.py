@@ -41,7 +41,7 @@ class Game(models.Model):
     def current_turn(self):
         try:
             return Turn.objects.filter(game=self).order_by('-date', '-phase')[0]
-        except Turn.DoesNotExist:
+        except IndexError:
             return None
     current_turn = property(current_turn)
     
