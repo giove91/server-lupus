@@ -31,7 +31,7 @@ class PlayerMiddleware:
             # Not authenticated
             player = None
         
-        request.player = player
+        request.player = player.canonicalize()
         
         return None
 

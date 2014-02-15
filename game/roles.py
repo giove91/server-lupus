@@ -12,7 +12,8 @@ class Role(KnowsChild):
     message2 = 'Parametro secondario:'
     message_ghost = 'Potere soprannaturale:'
     
-    def __init__(self):
+    def __init__(self, player):
+        self.player = player
         self.last_usage = None
         self.last_target = None
 

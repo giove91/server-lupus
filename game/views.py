@@ -96,8 +96,9 @@ class VillageStatusView(View):
 class PublicEventsView(View):
     def get(self, request):
         # TODO: write
-        pass
         
+        context = {}
+        return render(request, 'public_events.html', context)
 
 
 class CommandForm(forms.Form):
@@ -175,7 +176,7 @@ class UsePowerView(CommandView):
     def get_fields(self, request):
         player = request.player
         game = player.game
-        role = player.role.as_child()
+        role = player.role
         
         targets = role.get_targets()
         targets2 = role.get_targets2()
@@ -194,17 +195,17 @@ class UsePowerView(CommandView):
             pass
         
         # "target" field is always assumed to be present
-        fields = [ {'name': 'target', 'queryset': targets, 'initial': initial, 'label': player.role.as_child().message} ]
+        fields = [ {'name': 'target', 'queryset': targets, 'initial': initial, 'label': player.role.message} ]
         if targets2 is not None:
-            fields.append( {'name': 'target2', 'queryset': targets2, 'initial': initial2, 'label': player.role.as_child().message2} )
+            fields.append( {'name': 'target2', 'queryset': targets2, 'initial': initial2, 'label': player.role.message2} )
         if targets_ghost is not None:
-            fields.append( {'name': 'target_ghost', 'queryset': targets_ghost, 'initial': initial_ghost, 'label': player.role.as_child().message_ghost} )
+            fields.append( {'name': 'target_ghost', 'queryset': targets_ghost, 'initial': initial_ghost, 'label': player.role.message_ghost} )
         
         return fields
     
     def save_command(self, request, cleaned_data):
         player = request.player
-        role = player.role.as_child()
+        role = player.role
         
         targets = role.get_targets()
         targets2 = role.get_targets2()

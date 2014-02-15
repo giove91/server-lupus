@@ -90,7 +90,8 @@ class SetRoleEvent(Event):
 
     def apply(self, dynamics):
         [role_class] = [x for x in Role.__subclasses__() if x.__name__ == self.role_name]
-        role = role_class()
+        player = self.player.canonicalize()
+        role = role_class(player)
         player = self.player.canonicalize()
         player.role = role
         player.team = role.team
