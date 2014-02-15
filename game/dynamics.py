@@ -7,11 +7,11 @@ from datetime import datetime
 
 from models import Event, Turn
 from events import CommandEvent, VoteAnnouncedEvent, TallyAnnouncedEvent, \
-    ElectNewMayorEvent, KillPlayerEvent
+    ElectNewMayorEvent, PlayerDiesEvent
 from constants import *
 import roles
 
-RELAX_TIME_CHECKS = True
+RELAX_TIME_CHECKS = False
 ANCIENT_DATETIME = datetime(year=1970, month=1, day=1, tzinfo=REF_TZINFO)
 
 class Dynamics:
@@ -25,7 +25,7 @@ class Dynamics:
         self.initialize_augmented_structure()
 
     def initialize_augmented_structure(self):
-        self.players = list(self.game.player_set.order_by('full_name'))
+        self.players = list(self.game.player_set.order_by('user__last_name', 'user__first_name'))
         self.players_dict = {}
         self.random = None
         self.current_turn = None
@@ -44,16 +44,16 @@ class Dynamics:
             player.active = True
 
     def get_active_players(self):
-        return [player for player in self.get_dynamics().players if player.active]
+        return [player for player in self.players if player.active]
 
     def get_inactive_players(self):
-        return [player for player in self.get_dynamics().players if not player.active]
+        return [player for player in self.players if not player.active]
 
     def get_alive_players(self):
-        return [player for player in self.get_dynamics().players if player.alive]
+        return [player for player in self.players if player.alive]
 
     def get_dead_players(self):
-        return [player for player in self.get_dynamics().players if not player.alive]
+        return [player for player in self.players if not player.alive]
 
     def get_canonical_player(self, player):
         return self.players_dict[player.pk]
@@ -209,7 +209,7 @@ class Dynamics:
             self.generate_event(event)
 
     def _compute_elected_mayor(self):
-        votes = CommandEvent.objects.filter(turn=self.prev_turn).filter(type=ELECT).order_by(Event.timestamp)
+        votes = CommandEvent.objects.filter(turn=self.prev_turn).filter(type=ELECT).order_by('timestamp')
         new_mayor = None
 
         # TODO
@@ -217,7 +217,7 @@ class Dynamics:
         return new_mayor
 
     def _compute_vote_winner(self):
-        votes = CommandEvent.objects.filter(turn=self.prev_turn).filter(type=VOTE).order_by(Event.timestamp)
+        votes = CommandEvent.objects.filter(turn=self.prev_turn).filter(type=VOTE).order_by('timestamp')
         winner = None
         quorum_failed = False
 
@@ -252,7 +252,7 @@ class Dynamics:
 
         # Send announcements
         for player in self.get_alive_players():
-            if player.pk in ballots:
+            if ballots[player.pk] is not None:
                 event = VoteAnnouncedEvent(voter=player.canonicalize(), voted=ballots[player.pk].target.canonicalize(), type=VOTE)
                 self.generate_event(event)
         for player in self.get_alive_players():

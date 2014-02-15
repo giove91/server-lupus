@@ -155,12 +155,12 @@ class PlayerDiesEvent(Event):
 
     player = models.ForeignKey(Player, related_name='+')
     DEATH_CAUSE_TYPES = (
-        STAKE: 'Stake',
-        HUNTER: 'Hunter',
-        WOLVES: 'Wolves',
-        DEATH_GHOST: 'DeathGhost',
+        (STAKE, 'Stake'),
+        (HUNTER, 'Hunter'),
+        (WOLVES, 'Wolves'),
+        (DEATH_GHOST, 'DeathGhost'),
         )
-    cause = model.CharField(max_length=1, choices=DEATH_CAUSE_TYPES)
+    cause = models.CharField(max_length=1, choices=DEATH_CAUSE_TYPES)
 
     def apply(self, dynamics):
         player = self.player.canonicalize()
