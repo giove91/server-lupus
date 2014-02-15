@@ -59,6 +59,7 @@ def ruleset(request):
     return render(request, 'ruleset.html')
 
 
+
 class VillageStatusView(View):
     def get(self, request):
         
@@ -91,6 +92,12 @@ class VillageStatusView(View):
         }   
         return render(request, 'status.html', context)
 
+
+class PublicEventsView(View):
+    def get(self, request):
+        # TODO: write
+        pass
+        
 
 
 class CommandForm(forms.Form):

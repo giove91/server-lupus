@@ -96,3 +96,4 @@ class GameTests(TestCase):
         test_advance_turn(game)
         test_advance_turn(game)
         test_advance_turn(game)
+
