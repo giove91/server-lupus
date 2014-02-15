@@ -23,6 +23,16 @@ from game.ruleset import *
 
 from datetime import datetime
 
+
+def is_GM_check(user):
+    # Checks that the user is a GM
+    if not user.is_authenticated():
+        return False
+    return user.is_staff
+
+
+
+
 def home(request):
     return render(request, 'index.html')
 
@@ -154,10 +164,10 @@ class UsePowerView(CommandView):
     template_name = 'command_usepower.html'
     
     def check(self, request):
-        return request.user.player.can_use_power()
+        return request.player is not None and request.player.can_use_power()
     
     def get_fields(self, request):
-        player = request.user.player
+        player = request.player
         game = player.game
         role = player.role.as_child()
         
@@ -187,7 +197,7 @@ class UsePowerView(CommandView):
         return fields
     
     def save_command(self, request, cleaned_data):
-        player = request.user.player
+        player = request.player
         role = player.role.as_child()
         
         targets = role.get_targets()
@@ -225,10 +235,10 @@ class VoteView(CommandView):
     template_name = 'command_vote.html'
     
     def check(self, request):
-        return request.user.player.can_vote()
+        return request.player is not None and request.player.can_vote()
     
     def get_fields(self, request):
-        player = request.user.player
+        player = request.player
         game = player.game
         queryset = game.get_alive_players()
         initial = None
@@ -243,7 +253,7 @@ class VoteView(CommandView):
         return fields
     
     def save_command(self, request, cleaned_data):
-        player = request.user.player
+        player = request.player
         game = player.game
         target = cleaned_data['target']
         
@@ -260,10 +270,10 @@ class ElectView(CommandView):
     template_name = 'command_elect.html'
     
     def check(self, request):
-        return request.user.player.can_vote()
+        return request.player is not None and request.player.can_vote()
     
     def get_fields(self, request):
-        player = request.user.player
+        player = request.player
         game = player.game
         queryset = game.get_alive_players()
         initial = None
@@ -278,7 +288,7 @@ class ElectView(CommandView):
         return fields
     
     def save_command(self, request, cleaned_data):
-        player = request.user.player
+        player = request.player
         game = player.game
         target = cleaned_data['target']
         
@@ -303,15 +313,15 @@ class PersonalInfoView(View):
         is_mystic = False
         status = '-'
         
-        if request.player is not None:
-            player = request.player.canonicalize()
-            game = player.game
-            team = player.team
-            role = player.role.name
-            aura = player.aura_as_italian_string()
-            is_mystic = player.is_mystic
-            status = player.status_as_italian_string()
-        
+        player = request.player.canonicalize()
+        game = player.game
+        # TODO : forse bisognerebbe fare dei controlli per verificare (tipo) che la partita sia in corso
+        team = player.team
+        role = player.role.name
+        aura = player.aura_as_italian_string()
+        is_mystic = player.is_mystic
+        status = player.status_as_italian_string()
+    
         context = {
             'team': team,
             'role': role,
@@ -344,6 +354,43 @@ class ContactsView(ListView):
         return super(ContactsView, self).dispatch(*args, **kwargs)
 
 
+# Form for changing point of view (for GM only)
+class ChangePointOfViewForm(forms.Form):
+    
+    player = forms.ModelChoiceField(
+                queryset=Player.objects.all(),
+                empty_label='(Nessuno)',
+                required=False,
+                label='Scegli un giocatore:'
+            )
+
+
+# View for changing point of view (for GM only)
+class PointOfView(View):
+    def get(self, request):
+        player = request.player
+        form = ChangePointOfViewForm(initial={'player': player})
+        return render(request, 'point_of_view.html', {'form': form, 'message': None})
+    
+    def post(self, request):
+        player = request.player
+        form = ChangePointOfViewForm(request.POST)
+        
+        if form.is_valid():
+            player = form.cleaned_data['player']
+            request.session['player_id'] = player.pk
+            
+            # Metto il nuovo giocatore nella request corrente
+            request.player = player
+            
+            form2 = ChangePointOfViewForm(initial={'player': player})
+            return render(request, 'point_of_view.html', {'form': form, 'message': 'Punto di vista cambiato con successo'})
+        else:
+            return render(request, 'point_of_view.html', {'form': form, 'message': 'Scelta non valida'})
+    
+    @method_decorator(user_passes_test(is_GM_check))
+    def dispatch(self, *args, **kwargs):
+        return super(PointOfView, self).dispatch(*args, **kwargs)
 
 
 

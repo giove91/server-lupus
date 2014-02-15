@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Punto di vista</h1>
+    
+    {% if message != None %}
+        <p><strong>{{ message }}</strong></p>
+    {% endif %}
+    
+    <form action="{% url 'pointofview' %}" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Cambia punto di vista" />
+    </form>
+{% endblock %}
+

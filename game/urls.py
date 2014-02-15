@@ -15,5 +15,7 @@ urlpatterns = patterns('',
     url(r'^elect/$', ElectView.as_view(), name='elect'),
     url(r'^personalinfo/$', PersonalInfoView.as_view(), name='personalinfo'),
     url(r'^contacts/$', ContactsView.as_view(), name='contacts'),
+    
+    url(r'^pointofview/$', PointOfView.as_view(), name='pointofview'),
 )
 

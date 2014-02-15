@@ -43,6 +43,16 @@
             <li><a href="{% url 'contacts' %}">Contatti</a></li>
         </ul>
         
+        {% if user.is_staff %}
+        
+        Amministrazione
+        
+        <ul>
+            <li><a href="{% url 'pointofview' %}">Punto di vista</a></li>
+        </ul>
+        
+        {% endif %}
+        
         {% endblock %}
     </div>
 
