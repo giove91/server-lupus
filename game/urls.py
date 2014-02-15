@@ -8,6 +8,7 @@ urlpatterns = patterns('',
     url(r'^setup/$', setup, name='setup'),
     url(r'^advance_turn/$', advance_turn, name='advance_turn'),
     url(r'^ruleset/$', ruleset, name='ruleset'),
+    
     url(r'^status/$', VillageStatusView.as_view(), name='status'),
     
     url(r'^usepower/$', UsePowerView.as_view(), name='usepower'),

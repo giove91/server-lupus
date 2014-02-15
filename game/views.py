@@ -32,7 +32,6 @@ def is_GM_check(user):
 
 
 
-
 def home(request):
     return render(request, 'index.html')
 
