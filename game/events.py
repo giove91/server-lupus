@@ -2,12 +2,11 @@ from django.db import models
 from models import Event, Player
 from roles import *
 from constants import *
-from dynamics import Dynamics
 
 class CommandEvent(Event):
     # A command submitted by a player
 
-    RELEVANT_PHASES = [DAY]
+    RELEVANT_PHASES = [DAY, NIGHT]
     AUTOMATIC = False
     
     player = models.ForeignKey(Player, related_name='action_set')
@@ -18,6 +17,12 @@ class CommandEvent(Event):
         (ELECT, 'Elect'),
     )
     type = models.CharField(max_length=1, choices=ACTION_TYPES)
+
+    REAL_RELEVANT_PHASES = {
+        USEPOWER: NIGHT,
+        VOTE: DAY,
+        ELECT: DAY,
+        }
     
     target = models.ForeignKey(Player, null=True, blank=True, related_name='+')
     target2 = models.ForeignKey(Player, null=True, blank=True, related_name='+')
@@ -25,6 +30,11 @@ class CommandEvent(Event):
     
     def __unicode__(self):
         return u"CommandEvent %d" % self.pk
+
+    def apply(self, dynamics):
+        # Do nothing; events will be counted during sunset or dawn;
+        # just check that we're in the correct phase
+        assert dynamics.current_turn.phase in CommandEvent.REAL_RELEVANT_PHASES[self.type]
 
 
 class SeedEvent(Event):
@@ -34,6 +44,9 @@ class SeedEvent(Event):
     seed = models.IntegerField()
 
     def apply(self, dynamics):
+        # We use Wichmann-Hill because it is a pure Python
+        # implementation; its reduced randomness properties shouldn't
+        # be a problem for us
         from my_random import WichmannHill
         dynamics.random = WichmannHill()
         dynamics.random.seed(self.seed)
@@ -92,4 +105,68 @@ class SetMayorEvent(Event):
     player = models.ForeignKey(Player, related_name='+')
 
     def apply(self, dynamics):
-        dynamics.mayor = self.player.canonicalize()
+        player = self.player.canonicalize()
+        assert player.alive
+        dynamics.mayor = player
+
+
+class VoteAnnouncedEvent(Event):
+    RELEVANT_PHASES = [SUNSET]
+    AUTOMATIC = True
+
+    voter = models.ForeignKey(Player, related_name='+')
+    voted = models.ForeignKey(Player, related_name='+')
+    # Allow ELECT and VOTE here
+    type = models.CharField(max_length=1, choices=CommandEvent.ACTION_TYPES)
+
+    def apply(self, dynamics):
+        assert self.type in [ELECT, VOTE]
+        assert self.voter.canonicalize().alive
+        assert self.voted.canonicalize().alive
+
+
+class TallyAnnouncedEvent(Event):
+    RELEVANT_PHASES = [SUNSET]
+    AUTOMATIC = True
+
+    voted = models.ForeignKey(Player, related_name='+')
+    vote_num = models.IntegerField()
+
+    def apply(self, dynamics):
+        assert self.voted.canonicalize().alive
+        assert self.vote_num > 0
+
+
+class ElectNewMayorEvent(Event):
+    RELEVANT_PHASES = [SUNSET]
+    AUTOMATIC = True
+
+    player = models.ForeignKey(Player, related_name='+')
+
+    def apply(self, dynamics):
+        player = self.player.canonicalize()
+        assert player.alive
+        dynamics.mayor = player
+
+
+class PlayerDiesEvent(Event):
+    RELEVANT_PHASES = [SUNSET]
+    AUTOMATIC = True
+
+    player = models.ForeignKey(Player, related_name='+')
+    DEATH_CAUSE_TYPES = (
+        STAKE: 'Stake',
+        HUNTER: 'Hunter',
+        WOLVES: 'Wolves',
+        DEATH_GHOST: 'DeathGhost',
+        )
+    cause = model.CharField(max_length=1, choices=DEATH_CAUSE_TYPES)
+
+    def apply(self, dynamics):
+        player = self.player.canonicalize()
+        assert player.alive
+        player.alive = False
+
+        # TODO: trigger the actions that depend on a player's death,
+        # like mayor inheritance, trigger Cacciatore power, trigger
+        # Fantasma power

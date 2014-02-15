@@ -65,3 +65,9 @@ VISIONE = 'V'
 USEPOWER = 'P'
 VOTE = 'V'
 ELECT = 'E'
+
+# Death causes
+STAKE = 'S'
+HUNTER = 'H'
+WOLVES = 'W'
+DEATH_GHOST = 'D'

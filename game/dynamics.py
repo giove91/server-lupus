@@ -6,6 +6,8 @@ from threading import RLock
 from datetime import datetime
 
 from models import Event, Turn
+from events import CommandEvent, VoteAnnouncedEvent, TallyAnnouncedEvent, \
+    ElectNewMayorEvent, KillPlayerEvent
 from constants import *
 import roles
 
@@ -23,7 +25,7 @@ class Dynamics:
         self.initialize_augmented_structure()
 
     def initialize_augmented_structure(self):
-        self.players = list(self.game.player_set.all())
+        self.players = list(self.game.player_set.order_by('full_name'))
         self.players_dict = {}
         self.random = None
         self.current_turn = None
@@ -40,6 +42,18 @@ class Dynamics:
             player.is_mystic = None
             player.alive = True
             player.active = True
+
+    def get_active_players(self):
+        return [player for player in self.get_dynamics().players if player.active]
+
+    def get_inactive_players(self):
+        return [player for player in self.get_dynamics().players if not player.active]
+
+    def get_alive_players(self):
+        return [player for player in self.get_dynamics().players if player.alive]
+
+    def get_dead_players(self):
+        return [player for player in self.get_dynamics().players if not player.alive]
 
     def get_canonical_player(self, player):
         return self.players_dict[player.pk]
@@ -129,7 +143,8 @@ class Dynamics:
         # Do some check on the new event
         if not RELAX_TIME_CHECKS:
             assert event.timestamp >= self.current_turn.begin
-        assert (event.timestamp > self.last_timestamp_in_turn) or (event.timestamp >= self.last_timestamp_in_turn and event.pk >= self.last_pk_in_turn)
+        assert (event.timestamp > self.last_timestamp_in_turn) or \
+            (event.timestamp >= self.last_timestamp_in_turn and event.pk >= self.last_pk_in_turn)
         self.last_timestamp_in_turn = event.timestamp
         self.last_pk_in_turn = event.pk
         assert self.current_turn.phase in event.RELEVANT_PHASES
@@ -183,23 +198,18 @@ class Dynamics:
         pass
 
     def _compute_entering_sunset(self):
-        # FIXME
-        '''
         new_mayor = self._compute_elected_mayor()
         if new_mayor is not None:
-            #TODO
+            # TODO
             pass
 
         winner = self._compute_vote_winner()
         if winner is not None:
-            # TODO
-            pass
-        '''
-        pass
+            event = PlayerDiesEvent(player=winner, cause=STAKE)
+            self.generate_event(event)
 
     def _compute_elected_mayor(self):
-        prev_turn = self.current_turn.prev_turn(must_exist=True)
-        votes = CommandEvents.objects.filter(turn=prev_turn).filter(type=ELECT).order_by(Event.timestamp)
+        votes = CommandEvent.objects.filter(turn=self.prev_turn).filter(type=ELECT).order_by(Event.timestamp)
         new_mayor = None
 
         # TODO
@@ -207,14 +217,14 @@ class Dynamics:
         return new_mayor
 
     def _compute_vote_winner(self):
-        prev_turn = self.current_turn.prev_turn(must_exist=True)
-        votes = CommandEvents.objects.filter(turn=prev_turn).filter(type=VOTE).order_by(Event.timestamp)
+        votes = CommandEvent.objects.filter(turn=self.prev_turn).filter(type=VOTE).order_by(Event.timestamp)
         winner = None
+        quorum_failed = False
 
         # Count last ballot for each player
         ballots = {}
         mayor_ballot = None
-        for player in self.get_players():
+        for player in self.players:
             ballots[player.pk] = None
         for vote in votes:
             ballots[vote.player.pk] = vote
@@ -223,17 +233,36 @@ class Dynamics:
 
         # TODO: count Ipnotista and Spettro dell'Amnesia
 
-        # TODO: check that at least half of the alive people voted; if
-        # not, abort the voting
-
-        # TODO: count Spettro della Duplicazione
-
-        # Fill tally sheet
+        # Fill the tally sheet
         tally_sheet = {}
         for player in self.get_alive_players():
             tally_sheet[player.pk] = 0
+        votes_num = 0
         for ballot in ballots.itervalues():
+            if ballot is None:
+                continue
             tally_sheet[ballot.target.pk] += 1
+            votes_num += 1
+
+        # Check that at least halg of the alive people voted
+        if votes_num * 2 < len(self.get_alive_players()):
+            quorum_failed = True
+
+        # TODO: count Spettro della Duplicazione
+
+        # Send announcements
+        for player in self.get_alive_players():
+            if player.pk in ballots:
+                event = VoteAnnouncedEvent(voter=player.canonicalize(), voted=ballots[player.pk].target.canonicalize(), type=VOTE)
+                self.generate_event(event)
+        for player in self.get_alive_players():
+            if tally_sheet[player.pk] != 0:
+                event = TallyAnnouncedEvent(voted=player.canonicalize(), note_num=vote_num)
+                self.generate_event(event)
+
+        # Abort the vote if the quorum wasn't reached
+        if quorum_failed:
+            return None
 
         # Compute winners (or maybe loosers...)
         tally_sheet = tally_sheet.items()
@@ -246,4 +275,4 @@ class Dynamics:
         else:
             winner = random.choice(winners)
 
-        # TODO: kill the winner
+        return winner

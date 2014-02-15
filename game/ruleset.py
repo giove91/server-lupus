@@ -36,3 +36,15 @@ def setup_game(begin):
         event = AvailableRoleEvent(role_name=roles[i%len(roles)].__name__)
         event.timestamp = first_turn.begin
         game.get_dynamics().inject_event(event)
+
+def play_dummy_game():
+    # We begin with creation, just after setup_game() finished
+    game = Game.get_running_game()
+    assert game.current_turn.phase == CREATION
+    assert len(game.get_dynamics().players) == 4
+
+    game.advance_turn()
+    game.advance_turn()
+    game.advance_turn()
+
+    # Now it is day; let us vote for death!
