@@ -289,7 +289,7 @@ class Dynamics:
                 self.generate_event(event)
         for player in self.get_alive_players():
             if tally_sheet[player.pk] != 0:
-                event = TallyAnnouncedEvent(voted=player.canonicalize(), vote_num=tally_sheet[player.pk])
+                event = TallyAnnouncedEvent(voted=player.canonicalize(), vote_num=tally_sheet[player.pk], type=VOTE)
                 self.generate_event(event)
 
         # Abort the vote if the quorum wasn't reached
