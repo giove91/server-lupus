@@ -151,6 +151,7 @@ class ElectNewMayorEvent(Event):
         player = self.player.canonicalize()
         assert player.alive
         dynamics.mayor = player
+        assert player.is_mayor()
 
 
 class PlayerDiesEvent(Event):

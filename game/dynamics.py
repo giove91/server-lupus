@@ -230,8 +230,8 @@ class Dynamics:
     def _compute_entering_sunset(self):
         new_mayor = self._compute_elected_mayor()
         if new_mayor is not None:
-            # TODO
-            pass
+            event = ElectNewMayorEvent(player=new_mayor)
+            self.generate_event(event)
 
         winner = self._compute_vote_winner()
         if winner is not None:
@@ -242,9 +242,43 @@ class Dynamics:
         votes = CommandEvent.objects.filter(turn=self.prev_turn).filter(type=ELECT).order_by('timestamp')
         new_mayor = None
 
-        # TODO
+        # Count last ballot for each player
+        ballots = {}
+        for player in self.players:
+            ballots[player.pk] = None
+        for vote in votes:
+            if vote.target is None:
+                continue
+            ballots[vote.player.pk] = vote
 
-        return new_mayor
+        # Fill the tally sheet
+        tally_sheet = {}
+        for player in self.get_alive_players():
+            tally_sheet[player.pk] = 0
+        for ballot in ballots.itervalues():
+            if ballot is None:
+                continue
+            tally_sheet[ballot.target.pk] += 1
+
+        # Send announcements
+        for player in self.get_alive_players():
+            if ballots[player.pk] is not None:
+                event = VoteAnnouncedEvent(voter=player.canonicalize(), voted=ballots[player.pk].target.canonicalize(), type=ELECT)
+                self.generate_event(event)
+        for player in self.get_alive_players():
+            if tally_sheet[player.pk] != 0:
+                event = TallyAnnouncedEvent(voted=player.canonicalize(), vote_num=tally_sheet[player.pk], type=ELECT)
+                self.generate_event(event)
+
+        # Compute winners (or maybe loosers...)
+        tally_sheet = tally_sheet.items()
+        tally_sheet.sort(key=lambda x: x[1], reverse=True)
+        winner = tally_sheet[0][0]
+        max_votes = tally_sheet[0][1]
+        if max_votes * 2 > len(self.get_alive_players()):
+            return self.players_dict[winner]
+        else:
+            return None
 
     def _compute_vote_winner(self):
         votes = CommandEvent.objects.filter(turn=self.prev_turn).filter(type=VOTE).order_by('timestamp')

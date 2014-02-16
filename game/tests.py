@@ -117,13 +117,17 @@ class GameTests(TestCase):
 
         self.assertEqual(game.current_turn.phase, DAWN)
 
-    def stake_vote_helper(self, roles, votes, expect_to_die):
-        self.assertEqual(len(roles), len(votes))
+    def voting_helper(self, roles, mayor_votes, stake_votes, expected_mayor, expect_to_die):
+        if mayor_votes is not None:
+            self.assertEqual(len(roles), len(mayor_votes))
+        if stake_votes is not None:
+            self.assertEqual(len(roles), len(stake_votes))
 
         # The seed is chosen so that the first player is the mayor
         game = create_test_game(1, roles)
         dynamics = game.get_dynamics()
         players = game.get_players()
+        initial_mayor = game.mayor()
 
         test_advance_turn(game)
         test_advance_turn(game)
@@ -132,12 +136,21 @@ class GameTests(TestCase):
         self.assertEqual(game.current_turn.phase, DAY)
         self.assertEqual(game.mayor().pk, players[0].pk)
 
+        # Push votes
         for i, player in enumerate(players):
-            if votes[i] is not None:
-                event = CommandEvent(player=player, type=VOTE, target=players[votes[i]], timestamp=get_now())
-            else:
-                event = CommandEvent(player=player, type=VOTE, target=None, timestamp=get_now())
-            dynamics.inject_event(event)
+            if stake_votes is not None:
+                if stake_votes[i] is not None:
+                    event = CommandEvent(player=player, type=VOTE, target=players[stake_votes[i]], timestamp=get_now())
+                else:
+                    event = CommandEvent(player=player, type=VOTE, target=None, timestamp=get_now())
+                dynamics.inject_event(event)
+
+            if mayor_votes is not None:
+                if mayor_votes[i] is not None:
+                    event = CommandEvent(player=player, type=ELECT, target=players[mayor_votes[i]], timestamp=get_now())
+                else:
+                    event = CommandEvent(player=player, type=ELECT, target=None, timestamp=get_now())
+                dynamics.inject_event(event)
 
         # Trigger the vote counting
         dynamics.debug_event_bin = []
@@ -148,41 +161,115 @@ class GameTests(TestCase):
             [kill_event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
             self.assertEqual(kill_event.cause, STAKE)
             self.assertEqual(kill_event.player.pk, players[expect_to_die].pk)
-            self.assertFalse(kill_event.player.alive)
+            self.assertFalse(players[expect_to_die].canonicalize().alive)
         else:
             self.assertEqual([event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)], [])
+
+        if expected_mayor is not None:
+            [mayor_event] = [event for event in dynamics.debug_event_bin if isinstance(event, ElectNewMayorEvent)]
+            self.assertEqual(mayor_event.player.pk, players[expected_mayor].pk)
+            self.assertTrue(players[expected_mayor].is_mayor())
+            self.assertEqual(game.mayor().pk, players[expected_mayor].pk)
+        else:
+            self.assertEqual([event for event in dynamics.debug_event_bin if isinstance(event, ElectNewMayorEvent)], [])
+            self.assertEqual(game.mayor().pk, initial_mayor.pk)
+
+        dynamics.debug_event_bin = None
 
     def test_stake_vote_unanimity(self):
         roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
         votes = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
-        self.stake_vote_helper(roles, votes, 0)
+        self.voting_helper(roles, None, votes, None, 0)
 
-    def test_stake_vote_majority(self):
+    def test_stake_vote_absolute_majority(self):
+        roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
+        votes = [ 0, 0, 0, 0, 0, 0, 1, 1, 2, None ]
+        self.voting_helper(roles, None, votes, None, 0)
+
+    def test_stake_vote_relative_majority(self):
         roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
         votes = [ 0, 0, 0, 0, 1, 1, 1, 2, None, None ]
-        self.stake_vote_helper(roles, votes, 0)
+        self.voting_helper(roles, None, votes, None, 0)
 
     def test_stake_vote_tie_with_mayor(self):
         roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
         votes = [ 0, 0, 0, 1, 1, 1, 3, 4, None, None ]
-        self.stake_vote_helper(roles, votes, 0)
+        self.voting_helper(roles, None, votes, None, 0)
 
     def test_stake_vote_tie_without_mayor(self):
         roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
         votes = [ 2, 0, 0, 1, 1, 1, 0, 4, None, None ]
-        self.stake_vote_helper(roles, votes, 1)
+        self.voting_helper(roles, None, votes, None, 1)
 
     def test_stake_vote_no_quorum(self):
         roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
         votes = [ 0, 0, None, None, None, None, None, None, None, None ]
-        self.stake_vote_helper(roles, votes, None)
+        self.voting_helper(roles, None, votes, None, None)
 
     def test_stake_vote_half_quorum(self):
         roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
         votes = [ 0, 0, 0, 0, 0, None, None, None, None, None ]
-        self.stake_vote_helper(roles, votes, 0)
+        self.voting_helper(roles, None, votes, None, 0)
 
-    def test_stake_vote_half_mayor_not_voting(self):
+    def test_stake_vote_mayor_not_voting(self):
         roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
         votes = [ None, 0, 0, 0, 0, 0, 0, None, None, None ]
-        self.stake_vote_helper(roles, votes, 0)
+        self.voting_helper(roles, None, votes, None, 0)
+
+
+    def test_election_unanimity(self):
+        roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
+        votes = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+        self.voting_helper(roles, votes, None, 0, None)
+
+    def test_election_absolute_majority(self):
+        roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
+        votes = [ 0, 0, 0, 0, 0, 0, 1, 1, 2, None ]
+        self.voting_helper(roles, votes, None, 0, None)
+
+    def test_election_relative_majority(self):
+        roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
+        votes = [ 0, 0, 0, 0, 1, 1, 1, 2, None, None ]
+        self.voting_helper(roles, votes, None, None, None)
+
+    def test_election_tie_with_mayor(self):
+        roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
+        votes = [ 0, 0, 0, 1, 1, 1, 3, 4, None, None ]
+        self.voting_helper(roles, votes, None, None, None)
+
+    def test_election_tie_without_mayor(self):
+        roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
+        votes = [ 2, 0, 0, 1, 1, 1, 0, 4, None, None ]
+        self.voting_helper(roles, votes, None, None, None)
+
+    def test_election_no_quorum(self):
+        roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
+        votes = [ 0, 0, None, None, None, None, None, None, None, None ]
+        self.voting_helper(roles, votes, None, None, None)
+
+    def test_election_half_quorum(self):
+        roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
+        votes = [ 0, 0, 0, 0, 0, None, None, None, None, None ]
+        self.voting_helper(roles, votes, None, None, None)
+
+    def test_election_mayor_not_voting(self):
+        roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
+        votes = [ None, 0, 0, 0, 0, 0, 0, None, None, None ]
+        self.voting_helper(roles, votes, None, 0, None)
+
+
+    def test_composite_election_same_mayor(self):
+        # Here we make use of the fact that the mayor is 0 in the
+        # beginning
+        roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
+        mayor_votes = [ 1, 1, 1, 1, 2, 2, 0, 0, 0, 0 ]
+        stake_votes = [ 2, 3, 2, 3, 2, 3, None, None, None, None ]
+        self.voting_helper(roles, mayor_votes, stake_votes, None, 2)
+
+    def test_composite_election_change_mayor(self):
+        # Here we make use of the fact that the mayor is 0 in the
+        # beginning
+        roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
+        mayor_votes = [ 1, 1, 1, 1, 1, 1, 0, 0, 0, 0 ]
+        stake_votes = [ 2, 3, 2, 3, 2, 3, None, None, None, None ]
+        self.voting_helper(roles, mayor_votes, stake_votes, 1, 3)
