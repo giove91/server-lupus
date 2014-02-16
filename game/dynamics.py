@@ -46,6 +46,7 @@ class Dynamics:
             player.is_mystic = None
             player.alive = True
             player.active = True
+            player.canonical = True
 
     def get_active_players(self):
         """Players are guaranteed to be sorted in a canonical order,

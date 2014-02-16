@@ -241,7 +241,11 @@ class Player(models.Model):
         return u"%s %s" % (self.user.first_name, self.user.last_name)
     
     def canonicalize(self):
-        return self.game.get_dynamics().get_canonical_player(self)
+        # We save on query when we can
+        if 'canonical' in self.__dict__ and self.canonical:
+            return self
+        else:
+            return self.game.get_dynamics().get_canonical_player(self)
 
     # TODO: questa funzione forse non deve stare qui, e sicuramente nel caso va resa un po' piu' decente
     def aura_as_italian_string(self):
