@@ -108,14 +108,34 @@ class CommandForm(forms.Form):
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
         super(CommandForm, self).__init__(*args, **kwargs)
-        for field in fields:
-            self.fields[field['name']] = forms.ModelChoiceField(
-                queryset=field['queryset'],
-                empty_label="(Nessuno)",
-                required=False,
-                initial=field['initial'],
-                label=field['label']
-            )
+        
+        for key, field in fields.iteritems():
+            if key == 'target' or key == 'target2':
+                choices = [ (player.pk, player.full_name) for player in field['choices'] ]
+                choices.append( (None, '(Nessuno)') )
+            elif key == 'target_ghost':
+                choices = [ (power, Spettro.POWER_NAMES[power]) for power in field['choices'] ]
+                choices.append( (None, '(Nessuno)') )
+            else:
+                raise Exception ('Unknown form field.')
+            self.fields[key] = forms.ChoiceField(choices=choices, required=False, initial=field['initial'], label=field['label'])
+    
+    def clean(self):
+        cleaned_data = super(CommandForm, self).clean()
+        
+        for key, field in self.fields.iteritems():
+            if key == 'target' or key == 'target2':
+                player_id = cleaned_data.get(key)
+                if player_id:
+                    try:
+                        player = Player.objects.get(pk=player_id).canonicalize()
+                    except Player.DoesNotExist:
+                        raise forms.ValidationError('Player does not exist')
+                    cleaned_data[key] = player
+        
+        return cleaned_data
+
+
 
 class CommandView(View):
     
@@ -194,12 +214,13 @@ class UsePowerView(CommandView):
         except CommandEvent.DoesNotExist:
             pass
         
-        # "target" field is always assumed to be present
-        fields = [ {'name': 'target', 'queryset': targets, 'initial': initial, 'label': player.role.message} ]
+        fields = {}
+        if targets is not None:
+            fields['target'] = {'choices': targets, 'initial': initial, 'label': player.role.message}
         if targets2 is not None:
-            fields.append( {'name': 'target2', 'queryset': targets2, 'initial': initial2, 'label': player.role.message2} )
+            fields['target2'] = {'choices': targets2, 'initial': initial2, 'label': player.role.message2}
         if targets_ghost is not None:
-            fields.append( {'name': 'target_ghost', 'queryset': targets_ghost, 'initial': initial_ghost, 'label': player.role.message_ghost} )
+            fields['target_ghost'] = {'choices': targets_ghost, 'initial': initial_ghost, 'label': player.role.message_ghost}
         
         return fields
     
@@ -232,8 +253,9 @@ class UsePowerView(CommandView):
             target2 = None
             target_ghost = None
         
-        command = CommandEvent(player=player, type=USEPOWER, target=target, target2=target2, target_ghost=target_ghost, turn=player.game.current_turn)
-        command.save()
+        command = CommandEvent(player=player, type=USEPOWER, target=target, target2=target2, target_ghost=target_ghost, turn=player.game.current_turn, timestamp=get_now())
+        dynamics = request.player.game.get_dynamics()
+        dynamics.inject_event(command)
         return True
 
 

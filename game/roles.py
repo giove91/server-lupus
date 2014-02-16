@@ -59,7 +59,7 @@ class Cacciatore(Role):
         return self.player.alive
     
     def get_targets(self):
-        return [player for player in self.player.game.get_alive_players() if player.pk != self.pk]
+        return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
 
 class Custode(Role):
@@ -71,7 +71,7 @@ class Custode(Role):
         return self.player.alive
     
     def get_targets(self):
-        return [player for player in self.player.game.get_dead_players() if player.pk != self.pk]
+        return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
 
 
 class Divinatore(Role):
@@ -105,7 +105,7 @@ class Espansivo(Role):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
     
     def get_targets(self):
-        return self.player.game.get_alive_players().exclude(pk=self.pk)
+        return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
 
 class Guardia(Role):
@@ -119,7 +119,7 @@ class Guardia(Role):
         return self.player.alive
     
     def get_targets(self):
-        return [player for player in self.player.game.get_alive_players() if player.pk != self.pk]
+        return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
 
 class Investigatore(Role):
@@ -131,7 +131,7 @@ class Investigatore(Role):
         return self.player.alive
     
     def get_targets(self):
-        return [player for player in self.player.game.get_dead_players() if player.pk != self.pk]
+        return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
 
 
 class Mago(Role):
@@ -144,7 +144,7 @@ class Mago(Role):
         return self.player.alive
     
     def get_targets(self):
-        return [player for player in self.player.game.get_active_players() if player.pk != self.pk]
+        return [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
 
 
 class Massone(Role):
@@ -163,7 +163,7 @@ class Messia(Role):
         return self.player.alive and self.last_usage is None
     
     def get_targets(self):
-        return [player for player in self.player.game.get_dead_players() if player.pk != self.pk]
+        return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
 
 
 class Necrofilo(Role):
@@ -175,7 +175,7 @@ class Necrofilo(Role):
         return self.player.alive and self.last_usage is None
     
     def get_targets(self):
-        return [player for player in self.player.game.get_dead_players() if player.pk != self.pk]
+        return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
 
 
 class Stalker(Role):
@@ -187,7 +187,7 @@ class Stalker(Role):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
     
     def get_targets(self):
-        return [player for player in self.player.game.get_alive_players() if player.pk != self.pk]
+        return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
 
 class Veggente(Role):
@@ -200,7 +200,7 @@ class Veggente(Role):
         return self.player.alive
     
     def get_targets(self):
-        return [player for player in self.player.game.get_alive_players() if player.pk != self.pk]
+        return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
 
 class Voyeur(Role):
@@ -212,7 +212,7 @@ class Voyeur(Role):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
     
     def get_targets(self):
-        return [player for player in self.player.game.get_alive_players() if player.pk != self.pk]
+        return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
 
 # Fazione dei Lupi
@@ -226,7 +226,7 @@ class Lupo(Role):
         return self.player.alive and self.player.game.current_turn.date > 1
     
     def get_targets(self):
-        return [player for player in self.player.game.get_alive_players() if player.pk != self.pk]
+        return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
 
 class Avvocato(Role):
@@ -238,7 +238,7 @@ class Avvocato(Role):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
     
     def get_targets(self):
-        return [player for player in self.player.game.get_alive_players() if player.pk != self.pk]
+        return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
 
 class Diavolo(Role):
@@ -251,7 +251,7 @@ class Diavolo(Role):
         return self.player.alive
     
     def get_targets(self):
-        return [player for player in self.player.game.get_alive_players() if player.pk != self.pk]
+        return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
 
 class Fattucchiera(Role):
@@ -282,7 +282,7 @@ class Sequestratore(Role):
         return self.player.alive
     
     def get_targets(self):
-        excluded = [self.pk]
+        excluded = [self.player.pk]
         if self.last_usage is not None and self.days_from_last_usage <= 1:
             excluded.append(self.last_target.pk)
         return [player for player in self.player.game.get_alive_players() if player.pk not in excluded]
@@ -305,7 +305,7 @@ class Negromante(Role):
         return self.player.alive
     
     def get_targets(self):
-        return [player for player in self.player.game.get_dead_players() if player.pk != self.pk]
+        return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
     
     def get_targets_ghost(self):
         dynamics = self.player.game.get_dynamics()
@@ -329,7 +329,7 @@ class Ipnotista(Role):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
     
     def get_targets(self):
-        return [player for player in self.player.game.get_alive_players() if player.pk != self.pk]
+        return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
 
 class Medium(Role):
@@ -342,7 +342,7 @@ class Medium(Role):
         return self.player.alive
     
     def get_targets(self):
-        return [player for player in self.player.game.get_dead_players() if player.pk != self.pk]
+        return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
 
 
 class Spettro(Role):
@@ -371,14 +371,14 @@ class Spettro(Role):
     
     def get_targets(self):
         if self.power == AMNESIA:
-            excluded = [self.pk]
+            excluded = [self.player.pk]
             if self.last_usage is not None and self.days_from_last_usage <= 1:
                 excluded.append(self.last_target.pk)
             targets = [player for player in self.player.game.get_alive_players() if player.pk not in excluded]
         elif self.power == DUPLICAZIONE or self.power == ILLUSIONE or self.power == MORTE or self.power == OMBRA or self.power == VISIONE:
-            targets = [player for player in self.player.game.get_alive_players() if player.pk != self.pk]
+            targets = [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
         elif self.power == MISTIFICAZIONE or self.power == OCCULTAMENTO:
-            targets = [player for player in self.player.game.get_active_players() if player.pk != self.pk]
+            targets = [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
         else:
             raise Exception('Missing supernatural power.')
         return targets

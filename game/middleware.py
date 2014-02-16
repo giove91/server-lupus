@@ -19,7 +19,7 @@ class PlayerMiddleware:
                     if player_id is not None:
                         # A Player was already saved
                         try:
-                            player = Player.objects.get(pk=player_id)
+                            player = Player.objects.get(pk=player_id).canonicalize()
                         except Player.DoesNotExist:
                             player = None
                     else:
@@ -31,7 +31,7 @@ class PlayerMiddleware:
             # Not authenticated
             player = None
         
-        request.player = player.canonicalize()
+        request.player = player
         
         return None
 
