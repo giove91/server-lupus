@@ -117,9 +117,12 @@ class GameTests(TestCase):
 
         self.assertEqual(game.current_turn.phase, DAWN)
 
-    def test_stake_vote(self):
-        roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
-        game = create_test_game(2204, roles)
+    def stake_vote_helper(self, roles, votes):
+        self.assertEqual(len(roles), len(votes))
+
+        # The seed is chosen so that the first player is the mayor
+        game = create_test_game(1, roles)
+        dynamics = game.get_dynamics()
         players = game.get_players()
 
         test_advance_turn(game)
@@ -127,4 +130,16 @@ class GameTests(TestCase):
         test_advance_turn(game)
 
         self.assertEqual(game.current_turn.phase, DAY)
-        self.assertEqual(game.mayor().pk, players[4].pk)
+        self.assertEqual(game.mayor().pk, players[0].pk)
+
+        for i, player in enumerate(players):
+            if votes[i] is not None:
+                event = CommandEvent(player=player, type=VOTE, target=players[votes[i]], timestamp=get_now())
+                dynamics.inject_event(event)
+
+        test_advance_turn(game)
+
+    def test_stake_vote(self):
+        roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
+        votes = [ 0, 1, 2, 3, 4, 5, 6, None, None, None ]
+        self.stake_vote_helper(roles, votes)

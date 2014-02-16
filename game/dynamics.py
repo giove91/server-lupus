@@ -22,6 +22,7 @@ class Dynamics:
         self.update_lock = RLock()
         self.event_num = 0
         self._updating = False
+        self.debug_event_bin = None
         self.initialize_augmented_structure()
 
     def initialize_augmented_structure(self):
@@ -182,6 +183,8 @@ class Dynamics:
         assert self.current_turn.phase in event.RELEVANT_PHASES
         event.turn = self.current_turn
         event.save()
+        if self.debug_event_bin is not None:
+            self.debug_event_bin.append(event)
         self.update()
 
     def generate_event(self, event):
@@ -197,6 +200,8 @@ class Dynamics:
             pass
         else:
             event.save()
+            if self.debug_event_bin is not None:
+                self.debug_event_bin.append(event)
 
         # We may be interested in doing an update here, but I'm not
         # sure it has no counterindications
@@ -274,7 +279,7 @@ class Dynamics:
                 self.generate_event(event)
         for player in self.get_alive_players():
             if tally_sheet[player.pk] != 0:
-                event = TallyAnnouncedEvent(voted=player.canonicalize(), note_num=vote_num)
+                event = TallyAnnouncedEvent(voted=player.canonicalize(), vote_num=tally_sheet[player.pk])
                 self.generate_event(event)
 
         # Abort the vote if the quorum wasn't reached
@@ -290,6 +295,6 @@ class Dynamics:
         if mayor_ballot.target.pk in winners:
             winner = mayor_ballot.target.pk
         else:
-            winner = random.choice(winners)
+            winner = self.random.choice(winners)
 
-        return winner
+        return self.players_dict[winner]
