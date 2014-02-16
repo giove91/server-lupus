@@ -103,7 +103,7 @@ class PublicEventsView(View):
 
 
 class CommandForm(forms.Form):
-    # Generic form for submitting actions
+    # "Generic" form for submitting actions
     
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
@@ -111,14 +111,26 @@ class CommandForm(forms.Form):
         
         for key, field in fields.iteritems():
             if key == 'target' or key == 'target2':
-                choices = [ (player.pk, player.full_name) for player in field['choices'] ]
-                choices.append( (None, '(Nessuno)') )
+                choices = [ (None, '(Nessuno)') ]
+                choices.extend( [ (player.pk, player.full_name) for player in field['choices'] ] )
             elif key == 'target_ghost':
-                choices = [ (power, Spettro.POWER_NAMES[power]) for power in field['choices'] ]
-                choices.append( (None, '(Nessuno)') )
+                choices = [ (None, '(Nessuno)') ]
+                choices.extend( [ (power, Spettro.POWER_NAMES[power]) for power in field['choices'] ] )
             else:
                 raise Exception ('Unknown form field.')
-            self.fields[key] = forms.ChoiceField(choices=choices, required=False, initial=field['initial'], label=field['label'])
+            
+            print field['initial']
+            print choices
+            
+            self.fields[key] = forms.ChoiceField(choices=choices, required=False, label=field['label'])
+            
+            if key == 'target' or key == 'target2':
+                if field['initial'] is not None:
+                    self.fields[key].initial = field['initial'].pk
+                else:
+                    self.fields[key].initial = None
+            elif key == 'target_ghost':
+                self.fields[key].initial = field['initial']
     
     def clean(self):
         cleaned_data = super(CommandForm, self).clean()
@@ -127,11 +139,14 @@ class CommandForm(forms.Form):
             if key == 'target' or key == 'target2':
                 player_id = cleaned_data.get(key)
                 if player_id:
-                    try:
-                        player = Player.objects.get(pk=player_id).canonicalize()
-                    except Player.DoesNotExist:
-                        raise forms.ValidationError('Player does not exist')
-                    cleaned_data[key] = player
+                    if player_id == u'None':
+                        cleaned_data[key] = None
+                    else:
+                        try:
+                            player = Player.objects.get(pk=player_id).canonicalize()
+                        except Player.DoesNotExist:
+                            raise forms.ValidationError('Player does not exist')
+                        cleaned_data[key] = player
         
         return cleaned_data
 
@@ -409,7 +424,10 @@ class PointOfView(View):
         
         if form.is_valid():
             player = form.cleaned_data['player']
-            request.session['player_id'] = player.pk
+            if player is not None:
+                request.session['player_id'] = player.pk
+            else:
+                request.session['player_id'] = None
             
             # Metto il nuovo giocatore nella request corrente
             request.player = player
