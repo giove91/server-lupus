@@ -36,3 +36,23 @@ class PlayerMiddleware:
         return None
 
 
+# Middleware for finding the Game and the Dynamics
+# TODO: forse e' il caso di unificarla alla precedente, assicurando che player.game==game quando esistono entrambi
+class GameMiddleware:
+    def process_request(self, request):
+        
+        game = Game.get_running_game()
+        dynamics = None
+        
+        if game is not None:
+            dynamics = game.get_dynamics()
+        
+        request.game = game
+        request.dynamics = dynamics
+        
+        return None
+
+
+
+
+

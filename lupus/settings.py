@@ -122,6 +122,7 @@ if DEBUG:
         'debug_toolbar.middleware.DebugToolbarMiddleware',
         'django.contrib.sessions.middleware.SessionMiddleware',
         'game.middleware.PlayerMiddleware',
+        'game.middleware.GameMiddleware',
     )
 
     INSTALLED_APPS += (

@@ -3,11 +3,7 @@
 {% block content %}
     <h1>Stato del villaggio</h1>
     
-    {% if game_running %}
-        <p>{{ phase }} {{ date }}</p>
-    {% else %}
-        <p>La partita non è in corso.</p>
-    {% endif %}
+    <p>{{ phase }} {{ date }}</p>
     
     <h3>Giocatori vivi</h3>
     <ul>

@@ -42,13 +42,15 @@ def logout_view(request):
     return redirect(home)
 
 
+@user_passes_test(is_GM_check)
 def setup(request):
     setup_game(get_now())
     return render(request, 'index.html')
 
 
+@user_passes_test(is_GM_check)
 def advance_turn(request):
-    game = Game.get_running_game()
+    game = request.game
     turn = game.current_turn
     turn.end = get_now()
     turn.save()
@@ -64,39 +66,34 @@ def ruleset(request):
 class VillageStatusView(View):
     def get(self, request):
         
-        game_running = None
-        date = None
-        phase = None
-        alive_players = None
-        dead_players = None
-        inactive_players = None
+        game = request.game
         
-        try:
-            game = Game.get_running_game()
-            game_running = game.running
-            if game.current_turn is not None:
-                date = game.current_turn.date
-                phase = game.current_turn.phase_as_italian_string()
+        if game is not None:
+            date = game.current_turn.date
+            phase = game.current_turn.phase_as_italian_string()
             alive_players = game.get_alive_players()
             dead_players = game.get_dead_players()
             inactive_players = game.get_inactive_players()
-        except Game.DoesNotExist:
-            game_running = False
+        else:
+            date = None
+            phase = None
+            alive_players = None
+            dead_players = None
+            inactive_players = None
         
         context = {
+            'date': date,
+            'phase': phase,
             'alive_players': alive_players,
             'dead_players': dead_players,
             'inactive_players': inactive_players,
-            'game_running': game_running,
-            'date': date,
-            'phase': phase,
         }   
         return render(request, 'status.html', context)
 
 
 class PublicEventsView(View):
     def get(self, request):
-        # TODO: write
+        # TODO: scrivere
         
         context = {}
         return render(request, 'public_events.html', context)
@@ -228,11 +225,11 @@ class UsePowerView(CommandView):
         
         fields = {}
         if targets is not None:
-            fields['target'] = {'choices': targets, 'initial': initial, 'label': player.role.message}
+            fields['target'] = {'choices': targets, 'initial': initial, 'label': role.message}
         if targets2 is not None:
-            fields['target2'] = {'choices': targets2, 'initial': initial2, 'label': player.role.message2}
+            fields['target2'] = {'choices': targets2, 'initial': initial2, 'label': role.message2}
         if targets_ghost is not None:
-            fields['target_ghost'] = {'choices': targets_ghost, 'initial': initial_ghost, 'label': player.role.message_ghost}
+            fields['target_ghost'] = {'choices': targets_ghost, 'initial': initial_ghost, 'label': role.message_ghost}
         
         return fields
     

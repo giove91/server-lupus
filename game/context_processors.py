@@ -7,12 +7,10 @@ def context_player(request):
     }
 
 def context_current_turn(request):
-    game = Game.get_running_game()
-    
-    if game is None:
+    dynamics = request.dynamics
+    if dynamics is None:
         return {}
     
-    dynamics = game.get_dynamics()
     current_turn = dynamics.current_turn
     
     current_date = current_turn.date
