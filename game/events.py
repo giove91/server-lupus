@@ -132,6 +132,8 @@ class TallyAnnouncedEvent(Event):
 
     voted = models.ForeignKey(Player, related_name='+')
     vote_num = models.IntegerField()
+    # Allow ELECT and VOTE here
+    type = models.CharField(max_length=1, choices=CommandEvent.ACTION_TYPES)
 
     def apply(self, dynamics):
         assert self.voted.canonicalize().alive
