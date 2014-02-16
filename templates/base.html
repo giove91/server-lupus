@@ -8,11 +8,17 @@
 <body>
     
     {% if user.is_authenticated %}
-    <div id="hello_block">
+    <div id="user_block">
         Sei loggato come {{ user.username }}
         {% if player != None %}
             ({{ player.user.first_name }} {{ player.user.last_name }})
         {% endif %}
+    </div>
+    {% endif %}
+    
+    {% if current_phase and current_date %}
+    <div id="game_block">
+        Turno: {{ current_phase }} {{ current_date }}
     </div>
     {% endif %}
     

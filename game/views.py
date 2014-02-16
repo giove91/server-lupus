@@ -119,9 +119,6 @@ class CommandForm(forms.Form):
             else:
                 raise Exception ('Unknown form field.')
             
-            print field['initial']
-            print choices
-            
             self.fields[key] = forms.ChoiceField(choices=choices, required=False, label=field['label'])
             
             if key == 'target' or key == 'target2':
