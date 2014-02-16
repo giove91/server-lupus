@@ -288,11 +288,11 @@ class Dynamics:
 
         # Compute winners (or maybe loosers...)
         tally_sheet = tally_sheet.items()
-        tally_sheet.sort(key=lambda x: x[1])
+        tally_sheet.sort(key=lambda x: x[1], reverse=True)
         max_votes = tally_sheet[0][1]
         winners = [x[0] for x in tally_sheet if x[1] == max_votes]
         assert len(winners) > 0
-        if mayor_ballot.target.pk in winners:
+        if mayor_ballot is not None and mayor_ballot.target.pk in winners:
             winner = mayor_ballot.target.pk
         else:
             winner = self.random.choice(winners)

@@ -5,6 +5,7 @@ from django.db import models
 from django import forms
 from django.utils.text import capfirst
 from django.contrib.auth.models import User
+from django.db.models.signals import pre_delete
 
 from constants import *
 
@@ -37,7 +38,7 @@ def kill_all_dynamics():
 
 class Game(models.Model):
     running = models.BooleanField(default=False)
-    
+
     def __unicode__(self):
         return u"Game %d" % self.pk
     game_name = property(__unicode__)
@@ -120,6 +121,12 @@ class Game(models.Model):
         and, if necessary, create the new turn."""
         while self.current_turn.end is not None and datetime.now() >= self.current_turn.end:
             self.advance_turn()
+
+def game_pre_delete_callback(sender, instance, **kwargs):
+    with _dynamics_map_lock:
+        del _dynamics_map[instance.pk]
+
+pre_delete.connect(game_pre_delete_callback, sender=Game)
 
 class Turn(models.Model):
     game = models.ForeignKey(Game)
