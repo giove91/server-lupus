@@ -269,7 +269,7 @@ class VoteView(CommandView):
     def get_fields(self, request):
         player = request.player
         game = player.game
-        queryset = game.get_alive_players()
+        choices = game.get_alive_players()
         initial = None
         
         try:
@@ -278,7 +278,7 @@ class VoteView(CommandView):
         except CommandEvent.DoesNotExist:
             initial = None
         
-        fields = [ {'name': 'target', 'queryset': queryset, 'initial': initial, 'label': 'Vota per condannare a morte:'} ]
+        fields = {'target': {'choices': choices, 'initial': initial, 'label': 'Vota per condannare a morte:'} }
         return fields
     
     def save_command(self, request, cleaned_data):
@@ -289,8 +289,9 @@ class VoteView(CommandView):
         if target is not None and target not in game.get_alive_players():
             return False
         
-        command = CommandEvent(player=player, type=VOTE, target=target, turn=game.current_turn)
-        command.save()
+        command = CommandEvent(player=player, type=VOTE, target=target, turn=game.current_turn, timestamp=get_now())
+        dynamics = request.player.game.get_dynamics()
+        dynamics.inject_event(command)
         return True
 
 
@@ -304,7 +305,7 @@ class ElectView(CommandView):
     def get_fields(self, request):
         player = request.player
         game = player.game
-        queryset = game.get_alive_players()
+        choices = game.get_alive_players()
         initial = None
         
         try:
@@ -313,7 +314,7 @@ class ElectView(CommandView):
         except CommandEvent.DoesNotExist:
             initial = None
         
-        fields = [ {'name': 'target', 'queryset': queryset, 'initial': initial, 'label': 'Vota per eleggere:'} ]
+        fields = {'target': {'choices': choices, 'initial': initial, 'label': 'Vota per eleggere:'} }
         return fields
     
     def save_command(self, request, cleaned_data):
@@ -324,8 +325,9 @@ class ElectView(CommandView):
         if target is not None and target not in game.get_alive_players():
             return False
         
-        command = CommandEvent(player=player, type=ELECT, target=target, turn=game.current_turn)
-        command.save()
+        command = CommandEvent(player=player, type=ELECT, target=target, turn=game.current_turn, timestamp=get_now())
+        dynamics = request.player.game.get_dynamics()
+        dynamics.inject_event(command)
         return True
 
 
