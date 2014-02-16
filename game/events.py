@@ -136,6 +136,7 @@ class TallyAnnouncedEvent(Event):
     type = models.CharField(max_length=1, choices=CommandEvent.ACTION_TYPES)
 
     def apply(self, dynamics):
+        assert self.type in [ELECT, VOTE]
         assert self.voted.canonicalize().alive
         assert self.vote_num > 0
 
