@@ -223,7 +223,7 @@ class Lupo(Role):
     aura = BLACK
     
     def can_use_power(self):
-        return self.player.alive
+        return self.player.alive and self.player.game.current_turn.date > 1
     
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.pk]

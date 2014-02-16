@@ -31,6 +31,10 @@ class KnowsChild(models.Model):
 _dynamics_map = {}
 _dynamics_map_lock = RLock()
 
+def kill_all_dynamics():
+    with _dynamics_map_lock:
+        _dynamics_map.clear()
+
 class Game(models.Model):
     running = models.BooleanField(default=False)
     
@@ -44,10 +48,13 @@ class Game(models.Model):
         except IndexError:
             return None
     current_turn = property(current_turn)
-    
+
     def get_players(self):
-        return Player.objects.filter(game=self)
-    
+        """Players are guaranteed to be sorted in a canonical order,
+        which does not change neither by restarting the server (but it
+        can change if players' data is changed)."""
+        return self.get_dynamics().players
+
     @staticmethod
     def get_running_game():
         return Game.objects.get(running=True)
@@ -73,15 +80,27 @@ class Game(models.Model):
         return _dynamics_map[self.pk]
 
     def get_active_players(self):
+        """Players are guaranteed to be sorted in a canonical order,
+        which does not change neither by restarting the server (but it
+        can change if players' data is changed)."""
         return self.get_dynamics().get_active_players()
 
     def get_inactive_players(self):
+        """Players are guaranteed to be sorted in a canonical order,
+        which does not change neither by restarting the server (but it
+        can change if players' data is changed)."""
         return self.get_dynamics().get_inactive_players()
 
     def get_alive_players(self):
+        """Players are guaranteed to be sorted in a canonical order,
+        which does not change neither by restarting the server (but it
+        can change if players' data is changed)."""
         return self.get_dynamics().get_alive_players()
 
     def get_dead_players(self):
+        """Players are guaranteed to be sorted in a canonical order,
+        which does not change neither by restarting the server (but it
+        can change if players' data is changed)."""
         return self.get_dynamics().get_dead_players()
 
     def initialize(self, begin):

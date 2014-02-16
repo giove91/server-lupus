@@ -85,6 +85,14 @@ class TurnTests(TestCase):
 
 class GameTests(TestCase):
 
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        # Destroy the leftover dynamics without showing the slightest
+        # sign of mercy
+        kill_all_dynamics()
+
     def test_game_setup(self):
         roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
         game = create_test_game(2204, roles)
@@ -109,4 +117,13 @@ class GameTests(TestCase):
         self.assertEqual(game.current_turn.phase, DAWN)
 
     def test_stake_vote(self):
-        pass
+        roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
+        game = create_test_game(2204, roles)
+        players = game.get_players()
+
+        test_advance_turn(game)
+        test_advance_turn(game)
+        test_advance_turn(game)
+
+        self.assertEqual(game.current_turn.phase, DAY)
+        self.assertEqual(game.mayor().pk, players[4].pk)
