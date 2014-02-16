@@ -18,11 +18,12 @@ class Dynamics:
 
     def __init__(self, game):
         self.game = game
-        self.check_mode = False
+        self.check_mode = False  # Not supported at the moment
         self.update_lock = RLock()
         self.event_num = 0
         self._updating = False
         self.debug_event_bin = None
+        self.auto_event_queue = []
         self.initialize_augmented_structure()
 
     def initialize_augmented_structure(self):
@@ -95,15 +96,32 @@ class Dynamics:
         except IndexError:
             return None
         else:
-            self.event_num += 1
             return event.as_child()
+
+    def _pop_event_from_queue(self):
+        if len(self.auto_event_queue) > 0:
+            return self.auto_event_queue.pop(0)
+        else:
+            return None
 
     def _update_step(self):
         # First check for new events in current turn
         if self.current_turn is not None:
+            # TODO: the following code has race conditions when
+            # executed in autocommit mode; fix it! (also, check the
+            # fix with the real database we're going to use)
             event = self._pop_event_from_db()
+            queued_event = self._pop_event_from_queue()
+            if event is not None and queued_event is not None:
+                # TODO: implement the following
+                #assert event == queued_event
+                pass
             if event is not None:
                 self._receive_event(event)
+                return True
+            elif queued_event is not None:
+                queued_event.save()
+                self._receive_event(queued_event)
                 return True
 
         # If no events were found, check for new turns
@@ -170,13 +188,10 @@ class Dynamics:
 
         # Process the event
         self._process_event(event)
+        self.event_num += 1
 
     def _process_event(self, event):
-        self.check_mode = event.executed
         event.apply(self)
-        self.check_mode = False
-        event.executed = True
-        event.save()
 
     def inject_event(self, event):
         """This is for non automatic events."""
@@ -193,20 +208,9 @@ class Dynamics:
         assert event.AUTOMATIC
         assert self.current_turn.phase in event.RELEVANT_PHASES
         event.turn = self.current_turn
+        # TODO: probably we want to check the originating event
         event.timestamp = self.current_turn.begin
-
-        if self.check_mode:
-            # I expect the new event to just already sit in the
-            # database. TODO: verify this assertion
-            pass
-        else:
-            event.save()
-            if self.debug_event_bin is not None:
-                self.debug_event_bin.append(event)
-
-        # We may be interested in doing an update here, but I'm not
-        # sure it has no counterindications
-        #self.update()
+        self.auto_event_queue.append(event)
 
     def _compute_entering_creation(self):
         pass

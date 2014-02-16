@@ -58,7 +58,10 @@ class Game(models.Model):
 
     @staticmethod
     def get_running_game():
-        return Game.objects.get(running=True)
+        try:
+            return Game.objects.get(running=True)
+        except Game.DoesNotExist:
+            return None
 
     def mayor(self):
         return self.get_dynamics().mayor
@@ -348,15 +351,14 @@ class Player(models.Model):
 
 
 class Event(KnowsChild):
-    # Generic event
-    
+    """Event base class."""
+
     timestamp = models.DateTimeField()
     turn = models.ForeignKey(Turn)
-    executed = models.BooleanField(default=False)
-    
+
     class Meta:
         ordering = ['turn', 'timestamp', 'pk']
-    
+
     def __unicode__(self):
         return u"Event %d" % self.pk
     event_name = property(__unicode__)
