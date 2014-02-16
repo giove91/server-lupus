@@ -39,6 +39,7 @@ class Dynamics:
         self.ghosts_created_last_night = False
         self.used_ghost_powers = set()
         self.giove_is_happy = False
+        self.server_is_on_fire = False  # so far...
         for player in self.players:
             self.players_dict[player.pk] = player
             player.team = None
