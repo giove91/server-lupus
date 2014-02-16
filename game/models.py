@@ -122,10 +122,10 @@ class Game(models.Model):
         while self.current_turn.end is not None and datetime.now() >= self.current_turn.end:
             self.advance_turn()
 
+# Delete the dynamics object when the game is deleted
 def game_pre_delete_callback(sender, instance, **kwargs):
     with _dynamics_map_lock:
         del _dynamics_map[instance.pk]
-
 pre_delete.connect(game_pre_delete_callback, sender=Game)
 
 class Turn(models.Model):
