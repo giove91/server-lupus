@@ -117,7 +117,6 @@ class CommandForm(forms.Form):
             )
 
 class CommandView(View):
-    template_name = 'command.html'
     
     def check(self, request):
         # Checks if the action can be done
