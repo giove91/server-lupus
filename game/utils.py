@@ -20,3 +20,6 @@ def advance_to_time(current_datetime, target_time):
         target_date = date + datetime.timedelta(days=1)
 
     return datetime.datetime.combine(target_date, target_time)
+
+def get_now():
+    return datetime.datetime.now(tz=REF_TZINFO)

@@ -20,6 +20,7 @@ from game.models import *
 from game.events import *
 from game.roles import *
 from game.ruleset import *
+from game.utils import get_now
 
 from datetime import datetime
 
@@ -42,14 +43,14 @@ def logout_view(request):
 
 
 def setup(request):
-    setup_game(datetime.now(REF_TZINFO))
+    setup_game(get_now())
     return render(request, 'index.html')
 
 
 def advance_turn(request):
     game = Game.get_running_game()
     turn = game.current_turn
-    turn.end = datetime.now(REF_TZINFO)
+    turn.end = get_now()
     turn.save()
     game.advance_turn()
     return render(request, 'index.html')

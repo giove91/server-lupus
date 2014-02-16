@@ -6,6 +6,7 @@ from django.test import TestCase
 from game.models import *
 from game.roles import *
 from game.events import *
+from game.utils import get_now
 
 
 def create_users(n):
@@ -17,7 +18,7 @@ def create_users(n):
 def create_test_game(seed, roles):
     game = Game(running=True)
     game.save()
-    game.initialize(datetime.now(tz=REF_TZINFO))
+    game.initialize(get_now())
 
     create_users(len(roles))
 
@@ -44,7 +45,7 @@ def create_test_game(seed, roles):
 
 def test_advance_turn(game):
     turn = game.current_turn
-    turn.end = datetime.now(tz=REF_TZINFO)
+    turn.end = get_now()
     turn.save()
     game.advance_turn()
 
