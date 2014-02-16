@@ -135,7 +135,9 @@ class GameTests(TestCase):
         for i, player in enumerate(players):
             if votes[i] is not None:
                 event = CommandEvent(player=player, type=VOTE, target=players[votes[i]], timestamp=get_now())
-                dynamics.inject_event(event)
+            else:
+                event = CommandEvent(player=player, type=VOTE, target=None, timestamp=get_now())
+            dynamics.inject_event(event)
 
         # Trigger the vote counting
         dynamics.debug_event_bin = []

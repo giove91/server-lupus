@@ -116,6 +116,9 @@ class Dynamics:
                 # TODO: implement the following
                 #assert event == queued_event
                 pass
+            if queued_event is not None:
+                if self.debug_event_bin is not None:
+                    self.debug_event_bin.append(queued_event)
             if event is not None:
                 self._receive_event(event)
                 return True
@@ -254,6 +257,8 @@ class Dynamics:
         for player in self.players:
             ballots[player.pk] = None
         for vote in votes:
+            if vote.target is None:
+                continue
             ballots[vote.player.pk] = vote
             if vote.player.is_mayor():
                 mayor_ballot = vote
