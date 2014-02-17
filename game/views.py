@@ -32,6 +32,40 @@ def is_GM_check(user):
     return user.is_staff
 
 
+def get_events(request, player):
+    # player can be a Player, 'admin' or 'public' (depending on the view)
+    game = request.game
+    
+    turns = Turn.objects.filter(game=game)
+    events = Event.objects.filter(turn__game=game)
+    
+    result = { turn: { 'standard': [], VOTE: {}, ELECT: {} } for turn in turns }
+    
+    for e in events:
+        event = e.as_child()
+        message = event.to_player_string(player)
+        if message is not None:
+            result[event.turn]['standard'].append(message)
+        
+        if event.subclass == 'VoteAnnouncedEvent':
+            if event.voted not in result[event.turn][event.type]:
+                result[event.turn][event.type][event.voted] = { 'votes': 0, 'voters': [] }
+            
+            result[event.turn][event.type][event.voted]['voters'].append(event.voter)
+        
+        if event.subclass == 'TallyAnnouncedEvent':
+            if event.voted not in result[event.turn][event.type]:
+                # This shouldn't happen if VoteAnnounvedEvents come before TallyAnnouncedEvents
+                result[event.turn][event.type][event.voted] = { 'votes': 0, 'voters': [] }
+            
+            result[event.turn][event.type][event.voted]['votes'] = event.vote_num
+    
+    return result
+
+
+
+
+
 
 def home(request):
     return render(request, 'index.html')
@@ -62,7 +96,7 @@ def ruleset(request):
     return render(request, 'ruleset.html')
 
 
-
+# View of village status
 class VillageStatusView(View):
     def get(self, request):
         
@@ -91,6 +125,7 @@ class VillageStatusView(View):
         return render(request, 'status.html', context)
 
 
+# View of public events
 class PublicEventsView(View):
     def get(self, request):
         # TODO: scrivere
@@ -394,7 +429,7 @@ class ContactsView(ListView):
         return super(ContactsView, self).dispatch(*args, **kwargs)
 
 
-# Form for changing point of view (for GM only)
+# Form for changing point of view (for GMs only)
 class ChangePointOfViewForm(forms.Form):
     
     player = forms.ModelChoiceField(
@@ -405,7 +440,7 @@ class ChangePointOfViewForm(forms.Form):
             )
 
 
-# View for changing point of view (for GM only)
+# View for changing point of view (for GMs only)
 class PointOfView(View):
     def get(self, request):
         player = request.player

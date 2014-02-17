@@ -152,6 +152,13 @@ class ElectNewMayorEvent(Event):
         assert player.alive
         dynamics.mayor = player
         assert player.is_mayor()
+    
+    def to_player_string(self, player):
+        if player == self.player:
+            return 'Sei stato eletto sindaco del villaggio.'
+        else:
+            return '&Egrave; stato eletto un nuovo sindaco, %s.' % self.player.full_name
+        
 
 
 class PlayerDiesEvent(Event):
@@ -175,3 +182,9 @@ class PlayerDiesEvent(Event):
         # TODO: trigger the actions that depend on a player's death,
         # like mayor inheritance, trigger Cacciatore power, trigger
         # Fantasma power
+    
+    def to_player_string(self, player):
+        if player == self.player:
+            return 'Sei morto.'
+        else:
+            return '%s &egrave; morto.' % self.player.full_name

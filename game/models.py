@@ -365,3 +365,8 @@ class Event(KnowsChild):
 
     def apply(self, dynamics):
         raise NotImplementedError("Calling Events.apply() instead of a subclass")
+
+    def to_player_string(self, player):
+        # Default is no message
+        return None
+
