@@ -370,3 +370,36 @@ class Event(KnowsChild):
         # Default is no message
         return None
 
+
+
+class Announcement(models.Model):
+    
+    timestamp = models.DateTimeField(default=datetime.now)
+    text = models.TextField()
+    visible = models.BooleanField(default=True)
+    
+    class Meta:
+        ordering = ['timestamp']
+    
+    def __unicode__(self):
+        return u"Announcement %d" % self.pk
+    announcement_name = property(__unicode__)
+
+
+class Comment(models.Model):
+    
+    timestamp = models.DateTimeField(default=datetime.now)
+    turn = models.ForeignKey(Turn, null=True, blank=True)
+    user = models.ForeignKey(User)
+    text = models.TextField()
+    visible = models.BooleanField(default=True)
+    
+    class Meta:
+        ordering = ['timestamp']
+    
+    def __unicode__(self):
+        return u"Comment %d" % self.pk
+    comment_name = property(__unicode__)
+
+
+
