@@ -1,24 +1,32 @@
+{% load cycle from future %}
 {% load game_extras %}
+
 
 {% for turn, values in events.items reversed %}
     <div class="turn_events">
-        {{ turn.phase_as_italian_string_property }} {{ turn.date }}
+        
+        <h2>{{ turn.phase_as_italian_string_property }} {{ turn.date }}</h2>
+        
+        {% if turn.phase == DAWN %}
+            <p>I primi raggi di sole sfiorano i campi, e ognuno si reca stancamente al lavoro.</p>
+        {% endif %}
+        
         {% if turn.phase == SUNSET %}
             
-            <p>Votazione per il rogo</p>
-            <table>
-                {% with dictionary=values|key:VOTE %}
-                {% for voted, info in dictionary.items %}
-                    <tr>
-                        <td>{{ voted.full_name }}</td>
-                        <td>{{ info.votes }}</td>
-                        <td>{{ info.voters|join:", " }}</td>
-                    </tr>
-                {% endfor %}
-                {% endwith %}
-            </table>
+            <h3>Votazione per il rogo</h3>
+            {% include "votation_details.html" with dictionary=values|key:VOTE only %}
             
+            <h3>Elezione del sindaco</h3>
+            {% include "votation_details.html" with dictionary=values|key:ELECT only %}
             
+        {% endif %}
+        
+        {% for message in values.standard %}
+            <p>{{ message }}</p>
+        {% endfor %}
+        
+        {% if turn.phase == SUNSET %}
+            <p>Il sole tramonta dietro le colline, e ciascuno si ritira silenziosamente in casa propria.</p>
         {% endif %}
         
     </div>

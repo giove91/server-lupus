@@ -1,0 +1,18 @@
+{% if dictionary %}
+<table>
+    <tr>
+        <th>Nome</th>
+        <th>Voti</th>
+        <th>Votanti</th>
+    </tr>
+    {% for voted, info in dictionary.items %}
+        <tr>
+            <td>{{ voted.full_name }}</td>
+            <td>{{ info.votes }}</td>
+            <td>{{ info.voters|join:", " }}</td>
+        </tr>
+    {% endfor %}
+</table>
+{% else %}
+<p>Non è stato espresso alcun voto.</p>
+{% endif %}

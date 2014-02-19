@@ -2,6 +2,8 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 
+from django.db.models import Q
+
 from django.views import generic
 from django.views.generic.base import View
 from django.views.generic.base import TemplateView
@@ -36,7 +38,11 @@ def get_events(request, player):
     # player can be a Player, 'admin' or 'public' (depending on the view)
     game = request.game
     
-    turns = Turn.objects.filter(game=game)
+    if player == 'admin':
+        turns = Turn.objects.filter(game=game)
+    else:
+        turns = Turn.objects.filter(game=game).filter( Q(phase=DAWN) | Q(phase=SUNSET) )
+    
     events = Event.objects.filter(turn__game=game)
     
     result = { turn: { 'standard': [], VOTE: {}, ELECT: {} } for turn in turns }
