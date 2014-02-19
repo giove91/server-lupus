@@ -5,6 +5,10 @@
     
     <p>{{ phase }} {{ date }}</p>
     
+    {% if mayor %}
+        <p>Il sindaco del villaggio è {{ mayor.full_name }}.</p>
+    {% endif %}
+    
     <h3>Giocatori vivi</h3>
     <ul>
         {% for player in alive_players %}
