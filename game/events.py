@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from django.db import models
 from models import Event, Player
 from roles import *
@@ -155,9 +157,9 @@ class ElectNewMayorEvent(Event):
     
     def to_player_string(self, player):
         if player == self.player:
-            return 'Sei stato eletto sindaco del villaggio.'
+            return u'Sei stato eletto sindaco del villaggio.'
         else:
-            return '&Egrave; stato eletto un nuovo sindaco, %s.' % self.player.full_name
+            return u'È stato eletto un nuovo sindaco, %s.' % self.player.full_name
         
 
 
@@ -185,6 +187,16 @@ class PlayerDiesEvent(Event):
     
     def to_player_string(self, player):
         if player == self.player:
-            return 'Sei morto.'
+            if self.cause == STAKE:
+                return u'Sei stato bruciato sul rogo.'
+            else:
+                return u'Sei morto durante la notte.'
         else:
-            return '%s &egrave; morto.' % self.player.full_name
+            if self.cause == STAKE:
+                return u'%s è stato bruciato sul rogo.' % self.player.full_name
+            else:
+                return u'%s è stato ritrovato morto.' % self.player.full_name
+
+
+
+
