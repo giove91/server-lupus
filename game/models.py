@@ -159,7 +159,6 @@ class Turn(models.Model):
     
     def __unicode__(self):
         return "%s %d" % (Turn.TURN_PHASES[self.phase], self.date)
-        
     as_string = property(__unicode__)
     
     def phase_as_italian_string(self):
@@ -170,6 +169,7 @@ class Turn(models.Model):
             DAWN: 'Alba',
             CREATION: 'Creazione',
             }[self.phase]
+    phase_as_italian_string_property = property(phase_as_italian_string)
     
     @staticmethod
     def get_or_create(game, date, phase, must_exist=False):

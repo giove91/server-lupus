@@ -1,4 +1,5 @@
 from models import Game
+from constants import *
 
 
 def context_player(request):
@@ -19,4 +20,14 @@ def context_current_turn(request):
     return {
         'current_date': current_date,
         'current_phase': current_phase,
+    }
+
+def context_constants(request):
+    return {
+        'DAY': DAY,
+        'NIGHT': NIGHT,
+        'DAWN': DAWN,
+        'SUNSET': SUNSET,
+        'VOTE': VOTE,
+        'ELECT': ELECT,
     }

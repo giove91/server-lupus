@@ -1,0 +1,25 @@
+{% load game_extras %}
+
+{% for turn, values in events.items reversed %}
+    <div class="turn_events">
+        {{ turn.phase_as_italian_string_property }} {{ turn.date }}
+        {% if turn.phase == SUNSET %}
+            
+            <p>Votazione per il rogo</p>
+            <table>
+                {% with dictionary=values|key:VOTE %}
+                {% for voted, info in dictionary.items %}
+                    <tr>
+                        <td>{{ voted.full_name }}</td>
+                        <td>{{ info.votes }}</td>
+                        <td>{{ info.voters|join:", " }}</td>
+                    </tr>
+                {% endfor %}
+                {% endwith %}
+            </table>
+            
+            
+        {% endif %}
+        
+    </div>
+{% endfor %}

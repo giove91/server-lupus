@@ -64,9 +64,6 @@ def get_events(request, player):
 
 
 
-
-
-
 def home(request):
     return render(request, 'index.html')
 
@@ -128,9 +125,8 @@ class VillageStatusView(View):
 # View of public events
 class PublicEventsView(View):
     def get(self, request):
-        # TODO: scrivere
-        
-        context = {}
+        events = get_events(request, 'public')
+        context = {'events': events}
         return render(request, 'public_events.html', context)
 
 
