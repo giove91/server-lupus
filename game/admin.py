@@ -1,8 +1,24 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
 
 from game.models import *
 from game.events import *
 from game.roles import *
+
+
+class ProfileInline(admin.StackedInline):
+    model = Profile
+    can_delete = False
+
+# Define a new User admin
+class UserAdmin(UserAdmin):
+    inlines = (ProfileInline, )
+
+# Re-register UserAdmin
+admin.site.unregister(User)
+admin.site.register(User, UserAdmin)
+
+
 
 class GameAdmin(admin.ModelAdmin):
     list_display = ('game_name', 'running', 'current_turn', 'mayor')

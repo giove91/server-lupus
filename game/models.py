@@ -217,6 +217,18 @@ class Turn(models.Model):
         self.set_end()
 
 
+class Profile(models.Model):
+    # Additional information about Users
+    
+    GENDERS = (
+        (MALE, 'Male'),
+        (FEMALE, 'Female'),
+    )
+    
+    user = models.OneToOneField(User)
+    gender = models.CharField(max_length=1, choices=GENDERS)
+
+
 class Player(models.Model):
     AURA_COLORS = (
         (WHITE, 'White'),

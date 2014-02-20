@@ -42,6 +42,10 @@ FULL_PHASE_END_TIMES = {
     DAY: _datetime.time(hour=22, tzinfo=REF_TZINFO),
     }
 
+# User genders
+MALE = 'M'
+FEMALE = 'F'
+
 # Teams
 POPOLANI = 'P'
 LUPI = 'L'
