@@ -103,9 +103,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.static',
     'django.core.context_processors.tz',
     'django.contrib.messages.context_processors.messages',
-    'game.context_processors.context_player',
-    'game.context_processors.context_current_turn',
-    'game.context_processors.context_constants',
+    'game.context_processors.context_lupus',
     )
 
 

@@ -16,7 +16,7 @@
     </div>
     {% endif %}
     
-    {% if current_phase and current_date %}
+    {% if game %}
     <div id="game_block">
         Turno: {{ current_phase }} {{ current_date }}
     </div>
@@ -62,6 +62,15 @@
         {% endif %}
         
         {% endblock %}
+    </div>
+    
+    <div id="announcements">
+        <h3>Annunci dei GM</h3>
+        {% for announcement in announcements %}
+            <p>[{{ announcement.timestamp|date:"j N Y, H:i" }}] {{ announcement.text }}</p>
+        {% empty %}
+            <p>Non ci sono annunci.</p>
+        {% endfor %} 
     </div>
 
     <div id="content">

@@ -113,16 +113,12 @@ class VillageStatusView(View):
             inactive_players = game.get_inactive_players()
             mayor = game.mayor()
         else:
-            date = None
-            phase = None
             alive_players = None
             dead_players = None
             inactive_players = None
             mayor = None
         
         context = {
-            'date': date,
-            'phase': phase,
             'alive_players': alive_players,
             'dead_players': dead_players,
             'inactive_players': inactive_players,

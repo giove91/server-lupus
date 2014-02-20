@@ -374,6 +374,7 @@ class Event(KnowsChild):
 
 class Announcement(models.Model):
     
+    game = models.ForeignKey(Game, null=True, blank=True, default=None)
     timestamp = models.DateTimeField(default=datetime.now)
     text = models.TextField()
     visible = models.BooleanField(default=True)

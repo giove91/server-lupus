@@ -12,7 +12,7 @@ def render_to_file(template, filename, context):
 
 def prova():
     template = 'letter.tex'
-    filename = 'prova.tex'
-    context = {'variabile': 'Pippo è'}
+    filename = 'letters/prova.tex'
+    context = {}
     
     render_to_file(template, filename, context)

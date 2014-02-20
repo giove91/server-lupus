@@ -3,7 +3,9 @@
 {% block content %}
     <h1>Stato del villaggio</h1>
     
-    <p>{{ phase }} {{ date }}</p>
+    {% if game %}
+        <p>{{ current_phase }} {{ current_date }}</p>
+    {% endif %}
     
     {% if mayor %}
         <p>Il sindaco del villaggio è {{ mayor.full_name }}.</p>
