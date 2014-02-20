@@ -27,7 +27,7 @@ class TurnAdmin(admin.ModelAdmin):
     list_display = ('as_string', 'date', 'phase', 'begin', 'end')
 
 class PlayerAdmin(admin.ModelAdmin):
-    list_display = ('full_name', 'team', 'role_name', 'aura', 'alive', 'active', 'can_use_power', 'can_vote', 'is_mayor')
+    list_display = ('full_name', 'gender', 'team', 'role_name', 'aura', 'alive', 'active', 'can_use_power', 'can_vote', 'is_mayor')
     #list_filter = ['team', 'alive', 'active']
     search_fields = ['user__first_name', 'user__last_name']
 
@@ -45,6 +45,7 @@ class CommentAdmin(admin.ModelAdmin):
     list_display = ('comment_name', 'user', 'timestamp', 'turn', 'text', 'visible')
     list_filter = ['visible']
     search_fields = ['user__first_name', 'user__last_name', 'text']
+
 
 admin.site.register(Player, PlayerAdmin)
 admin.site.register(CommandEvent, CommandEventAdmin)

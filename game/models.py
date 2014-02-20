@@ -251,16 +251,16 @@ class Player(models.Model):
         return "%s %s" % (self.user.first_name, self.user.last_name)
     full_name = property(get_full_name)
     
-    def get_role_name(self):
-        canonical = self.canonicalize()
-        if canonical.role is not None:
-            return canonical.role.name
-        else:
-            return "Unassigned"
-    role_name = property(get_role_name)
+    def get_gender(self):
+        try:
+            return self.user.profile.gender
+        except Profile.DoesNotExist:
+            return MALE
+    gender = property(get_gender)
     
     def __unicode__(self):
         return u"%s %s" % (self.user.first_name, self.user.last_name)
+    
     
     def canonicalize(self):
         # We save on query when we can
@@ -269,7 +269,17 @@ class Player(models.Model):
         else:
             return self.game.get_dynamics().get_canonical_player(self)
 
-    # TODO: questa funzione forse non deve stare qui, e sicuramente nel caso va resa un po' piu' decente
+    
+    def get_role_name(self):
+        canonical = self.canonicalize()
+        if canonical.role is not None:
+            return canonical.role.name
+        else:
+            return "Unassigned"
+    role_name = property(get_role_name)
+    
+    # TODO: queste funzioni forse non dovrebbero stare qui
+    
     def aura_as_italian_string(self):
         if self.aura==WHITE:
             return "Bianca"
@@ -284,6 +294,7 @@ class Player(models.Model):
                 return "Morto"
         else:
             return "Esiliato"
+    
     
     
     def can_use_power(self):
