@@ -89,7 +89,7 @@ def setup(request):
 @user_passes_test(is_GM_check)
 def create_letters(request):
     game = request.game
-    players = Player.objects.filter(game=game)
+    players = game.get_players()
     for player in players:
         lr = LetterRenderer(player)
         lr.render_all()

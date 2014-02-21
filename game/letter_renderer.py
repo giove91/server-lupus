@@ -19,18 +19,27 @@ class LetterRenderer:
     def __init__(self, player):
         self.player = player
         self.game = player.game
+        self.players = self.game.get_players()
+        self.numplayers = len(self.players)
+        self.mayor = self.game.mayor
+        
+        self.context = {
+            'player': self.player,
+            'game': self.game,
+            'players': self.players,
+            'numplayers': self.numplayers,
+            'mayor': self.mayor,
+        }
     
     def render_setting(self):
         template = self.template_setting
-        context = {
-            'player': self.player,
-        }
+        
         # TODO: escape basename
         basename = self.player.user.last_name.replace(' ', '') + '1'
         filename = basename + '.tex'
         
         # Rendering .tex
-        render_to_file(template, self.directory + filename, context)
+        render_to_file(template, self.directory + filename, self.context)
         
         # Compiling
         os.system('pdflatex -output-directory ' + self.directory + ' ' + self.directory + filename)
@@ -42,15 +51,13 @@ class LetterRenderer:
     
     def render_role(self):
         template = self.template_role
-        context = {
-            'player': self.player,
-        }
+        
         # TODO: escape basename
         basename = self.player.user.last_name.replace(' ', '') + '2'
         filename = basename + '.tex'
         
         # Rendering .tex
-        render_to_file(template, self.directory + filename, context)
+        render_to_file(template, self.directory + filename, self.context)
         
         # Compiling
         os.system('pdflatex -output-directory ' + self.directory + ' ' + self.directory + filename)
