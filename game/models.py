@@ -261,6 +261,14 @@ class Player(models.Model):
     def __unicode__(self):
         return u"%s %s" % (self.user.first_name, self.user.last_name)
     
+    # Returns 'o' or 'a' depending on the player's gender
+    def get_oa(self):
+        if self.gender == MALE:
+            return 'o'
+        else:
+            return 'a'
+    oa = property(get_oa)
+    
     
     def canonicalize(self):
         # We save on query when we can
