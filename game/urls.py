@@ -5,8 +5,7 @@ from game.views import *
 
 
 urlpatterns = patterns('',
-    url(r'^setup/$', setup, name='setup'),
-    url(r'^advanceturn/$', advance_turn, name='advanceturn'),
+    
     url(r'^ruleset/$', ruleset, name='ruleset'),
     
     url(r'^status/$', VillageStatusView.as_view(), name='status'),
@@ -18,6 +17,9 @@ urlpatterns = patterns('',
     url(r'^personalinfo/$', PersonalInfoView.as_view(), name='personalinfo'),
     url(r'^contacts/$', ContactsView.as_view(), name='contacts'),
     
+    url(r'^setup/$', setup, name='setup'),
+    url(r'^advanceturn/$', advance_turn, name='advanceturn'),
+    url(r'^createletters/$', create_letters, name='createletters'),
     url(r'^pointofview/$', PointOfView.as_view(), name='pointofview'),
 )
 

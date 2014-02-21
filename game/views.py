@@ -23,6 +23,7 @@ from game.events import *
 from game.roles import *
 from game.ruleset import *
 from game.utils import get_now
+from game.letter_renderer import LetterRenderer
 
 from datetime import datetime
 
@@ -82,6 +83,16 @@ def logout_view(request):
 @user_passes_test(is_GM_check)
 def setup(request):
     setup_game(get_now())
+    return render(request, 'index.html')
+
+
+@user_passes_test(is_GM_check)
+def create_letters(request):
+    game = request.game
+    players = Player.objects.filter(game=game)
+    for player in players:
+        lr = LetterRenderer(player)
+        lr.render_all()
     return render(request, 'index.html')
 
 
