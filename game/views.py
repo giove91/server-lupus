@@ -438,11 +438,11 @@ class PersonalInfoView(View):
             # TODO: fare qualcosa di piu' ragionevole, tipo reindirizzare alla pagina in cui l'amministratore puo' trasformarsi in un altro giocatore.
             return render(request, 'index.html')
         
-        team = '-'
-        role = '-'
-        aura = '-'
-        is_mystic = False
-        status = '-'
+        #team = '-'
+        #role = '-'
+        #aura = '-'
+        #is_mystic = False
+        #status = '-'
         
         player = request.player.canonicalize()
         game = player.game
@@ -456,11 +456,6 @@ class PersonalInfoView(View):
         events = get_events(request, player)
         
         context = {
-            'team': team,
-            'role': role,
-            'aura': aura,
-            'is_mystic': is_mystic,
-            'status': status,
             'events': events,
         }
         

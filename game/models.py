@@ -303,20 +303,32 @@ class Player(models.Model):
     # TODO: queste funzioni forse non dovrebbero stare qui
     
     def aura_as_italian_string(self):
-        if self.aura==WHITE:
-            return "Bianca"
+        if self.aura == WHITE:
+            return u'Bianca'
         else:
-            return "Nera"
+            return u'Nera'
+    aura_as_italian_string_property = property(aura_as_italian_string)
     
     def status_as_italian_string(self):
         if self.active:
             if self.alive:
-                return "Vivo"
+                return u'Viv%s' % self.oa
             else:
-                return "Morto"
+                return u'Mort%s' % self.oa
         else:
-            return "Esiliato"
+            return u'Esiliat%s' % self.oa
+    status_as_italian_string_property = property(status_as_italian_string)
     
+    def team_as_italian_string(self):
+        if self.team == POPOLANI:
+            return u'Popolani'
+        elif self.team == LUPI:
+            return u'Lupi'
+        elif self.team == NEGROMANTI:
+            return u'Negromanti'
+        else:
+            raise Exception ('Unknown team.')
+    team_as_italian_string_property = property(team_as_italian_string)
     
     
     def can_use_power(self):
