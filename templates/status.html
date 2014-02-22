@@ -3,9 +3,7 @@
 {% block content %}
     <h1>Stato del villaggio</h1>
     
-    {% if game %}
-        <p>{{ current_phase }} {{ current_date }}</p>
-    {% endif %}
+    
     
     {% if mayor %}
         <p>Il sindaco del villaggio è {{ mayor.full_name }}.</p>
@@ -29,13 +27,13 @@
         {% endfor %}
     </ul>
     
-    <h3>Giocatori esiliati</h3>
-    <ul>
-        {% for player in inactive_players %}
-            <li>{{ player.full_name }}</li>
-        {% empty %}
-            <p>Non ci sono giocatori esiliati.</p>
-        {% endfor %}
-    </ul>
+    {% if inactive_players %}
+        <h3>Giocatori esiliati</h3>
+        <ul>
+            {% for player in inactive_players %}
+                <li>{{ player.full_name }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
 {% endblock %}
 

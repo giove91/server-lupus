@@ -8,6 +8,12 @@
         <li>Ruolo: {{ role }}</li>
         <li>Aura: {{ aura }}</li>
         <li>Stato: {{ status }}</li>
+        {% if player.is_mayor %}
+            <li>Sei l'attuale Sindaco del villaggio.</li>
+        {% endif %}
     </ul>
+    
+    {% include "events.html" %}
+    
 {% endblock %}
 

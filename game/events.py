@@ -100,6 +100,14 @@ class SetRoleEvent(Event):
         player.team = role.team
         player.aura = role.aura
         player.is_mystic = role.is_mystic
+    
+    def to_player_string(self, player):
+        if player == self.player:
+            return u'Ti è stato assegnato il ruolo di: %s.' % self.role_name
+        elif player == 'admin':
+            return u'A %s è stato assegnato il ruolo di: %s.' % (self.player.full_name, self.role_name)
+        else:
+            return None
 
 
 class SetMayorEvent(Event):
@@ -112,6 +120,13 @@ class SetMayorEvent(Event):
         player = self.player.canonicalize()
         assert player.alive
         dynamics.mayor = player
+    
+    def to_player_string(self, player):
+        oa = self.player.oa
+        if player == self.player:
+            return u'Sei stat%s nominat%s Sindaco del villaggio.' % (oa, oa)
+        else:
+            return u'%s è stat%s nominat%s Sindaco del villaggio.' % (self.player.full_name, oa, oa)
 
 
 class VoteAnnouncedEvent(Event):
@@ -157,10 +172,11 @@ class ElectNewMayorEvent(Event):
         assert player.is_mayor()
     
     def to_player_string(self, player):
+        oa = self.player.oa
         if player == self.player:
-            return u'Sei stato eletto sindaco del villaggio.'
+            return u'Sei stat%s elett%s Sindaco del villaggio.' % (oa, oa)
         else:
-            return u'È stato eletto un nuovo sindaco, %s.' % self.player.full_name
+            return u'%s è stat%s elett%s nuovo Sindaco del villaggio.' % (self.player.full_name, oa, oa)
         
 
 
@@ -187,16 +203,17 @@ class PlayerDiesEvent(Event):
         # Fantasma power
     
     def to_player_string(self, player):
+        oa = self.player.oa
         if player == self.player:
             if self.cause == STAKE:
-                return u'Sei stato bruciato sul rogo.'
+                return u'Sei stat%s bruciat%s sul rogo.' % (oa, oa)
             else:
-                return u'Sei morto durante la notte.'
+                return u'Sei mort%s durante la notte.' % oa
         else:
             if self.cause == STAKE:
-                return u'%s è stato bruciato sul rogo.' % self.player.full_name
+                return u'%s è stat%s bruciat%s sul rogo.' % (self.player.full_name, oa, oa)
             else:
-                return u'%s è stato ritrovato morto.' % self.player.full_name
+                return u'%s è stat%s ritrovat%s mort%s.' % (self.player.full_name, oa, oa, oa)
 
 
 

@@ -19,8 +19,9 @@ def context_current_turn(request):
     current_phase = current_turn.phase_as_italian_string()
     
     return {
-        'current_date': current_date,
-        'current_phase': current_phase,
+        'current_turn': current_turn,
+        'current_date': current_date, # Maybe useless
+        'current_phase': current_phase, # Maybe useless
     }
 
 def context_constants(request):

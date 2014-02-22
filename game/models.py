@@ -171,6 +171,20 @@ class Turn(models.Model):
             }[self.phase]
     phase_as_italian_string_property = property(phase_as_italian_string)
     
+    def turn_as_italian_string(self):
+        if self.phase == CREATION:
+            return u'Prologo'
+        elif self.phase == DAY:
+            return u'Giorno %s' % self.date
+        elif self.phase == NIGHT:
+            return u'Notte %s' % self.date
+        elif self.phase == SUNSET:
+            return u'Tramonto del giorno %s' % self.date
+        elif self.phase == DAWN:
+            return u'Alba del giorno %s' % self.date
+    turn_as_italian_string_property = property(turn_as_italian_string)
+    
+    
     @staticmethod
     def get_or_create(game, date, phase, must_exist=False):
         try:

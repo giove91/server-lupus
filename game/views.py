@@ -42,7 +42,7 @@ def get_events(request, player):
     if player == 'admin':
         turns = Turn.objects.filter(game=game)
     else:
-        turns = Turn.objects.filter(game=game).filter( Q(phase=DAWN) | Q(phase=SUNSET) )
+        turns = Turn.objects.filter(game=game).filter( Q(phase=CREATION) | Q(phase=DAWN) | Q(phase=SUNSET) )
     
     events = Event.objects.filter(turn__game=game)
     
@@ -398,7 +398,7 @@ class AppointView(CommandView):
     def get_fields(self, request):
         player = request.player
         game = player.game
-        choices = game.get_alive_players()
+        choices = [p for p in game.get_alive_players() if p.pk != player.pk]
         initial = None
         
         try:
@@ -418,6 +418,9 @@ class AppointView(CommandView):
         target = cleaned_data['target']
         
         if target is not None and target not in game.get_alive_players():
+            return False
+        
+        if target is not None and target == player:
             return False
         
         command = CommandEvent(player=player, type=APPOINT, target=target, turn=game.current_turn, timestamp=get_now())
@@ -449,13 +452,16 @@ class PersonalInfoView(View):
         aura = player.aura_as_italian_string()
         is_mystic = player.is_mystic
         status = player.status_as_italian_string()
-    
+        
+        events = get_events(request, player)
+        
         context = {
             'team': team,
             'role': role,
             'aura': aura,
             'is_mystic': is_mystic,
             'status': status,
+            'events': events,
         }
         
         return render(request, 'personal_info.html', context)
