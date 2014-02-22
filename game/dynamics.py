@@ -35,6 +35,7 @@ class Dynamics:
         self.last_timestamp_in_turn = None
         self.last_pk_in_turn = None
         self.mayor = None
+        self.appointed_mayor = None
         self.available_roles = []
         self.death_ghost_created = False
         self.ghosts_created_last_night = False
@@ -233,7 +234,7 @@ class Dynamics:
             event = ElectNewMayorEvent(player=new_mayor)
             self.generate_event(event)
 
-        winner = self._compute_vote_winner()
+        winner = self._compute_vote_winner(new_mayor)
         if winner is not None:
             event = PlayerDiesEvent(player=winner, cause=STAKE)
             self.generate_event(event)
@@ -280,7 +281,7 @@ class Dynamics:
         else:
             return None
 
-    def _compute_vote_winner(self):
+    def _compute_vote_winner(self, new_mayor):
         votes = CommandEvent.objects.filter(turn=self.prev_turn).filter(type=VOTE).order_by('timestamp')
         winner = None
         quorum_failed = False
@@ -294,7 +295,8 @@ class Dynamics:
             if vote.target is None:
                 continue
             ballots[vote.player.pk] = vote
-            if vote.player.is_mayor():
+            if (new_mayor is not None and vote.player.pk == new_mayor.pk) \
+                    or (new_mayor is None and vote.player.is_mayor()):
                 mayor_ballot = vote
 
         # TODO: count Ipnotista and Spettro dell'Amnesia

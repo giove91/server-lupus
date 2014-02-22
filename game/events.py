@@ -22,9 +22,10 @@ class CommandEvent(Event):
     type = models.CharField(max_length=1, choices=ACTION_TYPES)
 
     REAL_RELEVANT_PHASES = {
-        USEPOWER: NIGHT,
-        VOTE: DAY,
-        ELECT: DAY,
+        USEPOWER: [NIGHT],
+        VOTE: [DAY],
+        ELECT: [DAY],
+        APPOINT: [DAY, NIGHT],
         }
     
     target = models.ForeignKey(Player, null=True, blank=True, related_name='+')
@@ -36,8 +37,16 @@ class CommandEvent(Event):
 
     def apply(self, dynamics):
         # Do nothing; events will be counted during sunset or dawn;
-        # just check that we're in the correct phase
+        # just check that we're in the correct phase; the only
+        # exception is the appointment, which takes effect immediately
         assert dynamics.current_turn.phase in CommandEvent.REAL_RELEVANT_PHASES[self.type]
+
+        if self.type == APPOINT:
+            assert self.player.is_mayor()
+            assert self.target is not None
+            canonical = self.target.canonicalize()
+            assert canonical.alive
+            self.appointed_mayor = canonical
 
 
 class SeedEvent(Event):
@@ -120,7 +129,8 @@ class SetMayorEvent(Event):
         player = self.player.canonicalize()
         assert player.alive
         dynamics.mayor = player
-    
+        dynamics.appointed_mayor = None
+
     def to_player_string(self, player):
         oa = self.player.oa
         if player == self.player:
@@ -168,7 +178,9 @@ class ElectNewMayorEvent(Event):
     def apply(self, dynamics):
         player = self.player.canonicalize()
         assert player.alive
-        dynamics.mayor = player
+        if dynamics.mayor.pk != player.pk:
+            dynamics.mayor = player
+            dynamics.appointed_mayor = None
         assert player.is_mayor()
     
     def to_player_string(self, player):
@@ -199,8 +211,8 @@ class PlayerDiesEvent(Event):
         player.alive = False
 
         # TODO: trigger the actions that depend on a player's death,
-        # like mayor inheritance, trigger Cacciatore power, trigger
-        # Fantasma power
+        # like mayor inheritance, appointed mayor loss, Cacciatore
+        # power, Fantasma power
     
     def to_player_string(self, player):
         oa = self.player.oa
