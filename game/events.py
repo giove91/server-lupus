@@ -17,6 +17,7 @@ class CommandEvent(Event):
         (USEPOWER, 'UsePower'),
         (VOTE, 'Vote'),
         (ELECT, 'Elect'),
+        (APPOINT, 'Appoint'),
     )
     type = models.CharField(max_length=1, choices=ACTION_TYPES)
 

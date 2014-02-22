@@ -36,7 +36,6 @@
             <li><a href="{% url 'status' %}">Stato del villaggio</a></li>
             <li><a href="{% url 'publicevents' %}">Eventi pubblici</a></li>
             <li><a href="{% url 'ruleset' %}">Regolamento</a></li>
-            <li><a href="">Riconoscimenti</a></li>
         </ul>
         
         Area riservata
@@ -46,6 +45,9 @@
             <li><a href="{% url 'vote' %}">Votazione per il rogo</a></li>
             <li><a href="{% url 'elect' %}">Elezione del Sindaco</a></li>
             <li><a href="{% url 'usepower' %}">Potere notturno</a></li>
+            {% if player.is_mayor %}
+                <li><a href="{% url 'appoint' %}">Designa successore</a></li>
+            {% endif %}
             <li><a href="{% url 'contacts' %}">Contatti</a></li>
         </ul>
         

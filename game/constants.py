@@ -69,6 +69,7 @@ VISIONE = 'V'
 USEPOWER = 'P'
 VOTE = 'V'
 ELECT = 'E'
+APPOINT = 'A'
 
 # Death causes
 STAKE = 'S'

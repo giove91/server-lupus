@@ -146,8 +146,8 @@ class PublicEventsView(View):
         return render(request, 'public_events.html', context)
 
 
+# "Generic" form for submitting actions
 class CommandForm(forms.Form):
-    # "Generic" form for submitting actions
     
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
@@ -385,6 +385,47 @@ class ElectView(CommandView):
         dynamics = request.player.game.get_dynamics()
         dynamics.inject_event(command)
         return True
+
+
+# View for appointing a successor (for mayor only)
+class AppointView(CommandView):
+    
+    template_name = 'command_appoint.html'
+    
+    def check(self, request):
+        return request.player is not None and request.player.is_mayor
+    
+    def get_fields(self, request):
+        player = request.player
+        game = player.game
+        choices = game.get_alive_players()
+        initial = None
+        
+        try:
+            # FIXME: se il sindaco muore, resuscita e poi viene nominato di nuovo sindaco,
+            # compare come designato l'ultimo giocatore che aveva designato
+            old_command = CommandEvent.objects.filter(type=APPOINT).filter(player=player).order_by('-pk')[0:1].get()
+            initial = old_command.target
+        except CommandEvent.DoesNotExist:
+            initial = None
+        
+        fields = {'target': {'choices': choices, 'initial': initial, 'label': 'Designa come successore:'} }
+        return fields
+    
+    def save_command(self, request, cleaned_data):
+        player = request.player
+        game = player.game
+        target = cleaned_data['target']
+        
+        if target is not None and target not in game.get_alive_players():
+            return False
+        
+        command = CommandEvent(player=player, type=APPOINT, target=target, turn=game.current_turn, timestamp=get_now())
+        dynamics = request.player.game.get_dynamics()
+        dynamics.inject_event(command)
+        return True
+
+
 
 
 class PersonalInfoView(View):

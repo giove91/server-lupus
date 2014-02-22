@@ -15,6 +15,7 @@ urlpatterns = patterns('',
     url(r'^vote/$', VoteView.as_view(), name='vote'),
     url(r'^elect/$', ElectView.as_view(), name='elect'),
     url(r'^personalinfo/$', PersonalInfoView.as_view(), name='personalinfo'),
+    url(r'^appoint/$', AppointView.as_view(), name='appoint'),
     url(r'^contacts/$', ContactsView.as_view(), name='contacts'),
     
     url(r'^setup/$', setup, name='setup'),
