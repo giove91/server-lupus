@@ -285,7 +285,7 @@ class Player(models.Model):
     
     
     def canonicalize(self):
-        # We save on query when we can
+        # We save on queries when we can
         if 'canonical' in self.__dict__ and self.canonical:
             return self
         else:
@@ -420,8 +420,27 @@ class Event(KnowsChild):
         return u"Event %d" % self.pk
     event_name = property(__unicode__)
 
+    def is_automatic(self):
+        return self.as_child().AUTOMATIC
+    is_automatic.boolean = True
+
     def apply(self, dynamics):
         raise NotImplementedError("Calling Events.apply() instead of a subclass")
+
+    def load_from_dict(self, data, players_map):
+        raise NotImplementedError("Calling Events.load_from_dict() instead of a subclass")
+
+    def to_dict(self):
+        return {'subclass': self.subclass}
+
+    @staticmethod
+    def from_dict(data, players_map):
+        [subclass] = [x for x in Event.__subclasses__() if x.__name__ == data['subclass']]
+        event = subclass()
+        # The following line shouldn't be required
+        #event.subclass = data['subclass']
+        event.load_from_dict(data, players_map)
+        return event
 
     def to_player_string(self, player):
         # Default is no message

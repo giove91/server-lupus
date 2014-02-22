@@ -32,7 +32,7 @@ class PlayerAdmin(admin.ModelAdmin):
     search_fields = ['user__first_name', 'user__last_name']
 
 class EventAdmin(admin.ModelAdmin):
-    list_display = ('subclass', 'turn', 'timestamp', 'pk')
+    list_display = ('subclass', 'turn', 'is_automatic', 'timestamp', 'pk')
 
 class CommandEventAdmin(admin.ModelAdmin):
     list_display = ('event_name', 'turn', 'timestamp', 'player', 'type', 'target', 'target2', 'target_ghost')

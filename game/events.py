@@ -4,6 +4,7 @@ from django.db import models
 from models import Event, Player
 from roles import *
 from constants import *
+from utils import dir_dict, rev_dict
 
 class CommandEvent(Event):
     # A command submitted by a player
@@ -35,6 +36,24 @@ class CommandEvent(Event):
     def __unicode__(self):
         return u"CommandEvent %d" % self.pk
 
+    def to_dict(self):
+        ret = Event.to_dict(self)
+        ret.update({
+                'player': self.player.user.username,
+                'target': self.target.user.username if self.target is not None else None,
+                'target2': self.target2.user.username if self.target2 is not None else None,
+                'target_ghost': dir_dict(Spettro.POWERS_LIST)[self.target_ghost],
+                'type': dict(CommandEvent.ACTION_TYPES)[self.type],
+                })
+        return ret
+
+    def load_from_dict(self, data, players_map):
+        self.player = players_map[data['player']]
+        self.target = players_map[data['target']]
+        self.target2 = players_map[data['target2']]
+        self.target_ghost = rev_dict(Spettro.POWERS_LIST)[data['target_ghost']]
+        self.type = rev_dict(CommandEvent.ACTION_TYPES)[data['type']]
+
     def apply(self, dynamics):
         # Do nothing; events will be counted during sunset or dawn;
         # just check that we're in the correct phase; the only
@@ -55,6 +74,16 @@ class SeedEvent(Event):
 
     seed = models.IntegerField()
 
+    def to_dict(self):
+        ret = Event.to_dict(self)
+        ret.update({
+                'seed': self.seed,
+                })
+        return ret
+
+    def load_from_dict(self, data, players_map):
+        self.seed = data['seed']
+
     def apply(self, dynamics):
         # We use Wichmann-Hill because it is a pure Python
         # implementation; its reduced randomness properties shouldn't
@@ -69,6 +98,16 @@ class AvailableRoleEvent(Event):
     AUTOMATIC = False
 
     role_name = models.CharField(max_length=200)
+
+    def to_dict(self):
+        ret = Event.to_dict(self)
+        ret.update({
+                'role_name': self.role_name,
+                })
+        return ret
+
+    def load_from_dict(self, data, players_map):
+        self.role_name = data['role_name']
 
     def apply(self, dynamics):
         assert len(dynamics.available_roles) < len(dynamics.players), "%d %d" % (len(dynamics.available_roles), len(dynamics.players))

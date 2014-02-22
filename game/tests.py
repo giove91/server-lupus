@@ -1,4 +1,9 @@
+
+import sys
 import datetime
+import json
+import os
+
 from django.utils import timezone
 
 from django.test import TestCase
@@ -39,6 +44,46 @@ def create_test_game(seed, roles):
         event = AvailableRoleEvent(role_name=roles[i%len(roles)].__name__)
         event.timestamp = first_turn.begin
         game.get_dynamics().inject_event(event)
+
+    return game
+
+
+def create_test_game_from_dump(data):
+    game = Game(running=True)
+    game.save()
+    game.initialize(get_now())
+
+    create_users(len(data['players']))
+
+    users = User.objects.all()
+    for i, user in enumerate(users):
+        if user.is_staff:
+            raise Exception()
+        user.username = data['players'][i]['username']
+        user.save()
+        player = Player.objects.create(user=user, game=game)
+        player.save()
+
+    # Here we canonicalize the players, so this has to happen after
+    # all users and players have been inserted in the database;
+    # therefore, this loop cannot be merged with the previous one
+    players_map = {None: None}
+    for player in game.get_players():
+        assert player.user.username not in players_map
+        players_map[player.user.username] = player
+
+    # Now we're ready to reply turns and events
+    for turn_data in data['turns']:
+        current_turn = game.current_turn
+        for event_data in turn_data['events']:
+            event = Event.from_dict(event_data, players_map)
+            if current_turn.phase in FULL_PHASES:
+                event.timestamp = get_now()
+            else:
+                event.timestamp = current_turn.begin
+            #print >> sys.stderr, "Injecting event of type %s" % (event.subclass)
+            game.get_dynamics().inject_event(event)
+        test_advance_turn(game)
 
     return game
 
@@ -116,6 +161,12 @@ class GameTests(TestCase):
         test_advance_turn(game)
 
         self.assertEqual(game.current_turn.phase, DAWN)
+
+    def load_game_helper(self, filename):
+        with open(os.path.join('dumps', filename)) as fin:
+            data = json.load(fin)
+        game = create_test_game_from_dump(data)
+        return game
 
     def voting_helper(self, roles, mayor_votes, stake_votes, expected_mayor, expect_to_die):
         if mayor_votes is not None:
@@ -273,3 +324,7 @@ class GameTests(TestCase):
         mayor_votes = [ 1, 1, 1, 1, 1, 1, 0, 0, 0, 0 ]
         stake_votes = [ 2, 3, 2, 3, 2, 3, None, None, None, None ]
         self.voting_helper(roles, mayor_votes, stake_votes, 1, 3)
+
+
+    def test_load_test_game(self):
+        self.load_game_helper('test.json')

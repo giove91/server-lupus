@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import sys
+
 from django.db.models import Q
 
 from threading import RLock
@@ -150,6 +152,9 @@ class Dynamics:
             self.prev_turn = Turn.objects.get(pk=self.current_turn.pk)
         self.current_turn = turn
 
+        # Debug prints
+        #print >> sys.stderr, "Received turn %r" % (turn)
+
         # Do some checks on it
         assert self.current_turn.begin is not None
         if self.prev_turn is not None:
@@ -181,11 +186,15 @@ class Dynamics:
         assert self.current_turn is not None
         assert event.turn == self.current_turn
 
+        # Debug prints
+        #print >> sys.stderr, "Received event %r of subclass %s" % (event, event.subclass)
+
         # Do some check on the new event
         if not RELAX_TIME_CHECKS:
             assert event.timestamp >= self.current_turn.begin
         assert (event.timestamp > self.last_timestamp_in_turn) or \
-            (event.timestamp >= self.last_timestamp_in_turn and event.pk >= self.last_pk_in_turn)
+            (event.timestamp >= self.last_timestamp_in_turn and event.pk >= self.last_pk_in_turn), \
+            repr((event.timestamp, self.last_timestamp_in_turn, event.pk, self.last_pk_in_turn))
         self.last_timestamp_in_turn = event.timestamp
         self.last_pk_in_turn = event.pk
         assert self.current_turn.phase in event.RELEVANT_PHASES

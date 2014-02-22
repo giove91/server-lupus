@@ -23,3 +23,9 @@ def advance_to_time(current_datetime, target_time):
 
 def get_now():
     return datetime.datetime.now(tz=REF_TZINFO)
+
+def dir_dict(list_):
+    return dict(list(list_) + [(None, None)])
+
+def rev_dict(list_):
+    return dict([(y, x) for (x, y) in list(list_) + [(None, None)]])
