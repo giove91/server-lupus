@@ -4,14 +4,19 @@
     <h1>Informazioni personali</h1>
     
     <ul>
-        <li>Fazione: {{ player.team_as_italian_string_property }}</li>
-        <li>Ruolo: {{ player.role_name }}</li>
-        <li>Aura: {{ player.aura_as_italian_string_property }}</li>
-        <li>Stato: {{ player.status_as_italian_string_property }}</li>
+        <li>Fazione: {{ player.team_as_italian_string_property }}.</li>
+        <li>Ruolo: {{ player.role_name }}.</li>
+        <li>Aura: {{ player.aura_as_italian_string_property }}.</li>
+        <li>Stato: {{ player.status_as_italian_string_property }}.</li>
+        {% if player.is_mystic %}
+            <li> Sei un mistico.</li>
+        {% endif %}
         {% if player.is_mayor %}
             <li>Sei l'attuale Sindaco del villaggio.</li>
         {% endif %}
     </ul>
+    
+    <p>Seguono tutti gli eventi di cui sei a conoscenza, compresi gli eventi pubblici.</p>
     
     {% include "events.html" %}
     
