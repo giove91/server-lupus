@@ -63,6 +63,8 @@ class CommandEvent(Event):
         if self.type == APPOINT:
             assert self.player.is_mayor()
             assert self.target is not None
+            assert self.target2 is None
+            assert self.player.pk != self.target.pk
             canonical = self.target.canonicalize()
             assert canonical.alive
             dynamics.appointed_mayor = canonical
@@ -249,12 +251,25 @@ class PlayerDiesEvent(Event):
     def apply(self, dynamics):
         player = self.player.canonicalize()
         assert player.alive
+
+        if player.is_mayor():
+            if dynamics.appointed_mayor is not None:
+                assert dynamics.appointed_mayor.alive
+                dynamics.mayor = dynamics.appointed_mayor
+                dynamics.appointed_mayor = None
+
+            else:
+                candidates = [x for x in dynamics.get_alive_players() if x.pk != player.pk]
+                dynamics.mayor = dynamics.random.choice(candidates)
+
+        if player.is_appointed_mayor():
+            dynamics.appointed_mayor = None
+
+        # TODO: other actions to trigger: Cacciatore power, Fantasma
+        # power, release of Ipnotista lock
+
         player.alive = False
 
-        # TODO: trigger the actions that depend on a player's death,
-        # like mayor inheritance, appointed mayor loss, Cacciatore
-        # power, Fantasma power
-    
     def to_player_string(self, player):
         oa = self.player.oa
         if player == self.player:

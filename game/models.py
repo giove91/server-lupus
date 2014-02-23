@@ -406,6 +406,13 @@ class Player(models.Model):
         return self.pk == mayor.pk
     is_mayor.boolean = True
 
+    def is_appointed_mayor(self):
+        appointed_mayor = self.game.get_dynamics().appointed_mayor
+        if appointed_mayor is None:
+            return False
+        return self.pk == appointed_mayor.pk
+    is_appointed_mayor.boolean = True
+
 
 class Event(KnowsChild):
     """Event base class."""

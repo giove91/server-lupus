@@ -229,23 +229,23 @@ class GameTests(TestCase):
 
     def test_stake_vote_unanimity(self):
         roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
-        votes = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
-        self.voting_helper(roles, None, votes, None, 0)
+        votes = [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+        self.voting_helper(roles, None, votes, None, 1)
 
     def test_stake_vote_absolute_majority(self):
         roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
-        votes = [ 0, 0, 0, 0, 0, 0, 1, 1, 2, None ]
-        self.voting_helper(roles, None, votes, None, 0)
+        votes = [ 3, 3, 3, 3, 3, 3, 1, 1, 2, None ]
+        self.voting_helper(roles, None, votes, None, 3)
 
     def test_stake_vote_relative_majority(self):
         roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
-        votes = [ 0, 0, 0, 0, 1, 1, 1, 2, None, None ]
-        self.voting_helper(roles, None, votes, None, 0)
+        votes = [ 3, 3, 3, 3, 1, 1, 1, 2, None, None ]
+        self.voting_helper(roles, None, votes, None, 3)
 
     def test_stake_vote_tie_with_mayor(self):
         roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
-        votes = [ 0, 0, 0, 1, 1, 1, 3, 4, None, None ]
-        self.voting_helper(roles, None, votes, None, 0)
+        votes = [ 5, 5, 5, 1, 1, 1, 3, 4, None, None ]
+        self.voting_helper(roles, None, votes, None, 5)
 
     def test_stake_vote_tie_without_mayor(self):
         roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
@@ -259,13 +259,13 @@ class GameTests(TestCase):
 
     def test_stake_vote_half_quorum(self):
         roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
-        votes = [ 0, 0, 0, 0, 0, None, None, None, None, None ]
-        self.voting_helper(roles, None, votes, None, 0)
+        votes = [ 1, 1, 1, 1, 1, None, None, None, None, None ]
+        self.voting_helper(roles, None, votes, None, 1)
 
     def test_stake_vote_mayor_not_voting(self):
         roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
-        votes = [ None, 0, 0, 0, 0, 0, 0, None, None, None ]
-        self.voting_helper(roles, None, votes, None, 0)
+        votes = [ None, 1, 1, 1, 1, 1, 1, None, None, None ]
+        self.voting_helper(roles, None, votes, None, 1)
 
 
     def test_election_unanimity(self):
