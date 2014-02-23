@@ -326,5 +326,10 @@ class GameTests(TestCase):
         self.voting_helper(roles, mayor_votes, stake_votes, 1, 3)
 
 
-    def test_load_test_game(self):
-        self.load_game_helper('test.json')
+    def test_load_test(self):
+        game = self.load_game_helper('test.json')
+
+    def test_load_test2(self):
+        game = self.load_game_helper('mayor_appointing.json')
+        players = game.get_players()
+        self.assertEqual(game.get_dynamics().appointed_mayor.pk, players[4].pk)

@@ -65,7 +65,7 @@ class CommandEvent(Event):
             assert self.target is not None
             canonical = self.target.canonicalize()
             assert canonical.alive
-            self.appointed_mayor = canonical
+            dynamics.appointed_mayor = canonical
 
 
 class SeedEvent(Event):
@@ -167,6 +167,8 @@ class SetMayorEvent(Event):
     def apply(self, dynamics):
         player = self.player.canonicalize()
         assert player.alive
+        assert dynamics.mayor is None
+        assert dynamics.appointed_mayor is None
         dynamics.mayor = player
         dynamics.appointed_mayor = None
 
