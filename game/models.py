@@ -29,6 +29,24 @@ class KnowsChild(models.Model):
         super(KnowsChild, self).save(*args, **kwargs)
 
 
+def dump_game(game, fout):
+    import json
+    data = {'players': [],
+            'turns': []}
+    for player in Player.objects.filter(game=game):
+        data['players'].append({'username': player.user.username})
+
+    for turn in Turn.objects.filter(game=game).order_by('date', 'phase'):
+        turn_data = {'events': []}
+        for event in Event.objects.filter(turn=turn).order_by('timestamp', 'pk'):
+            event = event.as_child()
+            if not event.AUTOMATIC:
+                turn_data['events'].append(event.to_dict())
+        data['turns'].append(turn_data)
+
+    json.dump(data, fout, indent=4)
+
+
 _dynamics_map = {}
 _dynamics_map_lock = RLock()
 
