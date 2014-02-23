@@ -174,18 +174,29 @@ class Weather:
     def weather_type(self):
         # see http://bugs.openweathermap.org/projects/api/wiki/Weather_Condition_Codes
         if self.description is None:
-            return 'Unknown'
-        if 200 <= self.description <= 232:
-            return 'Thunderstorm'
-        elif 500 <= self.description <= 531:
-            return 'Rain'
+            return 'unknown'
+        elif 500 <= self.description <= 501:
+            return 'light rain'
+        elif 200 <= self.description <= 232 or 502 <= self.description <= 531:
+            return 'heavy rain'
         elif 802 <= self.description <= 804:
-            return 'Clouds'
+            return 'cloudy'
         elif 800 <= self.description <= 801:
-            return 'Clear'
+            return 'clear'
         else:
-            return 'Unknown'
+            return 'unknown'
     type = property(weather_type)
+    
+    def adjective(self):
+        if self.type == 'light rain' or self.type == 'heavy rain':
+            return u'piovos'
+        elif self.type == 'cloudy':
+            return u'nuvolos'
+        elif self.type == 'clear':
+            return u'seren'
+        else:
+            return u'nuov'
+    adjective = property(adjective)
 
 
 # View of village status and public events
