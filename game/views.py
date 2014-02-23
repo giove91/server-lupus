@@ -113,6 +113,47 @@ def ruleset(request):
     return render(request, 'ruleset.html')
 
 
+
+class Weather:
+    def __init__(self):
+        self.temperature = None
+        self.wind_direction = None
+        self.wind_speed = None
+        self.weather = None
+    
+    def get(self):
+        # Fetching weather data from openweathermap.org
+        url = 'http://api.openweathermap.org/data/2.5/weather?q=Pisa&mode=xml'
+        u = urllib.FancyURLopener(None)
+        usock = u.open(url)
+        rawdata = usock.read()
+        usock.close()
+        root = ET.fromstring(rawdata)
+        
+        self.temperature = float( root.find('temperature').get('value') )
+        self.wind_direction = root.find('wind').find('direction').get('code')
+        self.wind_speed = float( root.find('wind').find('speed').get('value') )
+        self.weather = int( root.find('weather').get('number') )
+        # sunrise = root.find('city').find('sun').get('rise')
+        # sunset = root.find('city').find('sun').get('set')
+    
+    def weather_type(self):
+        # see http://bugs.openweathermap.org/projects/api/wiki/Weather_Condition_Codes
+        if self.weather is None:
+            return 'Unknown'
+        if 200 <= self.weather <= 232:
+            return 'Thunderstorm'
+        elif 500 <= self.weather <= 531:
+            return 'Rain'
+        elif 802 <= self.weather <= 804:
+            return 'Clouds'
+        elif 800 <= self.weather <= 801:
+            return 'Clear'
+        else:
+            return 'Unknown'
+    type = property(weather_type)
+
+
 # View of village status
 class VillageStatusView(View):
     def get(self, request):
@@ -133,39 +174,15 @@ class VillageStatusView(View):
             inactive_players = None
             mayor = None
         
-        # Fetching weather data from openweathermap.org
-        url = 'http://api.openweathermap.org/data/2.5/weather?q=Pisa&mode=xml'
-        u = urllib.FancyURLopener(None)
-        usock = u.open(url)
-        rawdata = usock.read()
-        usock.close()
-        root = ET.fromstring(rawdata)
-        
-        temperature = float( root.find('temperature').get('value') )
-        wind_direction = root.find('wind').find('direction').get('code')
-        wind_speed = float( root.find('wind').find('speed').get('value') )
-        weather = int( root.find('weather').get('number') )
-        # sunrise = root.find('city').find('sun').get('rise')
-        # sunset = root.find('city').find('sun').get('set')
-        
-        # see http://bugs.openweathermap.org/projects/api/wiki/Weather_Condition_Codes
-        if 200 <= weather <= 232:
-            weather_type = 'Thunderstorm'
-        elif 500 <= weather <= 531:
-            weather_type = 'Rain'
-        elif 802 <= weather <= 804:
-            weather_type = 'Clouds'
-        elif 800 <= weather <= 801:
-            weather_type = 'Clear'
-        else:
-            weather_type = 'Unknown'
+        weather = Weather()
+        weather.get()
         
         context = {
             'alive_players': alive_players,
             'dead_players': dead_players,
             'inactive_players': inactive_players,
             'mayor': mayor,
-            'weather': weather_type,
+            'weather': weather,
         }   
         return render(request, 'status.html', context)
 
