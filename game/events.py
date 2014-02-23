@@ -284,5 +284,27 @@ class PlayerDiesEvent(Event):
                 return u'%s è stat%s ritrovat%s mort%s.' % (self.player.full_name, oa, oa, oa)
 
 
+class SoothsayerRevelationEvent(Event):
+    RELEVANT_PHASES = [CREATION]
+    AUTOMATIC = False
 
+    player = models.ForeignKey(Player, related_name='+')
+    target = models.ForeignKey(Player, related_name='+')
+    role_name = models.CharField(max_length=200)
 
+    def to_dict(self):
+        ret = Event.to_dict(self)
+        ret.update({
+                'player': self.player.user.username,
+                'target': self.target.user.username,
+                'role_name': self.role_name,
+                })
+        return ret
+
+    def load_from_dict(self, data, players_map):
+        self.player = players_map[data['player']]
+        self.target = players_map[data['target']]
+        self.role_name = data['role_name']
+
+    def apply(self, dynamics):
+        assert isinstance(self.player.canonicalize().role, Divinatore)

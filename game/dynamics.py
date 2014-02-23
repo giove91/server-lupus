@@ -235,6 +235,8 @@ class Dynamics:
         pass
 
     def _compute_entering_night(self):
+        # TODO: check that the soothsayer received revelations
+        # according to the rules
         pass
 
     def _compute_entering_dawn(self):
