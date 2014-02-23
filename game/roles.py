@@ -7,6 +7,7 @@ class Role(KnowsChild):
     team = None
     aura = None
     is_mystic = False
+    knowledge_class = None
     
     message = 'Usa il tuo potere su:'
     message2 = 'Parametro secondario:'
@@ -151,6 +152,7 @@ class Massone(Role):
     name = 'Massone'
     team = POPOLANI
     aura = WHITE
+    knowledge_class = 0
 
 
 class Messia(Role):
@@ -221,6 +223,7 @@ class Lupo(Role):
     name = 'Lupo'
     team = LUPI
     aura = BLACK
+    knowledge_class = 1
     
     def can_use_power(self):
         return self.player.alive and self.player.game.current_turn.date > 1
@@ -233,6 +236,7 @@ class Avvocato(Role):
     name = 'Avvocato del diavolo'
     team = LUPI
     aura = BLACK
+    knowledge_class = 2
     
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
@@ -246,6 +250,7 @@ class Diavolo(Role):
     team = LUPI
     aura = BLACK
     is_mystic = True
+    knowledge_class = 2
     
     def can_use_power(self):
         return self.player.alive
@@ -259,6 +264,7 @@ class Fattucchiera(Role):
     team = LUPI
     aura = BLACK
     is_mystic = True
+    knowledge_class = 1
     
     def can_use_power(self):
         return self.player.alive
@@ -271,12 +277,14 @@ class Rinnegato(Role):
     name = 'Rinnegato'
     team = LUPI
     aura = WHITE
+    knowledge_class = 3
 
 
 class Sequestratore(Role):
     name = 'Sequestratore'
     team = LUPI
     aura = BLACK
+    knowledge_class = 3
     
     def can_use_power(self):
         return self.player.alive
@@ -295,6 +303,7 @@ class Negromante(Role):
     team = NEGROMANTI
     aura = WHITE
     is_mystic = True
+    knowledge_class = 4
     
     def can_use_power(self):
         dynamics = self.player.game.get_dynamics()
@@ -324,6 +333,7 @@ class Ipnotista(Role):
     name = 'Ipnotista'
     team = NEGROMANTI
     aura = WHITE
+    knowledge_class = 5
     
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
@@ -337,6 +347,7 @@ class Medium(Role):
     team = NEGROMANTI
     aura = WHITE
     is_mystic = True
+    knowledge_class = 5
     
     def can_use_power(self):
         return self.player.alive
