@@ -25,7 +25,7 @@ from game.ruleset import *
 from game.utils import get_now
 from game.letter_renderer import LetterRenderer
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import urllib
 import xml.etree.ElementTree as ET
@@ -115,39 +115,73 @@ def ruleset(request):
 
 
 class Weather:
-    def __init__(self):
-        self.temperature = None
-        self.wind_direction = None
-        self.wind_speed = None
-        self.weather = None
     
-    def get(self):
+    dtformat = '%Y-%m-%d %H:%M:%S'
+    update_interval = timedelta(seconds=10)
+    
+    def __init__(self, stored_weather):
+        if stored_weather is None:
+            self.last_update = None
+            
+            #self.temperature = None
+            #self.wind_direction = None
+            #self.wind_speed = None
+            self.description = None
+        
+        else:
+            self.last_update = datetime.strptime( stored_weather['last_update'], self.dtformat )
+            self.description = stored_weather['description']
+    
+    
+    def stored(self):
+        # Returns the dictionary to be stored in session
+        res = {}
+        res['last_update'] = self.last_update.strftime(self.dtformat)
+        res['description'] = self.description
+        
+        return res
+    
+    def is_uptodate(self):
+        # True if the weather was update recently
+        now = datetime.strptime( get_now().strftime(self.dtformat), self.dtformat )
+        return self.last_update is not None and now - self.last_update < self.update_interval
+        
+    
+    def get_data(self):
+        # Returns False if an actual update was performed
+        if self.is_uptodate():
+            return True
+        
         # Fetching weather data from openweathermap.org
-        url = 'http://api.openweathermap.org/data/2.5/weather?q=Pisa&mode=xml'
+        url = 'http://api.openweathermap.org/data/2.5/weather?q=Pisa&mode=xml&APPID=a7956a78c44d8f1d55ce58ad08e0e2b3'
         u = urllib.FancyURLopener(None)
         usock = u.open(url)
         rawdata = usock.read()
         usock.close()
         root = ET.fromstring(rawdata)
         
-        self.temperature = float( root.find('temperature').get('value') )
-        self.wind_direction = root.find('wind').find('direction').get('code')
-        self.wind_speed = float( root.find('wind').find('speed').get('value') )
-        self.weather = int( root.find('weather').get('number') )
-        # sunrise = root.find('city').find('sun').get('rise')
-        # sunset = root.find('city').find('sun').get('set')
+        self.description = int( root.find('weather').get('number') )
+        
+        #self.temperature = float( root.find('temperature').get('value') )
+        #self.wind_direction = root.find('wind').find('direction').get('code')
+        #self.wind_speed = float( root.find('wind').find('speed').get('value') )
+        #self.sunrise = root.find('city').find('sun').get('rise')
+        #self.sunset = root.find('city').find('sun').get('set')
+        
+        self.last_update = get_now()
+        return False
     
     def weather_type(self):
         # see http://bugs.openweathermap.org/projects/api/wiki/Weather_Condition_Codes
-        if self.weather is None:
+        if self.description is None:
             return 'Unknown'
-        if 200 <= self.weather <= 232:
+        if 200 <= self.description <= 232:
             return 'Thunderstorm'
-        elif 500 <= self.weather <= 531:
+        elif 500 <= self.description <= 531:
             return 'Rain'
-        elif 802 <= self.weather <= 804:
+        elif 802 <= self.description <= 804:
             return 'Clouds'
-        elif 800 <= self.weather <= 801:
+        elif 800 <= self.description <= 801:
             return 'Clear'
         else:
             return 'Unknown'
@@ -174,8 +208,11 @@ class VillageStatusView(View):
             inactive_players = None
             mayor = None
         
-        weather = Weather()
-        weather.get()
+        stored_weather = request.session.get('weather', None)
+        weather = Weather(stored_weather)
+        uptodate = weather.get_data()
+        if not uptodate:
+            request.session['weather'] = weather.stored()
         
         context = {
             'alive_players': alive_players,
