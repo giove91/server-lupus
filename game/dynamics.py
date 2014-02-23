@@ -107,7 +107,7 @@ class Dynamics:
         else:
             return None
 
-    def _update_step(self):
+    def _update_step(self, advancing_turn=False):
         # First check for new events in current turn
         if self.current_turn is not None:
             # TODO: the following code has race conditions when
@@ -129,6 +129,11 @@ class Dynamics:
                 queued_event.save()
                 self._receive_event(queued_event)
                 return True
+
+        # If we are advancing the turn right now, do now attempt to do
+        # it twice
+        if advancing_turn:
+            return False
 
         # If no events were found, check for new turns
         try:
@@ -243,7 +248,10 @@ class Dynamics:
             event = ElectNewMayorEvent(player=new_mayor)
             self.generate_event(event)
 
-        winner = self._compute_vote_winner(new_mayor)
+        while self._update_step(advancing_turn=True):
+            pass
+
+        winner = self._compute_vote_winner()
         if winner is not None:
             event = PlayerDiesEvent(player=winner, cause=STAKE)
             self.generate_event(event)
@@ -290,7 +298,7 @@ class Dynamics:
         else:
             return None
 
-    def _compute_vote_winner(self, new_mayor):
+    def _compute_vote_winner(self):
         votes = CommandEvent.objects.filter(turn=self.prev_turn).filter(type=VOTE).order_by('timestamp')
         winner = None
         quorum_failed = False
@@ -304,8 +312,7 @@ class Dynamics:
             if vote.target is None:
                 continue
             ballots[vote.player.pk] = vote
-            if (new_mayor is not None and vote.player.pk == new_mayor.pk) \
-                    or (new_mayor is None and vote.player.is_mayor()):
+            if vote.player.is_mayor():
                 mayor_ballot = vote
 
         # TODO: count Ipnotista and Spettro dell'Amnesia
