@@ -188,7 +188,7 @@ class Weather:
     type = property(weather_type)
 
 
-# View of village status
+# View of village status and public events
 class VillageStatusView(View):
     def get(self, request):
         
@@ -201,12 +201,14 @@ class VillageStatusView(View):
             dead_players = game.get_dead_players()
             inactive_players = game.get_inactive_players()
             mayor = game.mayor()
+            events = get_events(request, 'public')
             
         else:
             alive_players = None
             dead_players = None
             inactive_players = None
             mayor = None
+            events = None
         
         stored_weather = request.session.get('weather', None)
         weather = Weather(stored_weather)
@@ -220,6 +222,7 @@ class VillageStatusView(View):
             'inactive_players': inactive_players,
             'mayor': mayor,
             'weather': weather,
+            'events': events,
         }   
         return render(request, 'status.html', context)
 
