@@ -117,7 +117,7 @@ def ruleset(request):
 class Weather:
     
     dtformat = '%Y-%m-%d %H:%M:%S'
-    update_interval = timedelta(seconds=10)
+    update_interval = timedelta(minutes=10)
     
     def __init__(self, stored_weather):
         if stored_weather is None:
