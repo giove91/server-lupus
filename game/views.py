@@ -238,14 +238,6 @@ class VillageStatusView(View):
         return render(request, 'status.html', context)
 
 
-# View of public events
-class PublicEventsView(View):
-    def get(self, request):
-        events = get_events(request, 'public')
-        context = {'events': events}
-        return render(request, 'public_events.html', context)
-
-
 # "Generic" form for submitting actions
 class CommandForm(forms.Form):
     
