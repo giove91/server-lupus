@@ -27,7 +27,7 @@ from game.letter_renderer import LetterRenderer
 
 from datetime import datetime, timedelta
 
-import urllib
+import urllib, urllib2
 import xml.etree.ElementTree as ET
 
 
@@ -154,19 +154,19 @@ class Weather:
         
         # Fetching weather data from openweathermap.org
         url = 'http://api.openweathermap.org/data/2.5/weather?q=Pisa&mode=xml&APPID=a7956a78c44d8f1d55ce58ad08e0e2b3'
-        u = urllib.FancyURLopener(None)
-        usock = u.open(url)
-        rawdata = usock.read()
-        usock.close()
-        root = ET.fromstring(rawdata)
+        try:
+            data = urllib2.urlopen(url, timeout = 2)
+            rawdata = data.read()
+            root = ET.fromstring(rawdata)
+            self.description = int( root.find('weather').get('number') )
+            #self.temperature = float( root.find('temperature').get('value') )
+            #self.wind_direction = root.find('wind').find('direction').get('code')
+            #self.wind_speed = float( root.find('wind').find('speed').get('value') )
+            #self.sunrise = root.find('city').find('sun').get('rise')
+            #self.sunset = root.find('city').find('sun').get('set')
         
-        self.description = int( root.find('weather').get('number') )
-        
-        #self.temperature = float( root.find('temperature').get('value') )
-        #self.wind_direction = root.find('wind').find('direction').get('code')
-        #self.wind_speed = float( root.find('wind').find('speed').get('value') )
-        #self.sunrise = root.find('city').find('sun').get('rise')
-        #self.sunset = root.find('city').find('sun').get('set')
+        except urllib2.URLError:
+            self.description = None
         
         self.last_update = get_now()
         return False
