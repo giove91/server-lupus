@@ -26,7 +26,18 @@
             Non c'è anima viva che si avventuri sotto la fitta pioggia che si abbatte sulle strade.
             Quelli che non sono al riparo delle proprie case si sono radunati nella locanda del villaggio, a bere e a discorrere delle ultime novità.
         {% endif %}
-        
+    {% endif %}
+    
+    {% if current_turn.phase == NIGHT %}
+        {% if weather.type == "clear" %}
+            Le stelle brillano nel sereno cielo notturno e la luna illumina le silenziose strade principali.
+            Attraverso l'oscurità dei vicoli più stretti, si possono di tanto in tanto percepire dei cauti movimenti.
+            Forse non tutti stanno dormendo, stanotte.
+        {% endif %}
+        {% if weather.type == "cloudy" %}
+            La notte è resa più buia da fitte nubi che celano il chiarore della luna.
+            Alcuni ne approfittano portando avanti le proprie attività notturne; altri, invece, cercano di prendere sonno sperando di risvegliarsi di nuovo l'indomani.
+        {% endif %}
     {% endif %}
 </p>
 
