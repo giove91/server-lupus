@@ -204,22 +204,7 @@ class VillageStatusView(View):
     def get(self, request):
         
         game = request.game
-        
-        if game is not None:
-            date = game.current_turn.date
-            phase = game.current_turn.phase_as_italian_string()
-            alive_players = game.get_alive_players()
-            dead_players = game.get_dead_players()
-            inactive_players = game.get_inactive_players()
-            mayor = game.mayor()
-            events = get_events(request, 'public')
-            
-        else:
-            alive_players = None
-            dead_players = None
-            inactive_players = None
-            mayor = None
-            events = None
+        events = get_events(request, 'public')
         
         stored_weather = request.session.get('weather', None)
         weather = Weather(stored_weather)
@@ -228,14 +213,10 @@ class VillageStatusView(View):
             request.session['weather'] = weather.stored()
         
         context = {
-            'alive_players': alive_players,
-            'dead_players': dead_players,
-            'inactive_players': inactive_players,
-            'mayor': mayor,
             'weather': weather,
             'events': events,
         }   
-        return render(request, 'status.html', context)
+        return render(request, 'public_info.html', context)
 
 
 # "Generic" form for submitting actions

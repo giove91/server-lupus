@@ -83,6 +83,7 @@ class Game(models.Model):
 
     def mayor(self):
         return self.get_dynamics().mayor
+    mayor = property(mayor)
 
     def get_dynamics(self):
         """Obtain or create the Dynamics object globally assigned to
@@ -106,24 +107,28 @@ class Game(models.Model):
         which does not change neither by restarting the server (but it
         can change if players' data is changed)."""
         return self.get_dynamics().get_active_players()
+    active_players = property(get_active_players)
 
     def get_inactive_players(self):
         """Players are guaranteed to be sorted in a canonical order,
         which does not change neither by restarting the server (but it
         can change if players' data is changed)."""
         return self.get_dynamics().get_inactive_players()
+    inactive_players = property(get_inactive_players)
 
     def get_alive_players(self):
         """Players are guaranteed to be sorted in a canonical order,
         which does not change neither by restarting the server (but it
         can change if players' data is changed)."""
         return self.get_dynamics().get_alive_players()
+    alive_players = property(get_alive_players)
 
     def get_dead_players(self):
         """Players are guaranteed to be sorted in a canonical order,
         which does not change neither by restarting the server (but it
         can change if players' data is changed)."""
         return self.get_dynamics().get_dead_players()
+    dead_players = property(get_dead_players)
 
     def initialize(self, begin):
         first_turn = Turn.first_turn(self)

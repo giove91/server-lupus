@@ -1,73 +1,36 @@
-{% extends "base.html" %}
+<h1>Stato del villaggio</h1>
 
-{% block content %}
-    <h1>Stato del villaggio</h1>
-    
-    <p>
-        {% if current_turn.phase == DAWN %}
-            Una {{ weather.adjective }}a alba sta sorgendo sul villaggio.
-        {% endif %}
-        
-        {% if current_turn.phase == SUNSET %}
-            Un {{ weather.adjective }}o tramonto sta calando sul villaggio.
-        {% endif %}
-        
-        {% if current_turn.phase == DAY %}
-            {% if weather.type == "clear" %}
-                I cortili e le strade fremono di attività sotto il cielo terso e azzurro.
-                Qua e là, gruppetti di persone parlottano furtivamente di quanto è accaduto nelle ultime notti.
-            {% endif %}
-            {% if weather.type == "cloudy" %}
-                Sotto un cielo nuvoloso e grigio, le persone si affaccendano operose tra le strette stradicciole.
-                Qualcuno si ferma a guardare la bacheca del villaggio, o a discutere brevemente degli avvenimenti più recenti, prima di tornare alla propria occupazione.
-            {% endif %}
-            {% if weather.type == "light rain" %}
-                Una leggera pioggerellina cade tra le case e sui tetti.
-                Alcuni si aggirano per le strade avvolti nei propri mantelli, per chissà quali loschi affari, ma i più preferiscono rimanere all'asciutto nelle proprie dimore.
-            {% endif %}
-            {% if weather.type == "heavy rain" %}
-                Non c'è anima viva che si avventuri sotto la fitta pioggia che si abbatte sulle strade.
-                Quelli che non sono al riparo delle proprie case si sono radunati nella locanda del villaggio, a bere e a discorrere delle ultime novità.
-            {% endif %}
-            
-        {% endif %}
-    </p>
-    
-    {% if mayor %}
-        <p>Il Sindaco del villaggio è {{ mayor.full_name }}.</p>
+<p>
+    {% if current_turn.phase == DAWN %}
+        Una {{ weather.adjective }}a alba sta sorgendo sul villaggio.
     {% endif %}
     
-    <h3>Personaggi vivi</h3>
-    <ul>
-        {% for player in alive_players %}
-            <li>{{ player.full_name }}</li>
-        {% empty %}
-            <p>Non ci sono personaggi vivi.</p>
-        {% endfor %}
-    </ul>
-    
-    <h3>Personaggi morti</h3>
-    <ul>
-        {% for player in dead_players %}
-            <li>{{ player.full_name }}</li>
-        {% empty %}
-            <p>Non ci sono personaggi morti.</p>
-        {% endfor %}
-    </ul>
-    
-    {% if inactive_players %}
-        <h3>Personaggi esiliati</h3>
-        <ul>
-            {% for player in inactive_players %}
-                <li>{{ player.full_name }}</li>
-            {% endfor %}
-        </ul>
+    {% if current_turn.phase == SUNSET %}
+        Un {{ weather.adjective }}o tramonto sta calando sul villaggio.
     {% endif %}
     
-    
-    <h1>Bacheca degli eventi</h1>
-    
-    {% include "events.html" %}
-    
-{% endblock %}
+    {% if current_turn.phase == DAY %}
+        {% if weather.type == "clear" %}
+            I cortili e le strade fremono di attività sotto il cielo terso e azzurro.
+            Qua e là, gruppetti di persone parlottano furtivamente di quanto è accaduto nelle ultime notti.
+        {% endif %}
+        {% if weather.type == "cloudy" %}
+            Sotto un cielo nuvoloso e grigio, le persone si affaccendano operose tra le strette stradicciole.
+            Qualcuno si ferma a guardare la bacheca del villaggio, o a discutere brevemente degli avvenimenti più recenti, prima di tornare alla propria occupazione.
+        {% endif %}
+        {% if weather.type == "light rain" %}
+            Una leggera pioggerellina cade tra le case e sui tetti.
+            Alcuni si aggirano per le strade avvolti nei propri mantelli, per chissà quali loschi affari, ma i più preferiscono rimanere all'asciutto nelle proprie dimore.
+        {% endif %}
+        {% if weather.type == "heavy rain" %}
+            Non c'è anima viva che si avventuri sotto la fitta pioggia che si abbatte sulle strade.
+            Quelli che non sono al riparo delle proprie case si sono radunati nella locanda del villaggio, a bere e a discorrere delle ultime novità.
+        {% endif %}
+        
+    {% endif %}
+</p>
+
+{% if game %}
+    <p>Il Sindaco del villaggio è {{ game.mayor.full_name }}.</p>
+{% endif %}
 
