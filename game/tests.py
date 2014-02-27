@@ -157,7 +157,7 @@ class GameTests(TestCase):
         self.game = create_test_game(2204, roles)
 
         self.assertEqual(self.game.current_turn.phase, CREATION)
-        self.assertEqual(self.game.mayor().user.username, 'pk4')
+        self.assertEqual(self.game.mayor.user.username, 'pk4')
 
     @record_name
     def test_turn_advance(self):
@@ -192,9 +192,9 @@ class GameTests(TestCase):
         game = create_test_game(1, roles)
         dynamics = game.get_dynamics()
         players = game.get_players()
-        initial_mayor = game.mayor()
+        initial_mayor = game.mayor
 
-        self.assertEqual(game.mayor().pk, players[0].pk)
+        self.assertEqual(game.mayor.pk, players[0].pk)
 
         test_advance_turn(game)
 
@@ -263,7 +263,7 @@ class GameTests(TestCase):
             expected_final_mayor = players[expected_final_mayor]
 
         if expected_final_mayor is not None:
-            self.assertEqual(game.mayor().pk, expected_final_mayor.pk)
+            self.assertEqual(game.mayor.pk, expected_final_mayor.pk)
 
         dynamics.debug_event_bin = None
 
