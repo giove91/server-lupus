@@ -13,6 +13,7 @@ from events import CommandEvent, VoteAnnouncedEvent, TallyAnnouncedEvent, \
 from constants import *
 import roles
 
+DEBUG_DYNAMICS = False
 RELAX_TIME_CHECKS = False
 ANCIENT_DATETIME = datetime(year=1970, month=1, day=1, tzinfo=REF_TZINFO)
 
@@ -158,8 +159,9 @@ class Dynamics:
             self.prev_turn = Turn.objects.get(pk=self.current_turn.pk)
         self.current_turn = turn
 
-        # Debug prints
-        #print >> sys.stderr, "Received turn %r" % (turn)
+        # Debug print
+        if DEBUG_DYNAMICS:
+            print >> sys.stderr, "Received turn %r" % (turn)
 
         # Do some checks on it
         assert self.current_turn.begin is not None
@@ -193,7 +195,8 @@ class Dynamics:
         assert event.turn == self.current_turn
 
         # Debug prints
-        #print >> sys.stderr, "Received event %r of subclass %s" % (event, event.subclass)
+        if DEBUG_DYNAMICS:
+            print >> sys.stderr, "Received event %r of subclass %s" % (event, event.subclass)
 
         # Do some check on the new event
         if not RELAX_TIME_CHECKS:
@@ -232,20 +235,30 @@ class Dynamics:
         self.auto_event_queue.append(event)
 
     def _compute_entering_creation(self):
-        pass
+        if DEBUG_DYNAMICS:
+            print >> sys.stderr, "Computing creation"
 
     def _compute_entering_night(self):
+        if DEBUG_DYNAMICS:
+            print >> sys.stderr, "Computing night"
+
         # TODO: check that the soothsayer received revelations
         # according to the rules
-        pass
 
     def _compute_entering_dawn(self):
+        if DEBUG_DYNAMICS:
+            print >> sys.stderr, "Computing dawn"
+
         self.ghosts_created_last_night = False
 
     def _compute_entering_day(self):
-        pass
+        if DEBUG_DYNAMICS:
+            print >> sys.stderr, "Computing day"
 
     def _compute_entering_sunset(self):
+        if DEBUG_DYNAMICS:
+            print >> sys.stderr, "Computing sunset"
+
         new_mayor = self._compute_elected_mayor()
         if new_mayor is not None:
             event = ElectNewMayorEvent(player=new_mayor)
