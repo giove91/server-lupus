@@ -115,8 +115,12 @@ class Dynamics:
             # TODO: the following code has race conditions when
             # executed in autocommit mode; fix it! (also, check the
             # fix with the real database we're going to use)
-            event = self._pop_event_from_db()
             queued_event = self._pop_event_from_queue()
+            # If there is not queued event and we're advancing turn,
+            # do not process any other event
+            if advancing_turn and queued_event is None:
+                return False
+            event = self._pop_event_from_db()
             if event is not None and queued_event is not None:
                 # TODO: implement the following
                 #assert event == queued_event
