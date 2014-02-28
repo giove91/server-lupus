@@ -49,6 +49,7 @@
                 <li><a href="{% url 'appoint' %}">Designa successore</a></li>
             {% endif %}
             <li><a href="{% url 'contacts' %}">Contatti</a></li>
+            <li><a href="{% url 'comment' %}">Commenti alla partita</a></li>
         </ul>
         
         {% if user.is_staff %}

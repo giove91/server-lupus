@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Commenti</h1>
+    
+    <p>Qui puoi lasciare i tuoi commenti sulla partita.
+    Saranno visibili solamente a te e ai GM, ed eventualmente verranno pubblicati dopo il termine della partita.</p>
+    
+    {% if can_comment %}
+        <form action="{% url 'comment' %}" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Invia" />
+        </form>
+    {% else %}
+        <p>Puoi lasciare un commento solo ogni 10 minuti.</p>
+    {% endif %}
+    
+    <h3>I tuoi commenti</h3>
+    
+    {% if old_comments %}
+    <ul>
+        {% for comment in old_comments %}
+            <li>[{{ comment.timestamp|date:"j N Y, H:i" }}] {{ comment.text }}</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+        <p>Non hai ancora inviato alcun commento.</p>
+    {% endif %}
+    
+{% endblock %}
+

@@ -594,4 +594,49 @@ class PointOfView(View):
         return super(PointOfView, self).dispatch(*args, **kwargs)
 
 
+class CommentForm(forms.Form):
+    text = forms.CharField(widget=forms.Textarea, label='Scrivi il tuo commento:')
+
+class CommentView(View):
+    minimum_timedelta = timedelta(minutes=10)
+    
+    def can_comment(self, request):
+        # Checks if the user can post a comment
+        user = request.user
+        game = request.game
+        try:
+            last_comment = Comment.objects.filter(user=user).filter(turn__game=game).order_by('-timestamp')[0]
+            if get_now() - last_comment.timestamp < self.minimum_timedelta:
+                return False
+            else:
+                return True
+        
+        except IndexError:
+            return True
+
+    def get(self, request):
+        user = request.user
+        game = request.game
+        form = CommentForm()
+        old_comments = Comment.objects.filter(user=user).filter(turn__game=game).filter(visible=True).order_by('-timestamp')
+        can_comment = self.can_comment(request)
+        return render(request, 'comment.html', {'form': form, 'old_comments': old_comments, 'can_comment': can_comment})
+    
+    def post(self, request):
+        form = CommentForm(request.POST)
+        user = request.user
+        game = request.game
+        
+        if form.is_valid() and self.can_comment(request):
+                text = form.cleaned_data['text']
+                comment = Comment(turn=game.current_turn, user=user, text=text)
+                comment.save()
+            
+        old_comments = Comment.objects.filter(user=user).filter(turn__game=game).filter(visible=True).order_by('-timestamp')
+        can_comment = self.can_comment(request)
+        return render(request, 'comment.html', {'form': form, 'old_comments': old_comments, 'can_comment': can_comment})
+    
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(CommentView, self).dispatch(*args, **kwargs)
 

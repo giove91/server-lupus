@@ -17,6 +17,7 @@ urlpatterns = patterns('',
     url(r'^personalinfo/$', PersonalInfoView.as_view(), name='personalinfo'),
     url(r'^appoint/$', AppointView.as_view(), name='appoint'),
     url(r'^contacts/$', ContactsView.as_view(), name='contacts'),
+    url(r'^comment/$', CommentView.as_view(), name='comment'),
     
     url(r'^setup/$', setup, name='setup'),
     url(r'^advanceturn/$', advance_turn, name='advanceturn'),
