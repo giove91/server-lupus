@@ -19,6 +19,18 @@
             <p>{{ message }}</p>
         {% endfor %}
         
+        {% if turn.phase == CREATION %}
+            {% if values.initial_propositions %}
+                <p>Alcune recenti indagini hanno portato alla luce le seguenti preziose informazioni, che potrete usare a vostro vantaggio.
+                <ul>
+                    {% for text in values.initial_propositions %}
+                        <li>{{ text }}</li>
+                    {% endfor %}
+                </ul>
+                </p>
+            {% endif %}
+        {% endif %}
+        
         
         {% if turn.phase == DAWN %}
             <p>I primi raggi di sole sfiorano i campi, e ognuno si reca stancamente al lavoro.</p>

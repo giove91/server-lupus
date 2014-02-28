@@ -26,6 +26,7 @@ def context_current_turn(request):
 
 def context_constants(request):
     return {
+        'CREATION': CREATION,
         'DAY': DAY,
         'NIGHT': NIGHT,
         'DAWN': DAWN,

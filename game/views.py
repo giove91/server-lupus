@@ -50,7 +50,7 @@ def get_events(request, player):
     
     events = Event.objects.filter(turn__game=game)
     
-    result = { turn: { 'standard': [], VOTE: {}, ELECT: {} } for turn in turns }
+    result = { turn: { 'standard': [], VOTE: {}, ELECT: {}, 'initial_propositions': [] } for turn in turns }
     
     for e in events:
         event = e.as_child()
@@ -70,6 +70,9 @@ def get_events(request, player):
                 result[event.turn][event.type][event.voted] = { 'votes': 0, 'voters': [] }
             
             result[event.turn][event.type][event.voted]['votes'] = event.vote_num
+        
+        if event.subclass == 'InitialPropositionEvent':
+            result[event.turn]['initial_propositions'].append(event.text)
     
     ordered_result = [ (turn, result[turn]) for turn in turns ]
     return ordered_result

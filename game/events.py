@@ -182,6 +182,22 @@ class SetMayorEvent(Event):
             return u'%s è stat%s nominat%s Sindaco del villaggio.' % (self.player.full_name, oa, oa)
 
 
+class InitialPropositionEvent(Event):
+    # An initial proposition published by the GM
+    RELEVANT_PHASES = [CREATION]
+    AUTOMATIC = False
+    
+    text = models.TextField()
+    
+    def apply(self,dynamics):
+        # TODO: Gio, qua bisogna mettere qualcosa?
+        pass
+    
+    def to_player_string(self,player):
+        # This event is processed separately
+        return None
+
+
 class VoteAnnouncedEvent(Event):
     RELEVANT_PHASES = [SUNSET]
     AUTOMATIC = True
@@ -195,6 +211,10 @@ class VoteAnnouncedEvent(Event):
         assert self.type in [ELECT, VOTE]
         assert self.voter.canonicalize().alive
         assert self.voted.canonicalize().alive
+    
+    def to_player_string(self,player):
+        # This event is processed separately
+        return None
 
 
 class TallyAnnouncedEvent(Event):
@@ -210,6 +230,10 @@ class TallyAnnouncedEvent(Event):
         assert self.type in [ELECT, VOTE]
         assert self.voted.canonicalize().alive
         assert self.vote_num > 0
+    
+    def to_player_string(self,player):
+        # This event is processed separately
+        return None
 
 
 class ElectNewMayorEvent(Event):
