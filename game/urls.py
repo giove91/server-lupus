@@ -7,6 +7,7 @@ from game.views import *
 urlpatterns = patterns('',
     
     url(r'^ruleset/$', ruleset, name='ruleset'),
+    url(r'^credits/$', credits, name='credits'),
     
     url(r'^status/$', VillageStatusView.as_view(), name='status'),
     

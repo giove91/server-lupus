@@ -114,6 +114,8 @@ def advance_turn(request):
 def ruleset(request):
     return render(request, 'ruleset.html')
 
+def credits(request):
+    return render(request, 'credits.html')
 
 
 class Weather:
