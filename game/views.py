@@ -42,10 +42,11 @@ def get_events(request, player):
     # player can be a Player, 'admin' or 'public' (depending on the view)
     game = request.game
     
+    # TODO: gli eventi vanno ordinati per pk?
     if player == 'admin':
-        turns = Turn.objects.filter(game=game)
+        turns = Turn.objects.filter(game=game).order_by('pk')
     else:
-        turns = Turn.objects.filter(game=game).filter( Q(phase=CREATION) | Q(phase=DAWN) | Q(phase=SUNSET) )
+        turns = Turn.objects.filter(game=game).filter( Q(phase=CREATION) | Q(phase=DAWN) | Q(phase=SUNSET) ).order_by('pk')
     
     events = Event.objects.filter(turn__game=game)
     
@@ -70,7 +71,8 @@ def get_events(request, player):
             
             result[event.turn][event.type][event.voted]['votes'] = event.vote_num
     
-    return result
+    ordered_result = [ (turn, result[turn]) for turn in turns ]
+    return ordered_result
 
 
 

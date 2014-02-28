@@ -1,6 +1,6 @@
 {% load game_extras %}
 
-{% for turn, values in events.items reversed %}
+{% for turn, values in events reversed %}
     <div class="turn_events">
         
         <h2>{{ turn.turn_as_italian_string_property }}</h2>
