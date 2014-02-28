@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import os, codecs
+import os, codecs, random, string
 from django.template.loader import render_to_string
 
 from models import *
@@ -9,12 +9,18 @@ from models import *
 def render_to_file(template, filename, context):
     codecs.open(filename, 'w', 'utf-8').write(render_to_string(template, context))
 
+def generate_password(length):
+    chars = string.ascii_letters
+    return ''.join(random.choice(chars) for i in range(length))
+
 
 class LetterRenderer:
     template_setting = 'letters/setting.tex'
     template_role = 'letters/role.tex'
     
     directory = 'letters/'
+    
+    password_length = 8
     
     def __init__(self, player):
         self.player = player
@@ -23,8 +29,12 @@ class LetterRenderer:
         self.numplayers = len(self.players)
         self.mayor = self.game.mayor
         
+        self.password = generate_password(self.password_length)
+        print self.password
+        
         self.context = {
             'player': self.player,
+            'password': self.password,
             'game': self.game,
             'players': self.players,
             'numplayers': self.numplayers,
@@ -67,7 +77,13 @@ class LetterRenderer:
         os.system('rm ' + self.directory + basename + '.aux')
         os.system('rm ' + self.directory + basename + '.log')
     
+    def set_password(self):
+        user = self.player.user
+        user.set_password(self.password)
+        user.save()
+    
     def render_all(self):
+        self.set_password()
         self.render_setting()
         self.render_role()
 
