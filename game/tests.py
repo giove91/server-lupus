@@ -15,9 +15,12 @@ from game.utils import get_now
 
 
 def create_users(n):
+    users = []
     for i in xrange(n):
         user = User.objects.create(username='pk%d' % (i), first_name='Paperinik', last_name='%d' % (i), email='', password='ciaociao')
         user.save()
+        users.append(user)
+    return users
 
 
 def create_test_game(seed, roles):
@@ -48,14 +51,12 @@ def create_test_game(seed, roles):
     return game
 
 
-def create_test_game_from_dump(data):
+def create_game_from_dump(data):
     game = Game(running=True)
     game.save()
     game.initialize(get_now())
 
-    create_users(len(data['players']))
-
-    users = User.objects.all()
+    users = create_users(len(data['players']))
     for i, user in enumerate(users):
         if user.is_staff:
             raise Exception()
@@ -179,7 +180,7 @@ class GameTests(TestCase):
     def load_game_helper(self, filename):
         with open(os.path.join('dumps', filename)) as fin:
             data = json.load(fin)
-        game = create_test_game_from_dump(data)
+        game = create_game_from_dump(data)
         return game
 
     def voting_helper(self, roles, mayor_votes, stake_votes, expected_mayor, expect_to_die, appointed_mayor=None, expected_final_mayor=None):
