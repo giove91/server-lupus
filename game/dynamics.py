@@ -30,7 +30,7 @@ class Dynamics:
         self.initialize_augmented_structure()
 
     def initialize_augmented_structure(self):
-        self.players = list(self.game.player_set.order_by('user__last_name', 'user__first_name'))
+        self.players = list(self.game.player_set.order_by('user__last_name', 'user__first_name', 'user__username'))
         self.players_dict = {}
         self.random = None
         self.current_turn = None

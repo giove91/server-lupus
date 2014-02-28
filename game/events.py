@@ -123,15 +123,36 @@ class AvailableRoleEvent(Event):
             mayor = dynamics.random.choice(players_pks)
             dynamics.random.shuffle(players_pks)
 
+            given_roles = {}
             for player_pk, role_name in zip(players_pks, dynamics.available_roles):
-                event = SetRoleEvent()
-                event.player = dynamics.players_dict[player_pk]
-                event.role_name = role_name
+                event = SetRoleEvent(player=dynamics.players_dict[player_pk], role_name=role_name)
                 dynamics.generate_event(event)
+                given_roles[player_pk] = role_name
 
             event = SetMayorEvent()
             event.player = dynamics.players_dict[mayor]
             dynamics.generate_event(event)
+
+            # Then compute all the knowledge classes and generate the
+            # relevant events
+            knowledge_classes = {}
+            knowledge_classes_rev = {}
+            for player in dynamics.players:
+                [role_class] = [x for x in Role.__subclasses__() if x.__name__ == given_roles[player.pk]]
+                knowledge_class = role_class.knowledge_class
+                if knowledge_class is not None:
+                    if not knowledge_class in knowledge_classes:
+                        knowledge_classes[knowledge_class] = []
+                    knowledge_classes[knowledge_class].append(player)
+                    knowledge_classes_rev[player.pk] = knowledge_class
+            for player in dynamics.players:
+                if not player.pk in knowledge_classes_rev:
+                    continue
+                knowledge_class = knowledge_classes[knowledge_classes_rev[player.pk]]
+                for target in knowledge_class:
+                    if target.pk != player.pk:
+                        event = RoleKnowledgeEvent(player=player, target=target, role_name=given_roles[target.pk], cause=KNOWLEDGE_CLASS)
+                        dynamics.generate_event(event)
 
 
 class SetRoleEvent(Event):
@@ -260,7 +281,7 @@ class ElectNewMayorEvent(Event):
 
 
 class PlayerDiesEvent(Event):
-    RELEVANT_PHASES = [SUNSET]
+    RELEVANT_PHASES = [SUNSET, DAWN]
     AUTOMATIC = True
 
     player = models.ForeignKey(Player, related_name='+')
@@ -272,7 +293,16 @@ class PlayerDiesEvent(Event):
         )
     cause = models.CharField(max_length=1, choices=DEATH_CAUSE_TYPES)
 
+    REAL_RELEVANT_PHASES = {
+        STAKE: SUNSET,
+        HUNTER: DAWN,
+        WOLVES: DAWN,
+        DEATH_GHOST: DAWN,
+        }
+
     def apply(self, dynamics):
+        assert dynamics.current_turn.phase in PlayerDiesEvent.REAL_RELEVANT_PHASES[self.cause]
+
         player = self.player.canonicalize()
         assert player.alive
 
@@ -308,13 +338,30 @@ class PlayerDiesEvent(Event):
                 return u'%s è stat%s ritrovat%s mort%s.' % (self.player.full_name, oa, oa, oa)
 
 
-class SoothsayerRevelationEvent(Event):
-    RELEVANT_PHASES = [CREATION]
-    AUTOMATIC = False
+class RoleKnowledgeEvent(Event):
+    RELEVANT_PHASES = [CREATION, DAWN]
+    # FIXME: probably SOOTHSAYER is not really automatic
+    AUTOMATIC = True
 
     player = models.ForeignKey(Player, related_name='+')
     target = models.ForeignKey(Player, related_name='+')
     role_name = models.CharField(max_length=200)
+    KNOWLEDGE_CAUSE_TYPES = (
+        (SOOTHSAYER, 'Soothsayer'),
+        (EXPANSIVE, 'Expansive'),
+        (KNOWLEDGE_CLASS, 'KnowledgeClass'),
+        (GHOST, 'Ghost'),
+        )
+    cause = models.CharField(max_length=1, choices=KNOWLEDGE_CAUSE_TYPES)
+
+    REAL_RELEVANT_PHASES = {
+        SOOTHSAYER: [CREATION],
+        KNOWLEDGE_CLASS: [CREATION],
+        EXPANSIVE: [DAWN],
+        # FIXME: what happens when Fantasma dies and becomes a ghost?
+        # It can happen also during sunset
+        GHOST: [DAWN],
+        }
 
     def to_dict(self):
         ret = Event.to_dict(self)
@@ -322,6 +369,7 @@ class SoothsayerRevelationEvent(Event):
                 'player': self.player.user.username,
                 'target': self.target.user.username,
                 'role_name': self.role_name,
+                'cause': self.cause,
                 })
         return ret
 
@@ -329,6 +377,21 @@ class SoothsayerRevelationEvent(Event):
         self.player = players_map[data['player']]
         self.target = players_map[data['target']]
         self.role_name = data['role_name']
+        self.cause = data['cause']
 
     def apply(self, dynamics):
-        assert isinstance(self.player.canonicalize().role, Divinatore)
+        assert dynamics.current_turn.phase in RoleKnowledgeEvent.REAL_RELEVANT_PHASES[self.cause]
+
+        if self.cause == SOOTHSAYER:
+            assert isinstance(self.player.canonicalize().role, Divinatore)
+
+        elif self.cause == EXPANSIVE:
+            assert isinstance(self.target.canonicalize().role, Espansivo)
+
+        elif self.cause == GHOST:
+            assert isinstance(self.target.canonicalize().role, Negromante)
+
+        elif self.cause == KNOWLEDGE_CLASS:
+            assert self.player.canonicalize().role.knowledge_class is not None
+            assert self.target.canonicalize().role.knowledge_class is not None
+            assert self.player.canonicalize().role.knowledge_class == self.target.canonicalize().role.knowledge_class

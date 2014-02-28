@@ -76,3 +76,9 @@ STAKE = 'S'
 HUNTER = 'H'
 WOLVES = 'W'
 DEATH_GHOST = 'D'
+
+# Knowledge causes
+SOOTHSAYER = 'S'
+EXPANSIVE = 'E'
+KNOWLEDGE_CLASS = 'C'
+GHOST = 'G'
