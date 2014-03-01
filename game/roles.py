@@ -153,8 +153,9 @@ class Espansivo(Role):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        from events import RoleKnowledgeEvent
-        dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=self.__class__.__name__, cause=EXPANSIVE))
+        if self.recorded_target is not None:
+            from events import RoleKnowledgeEvent
+            dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=self.__class__.__name__, cause=EXPANSIVE))
 
 
 class Guardia(Role):
@@ -320,6 +321,12 @@ class Fattucchiera(Role):
     def get_targets(self):
         return self.player.game.get_active_players()
 
+    def apply_dawn(self, dynamics):
+        if self.recorded_target is not None:
+            target = self.recorded_target.canonicalize()
+            assert target.apparent_aura in [BLACK, WHITE]
+            target.apparent_aura = WHITE if target.apparent_aura is BLACK else BLACK
+
 
 class Profanatore(Role):
     name = 'Profanatore di Tombe'
@@ -454,5 +461,14 @@ class Spettro(Role):
             return self.player.game.get_alive_players()
         else:
             return None
+
+    def apply_dawn(self):
+        if self.power == MISTIFICAZIONE:
+            if self.recorded_target is not None:
+                target = self.recorded_target.canonicalize()
+                assert target.apparent_mystic is not None
+                target.apparent_mystic = True
+        else:
+            raise Exception()
 
 roles_map = dict([(x.__name__, x) for x in Role.__subclasses__()])

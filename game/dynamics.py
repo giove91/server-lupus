@@ -57,6 +57,8 @@ class Dynamics:
             player.canonical = True
             player.recorded_vote = None
             player.recorded_elect = None
+            player.apparent_mystic = None
+            player.apparent_aura = None
 
     def get_active_players(self):
         """Players are guaranteed to be sorted in a canonical order,
@@ -284,6 +286,11 @@ class Dynamics:
                 assert ghost_power not in ghosts_map
                 ghosts_map[ghost_power] = player
 
+        # Reset all apparent status
+        for player in self.get_active_players():
+            player.apparent_aura = player.aura
+            player.apparent_mystic = player.is_mystic
+
         def apply_roles(roles):
             for role in roles:
                 if isinstance(role, str):
@@ -306,6 +313,8 @@ class Dynamics:
         # Powers that influence the querying powers: Fattucchiera,
         # Spettro dell'Illusione and Spettro della Mistificazione
         # (TODO)
+        QUERY_INFLUENCE_ROLES = [Fattucchiera, ILLUSIONE, MISTIFICAZIONE]
+        apply_roles(QUERY_INFLUENCE_ROLES)
 
         # Powers that query the state: Espansivo, Investigatore, Mago,
         # Stalker, Veggente, Voyeur, Diavolo, Medium and Spettro della
