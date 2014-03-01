@@ -2,7 +2,7 @@ from django.db import models
 from models import KnowsChild, Player
 from constants import *
 
-class Role(KnowsChild):
+class Role(object):
     name = 'Generic role'
     team = None
     aura = None
