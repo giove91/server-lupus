@@ -55,19 +55,30 @@ class CommandEvent(Event):
         self.type = rev_dict(CommandEvent.ACTION_TYPES)[data['type']]
 
     def apply(self, dynamics):
-        # Do nothing; events will be counted during sunset or dawn;
-        # just check that we're in the correct phase; the only
-        # exception is the appointment, which takes effect immediately
         assert dynamics.current_turn.phase in CommandEvent.REAL_RELEVANT_PHASES[self.type]
+        assert self.player is not None
 
         if self.type == APPOINT:
             assert self.player.is_mayor()
-            assert self.target is not None
             assert self.target2 is None
+            assert self.target_ghost is None
             assert self.player.pk != self.target.pk
             canonical = self.target.canonicalize()
             assert canonical.alive
             dynamics.appointed_mayor = canonical
+
+        elif self.type == VOTE or self.type == ELECT:
+            assert self.player.alive
+            if self.target is not None:
+                assert self.target.alive
+            assert self.target2 is None
+            assert self.target_ghost is None
+
+        elif self.type == USEPOWER:
+            self.player.canonicalize().role.apply_usepower(dynamics, self)
+
+        else:
+            assert False, "Invalid type"
 
 
 class SeedEvent(Event):
@@ -166,7 +177,6 @@ class SetRoleEvent(Event):
         [role_class] = [x for x in Role.__subclasses__() if x.__name__ == self.role_name]
         player = self.player.canonicalize()
         role = role_class(player)
-        player = self.player.canonicalize()
         player.role = role
         player.team = role.team
         player.aura = role.aura

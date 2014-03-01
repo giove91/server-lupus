@@ -54,7 +54,6 @@ class Dynamics:
             player.alive = True
             player.active = True
             player.canonical = True
-            player.hunter_target = None
 
     def get_active_players(self):
         """Players are guaranteed to be sorted in a canonical order,

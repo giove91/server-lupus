@@ -17,6 +17,9 @@ class Role(KnowsChild):
         self.player = player
         self.last_usage = None
         self.last_target = None
+        self.recorded_target = None
+        self.recorded_target2 = None
+        self.recorded_target_ghost = None
 
     def __unicode__(self):
         return u"%s" % self.name
@@ -41,6 +44,38 @@ class Role(KnowsChild):
             return None
         else:
             return self.player.game.current_turn.date - self.last_usage.date
+
+    def apply_usepower(self, dynamics, event):
+        assert event.player.pk == self.player.pk
+        assert self.can_use_power()
+
+        targets = self.get_targets()
+        if targets is None:
+            assert event.target is None
+        else:
+            assert event.target in targets
+
+        targets2 = self.get_targets2()
+        if targets2 is None:
+            assert event.target2 is None
+        else:
+            assert event.target2 in targets2
+
+        targets_ghost = self.get_targets_ghost()
+        if targets_ghost is None:
+            assert event.target_ghost is None
+        else:
+            assert event.target_ghost in targets_ghost
+
+        event.player = event.player.canonicalize()
+        if event.target is not None:
+            event.target = event.target.canonicalize()
+        if event.target2 is not None:
+            event.target2 = event.target2.canonicalize()
+
+        self.recorded_target = event.target
+        self.recorded_target2 = event.target2
+        self.recorded_target_ghost = event.target_ghost
 
 
 # Fazione dei Popolani
