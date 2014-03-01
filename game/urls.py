@@ -10,6 +10,7 @@ urlpatterns = patterns('',
     url(r'^credits/$', credits, name='credits'),
     
     url(r'^status/$', VillageStatusView.as_view(), name='status'),
+    url(r'^announcements/$', AnnouncementsView.as_view(), name='announcements'),
     
     url(r'^usepower/$', UsePowerView.as_view(), name='usepower'),
     url(r'^vote/$', VoteView.as_view(), name='vote'),

@@ -31,12 +31,16 @@
 			    <ul>
 				    <li><a href="{% url 'status' %}">Stato del villaggio</a></li>
 				    <li><a href="{% url 'ruleset' %}">Regolamento</a></li>
-				    <li>Annunci dei GM</li>
+				    <li><a href="{% url 'announcements' %}">Annunci dei GM</a></li>
 			    </ul>
 		    </div>
-		    <div id="header-lower"><strong>19 Mar 2014 14:51</strong> Un annuncio importantissimo che dovete leggere che se diventa troppo lungo non è chiaro cosa avvenga</div>
+		    <div id="header-lower">
+		        {% if latest_announcement %}
+		            <strong>{{ latest_announcement.timestamp|date:"j N Y H:i" }}</strong> {{ latest_announcement.text|truncatechars:130 }}
+		        {% endif %}
+		    </div>
 	    </div>
-	
+        
 	    <div class="clear"></div>
 
 	    <div id="nav-menu" class="grid_3">

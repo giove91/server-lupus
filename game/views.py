@@ -536,9 +536,7 @@ class PersonalInfoView(View):
 
 
 class ContactsView(ListView):
-    
     model = Player
-    
     template_name = 'contacts.html'
     
     # TODO: forse un giorno bisognerebbe filtrare con il Game giusto
@@ -550,6 +548,15 @@ class ContactsView(ListView):
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         return super(ContactsView, self).dispatch(*args, **kwargs)
+
+
+class AnnouncementsView(ListView):
+    model = Announcement
+    template_name = 'announcements.html'
+    
+    # TODO: filtrare per il Game giusto
+    def get_queryset(self):
+        return Announcement.objects.filter(visible=True).order_by('-timestamp')
 
 
 # Form for changing point of view (for GMs only)

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <h1>Annunci dei GM</h1>
+
+    {% for announcement in object_list %}
+        <p><strong>{{ announcement.timestamp|date:"j N Y H:i" }}</strong> {{ announcement.text }}</p>
+    {% empty %}
+        <p>Non ci sono annunci.</p>
+    {% endfor %} 
+
+{% endblock %}

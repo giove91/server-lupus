@@ -35,13 +35,17 @@ def context_constants(request):
         'ELECT': ELECT,
     }
 
-def context_announcements(request):
+def context_latest_announcement(request):
     game = request.game
-    announcements = Announcement.objects.filter(game=game).filter(visible=True).order_by('-timestamp')
+    try:
+        latest_announcement = Announcement.objects.filter(game=game).filter(visible=True).order_by('-timestamp')[0]
+    except IndexError:
+        latest_announcement = None
+    
     # TODO: se servisse, fare in modo che vengano mostrati anche gli announcements con game=None
     
     return {
-        'announcements': announcements
+        'latest_announcement': latest_announcement
     }
 
 
@@ -51,7 +55,7 @@ def context_lupus(request):
         context_player_and_game,
         context_current_turn,
         context_constants,
-        context_announcements,
+        context_latest_announcement,
     ]
     result = dict()
     for f in context_functions:
