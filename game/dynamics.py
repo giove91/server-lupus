@@ -55,6 +55,8 @@ class Dynamics:
             player.alive = True
             player.active = True
             player.canonical = True
+            player.recorded_vote = None
+            player.recorded_elect = None
 
     def get_active_players(self):
         """Players are guaranteed to be sorted in a canonical order,
@@ -295,18 +297,18 @@ class Dynamics:
             event = PlayerDiesEvent(player=winner, cause=STAKE)
             self.generate_event(event)
 
+        # Unrecord all elect and vote events
+        for player in self.players:
+            player.recorded_vote = None
+            player.recorded_elect = None
+
     def _compute_elected_mayor(self):
-        votes = CommandEvent.objects.filter(turn=self.prev_turn).filter(type=ELECT).order_by('timestamp')
         new_mayor = None
 
         # Count last ballot for each player
         ballots = {}
-        for player in self.players:
-            ballots[player.pk] = None
-        for vote in votes:
-            if vote.target is None:
-                continue
-            ballots[vote.player.pk] = vote
+        for player in self.get_alive_players():
+            ballots[player.pk] = player.recorded_elect
 
         # Fill the tally sheet
         tally_sheet = {}
@@ -315,12 +317,12 @@ class Dynamics:
         for ballot in ballots.itervalues():
             if ballot is None:
                 continue
-            tally_sheet[ballot.target.pk] += 1
+            tally_sheet[ballot.pk] += 1
 
         # Send announcements
         for player in self.get_alive_players():
             if ballots[player.pk] is not None:
-                event = VoteAnnouncedEvent(voter=player.canonicalize(), voted=ballots[player.pk].target.canonicalize(), type=ELECT)
+                event = VoteAnnouncedEvent(voter=player.canonicalize(), voted=ballots[player.pk], type=ELECT)
                 self.generate_event(event)
         for player in self.get_alive_players():
             if tally_sheet[player.pk] != 0:
@@ -338,7 +340,6 @@ class Dynamics:
             return None
 
     def _compute_vote_winner(self):
-        votes = CommandEvent.objects.filter(turn=self.prev_turn).filter(type=VOTE).order_by('timestamp')
         winner = None
         quorum_failed = False
 
@@ -346,13 +347,9 @@ class Dynamics:
         ballots = {}
         mayor_ballot = None
         for player in self.players:
-            ballots[player.pk] = None
-        for vote in votes:
-            if vote.target is None:
-                continue
-            ballots[vote.player.pk] = vote
-            if vote.player.is_mayor():
-                mayor_ballot = vote
+            ballots[player.pk] = player.recorded_vote
+            if player.is_mayor():
+                mayor_ballot = player.recorded_vote
 
         # TODO: count Ipnotista and Spettro dell'Amnesia
 
@@ -364,7 +361,7 @@ class Dynamics:
         for ballot in ballots.itervalues():
             if ballot is None:
                 continue
-            tally_sheet[ballot.target.pk] += 1
+            tally_sheet[ballot.pk] += 1
             votes_num += 1
 
         # Check that at least halg of the alive people voted
@@ -376,11 +373,11 @@ class Dynamics:
         # Send announcements
         for player in self.get_alive_players():
             if ballots[player.pk] is not None:
-                event = VoteAnnouncedEvent(voter=player.canonicalize(), voted=ballots[player.pk].target.canonicalize(), type=VOTE)
+                event = VoteAnnouncedEvent(voter=player, voted=ballots[player.pk], type=VOTE)
                 self.generate_event(event)
         for player in self.get_alive_players():
             if tally_sheet[player.pk] != 0:
-                event = TallyAnnouncedEvent(voted=player.canonicalize(), vote_num=tally_sheet[player.pk], type=VOTE)
+                event = TallyAnnouncedEvent(voted=player, vote_num=tally_sheet[player.pk], type=VOTE)
                 self.generate_event(event)
 
         # Abort the vote if the quorum wasn't reached
@@ -393,8 +390,8 @@ class Dynamics:
         max_votes = tally_sheet[0][1]
         winners = [x[0] for x in tally_sheet if x[1] == max_votes]
         assert len(winners) > 0
-        if mayor_ballot is not None and mayor_ballot.target.pk in winners:
-            winner = mayor_ballot.target.pk
+        if mayor_ballot is not None and mayor_ballot.pk in winners:
+            winner = mayor_ballot.pk
         else:
             winner = self.random.choice(winners)
 

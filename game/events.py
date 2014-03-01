@@ -58,15 +58,21 @@ class CommandEvent(Event):
         assert dynamics.current_turn.phase in CommandEvent.REAL_RELEVANT_PHASES[self.type]
         assert self.player is not None
 
+        # Canonicalize players
+        self.player = self.player.canonicalize()
+        if self.target is not None:
+            self.target = self.target.canonicalize()
+        if self.target2 is not None:
+            self.target2 = self.target2.canonicalize()
+
         if self.type == APPOINT:
             assert self.player.is_mayor()
             assert self.target2 is None
             assert self.target_ghost is None
             if self.target is not None:
                 assert self.player.pk != self.target.pk
-                canonical = self.target.canonicalize()
-                assert canonical.alive
-                dynamics.appointed_mayor = canonical
+                assert self.target.alive
+                dynamics.appointed_mayor = self.target
             else:
                 dynamics.appointed_mayor = None
 
@@ -76,6 +82,12 @@ class CommandEvent(Event):
                 assert self.target.alive
             assert self.target2 is None
             assert self.target_ghost is None
+            if self.type == VOTE:
+                self.player.recorded_vote = self.target
+            elif self.type == ELECT:
+                self.player.recorded_elect = self.target
+            else:
+                assert False, "Should not arrive here"
 
         elif self.type == USEPOWER:
             self.player.canonicalize().role.apply_usepower(dynamics, self)

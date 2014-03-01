@@ -78,13 +78,6 @@ class Role(object):
         else:
             assert event.target_ghost is None or event.target_ghost in targets_ghost
 
-        # Canonicalize players
-        event.player = event.player.canonicalize()
-        if event.target is not None:
-            event.target = event.target.canonicalize()
-        if event.target2 is not None:
-            event.target2 = event.target2.canonicalize()
-
         # Record targets
         self.recorded_target = event.target
         self.recorded_target2 = event.target2
