@@ -62,10 +62,13 @@ class CommandEvent(Event):
             assert self.player.is_mayor()
             assert self.target2 is None
             assert self.target_ghost is None
-            assert self.player.pk != self.target.pk
-            canonical = self.target.canonicalize()
-            assert canonical.alive
-            dynamics.appointed_mayor = canonical
+            if self.target is not None:
+                assert self.player.pk != self.target.pk
+                canonical = self.target.canonicalize()
+                assert canonical.alive
+                dynamics.appointed_mayor = canonical
+            else:
+                dynamics.appointed_mayor = None
 
         elif self.type == VOTE or self.type == ELECT:
             assert self.player.alive
