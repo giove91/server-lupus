@@ -290,7 +290,9 @@ class Dynamics:
 
         # Shuffle players in each role
         for role_players in players_by_role.itervalues():
-            self.random.shuffle(role_players)
+            # TODO: re-enable it and check tests
+            #self.random.shuffle(role_players)
+            pass
 
         # Prepare temporary status
         for player in self.get_active_players():
