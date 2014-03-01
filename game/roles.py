@@ -62,7 +62,7 @@ class Role(object):
         if targets is None:
             assert event.target is None
         else:
-            assert event.target is None or event.target in targets
+            assert event.target is None or event.target in targets, (event.target, targets)
 
         # Check target2 validity
         targets2 = self.get_targets2()

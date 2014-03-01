@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>{% block title %}Realtime Lupus 4{% endblock %}</title>
+    <title>Realtime Lupus 4</title>
     <link rel="stylesheet" href="{% static "reset.css" %}" />
     <link rel="stylesheet" href="{% static "text.css" %}" />
     <link rel="stylesheet" href="{% static "960.css" %}" />
@@ -36,7 +36,7 @@
 		    </div>
 		    <div id="header-lower">
 		        {% if latest_announcement %}
-		            <strong>{{ latest_announcement.timestamp|date:"j N Y H:i" }}</strong> {{ latest_announcement.text|truncatechars:125 }}
+		            <strong>{{ latest_announcement.timestamp|date:"d/m/Y H:i" }}</strong> {{ latest_announcement.text|truncatechars:125 }}
 		        {% endif %}
 		    </div>
 	    </div>
@@ -105,19 +105,7 @@
             <li><a href="{% url 'credits' %}">Riconoscimenti</a></li>
         </ul>
         
-        Area riservata
         
-        <ul>
-            <li><a href="{% url 'personalinfo' %}">Informazioni personali</a></li>
-            <li><a href="{% url 'vote' %}">Votazione per il rogo</a></li>
-            <li><a href="{% url 'elect' %}">Elezione del Sindaco</a></li>
-            <li><a href="{% url 'usepower' %}">Potere notturno</a></li>
-            {% if player.is_mayor %}
-                <li><a href="{% url 'appoint' %}">Designa successore</a></li>
-            {% endif %}
-            <li><a href="{% url 'contacts' %}">Contatti</a></li>
-            <li><a href="{% url 'comment' %}">Commenti alla partita</a></li>
-        </ul>
         
         {% if user.is_staff %}
         
@@ -136,14 +124,5 @@
         {% endblock %}
     </div>
     
-    <div id="announcements">
-        <h3>Annunci dei GM</h3>
-        {% for announcement in announcements %}
-            <p>[{{ announcement.timestamp|date:"j N Y, H:i" }}] {{ announcement.text }}</p>
-        {% empty %}
-            <p>Non ci sono annunci.</p>
-        {% endfor %} 
-    </div>
-
 </body>
 </html>

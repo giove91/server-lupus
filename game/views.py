@@ -44,11 +44,11 @@ def get_events(request, player):
     
     # TODO: prendere le cose dalla dynamics
     if player == 'admin':
-        turns = Turn.objects.filter(game=game).order_by('timestamp', 'pk')
+        turns = Turn.objects.filter(game=game).order_by('date', 'phase')
     else:
-        turns = Turn.objects.filter(game=game).filter( Q(phase=CREATION) | Q(phase=DAWN) | Q(phase=SUNSET) ).order_by('timestamp', 'pk')
+        turns = Turn.objects.filter(game=game).filter( Q(phase=CREATION) | Q(phase=DAWN) | Q(phase=SUNSET) ).order_by('date', 'phase')
     
-    events = Event.objects.filter(turn__game=game)
+    events = Event.objects.filter(turn__game=game).order_by('timestamp', 'pk')
     
     result = { turn: { 'standard': [], VOTE: {}, ELECT: {}, 'initial_propositions': [] } for turn in turns }
     
@@ -172,7 +172,7 @@ class Weather:
             #self.sunrise = root.find('city').find('sun').get('rise')
             #self.sunset = root.find('city').find('sun').get('set')
         
-        except urllib2.URLError:
+        except Exception:
             self.description = None
         
         self.last_update = get_now()
@@ -275,6 +275,8 @@ class CommandForm(forms.Form):
 
 class CommandView(View):
     
+    template_name = 'command.html'
+    
     def check(self, request):
         # Checks if the action can be done
         raise Exception ('Command not specified.')
@@ -284,10 +286,10 @@ class CommandView(View):
         raise Exception ('Command not specified.')
     
     def not_allowed(self, request):
-        return render(request, 'command_not_allowed.html', {'message': 'Non puoi eseguire questa azione.'})
+        return render(request, 'command_not_allowed.html', {'message': 'Non puoi eseguire questa azione.', 'title': self.title})
     
     def submitted(self, request):
-        return render(request, 'command_submitted.html')
+        return render(request, 'command_submitted.html', {'title': self.title})
     
     def save_command(self, request, cleaned_data):
         # Validates the form data and possibly saves the command, returning True in case of success and False otherwise
@@ -315,7 +317,7 @@ class CommandView(View):
             return self.not_allowed(request)
         
         form = CommandForm(fields=self.get_fields(request))
-        return render(request, self.template_name, {'form': form})
+        return render(request, self.template_name, {'form': form, 'title': self.title, 'url_name': self.url_name})
     
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -324,7 +326,8 @@ class CommandView(View):
 
 class UsePowerView(CommandView):
     
-    template_name = 'command_usepower.html'
+    title = 'Potere notturno'
+    url_name = 'usepower'
     
     def check(self, request):
         return request.player is not None and request.player.can_use_power()
@@ -389,7 +392,8 @@ class UsePowerView(CommandView):
 
 class VoteView(CommandView):
     
-    template_name = 'command_vote.html'
+    title = 'Votazione per il rogo'
+    url_name = 'vote'
     
     def check(self, request):
         return request.player is not None and request.player.can_vote()
@@ -398,14 +402,7 @@ class VoteView(CommandView):
         player = request.player
         game = player.game
         choices = game.get_alive_players()
-        initial = None
-        
-        try:
-            # TODO: usare la dynamics
-            old_command = CommandEvent.objects.filter(turn=game.current_turn).filter(type=VOTE).filter(player=player).order_by('-pk')[0:1].get()
-            initial = old_command.target
-        except CommandEvent.DoesNotExist:
-            initial = None
+        initial = player.recorded_vote
         
         fields = {'target': {'choices': choices, 'initial': initial, 'label': 'Vota per condannare a morte:'} }
         return fields
@@ -426,7 +423,8 @@ class VoteView(CommandView):
 
 class ElectView(CommandView):
     
-    template_name = 'command_elect.html'
+    title = 'Elezione del Sindaco'
+    url_name = 'elect'
     
     def check(self, request):
         return request.player is not None and request.player.can_vote()
@@ -435,14 +433,7 @@ class ElectView(CommandView):
         player = request.player
         game = player.game
         choices = game.get_alive_players()
-        initial = None
-        
-        try:
-            # TODO: usare la dynamics
-            old_command = CommandEvent.objects.filter(turn=game.current_turn).filter(type=ELECT).filter(player=player).order_by('-pk')[0:1].get()
-            initial = old_command.target
-        except CommandEvent.DoesNotExist:
-            initial = None
+        initial = player.recorded_elect
         
         fields = {'target': {'choices': choices, 'initial': initial, 'label': 'Vota per eleggere:'} }
         return fields
@@ -464,7 +455,8 @@ class ElectView(CommandView):
 # View for appointing a successor (for mayor only)
 class AppointView(CommandView):
     
-    template_name = 'command_appoint.html'
+    title = 'Nomina del successore'
+    url_name = 'appoint'
     
     def check(self, request):
         return request.player is not None and request.player.is_mayor
@@ -473,16 +465,7 @@ class AppointView(CommandView):
         player = request.player
         game = player.game
         choices = [p for p in game.get_alive_players() if p.pk != player.pk]
-        initial = None
-        
-        try:
-            # FIXME: se il sindaco muore, resuscita e poi viene nominato di nuovo sindaco,
-            # compare come designato l'ultimo giocatore che aveva designato
-            # TODO: usare la dynamics
-            old_command = CommandEvent.objects.filter(type=APPOINT).filter(player=player).order_by('-pk')[0:1].get()
-            initial = old_command.target
-        except CommandEvent.DoesNotExist:
-            initial = None
+        initial = game.get_dynamics().appointed_mayor
         
         fields = {'target': {'choices': choices, 'initial': initial, 'label': 'Designa come successore:'} }
         return fields
