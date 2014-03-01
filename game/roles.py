@@ -62,21 +62,21 @@ class Role(object):
         if targets is None:
             assert event.target is None
         else:
-            assert event.target in targets
+            assert event.target is None or event.target in targets
 
         # Check target2 validity
         targets2 = self.get_targets2()
         if targets2 is None:
             assert event.target2 is None
         else:
-            assert event.target2 in targets2
+            assert event.target2 is None or event.target2 in targets2
 
         # Check target_ghost validity
         targets_ghost = self.get_targets_ghost()
         if targets_ghost is None:
             assert event.target_ghost is None
         else:
-            assert event.target_ghost in targets_ghost
+            assert event.target_ghost is None or event.target_ghost in targets_ghost
 
         # Canonicalize players
         event.player = event.player.canonicalize()
