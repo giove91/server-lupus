@@ -59,6 +59,8 @@ class Dynamics:
             player.recorded_elect = None
             player.apparent_mystic = None
             player.apparent_aura = None
+            player.visiting = None
+            player.visitors = None
 
     def get_active_players(self):
         """Players are guaranteed to be sorted in a canonical order,
@@ -273,33 +275,39 @@ class Dynamics:
         self.ghosts_created_last_night = False
 
         # Create an index of all roles and ghost powers
-        roles_map = {}
-        ghosts_map = {}
+        players_by_role = {}
+        ghosts_by_power = {}
         for player in self.get_active_players():
             role_name = player.role.__class__.__name__
-            if role_name not in roles_map:
-                roles_map[role_name] = []
-            roles_map[role_name].append(player)
+            if role_name not in players_by_role:
+                players_by_role[role_name] = []
+            players_by_role[role_name].append(player)
 
             if isinstance(player.role, Spettro):
                 ghost_power = player.role.power
-                assert ghost_power not in ghosts_map
-                ghosts_map[ghost_power] = player
+                assert ghost_power not in ghosts_by_power
+                ghosts_by_power[ghost_power] = player
 
-        # Reset all apparent status
+        # Shuffle players in each role
+        for role_players in players_by_role.itervalues():
+            self.random.shuffle(role_players)
+
+        # Prepare temporary status
         for player in self.get_active_players():
             player.apparent_aura = player.aura
             player.apparent_mystic = player.is_mystic
+            player.visiting = None
+            player.visitors = []
 
         def apply_roles(roles):
             for role in roles:
                 if isinstance(role, str):
-                    if role in ghosts_map:
-                        player = ghosts_map[role]
+                    if role in ghosts_by_power:
+                        player = ghosts_by_power[role]
                         player.role.apply_dawn(dynamics)
                 else:
-                    if role.__name__ in roles_map:
-                        for player in roles_map[role.__name__]:
+                    if role.__name__ in players_by_role:
+                        for player in players_by_role[role.__name__]:
                             player.role.apply_dawn(self)
 
         # So, here comes the big little male house ("gran casino");
@@ -331,9 +339,13 @@ class Dynamics:
         # Roles with no power: Contadino, Divinatore, Massone,
         # Rinnegato, Fantasma and Spettro without power
 
-        # Unrecord all targets set during night and dawn
+        # Unset all temporary status
         for player in self.players:
             player.role.unrecord_targets()
+            player.apparent_aura = None
+            player.apparent_mystic = None
+            player.visiting = None
+            player.visitors = None
 
     def _compute_entering_day(self):
         if DEBUG_DYNAMICS:

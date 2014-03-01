@@ -427,7 +427,7 @@ class RoleKnowledgeEvent(Event):
 
         if self.cause != SOOTHSAYER:
             role_class = roles_map[self.role_name]
-            assert isinstance(self.target.role, role_class)
+            assert isinstance(self.target.canonicalize().role, role_class)
 
 
 class AuraKnowledgeEvent(Event):
