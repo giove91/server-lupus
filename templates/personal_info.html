@@ -1,8 +1,9 @@
-{% extends "base.html" %}
+{% extends "base_info.html" %}
 
-{% block content %}
+{% block personal_info %}
     <h1>Informazioni personali</h1>
     
+    <div class="info-block">
     <ul>
         <li>Fazione: {{ player.team_as_italian_string_property }}.</li>
         <li>Ruolo: {{ player.role.name }}.</li>
@@ -15,10 +16,10 @@
             <li>Sei l'attuale Sindaco del villaggio.</li>
         {% endif %}
     </ul>
-    
-    {% include "players.html" %}
-    
-    {% include "events.html" %}
+    </div>
     
 {% endblock %}
 
+{% block events %}
+    <h1>Eventi</h1>
+{% endblock %}

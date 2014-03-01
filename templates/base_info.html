@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="content" class="grid_13">
+    
+    {% block personal_info %}{% endblock %}
+    
+    {% include "status.html" %}
+    
+    {% block events %}{% endblock %}
+	{% include "events.html" %}
+	
+</div>
+<div class="grid_3">
+    
+    {% include "players.html" %}
+    
+</div>
+{% endblock %}
+

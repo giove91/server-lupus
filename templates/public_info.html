@@ -1,17 +1,7 @@
-{% extends "base.html" %}
+{% extends "base_info.html" %}
 
-{% block content %}
-    
-<div id="content" class="grid_13">
-	{% include "status.html" %}
-	
-	<h1>Bacheca degli eventi</h1>
+{% block events %}
+    <h1>Bacheca degli eventi</h1>
 	{% include "events.html" %}
-</div>
-
-<div class="grid_3">
-	{% include "players.html" %}
-</div>
-    
 {% endblock %}
 
