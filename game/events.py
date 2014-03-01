@@ -175,12 +175,18 @@ class SetRoleEvent(Event):
 
     def apply(self, dynamics):
         [role_class] = [x for x in Role.__subclasses__() if x.__name__ == self.role_name]
+        if role_class.team not in dynamics.playing_teams:
+            dynamics.playing_teams.append(role_class.team)
         player = self.player.canonicalize()
         role = role_class(player)
         player.role = role
         player.team = role.team
         player.aura = role.aura
         player.is_mystic = role.is_mystic
+        assert player.role is not None
+        assert player.team is not None
+        assert player.aura is not None
+        assert player.is_mystic is not None
     
     def to_player_string(self, player):
         if player == self.player:

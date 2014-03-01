@@ -45,6 +45,7 @@ class Dynamics:
         self.used_ghost_powers = set()
         self.giove_is_happy = False
         self.server_is_on_fire = False  # so far...
+        self.playing_teams = []
         for player in self.players:
             self.players_dict[player.pk] = player
             player.team = None
@@ -233,7 +234,7 @@ class Dynamics:
         assert event.AUTOMATIC
         assert self.current_turn.phase in event.RELEVANT_PHASES
         event.turn = self.current_turn
-        # TODO: probably we want to check the originating event
+        # XXX: probably we want to check the originating event
         event.timestamp = self.current_turn.begin
         self.auto_event_queue.append(event)
 
@@ -241,22 +242,40 @@ class Dynamics:
         if DEBUG_DYNAMICS:
             print >> sys.stderr, "Computing creation"
 
-    def _compute_entering_night(self):
-        if DEBUG_DYNAMICS:
-            print >> sys.stderr, "Computing night"
+    def _checks_after_creation(self):
+        # You must generate no events here!
+
+        # Check that all teams are represented
+        assert sorted(self.playing_teams) == sorted([POPOLANI, LUPI, NEGROMANTI])
 
         # TODO: check that the soothsayer received revelations
         # according to the rules
 
+    def _compute_entering_night(self):
+        if DEBUG_DYNAMICS:
+            print >> sys.stderr, "Computing night"
+
+        # Before first night check that creation went ok
+        if self.current_turn.date == 1:
+            self._checks_after_creation()
+
+        self._check_team_exile()
+
     def _compute_entering_dawn(self):
         if DEBUG_DYNAMICS:
             print >> sys.stderr, "Computing dawn"
+
+        # Unrecord all targets set during night and dawn
+        for player in self.players:
+            player.role.unrecord_targets()
 
         self.ghosts_created_last_night = False
 
     def _compute_entering_day(self):
         if DEBUG_DYNAMICS:
             print >> sys.stderr, "Computing day"
+
+        self._check_team_exile()
 
     def _compute_entering_sunset(self):
         if DEBUG_DYNAMICS:
@@ -379,3 +398,7 @@ class Dynamics:
             winner = self.random.choice(winners)
 
         return self.players_dict[winner]
+
+    def _check_team_exile(self):
+        # TODO; also check victory condition
+        pass
