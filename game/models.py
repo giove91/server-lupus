@@ -323,18 +323,19 @@ class Player(models.Model):
             return "Unassigned"
     role_name = property(get_role_name)
     
-    # TODO: queste funzioni forse non dovrebbero stare qui
-    
+    # TODO: Gio, e' giusto che si chiami self.canonicalize() in ognuna di queste funzioni?
     def aura_as_italian_string(self):
-        if self.aura() == WHITE:
+        canonical = self.canonicalize()
+        if canonical.aura == WHITE:
             return u'Bianca'
         else:
             return u'Nera'
     aura_as_italian_string_property = property(aura_as_italian_string)
     
     def status_as_italian_string(self):
-        if self.active():
-            if self.alive():
+        canonical = self.canonicalize()
+        if canonical.active:
+            if canonical.alive:
                 return u'Viv%s' % self.oa
             else:
                 return u'Mort%s' % self.oa
@@ -343,11 +344,12 @@ class Player(models.Model):
     status_as_italian_string_property = property(status_as_italian_string)
     
     def team_as_italian_string(self):
-        if self.team() == POPOLANI:
+        canonical = self.canonicalize()
+        if canonical.team == POPOLANI:
             return u'Popolani'
-        elif self.team() == LUPI:
+        elif canonical.team == LUPI:
             return u'Lupi'
-        elif self.team() == NEGROMANTI:
+        elif canonical.team == NEGROMANTI:
             return u'Negromanti'
         else:
             raise Exception ('Unknown team.')

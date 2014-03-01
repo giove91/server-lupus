@@ -5,7 +5,7 @@
     
     <ul>
         <li>Fazione: {{ player.team_as_italian_string_property }}.</li>
-        <li>Ruolo: {{ player.role_name }}.</li>
+        <li>Ruolo: {{ player.role.name }}.</li>
         <li>Aura: {{ player.aura_as_italian_string_property }}.</li>
         <li>Stato: {{ player.status_as_italian_string_property }}.</li>
         {% if player.is_mystic %}
