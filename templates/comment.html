@@ -14,7 +14,7 @@
             <form action="{% url 'comment' %}" method="post">
             {% csrf_token %}
             {{ form.as_p }}
-            <input type="submit" value="Invia" />
+            <input type="submit" value="Invia il commento" />
             </form>
         {% else %}
             <p>Non puoi inviare altri commenti durante questo turno di gioco.</p>

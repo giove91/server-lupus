@@ -459,7 +459,7 @@ class AppointView(CommandView):
     url_name = 'appoint'
     
     def check(self, request):
-        return request.player is not None and request.player.is_mayor
+        return request.player is not None and request.player.is_mayor and request.game is not None and (request.game.current_turn.phase == DAY or request.game.current_turn.phase == NIGHT)
     
     def get_fields(self, request):
         player = request.player
@@ -579,7 +579,7 @@ class PointOfView(View):
 
 
 class CommentForm(forms.Form):
-    text = forms.CharField(widget=forms.Textarea, label='Scrivi il tuo commento:')
+    text = forms.CharField(widget=forms.Textarea, label='', max_length=4096)
 
 class CommentView(View):
     max_comments_per_turn = 100

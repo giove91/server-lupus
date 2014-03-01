@@ -11,7 +11,7 @@ class PlayerMiddleware:
         if user.is_authenticated():
             # Authenticated
             try:
-                player = user.player
+                player = user.player.canonicalize()
             except Player.DoesNotExist:
                 if user.is_staff:
                     # The User is a Game Master, so she can become any Player
