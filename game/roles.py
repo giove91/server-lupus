@@ -95,7 +95,7 @@ class Contadino(Role):
 class Cacciatore(Role):
     name = 'Cacciatore'
     team = POPOLANI
-    aura = WHITE
+    aura = BLACK
     
     def can_use_power(self):
         return self.player.alive
@@ -314,6 +314,12 @@ class Fattucchiera(Role):
         return self.player.game.get_active_players()
 
 
+class Profanatore(Role):
+    name = 'Profanatore di Tombe'
+    team = LUPI
+    aura = BLACK
+
+
 class Rinnegato(Role):
     name = 'Rinnegato'
     team = LUPI
@@ -409,7 +415,6 @@ class Spettro(Role):
         MISTIFICAZIONE: 'Mistificazione',
         MORTE: 'Morte',
         OCCULTAMENTO: 'Occultamento',
-        OMBRA: 'Ombra',
         VISIONE: 'Visione',
     }
     

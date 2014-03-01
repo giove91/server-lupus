@@ -62,7 +62,6 @@ ILLUSIONE = 'I'
 MISTIFICAZIONE = 'M'
 MORTE = 'R'
 OCCULTAMENTO = 'O'
-OMBRA = 'B'
 VISIONE = 'V'
 
 # Commands
