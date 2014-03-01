@@ -1,5 +1,7 @@
 <h1>Stato del villaggio</h1>
 
+<div class="info-block">
+
 <p>
     {% if current_turn.phase == DAWN %}
         Una {{ weather.adjective }}a alba sta sorgendo sul villaggio.
@@ -45,3 +47,4 @@
     <p>Il Sindaco del villaggio è {{ game.mayor.full_name }}.</p>
 {% endif %}
 
+</div>

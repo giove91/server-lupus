@@ -1,0 +1,187 @@
+body {
+	background-color: #d5d9e0;
+}
+
+h1 {
+	font-size: 17px;
+	font-family: sans;
+	font-weight: bold;
+	text-transform:uppercase;
+	color: #272a2e;
+	margin-bottom: 7px;
+}
+
+h2 {
+	font-size: 12px;
+	font-family: sans;
+	font-weight: bold;
+	text-transform:uppercase;
+	color: #272a2e;
+	margin-bottom: 7px;
+}
+
+h3 {
+	font-size: 12px;
+	font-family: sans;
+	font-weight: bold;
+	color: #272a2e;
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+
+p {
+	margin-bottom: 3px;
+	color: #272a2e;
+}
+
+thead {
+	border-bottom: 1px;
+	border-color:  #272a2e;
+	border-style: solid;
+}
+
+td {
+	border-left: 1px;
+	border-color: #272a2e;
+	border-style: solid;
+	
+	padding: 2px 6px 2px 6px;
+}
+
+td:first-child {
+	border-style: none;
+}
+
+thead td {
+	padding-top: 0px;
+}
+
+.info-block {
+	background-color: #fff;
+	box-shadow: -1px 2px 1px 0px rgba(50, 50, 50, 0.33);
+	padding: 7px 9px 3px 9px;
+	margin-bottom: 25px;
+}
+
+.players-status {
+	text-align: right;
+	/*margin-left: 10px;*/
+}
+
+.players-status ul {
+	text-align: right;
+	list-style-type: none;
+	padding: 0px;
+	padding-left:0;
+	margin: 0px;
+}
+
+.players-status ul li {
+	padding-left: 0px; 
+	margin: 0px; 
+}
+
+#header-background {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	z-index: -1;
+}
+
+
+#header-background-upper {
+	background-color: #191a12;
+	height: 90px;
+}
+
+#header-background-lower {
+	background-color: #eaebef;
+	/*text-align: right;*/
+	height: 1.5em;
+}
+
+#header {
+	position: relative;
+	margin-bottom: 20px;
+}
+
+#header-upper {
+	position: relative;
+
+	background-color: #191a12;
+	height: 90px;
+
+}
+
+#header-upper ul{
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	
+	list-style-type: none;
+	padding: 0px;
+	padding-left:0;
+	margin: 0px;
+	font-weight: bold;
+	font-size: 14px;
+	color: #fff;
+	
+}
+
+#header-upper ul li {
+	display: inline-block;
+	text-transform:uppercase;
+	padding: 1px 5px 0px 5px;
+}
+
+#header-upper ul li:last-child {
+	background: #eaebef; 
+	color: #383c42;
+}
+
+#header-lower {
+	background-color: #eaebef;
+	text-align: right;
+	/*padding-left: 113px;*/
+	height: 1.5em;
+}
+
+#login {
+	position: absolute;
+	top: 3px;
+	right: 0;
+	
+	font-weight: bold;
+	font-size: 14px;
+	color: #fff;
+	text-transform:uppercase;
+}
+
+#nav-menu {
+	
+}
+
+#nav-menu ul {
+	list-style-type: none;
+	padding: 0px;
+	padding-left:0;
+	margin: 0px;
+	font-weight: bold;
+	font-size: 14px;
+	color: #383c42;
+}
+
+#nav-menu ul li {
+	padding-left: 0px; 
+	margin: 0px; 
+}
+
+
+
+#logo {
+	position: absolute;
+	left: 0;
+	top: 0;
+	z-index: 2;
+}

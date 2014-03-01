@@ -1,19 +1,9 @@
 {% load game_extras %}
 
 {% for turn, values in events reversed %}
-    <div class="turn_events">
+    <div class="info-block">
         
         <h2>{{ turn.turn_as_italian_string_property }}</h2>
-        
-        {% if turn.phase == SUNSET %}
-            
-            <h3>Votazione per il rogo</h3>
-            {% include "votation_details.html" with dictionary=values|key:VOTE only %}
-            
-            <h3>Elezione del sindaco</h3>
-            {% include "votation_details.html" with dictionary=values|key:ELECT only %}
-            
-        {% endif %}
         
         {% for message in values.standard %}
             <p>{{ message }}</p>
@@ -37,6 +27,16 @@
         {% endif %}
         {% if turn.phase == SUNSET %}
             <p>Il sole tramonta dietro le colline, e ciascuno si ritira silenziosamente in casa propria.</p>
+        {% endif %}
+        
+        {% if turn.phase == SUNSET %}
+            
+            <h3>Votazione per il rogo</h3>
+            {% include "votation_details.html" with dictionary=values|key:VOTE only %}
+            
+            <h3>Elezione del sindaco</h3>
+            {% include "votation_details.html" with dictionary=values|key:ELECT only %}
+            
         {% endif %}
         
     </div>

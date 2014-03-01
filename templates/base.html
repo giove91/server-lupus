@@ -1,11 +1,72 @@
+{% load staticfiles %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="style.css" />
     <title>{% block title %}Realtime Lupus 4{% endblock %}</title>
+    <link rel="stylesheet" href="{% static "reset.css" %}" />
+    <link rel="stylesheet" href="{% static "text.css" %}" />
+    <link rel="stylesheet" href="{% static "960.css" %}" />
+    <link rel="stylesheet" href="{% static "lupus.css" %}" />
 </head>
 
 <body>
+    
+    <div id="header-background">
+	    <div id="header-background-upper"></div>
+	    <div id="header-background-lower"></div>
+    </div>
+    
+    <div class="container_16">	
+	    <div id="header" class="grid_16">
+		    <img id="logo" src="{% static "logo.png" %}"/>
+		    <div id="header-upper">
+			    <span id="login">
+			        {% if user.is_authenticated %}
+                    <a href="{% url 'logout' %}">Logout</a> ({{ user.username }})
+                    {% else %}
+                    <a href="{% url 'login' %}">Login</a>
+                    {% endif %}
+			    </span>
+			    <ul>
+				    <li><a href="{% url 'status' %}">Stato del villaggio</a></li>
+				    <li><a href="{% url 'ruleset' %}">Regolamento</a></li>
+				    <li>Annunci dei GM</li>
+			    </ul>
+		    </div>
+		    <div id="header-lower"><strong>19 Mar 2014 14:51</strong> Un annuncio importantissimo che dovete leggere che se diventa troppo lungo non è chiaro cosa avvenga</div>
+	    </div>
+	
+	    <div class="clear"></div>
+
+	    <div id="nav-menu" class="grid_3">
+	        <h1>Area riservata</h1>
+	        <ul>
+                <li><a href="{% url 'personalinfo' %}">Informazioni personali</a></li>
+                <li><a href="{% url 'vote' %}">Votazione per il rogo</a></li>
+                <li><a href="{% url 'elect' %}">Elezione del Sindaco</a></li>
+                <li><a href="{% url 'usepower' %}">Potere notturno</a></li>
+                {% if player.is_mayor %}
+                    <li><a href="{% url 'appoint' %}">Designa successore</a></li>
+                {% endif %}
+                <li><a href="{% url 'contacts' %}">Contatti</a></li>
+                <li><a href="{% url 'comment' %}">Commenti alla partita</a></li>
+            </ul>
+	    </div>
+	
+	    {% block content %}{% endblock %}
+
+	    <div class="clear"></div>
+    </div>
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     {% if user.is_authenticated %}
     <div id="user_block">
@@ -21,6 +82,8 @@
         Turno: {{ current_turn.turn_as_italian_string_property }}
     </div>
     {% endif %}
+    
+    
     
     <div id="sidebar">
         {% block sidebar %}
@@ -78,8 +141,5 @@
         {% endfor %} 
     </div>
 
-    <div id="content">
-        {% block content %}{% endblock %}
-    </div>
 </body>
 </html>
