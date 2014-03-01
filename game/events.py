@@ -178,8 +178,6 @@ class SetRoleEvent(Event):
 
     def apply(self, dynamics):
         [role_class] = [x for x in Role.__subclasses__() if x.__name__ == self.role_name]
-        if role_class.team not in dynamics.playing_teams:
-            dynamics.playing_teams.append(role_class.team)
         player = self.player.canonicalize()
         role = role_class(player)
         player.role = role

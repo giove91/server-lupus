@@ -246,6 +246,7 @@ class Dynamics:
         # You must generate no events here!
 
         # Check that all teams are represented
+        self.playing_teams = self._count_alive_teams()
         assert sorted(self.playing_teams) == sorted([POPOLANI, LUPI, NEGROMANTI])
 
         # TODO: check that the soothsayer received revelations
@@ -399,6 +400,52 @@ class Dynamics:
 
         return self.players_dict[winner]
 
+    def _count_alive_teams(self):
+        teams = []
+
+        # Popolani
+        for player in self.get_alive_players():
+            if player.team == POPOLANI:
+                teams.append(POPOLANI)
+                break
+
+        # Lupi
+        for player in self.get_alive_players():
+            if isinstance(player.role, roles.Lupo):
+                teams.append(LUPI)
+                break
+
+        # Negromanti
+        for player in self.get_alive_players():
+            if isinstance(player.role, roles.Negromante):
+                teams.append(NEGROMANTI)
+                break
+
+        return teams
+
     def _check_team_exile(self):
-        # TODO; also check victory condition
+        # Detect dying teams
+        teams = self._count_alive_teams()
+        assert set(teams) <= set(self.playing_teams)
+        dying_teams = set(self.playing_teams) - set(teams)
+        for team in dying_teams:
+            if team in [LUPI, NEGROMANTI]:
+                for player in self.players:
+                    if player.team == team:
+                        player.active = False
+
+        # Check victory condition
+        winning_teams = None
+        if len(teams) == 1:
+            winning_teams = teams
+        elif len(teams) == 0:
+            winning_teams = self.playing_teams
+
+        self.playing_teams = teams
+
+        if winning_teams is not None:
+            self._compute_victory(winning_teams)
+
+    def _compute_victory(self, winning_teams):
+        # TODO
         pass
