@@ -20,7 +20,7 @@ class CommandEvent(Event):
         (ELECT, 'Elect'),
         (APPOINT, 'Appoint'),
     )
-    type = models.CharField(max_length=1, choices=ACTION_TYPES)
+    type = models.CharField(max_length=1, choices=ACTION_TYPES, default=None)
 
     REAL_RELEVANT_PHASES = {
         USEPOWER: [NIGHT],
@@ -320,7 +320,7 @@ class PlayerDiesEvent(Event):
         (WOLVES, 'Wolves'),
         (DEATH_GHOST, 'DeathGhost'),
         )
-    cause = models.CharField(max_length=1, choices=DEATH_CAUSE_TYPES)
+    cause = models.CharField(max_length=1, choices=DEATH_CAUSE_TYPES, default=None)
 
     REAL_RELEVANT_PHASES = {
         STAKE: SUNSET,
@@ -374,14 +374,14 @@ class RoleKnowledgeEvent(Event):
 
     player = models.ForeignKey(Player, related_name='+')
     target = models.ForeignKey(Player, related_name='+')
-    role_name = models.CharField(max_length=200)
+    role_name = models.CharField(max_length=200, default=None)
     KNOWLEDGE_CAUSE_TYPES = (
         (SOOTHSAYER, 'Soothsayer'),
         (EXPANSIVE, 'Expansive'),
         (KNOWLEDGE_CLASS, 'KnowledgeClass'),
         (GHOST, 'Ghost'),
         )
-    cause = models.CharField(max_length=1, choices=KNOWLEDGE_CAUSE_TYPES)
+    cause = models.CharField(max_length=1, choices=KNOWLEDGE_CAUSE_TYPES, default=None)
 
     REAL_RELEVANT_PHASES = {
         SOOTHSAYER: [CREATION],
@@ -424,3 +424,7 @@ class RoleKnowledgeEvent(Event):
             assert self.player.canonicalize().role.knowledge_class is not None
             assert self.target.canonicalize().role.knowledge_class is not None
             assert self.player.canonicalize().role.knowledge_class == self.target.canonicalize().role.knowledge_class
+
+        if self.cause != SOOTHSAYER:
+            role_class = roles_map[self.role_name]
+            assert isinstance(self.target.role, role_class)

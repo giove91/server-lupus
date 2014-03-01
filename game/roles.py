@@ -83,6 +83,9 @@ class Role(object):
         self.recorded_target2 = event.target2
         self.recorded_target_ghost = event.target_ghost
 
+    def apply_dawn(self, dynamics):
+        raise NotImplementedError("Please extend this method in subclasses")
+
 
 # Fazione dei Popolani
 
@@ -148,6 +151,10 @@ class Espansivo(Role):
     
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
+
+    def apply_dawn(self, dynamics):
+        from events import RoleKnowledgeEvent
+        dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=self.__class__.__name__, cause=EXPANSIVE))
 
 
 class Guardia(Role):
@@ -448,6 +455,4 @@ class Spettro(Role):
         else:
             return None
 
-
-
-
+roles_map = dict([(x.__name__, x) for x in Role.__subclasses__()])

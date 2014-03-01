@@ -431,6 +431,27 @@ class GameTests(TestCase):
 
 
     @record_name
+    def test_espansivo(self):
+        roles = [ Espansivo, Negromante, Negromante, Lupo, Lupo, Contadino, Contadino ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=players[0], target=players[1], timestamp=get_now()))
+
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
+        self.assertEqual(event.player, players[1])
+        self.assertEqual(event.target, players[0])
+        self.assertEqual(event.cause, EXPANSIVE)
+
+        dynamics.debug_event_bin = None
+
+
+    @record_name
     def test_load_test(self):
         self.game = self.load_game_helper('test.json')
 

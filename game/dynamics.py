@@ -11,7 +11,7 @@ from models import Event, Turn
 from events import CommandEvent, VoteAnnouncedEvent, TallyAnnouncedEvent, \
     ElectNewMayorEvent, PlayerDiesEvent
 from constants import *
-import roles
+from roles import *
 
 DEBUG_DYNAMICS = False
 RELAX_TIME_CHECKS = False
@@ -268,11 +268,63 @@ class Dynamics:
         if DEBUG_DYNAMICS:
             print >> sys.stderr, "Computing dawn"
 
+        self.ghosts_created_last_night = False
+
+        # Create an index of all roles and ghost powers
+        roles_map = {}
+        ghosts_map = {}
+        for player in self.get_active_players():
+            role_name = player.role.__class__.__name__
+            if role_name not in roles_map:
+                roles_map[role_name] = []
+            roles_map[role_name].append(player)
+
+            if isinstance(player.role, Spettro):
+                ghost_power = player.role.power
+                assert ghost_power not in ghosts_map
+                ghosts_map[ghost_power] = player
+
+        def apply_roles(roles):
+            for role in roles:
+                if isinstance(role, str):
+                    if role in ghosts_map:
+                        player = ghosts_map[role]
+                        player.role.apply_dawn(dynamics)
+                else:
+                    if role.__name__ in roles_map:
+                        for player in roles_map[role.__name__]:
+                            player.role.apply_dawn(self)
+
+        # So, here comes the big little male house ("gran casino");
+        # first of all we consider powers that can block powers that
+        # can block powers: Spettro dell'Occultamento, Sequestratore,
+        # Profanatore di Tombe, Esorcista (TODO)
+
+        # Then powers that can block other powers: Guardia del Corpo
+        # and Custode del Cimitero (TODO)
+
+        # Powers that influence the querying powers: Fattucchiera,
+        # Spettro dell'Illusione and Spettro della Mistificazione
+        # (TODO)
+
+        # Powers that query the state: Espansivo, Investigatore, Mago,
+        # Stalker, Veggente, Voyeur, Diavolo, Medium and Spettro della
+        # Visione (TODO)
+        QUERY_ROLES = [Espansivo, Investigatore, Mago, Stalker, Veggente,
+                       Voyeur, Diavolo, Medium, VISIONE]
+        apply_roles(QUERY_ROLES)
+
+        # Powers that modify the state: Cacciatore, Messia, Necrofilo,
+        # Lupi, Avvocato del Diavolo, Negromante, Ipnotista, Spettro
+        # dell'Amnesia, Spettro della Duplicazione and Spettro della
+        # Morte (TODO)
+
+        # Roles with no power: Contadino, Divinatore, Massone,
+        # Rinnegato, Fantasma and Spettro without power
+
         # Unrecord all targets set during night and dawn
         for player in self.players:
             player.role.unrecord_targets()
-
-        self.ghosts_created_last_night = False
 
     def _compute_entering_day(self):
         if DEBUG_DYNAMICS:
@@ -408,13 +460,13 @@ class Dynamics:
 
         # Lupi
         for player in self.get_alive_players():
-            if isinstance(player.role, roles.Lupo):
+            if isinstance(player.role, Lupo):
                 teams.append(LUPI)
                 break
 
         # Negromanti
         for player in self.get_alive_players():
-            if isinstance(player.role, roles.Negromante):
+            if isinstance(player.role, Negromante):
                 teams.append(NEGROMANTI)
                 break
 
