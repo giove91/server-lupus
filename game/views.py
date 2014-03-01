@@ -42,11 +42,11 @@ def get_events(request, player):
     # player can be a Player, 'admin' or 'public' (depending on the view)
     game = request.game
     
-    # TODO: gli eventi vanno ordinati per pk?
+    # TODO: prendere le cose dalla dynamics
     if player == 'admin':
-        turns = Turn.objects.filter(game=game).order_by('pk')
+        turns = Turn.objects.filter(game=game).order_by('timestamp', 'pk')
     else:
-        turns = Turn.objects.filter(game=game).filter( Q(phase=CREATION) | Q(phase=DAWN) | Q(phase=SUNSET) ).order_by('pk')
+        turns = Turn.objects.filter(game=game).filter( Q(phase=CREATION) | Q(phase=DAWN) | Q(phase=SUNSET) ).order_by('timestamp', 'pk')
     
     events = Event.objects.filter(turn__game=game)
     
@@ -338,17 +338,9 @@ class UsePowerView(CommandView):
         targets2 = role.get_targets2()
         targets_ghost = role.get_targets_ghost()
         
-        initial = None
-        initial2 = None
-        initial_ghost = None
-        
-        try:
-            old_command = CommandEvent.objects.filter(turn=game.current_turn).filter(type=USEPOWER).filter(player=player).order_by('-pk')[0:1].get()
-            initial = old_command.target
-            initial2 = old_command.target2
-            initial_ghost = old_command.target_ghost
-        except CommandEvent.DoesNotExist:
-            pass
+        initial = role.recorded_target
+        initial2 = role.recorded_target2
+        initial_ghost = role.recorded_target_ghost
         
         fields = {}
         if targets is not None:
@@ -409,6 +401,7 @@ class VoteView(CommandView):
         initial = None
         
         try:
+            # TODO: usare la dynamics
             old_command = CommandEvent.objects.filter(turn=game.current_turn).filter(type=VOTE).filter(player=player).order_by('-pk')[0:1].get()
             initial = old_command.target
         except CommandEvent.DoesNotExist:
@@ -445,6 +438,7 @@ class ElectView(CommandView):
         initial = None
         
         try:
+            # TODO: usare la dynamics
             old_command = CommandEvent.objects.filter(turn=game.current_turn).filter(type=ELECT).filter(player=player).order_by('-pk')[0:1].get()
             initial = old_command.target
         except CommandEvent.DoesNotExist:
@@ -484,6 +478,7 @@ class AppointView(CommandView):
         try:
             # FIXME: se il sindaco muore, resuscita e poi viene nominato di nuovo sindaco,
             # compare come designato l'ultimo giocatore che aveva designato
+            # TODO: usare la dynamics
             old_command = CommandEvent.objects.filter(type=APPOINT).filter(player=player).order_by('-pk')[0:1].get()
             initial = old_command.target
         except CommandEvent.DoesNotExist:
