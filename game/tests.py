@@ -371,6 +371,66 @@ class GameTests(TestCase):
 
 
     @record_name
+    def test_missing_negromanti(self):
+        roles = [ Contadino, Contadino, Lupo, Lupo ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        with self.assertRaises(AssertionError):
+            test_advance_turn(self.game)
+
+    @record_name
+    def test_missing_negromanti2(self):
+        roles = [ Contadino, Contadino, Lupo, Lupo, Fantasma ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        with self.assertRaises(AssertionError):
+            test_advance_turn(self.game)
+
+    @record_name
+    def test_missing_lupi(self):
+        roles = [ Contadino, Contadino, Negromante, Negromante ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        with self.assertRaises(AssertionError):
+            test_advance_turn(self.game)
+
+    @record_name
+    def test_missing_lupi2(self):
+        roles = [ Contadino, Contadino, Negromante, Negromante, Fattucchiera ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        with self.assertRaises(AssertionError):
+            test_advance_turn(self.game)
+
+    @record_name
+    def test_missing_popolani(self):
+        roles = [ Negromante, Negromante, Lupo, Lupo ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        with self.assertRaises(AssertionError):
+            test_advance_turn(self.game)
+
+    @record_name
+    def test_nothing_missing(self):
+        roles = [ Negromante, Negromante, Lupo, Lupo, Contadino, Contadino ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        test_advance_turn(self.game)
+
+
+    @record_name
     def test_load_test(self):
         self.game = self.load_game_helper('test.json')
 
