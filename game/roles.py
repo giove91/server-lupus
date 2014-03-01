@@ -183,6 +183,11 @@ class Investigatore(Role):
     def get_targets(self):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
 
+    def apply_dawn(self, dynamics):
+        if self.recorded_target is not None:
+            from events import AuraKnowledgeEvent
+            dynamics.generate_event(AuraKnowledgeEvent(player=self.player, target=self.recorded_target, aura=self.recorded_target.apparent_aura, cause=DETECTIVE))
+
 
 class Mago(Role):
     name = 'Mago'
@@ -195,6 +200,11 @@ class Mago(Role):
     
     def get_targets(self):
         return [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
+
+    def apply_dawn(self, dynamics):
+        if self.recorded_target is not None:
+            from events import MysticityKnowledgeEvent
+            dynamics.generate_event(MysticityKnowledgeEvent(player=self.player, target=self.recorded_target, is_mystic=self.recorded_target.apparent_mystic))
 
 
 class Massone(Role):
@@ -252,6 +262,11 @@ class Veggente(Role):
     
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
+
+    def apply_dawn(self, dynamics):
+        if self.recorded_target is not None:
+            from events import AuraKnowledgeEvent
+            dynamics.generate_event(AuraKnowledgeEvent(player=self.player, target=self.recorded_target, aura=self.recorded_target.apparent_aura, cause=SEER))
 
 
 class Voyeur(Role):

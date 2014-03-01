@@ -76,8 +76,12 @@ HUNTER = 'H'
 WOLVES = 'W'
 DEATH_GHOST = 'D'
 
-# Knowledge causes
+# Role knowledge causes
 SOOTHSAYER = 'S'
 EXPANSIVE = 'E'
 KNOWLEDGE_CLASS = 'C'
 GHOST = 'G'
+
+# Aura knowledge causes
+SEER = 'S'
+DETECTIVE = 'D'

@@ -392,21 +392,21 @@ class RoleKnowledgeEvent(Event):
         GHOST: [DAWN],
         }
 
-    def to_dict(self):
-        ret = Event.to_dict(self)
-        ret.update({
-                'player': self.player.user.username,
-                'target': self.target.user.username,
-                'role_name': self.role_name,
-                'cause': self.cause,
-                })
-        return ret
+    # def to_dict(self):
+    #     ret = Event.to_dict(self)
+    #     ret.update({
+    #             'player': self.player.user.username,
+    #             'target': self.target.user.username,
+    #             'role_name': self.role_name,
+    #             'cause': self.cause,
+    #             })
+    #     return ret
 
-    def load_from_dict(self, data, players_map):
-        self.player = players_map[data['player']]
-        self.target = players_map[data['target']]
-        self.role_name = data['role_name']
-        self.cause = data['cause']
+    # def load_from_dict(self, data, players_map):
+    #     self.player = players_map[data['player']]
+    #     self.target = players_map[data['target']]
+    #     self.role_name = data['role_name']
+    #     self.cause = data['cause']
 
     def apply(self, dynamics):
         assert dynamics.current_turn.phase in RoleKnowledgeEvent.REAL_RELEVANT_PHASES[self.cause]
@@ -428,3 +428,32 @@ class RoleKnowledgeEvent(Event):
         if self.cause != SOOTHSAYER:
             role_class = roles_map[self.role_name]
             assert isinstance(self.target.role, role_class)
+
+
+class AuraKnowledgeEvent(Event):
+    RELEVANT_PHASES = [DAWN]
+    AUTOMATIC = True
+
+    player = models.ForeignKey(Player, related_name='+')
+    target = models.ForeignKey(Player, related_name='+')
+    aura = models.CharField(max_length=1, default=None)
+    KNOWLEDGE_CAUSE_TYPES = (
+        (SEER, 'Seer'),
+        (DETECTIVE, 'Detective'),
+        )
+    cause = models.CharField(max_length=1, choices=KNOWLEDGE_CAUSE_TYPES, default=None)
+
+    def apply(self, dynamics):
+        pass
+
+
+class MysticityKnowledgeEvent(Event):
+    RELEVANT_PHASES = [DAWN]
+    AUTOMATIC = True
+
+    player = models.ForeignKey(Player, related_name='+')
+    target = models.ForeignKey(Player, related_name='+')
+    is_mystic = models.BooleanField(default=None)
+
+    def apply(self, dynamics):
+        pass
