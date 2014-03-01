@@ -65,7 +65,12 @@ thead td {
 
 .players-status {
 	text-align: right;
+	padding: 7px 7px 3px 2px;
 	/*margin-left: 10px;*/
+}
+
+.players-status h2 {
+	margin-bottom: 1px;
 }
 
 .players-status ul {
@@ -73,7 +78,7 @@ thead td {
 	list-style-type: none;
 	padding: 0px;
 	padding-left:0;
-	margin: 0px;
+	margin: 0 0 20px 0;
 }
 
 .players-status ul li {
@@ -140,6 +145,12 @@ thead td {
 	color: #383c42;
 }
 
+#header-upper a:link, #header-upper a:visited, #header-upper a:hover, #header-upper a:active {
+	color: #fff;
+	text-decoration: none;
+}
+
+
 #header-lower {
 	background-color: #eaebef;
 	text-align: right;
@@ -155,7 +166,14 @@ thead td {
 	font-weight: bold;
 	font-size: 14px;
 	color: #fff;
-	text-transform:uppercase;
+	text-transform: uppercase;
+	text-align: right;
+}
+
+.username {
+	font-size: 12px;
+	text-transform: none;
+	font-weight: normal;
 }
 
 #nav-menu {
@@ -177,6 +195,19 @@ thead td {
 	margin: 0px; 
 }
 
+#nav-menu h1 {
+	font-size: 16px;
+	font-family: sans;
+	font-weight: bold;
+	text-transform:uppercase;
+	color: #272a2e;
+	margin-bottom: 7px;
+}
+
+#nav-menu a:link, #nav-menu a:visited, #nav-menu a:hover, #nav-menu a:active {
+	color: #383c42;
+	text-decoration: none;
+}
 
 
 #logo {

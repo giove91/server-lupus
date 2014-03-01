@@ -1,9 +1,13 @@
 {% extends "base.html" %}
 
 {% block content %}
+<div id="content" class="grid_13">
     <h1>Regolamento</h1>
     
-    {% load staticfiles %}
-    <a href="{% static 'game/regolamento.pdf' %}">Regolamento (PDF)</a>
+    <div class="info-block">    
+        {% load staticfiles %}
+        <a href="{% static 'game/regolamento.pdf' %}">Regolamento (PDF)</a>
+    </div>
+</div>
 {% endblock %}
 

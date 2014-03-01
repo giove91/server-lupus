@@ -518,10 +518,9 @@ class ContactsView(ListView):
     template_name = 'contacts.html'
     
     # TODO: forse un giorno bisognerebbe filtrare con il Game giusto
-    '''
+    
     def get_queryset(self):
-        return User.objects.filter(player__isnull=False)
-    '''
+        return Player.objects.all().order_by('user__last_name', 'user__first_name')
     
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -583,15 +582,20 @@ class CommentForm(forms.Form):
     text = forms.CharField(widget=forms.Textarea, label='Scrivi il tuo commento:')
 
 class CommentView(View):
-    minimum_timedelta = timedelta(minutes=10)
+    max_comments_per_turn = 100
     
     def can_comment(self, request):
         # Checks if the user can post a comment
         user = request.user
         game = request.game
+        current_turn = game.current_turn
+        
+        if is_GM_check(user):
+            return True
+        
         try:
-            last_comment = Comment.objects.filter(user=user).filter(turn__game=game).order_by('-timestamp')[0]
-            if get_now() - last_comment.timestamp < self.minimum_timedelta:
+            comments_number = Comment.objects.filter(user=user).filter(turn=current_turn).count()
+            if comments_number >= self.max_comments_per_turn:
                 return False
             else:
                 return True
@@ -616,7 +620,8 @@ class CommentView(View):
                 text = form.cleaned_data['text']
                 comment = Comment(turn=game.current_turn, user=user, text=text)
                 comment.save()
-            
+                form = CommentForm()
+       
         old_comments = Comment.objects.filter(user=user).filter(turn__game=game).filter(visible=True).order_by('-timestamp')
         can_comment = self.can_comment(request)
         return render(request, 'comment.html', {'form': form, 'old_comments': old_comments, 'can_comment': can_comment})

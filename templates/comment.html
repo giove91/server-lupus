@@ -1,32 +1,39 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Commenti</h1>
+<div id="content" class="grid_13">
+
+    <h1>Commenti alla partita</h1>
+
+    <div class="info-block">
+        
+        <p>Qui puoi lasciare i tuoi commenti riguardanti la partita.
+        Saranno visibili solamente a te e ai GM, ed eventualmente verranno pubblicati dopo la fine della partita.</p>
+        
+        {% if can_comment %}
+            <form action="{% url 'comment' %}" method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <input type="submit" value="Invia" />
+            </form>
+        {% else %}
+            <p>Non puoi inviare altri commenti durante questo turno di gioco.</p>
+        {% endif %}
     
-    <p>Qui puoi lasciare i tuoi commenti sulla partita.
-    Saranno visibili solamente a te e ai GM, ed eventualmente verranno pubblicati dopo la fine della partita.</p>
-    
-    {% if can_comment %}
-        <form action="{% url 'comment' %}" method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <input type="submit" value="Invia" />
-        </form>
-    {% else %}
-        <p>Puoi lasciare un commento solo ogni 10 minuti.</p>
-    {% endif %}
-    
-    <h3>I tuoi commenti</h3>
-    
-    {% if old_comments %}
-    <ul>
-        {% for comment in old_comments %}
-            <li>[{{ comment.timestamp|date:"j N Y, H:i" }}] {{ comment.text }}</li>
-        {% endfor %}
-    </ul>
-    {% else %}
-        <p>Non hai ancora inviato alcun commento.</p>
-    {% endif %}
+    </div>
+    <div class="info-block">
+        <h2>I tuoi commenti</h2>
+        
+        {% if old_comments %}
+            {% for comment in old_comments %}
+                <p><strong>{{ comment.timestamp|date:"d/m/Y H:i" }}</strong> {{ comment.text }}</p>
+            {% endfor %}
+        {% else %}
+            <p>Non hai ancora inviato alcun commento.</p>
+        {% endif %}
+        
+    </div>
+</div>
     
 {% endblock %}
 

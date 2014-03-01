@@ -4,18 +4,20 @@
     <h1>Informazioni personali</h1>
     
     <div class="info-block">
-    <ul>
-        <li>Fazione: {{ player.team_as_italian_string_property }}.</li>
-        <li>Ruolo: {{ player.role.name }}.</li>
-        <li>Aura: {{ player.aura_as_italian_string_property }}.</li>
-        <li>Stato: {{ player.status_as_italian_string_property }}.</li>
+        <table>
+            <tr><td>Fazione</td><td>{{ player.team_as_italian_string_property }}</td></tr>
+            <tr><td>Ruolo</td><td>{{ player.role.name }}</td></tr>
+            <tr><td>Aura</td><td>{{ player.aura_as_italian_string_property }}</td></tr>
+            <tr><td>Stato</td><td>{{ player.status_as_italian_string_property }}</td></tr>
+        </table>
+
         {% if player.is_mystic %}
-            <li> Sei un mistico.</li>
+            <p> Sei un mistico.</p>
         {% endif %}
         {% if player.is_mayor %}
-            <li>Sei l'attuale Sindaco del villaggio.</li>
+            <p>Sei l'attuale Sindaco del villaggio.</p>
         {% endif %}
-    </ul>
+        
     </div>
     
 {% endblock %}

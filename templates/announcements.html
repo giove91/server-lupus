@@ -2,12 +2,17 @@
 
 {% block content %}
 
-    <h1>Annunci dei GM</h1>
+<div id="content" class="grid_13">
 
-    {% for announcement in object_list %}
-        <p><strong>{{ announcement.timestamp|date:"d/m/Y H:i" }}</strong> {{ announcement.text }}</p>
-    {% empty %}
-        <p>Non ci sono annunci.</p>
-    {% endfor %} 
+    <h1>Annunci dei GM</h1>
+    <div class="info-block">
+        {% for announcement in object_list %}
+            <p><strong>{{ announcement.timestamp|date:"d/m/Y H:i" }}</strong> {{ announcement.text }}</p>
+        {% empty %}
+            <p>Non ci sono annunci.</p>
+        {% endfor %} 
+    </div>
+
+</div>
 
 {% endblock %}

@@ -22,10 +22,17 @@
 		    <img id="logo" src="{% static "logo.png" %}"/>
 		    <div id="header-upper">
 			    <span id="login">
+			        <div>
 			        {% if user.is_authenticated %}
-                    <a href="{% url 'logout' %}">Logout</a> ({{ user.username }})
+                        <a href="{% url 'logout' %}">Logout</a>
                     {% else %}
-                    <a href="{% url 'login' %}">Login</a>
+                        <a href="{% url 'login' %}">Login</a>
+                    {% endif %}
+                    </div>
+                    {% if user.is_authenticated %}
+                    <div class="username">
+                        Sei loggato come {{ user.username }} ({{ user.first_name }} {{ user.last_name }})
+                    </div>
                     {% endif %}
 			    </span>
 			    <ul>
@@ -42,22 +49,25 @@
 	    </div>
         
 	    <div class="clear"></div>
-
-	    <div id="nav-menu" class="grid_3">
-	        <h1>Area riservata</h1>
-	        <ul>
-                <li><a href="{% url 'personalinfo' %}">Informazioni personali</a></li>
-                <li><a href="{% url 'vote' %}">Votazione per il rogo</a></li>
-                <li><a href="{% url 'elect' %}">Elezione del Sindaco</a></li>
-                <li><a href="{% url 'usepower' %}">Potere notturno</a></li>
-                {% if player.is_mayor %}
-                    <li><a href="{% url 'appoint' %}">Designa successore</a></li>
-                {% endif %}
-                <li><a href="{% url 'contacts' %}">Contatti</a></li>
-                <li><a href="{% url 'comment' %}">Commenti alla partita</a></li>
-            </ul>
+        
+        <div class="grid_3">
+	        <div id="nav-menu">
+	            <h1>Area riservata</h1>
+	            <ul>
+                    <li><a href="{% url 'personalinfo' %}">Informazioni personali</a></li>
+                    <li><a href="{% url 'vote' %}">Votazione per il rogo</a></li>
+                    <li><a href="{% url 'elect' %}">Elezione del Sindaco</a></li>
+                    <li><a href="{% url 'usepower' %}">Potere notturno</a></li>
+                    {% if player.is_mayor %}
+                        <li><a href="{% url 'appoint' %}">Designa successore</a></li>
+                    {% endif %}
+                    <li><a href="{% url 'contacts' %}">Contatti</a></li>
+                    <li><a href="{% url 'comment' %}">Commenti alla partita</a></li>
+                </ul>
+	        </div>
+	        
 	    </div>
-	
+	    
 	    {% block content %}{% endblock %}
 
 	    <div class="clear"></div>
