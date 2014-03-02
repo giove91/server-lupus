@@ -428,7 +428,40 @@ class RoleKnowledgeEvent(Event):
         if self.cause != SOOTHSAYER:
             role_class = roles_map[self.role_name]
             assert isinstance(self.target.canonicalize().role, role_class)
-
+    
+    
+    def to_player_string(self, player):
+        oa = self.player.oa
+        # TODO: risalire al nome esteso del ruolo
+        role = self.role_name
+        
+        if self.cause == SOOTHSAYER:
+            if player == self.player:
+                return u'Le tue straordinarie capacità divinatorie ti permettono di sapere che %s potrebbe essere un %s.' % (self.target.full_name, role)
+            elif player == 'admin':
+                return u'Il Divinatore %s viene a sapere che forse %s è un %s.' % (self.player.full_name, self.target.full_name, role)
+        
+        elif self.cause == EXPANSIVE:
+            if player == self.player:
+                return u'%s ti rivela di essere l\'Espansivo.' % self.target.full_name
+            elif player == 'admin':
+                return u'%s rivela a %s di essere l\'Espansivo.' % (self.target.full_name, self.player.full_name)
+        
+        elif self.cause == KNOLEDGE_CLASS:
+            if player == self.player:
+                return u'%s è un %s.' % (self.target.full_name, role)
+            elif player == 'admin':
+                return u'Per conoscenza iniziale, %s sa che %s è un %s.' % (self.player.full_name, self.target.full_name, role)
+        
+        elif self.cause == GHOST:
+            if player == self.player:
+                return u'Vieni a sapere che %s è un %s.' % (self.target.full_name, role)
+            elif player == 'admin':
+                return u'Per spettrificazione, %s viene a sapere che %s è un %s.' % (self.player.full_name, self.target.full_name, role)
+        
+        else:
+            raise Exception ('Unknown cause for RoleKnowledgeEvent.')
+        
 
 class AuraKnowledgeEvent(Event):
     RELEVANT_PHASES = [DAWN]
