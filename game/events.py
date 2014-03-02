@@ -203,9 +203,9 @@ class SetRoleEvent(Event):
     
     def to_player_string(self, player):
         if player == self.player:
-            return u'Ti è stato assegnato il ruolo di: %s.' % self.role_name
+            return u'Ti è stato assegnato il ruolo di %s.' % self.role_name
         elif player == 'admin':
-            return u'A %s è stato assegnato il ruolo di: %s.' % (self.player.full_name, self.role_name)
+            return u'A %s è stato assegnato il ruolo di %s.' % (self.player.full_name, self.role_name)
         else:
             return None
 
@@ -436,9 +436,9 @@ class RoleKnowledgeEvent(Event):
         
         if self.cause == SOOTHSAYER:
             if player == self.player:
-                return u'Le tue straordinarie capacità divinatorie ti permettono di sapere che %s potrebbe essere un %s.' % (self.target.full_name, role)
+                return u'Le tue straordinarie capacità divinatorie ti permettono di sapere che %s potrebbe avere il ruolo di %s.' % (self.target.full_name, role)
             elif player == 'admin':
-                return u'Il Divinatore %s viene a sapere che forse %s è un %s.' % (self.player.full_name, self.target.full_name, role)
+                return u'Il Divinatore %s viene a sapere che forse %s ha il ruolo di %s.' % (self.player.full_name, self.target.full_name, role)
         
         elif self.cause == EXPANSIVE:
             if player == self.player:
@@ -448,9 +448,9 @@ class RoleKnowledgeEvent(Event):
         
         elif self.cause == KNOWLEDGE_CLASS:
             if player == self.player:
-                return u'%s è un %s.' % (self.target.full_name, role)
+                return u'A %s è stato assegnato il ruolo di %s.' % (self.target.full_name, role)
             elif player == 'admin':
-                return u'Per conoscenza iniziale, %s sa che %s è un %s.' % (self.player.full_name, self.target.full_name, role)
+                return u'Per conoscenza iniziale, %s sa che %s ha il ruolo di %s.' % (self.player.full_name, self.target.full_name, role)
         
         elif self.cause == GHOST:
             if player == self.player:
