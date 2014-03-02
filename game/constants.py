@@ -51,9 +51,20 @@ POPOLANI = 'P'
 LUPI = 'L'
 NEGROMANTI = 'N'
 
+TEAM_IT = {
+    POPOLANI: 'Popolani',
+    LUPI: 'Lupi',
+    NEGROMANTI: 'Negromanti',
+}
+
 # Auras
 WHITE = 'W'
 BLACK = 'B'
+
+AURA_IT = {
+    WHITE: 'Bianca',
+    BLACK: 'Nera',
+}
 
 # Supernatural powers
 AMNESIA = 'A'

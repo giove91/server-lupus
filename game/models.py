@@ -326,10 +326,7 @@ class Player(models.Model):
     # TODO: Gio, e' giusto che si chiami self.canonicalize() in ognuna di queste funzioni?
     def aura_as_italian_string(self):
         canonical = self.canonicalize()
-        if canonical.aura == WHITE:
-            return u'Bianca'
-        else:
-            return u'Nera'
+        return AURA_IT[ canonical.aura ]
     aura_as_italian_string_property = property(aura_as_italian_string)
     
     def status_as_italian_string(self):
@@ -345,14 +342,7 @@ class Player(models.Model):
     
     def team_as_italian_string(self):
         canonical = self.canonicalize()
-        if canonical.team == POPOLANI:
-            return u'Popolani'
-        elif canonical.team == LUPI:
-            return u'Lupi'
-        elif canonical.team == NEGROMANTI:
-            return u'Negromanti'
-        else:
-            raise Exception ('Unknown team.')
+        return TEAM_IT[ canonical.team ]
     team_as_italian_string_property = property(team_as_italian_string)
     
     

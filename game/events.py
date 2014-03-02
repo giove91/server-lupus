@@ -431,7 +431,6 @@ class RoleKnowledgeEvent(Event):
     
     
     def to_player_string(self, player):
-        oa = self.player.oa
         # TODO: risalire al nome esteso del ruolo
         role = self.role_name
         
@@ -447,7 +446,7 @@ class RoleKnowledgeEvent(Event):
             elif player == 'admin':
                 return u'%s rivela a %s di essere l\'Espansivo.' % (self.target.full_name, self.player.full_name)
         
-        elif self.cause == KNOLEDGE_CLASS:
+        elif self.cause == KNOWLEDGE_CLASS:
             if player == self.player:
                 return u'%s è un %s.' % (self.target.full_name, role)
             elif player == 'admin':
@@ -461,7 +460,7 @@ class RoleKnowledgeEvent(Event):
         
         else:
             raise Exception ('Unknown cause for RoleKnowledgeEvent.')
-        
+
 
 class AuraKnowledgeEvent(Event):
     RELEVANT_PHASES = [DAWN]
@@ -478,6 +477,15 @@ class AuraKnowledgeEvent(Event):
 
     def apply(self, dynamics):
         pass
+    
+    def to_player_string(self, player):
+        aura = AURA_IT[ self.aura ]
+        
+        if player == self.player:
+            return u'Hai utilizzato il tuo potere su %s, scoprendo che ha aura %s.' % (self.target.full_name, aura)
+        elif player == 'admin':
+            return u'%s ha utilizzato il proprio potere su %s, scoprendo che ha aura %s.', (self.player.full_name, self.target.full_name, aura)
+            
 
 
 class MysticityKnowledgeEvent(Event):
@@ -490,3 +498,18 @@ class MysticityKnowledgeEvent(Event):
 
     def apply(self, dynamics):
         pass
+    
+    def to_player_string(self, player):
+        if self.is_mystic:
+            result = ''
+        else:
+            result = 'non '
+        
+        if player == self.player:
+            return u'Hai utilizzato il tuo potere su %s, scoprendo che %sè un mistico.' % (self.target.full_name, result)
+        elif player == 'admin':
+            return u'%s ha utilizzato il proprio potere su %s, scoprendo che %sè un mistico.', (self.player.full_name, self.target.full_name, result)
+
+
+
+
