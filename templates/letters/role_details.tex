@@ -15,10 +15,22 @@ partita, in una notte dopo la prima, egli può scegliere un personaggio vivo e p
 È giusto "custode" o "custode del cimitero"?
 {% endif %}
 
+{% if player.role_name == "Divinatore" %}
+...
+
+Il Divinatore appartiene alla fazione dei Popolani. All'inizio della partita è a conoscenza di quattro proposizioni, di cui esattamente due sono vere ed esattamente due sono false.
+
+Le quattro proposizioni sono le seguenti.
+\begin{quote}
+{% for message in soothsayer_knowledge %}
+    {{ message }} \\
+{% endfor %}
+\end{quote}
+
+{% endif %}
+
 
 
 {% if player.role_name == "Lupo" %}
 ...
-
-
 {% endif %}

@@ -43,7 +43,12 @@ class LetterRenderer:
             if message is not None:
                 self.initial_knowledge.append(message)
         
-        print self.initial_knowledge
+        soothsayer_events = RoleKnowledgeEvent.objects.filter(player=player).filter(cause=SOOTHSAYER)
+        self.soothsayer_knowledge = []
+        for event in soothsayer_events:
+            message = event.to_player_string(player)
+            if message is not None:
+                self.soothsayer_knowledge.append(message)
         
         self.context = {
             'player': self.player,
@@ -55,6 +60,7 @@ class LetterRenderer:
             'mayor': self.mayor,
             'initial_propositions': self.initial_propositions,
             'initial_knowledge': self.initial_knowledge,
+            'soothsayer_knowledge': self.soothsayer_knowledge,
         }
     
     def render_setting(self):
