@@ -5,6 +5,7 @@ from django.template.loader import render_to_string
 
 from models import *
 from events import *
+from constants import *
 
 
 def render_to_file(template, filename, context):
@@ -28,12 +29,21 @@ class LetterRenderer:
         self.game = player.game
         self.players = self.game.get_players()
         self.numplayers = len(self.players)
+        self.column_height = (self.numplayers+1)/2
         self.mayor = self.game.mayor
         
         self.password = generate_password(self.password_length)
-        print self.password
         
         self.initial_propositions = InitialPropositionEvent.objects.filter(turn__game=self.game)
+        
+        knowledge_events = RoleKnowledgeEvent.objects.filter(player=player).filter(cause=KNOWLEDGE_CLASS)
+        self.initial_knowledge = []
+        for event in knowledge_events:
+            message = event.to_player_string(player)
+            if message is not None:
+                self.initial_knowledge.append(message)
+        
+        print self.initial_knowledge
         
         self.context = {
             'player': self.player,
@@ -41,8 +51,10 @@ class LetterRenderer:
             'game': self.game,
             'players': self.players,
             'numplayers': self.numplayers,
+            'column_height': self.column_height,
             'mayor': self.mayor,
-            'initial_propositions': self.initial_propositions
+            'initial_propositions': self.initial_propositions,
+            'initial_knowledge': self.initial_knowledge,
         }
     
     def render_setting(self):

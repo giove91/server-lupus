@@ -7,9 +7,18 @@ Il Contadino appartiene alla fazione dei Popolani e non ha alcun potere speciale
 {% if player.role_name == "Cacciatore" %}
 Cerbiatti, coniglietti, allodole ed altri teneri animali del sottobosco per te non sono altro che selvaggina, cappotti, girocolli e scaldamani. E qualche volta un bel trofeo. Ti sei rifugiato in questo piccolo villaggio per sfuggire ad un gruppo di animalisti inferociti che aveva iniziato a pattugliare il tuo terreno di caccia preferito: la riserva naturale per la protezione del panda gigante.
 
-Il Cacciatore appartiene alla fazione dei Popolani e ogni notte può indicare un giocatore vivo contro cui puntare il suo fucile ....
+Il Cacciatore appartiene alla fazione dei Popolani. Una sola volta durante l'arco della
+partita, in una notte dopo la prima, egli può scegliere un personaggio vivo e puntarlo col fucile. Il Cacciatore uccide il personaggio scelto.
 {% endif %}
 
-{% if player.role_name == "Custode del cimitero" %}
+{% if player.role_name == "Custode" %}
+È giusto "custode" o "custode del cimitero"?
+{% endif %}
+
+
+
+{% if player.role_name == "Lupo" %}
 ...
+
+
 {% endif %}
