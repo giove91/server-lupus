@@ -359,6 +359,7 @@ class Profanatore(Role):
     name = 'Profanatore di Tombe'
     team = LUPI
     aura = BLACK
+    knowledge_class = 3
 
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
