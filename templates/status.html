@@ -38,7 +38,13 @@
         {% endif %}
         {% if weather.type == "cloudy" %}
             La notte è resa più buia da fitte nubi che celano il chiarore della luna.
-            Alcuni ne approfittano portando avanti le proprie losche attività; altri, invece, cercano di prendere sonno sperando di risvegliarsi di nuovo.
+            Alcuni ne approfittano portando avanti le proprie losche attività; altri, invece, cercano di prendere sonno nella speranza di risvegliarsi di nuovo.
+        {% endif %}
+        {% if weather.type == "light rain" %}
+            
+        {% endif %}
+        {% if weather.type == "heavy rain" %}
+            
         {% endif %}
     {% endif %}
 </p>

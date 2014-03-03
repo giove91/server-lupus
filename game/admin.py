@@ -37,6 +37,9 @@ class EventAdmin(admin.ModelAdmin):
 class CommandEventAdmin(admin.ModelAdmin):
     list_display = ('event_name', 'turn', 'timestamp', 'player', 'type', 'target', 'target2', 'target_ghost')
 
+class InitialPropositionEventAdmin(admin.ModelAdmin):
+    list_display = ('event_name', 'turn', 'timestamp', 'text')
+
 class AnnouncementAdmin(admin.ModelAdmin):
     list_display = ('announcement_name', 'timestamp', 'text', 'visible')
     list_filter = ['visible']
@@ -48,10 +51,11 @@ class CommentAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Player, PlayerAdmin)
-admin.site.register(CommandEvent, CommandEventAdmin)
 admin.site.register(Event, EventAdmin)
 admin.site.register(Game, GameAdmin)
 admin.site.register(Turn, TurnAdmin)
 admin.site.register(Announcement, AnnouncementAdmin)
 admin.site.register(Comment, CommentAdmin)
 
+admin.site.register(CommandEvent, CommandEventAdmin)
+admin.site.register(InitialPropositionEvent, InitialPropositionEventAdmin)

@@ -4,6 +4,7 @@ import os, codecs, random, string
 from django.template.loader import render_to_string
 
 from models import *
+from events import *
 
 
 def render_to_file(template, filename, context):
@@ -32,6 +33,8 @@ class LetterRenderer:
         self.password = generate_password(self.password_length)
         print self.password
         
+        self.initial_propositions = InitialPropositionEvent.objects.filter(turn__game=self.game)
+        
         self.context = {
             'player': self.player,
             'password': self.password,
@@ -39,13 +42,14 @@ class LetterRenderer:
             'players': self.players,
             'numplayers': self.numplayers,
             'mayor': self.mayor,
+            'initial_propositions': self.initial_propositions
         }
     
     def render_setting(self):
         template = self.template_setting
         
         # TODO: escape basename
-        basename = self.player.user.last_name.replace(' ', '') + '1'
+        basename = self.player.user.last_name.replace(u' ', u'').replace(u'à', u'a') + '1'
         filename = basename + '.tex'
         
         # Rendering .tex
@@ -63,7 +67,7 @@ class LetterRenderer:
         template = self.template_role
         
         # TODO: escape basename
-        basename = self.player.user.last_name.replace(' ', '') + '2'
+        basename = self.player.user.last_name.replace(u' ', u'').replace(u'à', u'a') + '2'
         filename = basename + '.tex'
         
         # Rendering .tex
