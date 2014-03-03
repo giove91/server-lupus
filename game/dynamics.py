@@ -268,6 +268,64 @@ class Dynamics:
 
         self._check_team_exile()
 
+    def _solve_blockers(self, critical_blockers, block_graph):
+        # First some checks and build the reverse graph
+        rev_block_graph = dict([(x.pk, []) for x in critical_blockers])
+        critical_pks = [x.pk for x in critical_blockers]
+        for src, dsts in block_graph.iteritems():
+            for dst in dsts:
+                assert self.players_dict[dst] in critical_blocker
+                assert dst != src
+                rev_block_graph[dst].append(src)
+
+        def iter_competitors():
+            current = dict([(x.pk, True) for x in critical_blockers])
+            while True:
+                yield current
+                for i in critical_pks:
+                    current[i] = not current[i]
+                    if not current[i]:
+                        break
+                else:
+                    return
+
+        # Start generating competitors
+        min_score = len(critical_blockers) + 1
+        minimizers = []
+        for competitor in iter_competitors():
+            score = 0
+            skip = False
+            for src, success in competitor:
+                # If this player succeeds, we have to check that its
+                # blocks are successful
+                if success:
+                    for dst in block_graph[src]:
+                        if competitor[dst]:
+                            skip = True
+                            break
+                    if skip:
+                        break
+
+                # If it fails, we have to count whether this is
+                # justified or not
+                else:
+                    for dst in rev_block_graph[src]:
+                        if competitor[dst]:
+                            break
+                    else:
+                        score += 1
+
+            # Finally, count the score of this competitor
+            if not skip:
+                if score == min_score:
+                    minimizers.append(competitor)
+                elif score < min_score:
+                    minimizers = [competitor]
+                    min_score = score
+
+        # Choose a random minimizing competitor
+        return rev_block_graph, self.random.choice(minimizers)
+
     def _compute_entering_dawn(self):
         if DEBUG_DYNAMICS:
             print >> sys.stderr, "Computing dawn"
@@ -277,10 +335,10 @@ class Dynamics:
         # Create an index of all roles and ghost powers
         players_by_role = {}
         ghosts_by_power = {}
+        for role_class in Role.__subclasses__():
+            players_by_role[role_class.__name__] = []
         for player in self.get_active_players():
             role_name = player.role.__class__.__name__
-            if role_name not in players_by_role:
-                players_by_role[role_name] = []
             players_by_role[role_name].append(player)
 
             if isinstance(player.role, Spettro):
@@ -290,8 +348,7 @@ class Dynamics:
 
         # Shuffle players in each role
         for role_players in players_by_role.itervalues():
-            # TODO: re-enable it and check tests
-            #self.random.shuffle(role_players)
+            self.random.shuffle(role_players)
             pass
 
         # Prepare temporary status
@@ -315,7 +372,16 @@ class Dynamics:
         # So, here comes the big little male house ("gran casino");
         # first of all we consider powers that can block powers that
         # can block powers: Spettro dell'Occultamento, Sequestratore,
-        # Profanatore di Tombe, Esorcista (TODO)
+        # Profanatore di Tombe, Esorcista
+        critical_blockers = players_by_role[Sequestratore.__name__] + \
+            players_by_role[Profanatore.__name__] + \
+            players_by_role[Esorcista.__name__]
+        ghost = None
+        if OCCULTAMENTO in ghosts_by_power:
+            ghost = ghosts_by_power[OCCULTAMENTO]
+            critical_blockers.append(ghost)
+        block_graph = dict([(x.pk, [x.role.get_blocked(critical_blockers, ghost)]) for x in critical_blockers])
+        rev_block_graph, blockers_success = self._solve_blockers(critical_blockers, block_graph)
 
         # Then powers that can block other powers: Guardia del Corpo
         # and Custode del Cimitero (TODO)

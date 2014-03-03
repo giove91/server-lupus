@@ -111,8 +111,9 @@ class GameTests(TestCase):
 
     def tearDown(self):
         # Save a dump of the test game
-        with open(os.path.join('test_dumps', '%s.json' % (self._name)), 'w') as fout:
-            dump_game(self.game, fout)
+        if 'game' in self.__dict__:
+            with open(os.path.join('test_dumps', '%s.json' % (self._name)), 'w') as fout:
+                dump_game(self.game, fout)
 
         # Destroy the leftover dynamics without showing the slightest
         # sign of mercy
@@ -264,7 +265,7 @@ class GameTests(TestCase):
     def test_stake_vote_tie_without_mayor(self):
         roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
         votes = [ 2, 0, 0, 1, 1, 1, 0, 4, None, None ]
-        self.game = self.voting_helper(roles, None, votes, None, 1)
+        self.game = self.voting_helper(roles, None, votes, None, 0)
 
     @record_name
     def test_stake_vote_no_quorum(self):
@@ -367,7 +368,7 @@ class GameTests(TestCase):
         roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
         mayor_votes = [ 1, 1, 1, 1, 1, 1, 0, 0, 0, 0 ]
         stake_votes = [ 1, 1, 1, 1, 1, 1,  None, None, None, None ]
-        self.game = self.voting_helper(roles, mayor_votes, stake_votes, 1, 1, appointed_mayor=8, expected_final_mayor=9)
+        self.game = self.voting_helper(roles, mayor_votes, stake_votes, 1, 1, appointed_mayor=8, expected_final_mayor=4)
 
 
     @record_name

@@ -86,6 +86,9 @@ class Role(object):
     def apply_dawn(self, dynamics):
         raise NotImplementedError("Please extend this method in subclasses")
 
+    def get_blocked(self, blockers, ghost):
+        raise NotImplementedError("Please extend this method in relevant subclasses")
+
 
 # Fazione dei Popolani
 
@@ -139,6 +142,15 @@ class Esorcista(Role):
     
     def get_targets(self):
         return self.player.game.get_active_players()
+
+    def get_blocked(self, blockers, ghost):
+        if ghost is not None and \
+                ghost.role.recorded_target is not None and \
+                self.recorded_target is not None and \
+                self.recorded_target.pk == ghost.role.recorded_target.pk:
+            return [ghost.pk]
+        else:
+            return []
 
 
 class Espansivo(Role):
@@ -348,6 +360,18 @@ class Profanatore(Role):
     team = LUPI
     aura = BLACK
 
+    def can_use_power(self):
+        return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
+
+    def get_targets(self):
+        return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
+
+    def get_blocked(self, blockers, ghost):
+        if ghost is not None and self.recorded_target is not None and ghost.pk == self.recorded_target.pk:
+            return [ghost.pk]
+        else:
+            return []
+
 
 class Rinnegato(Role):
     name = 'Rinnegato'
@@ -370,6 +394,12 @@ class Sequestratore(Role):
         if self.last_usage is not None and self.days_from_last_usage <= 1:
             excluded.append(self.last_target.pk)
         return [player for player in self.player.game.get_alive_players() if player.pk not in excluded]
+
+    def get_blocked(self, blockers, ghost):
+        if self.recorded_target is not None:
+            return [self.recorded_target.pk]
+        else:
+            return []
 
 
 # Fazione dei Negromanti
@@ -466,7 +496,7 @@ class Spettro(Role):
         elif self.power == MISTIFICAZIONE or self.power == OCCULTAMENTO:
             targets = [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
         else:
-            raise Exception('Missing supernatural power.')
+            raise ValueError('Missing supernatural power.')
         return targets
     
     def get_targets2(self):
@@ -484,6 +514,23 @@ class Spettro(Role):
                 assert target.apparent_mystic is not None
                 target.apparent_mystic = True
         else:
-            raise Exception()
+            raise NotImplementedError()
+
+    def get_blocked(self, blockers, ghost):
+        if self.power == OCCULTAMENTO:
+            if self.recorded_target is None:
+                return []
+            ret = []
+            for blocker in blockers:
+                if blocker.role.__class__ == Esorcista:
+                    continue
+                if blocker.pk == self.player.pk:
+                    continue
+                if blocker.role.recorded_target is not None and \
+                        blocker.role.recorded_target.pk == self.recorded_target.pk:
+                    ret.append(blocker.pk)
+                return ret
+        else:
+            raise ValueError("Invalid ghost type")
 
 roles_map = dict([(x.__name__, x) for x in Role.__subclasses__()])
