@@ -29,6 +29,8 @@ class Dynamics:
         self._updating = False
         self.debug_event_bin = None
         self.auto_event_queue = []
+        self.events = []
+        self.turns = []
         self.initialize_augmented_structure()
 
     def initialize_augmented_structure(self):
@@ -136,6 +138,7 @@ class Dynamics:
             if queued_event is not None:
                 if self.debug_event_bin is not None:
                     self.debug_event_bin.append(queued_event)
+                self.events.append(queued_event)
             if event is not None:
                 self._receive_event(event)
                 return True
@@ -158,6 +161,7 @@ class Dynamics:
         except Turn.DoesNotExist:
             pass
         else:
+            self.turns.append(turn)
             self._receive_turn(turn)
             return True
 
@@ -235,6 +239,7 @@ class Dynamics:
         event.save()
         if self.debug_event_bin is not None:
             self.debug_event_bin.append(event)
+        self.events.append(event)
         self.update()
 
     def generate_event(self, event):

@@ -41,19 +41,19 @@ def is_GM_check(user):
 def get_events(request, player):
     # player can be a Player, 'admin' or 'public' (depending on the view)
     game = request.game
+    dynamics = game.get_dynamics()
     
     # TODO: prendere le cose dalla dynamics
     if player == 'admin':
-        turns = Turn.objects.filter(game=game).order_by('date', 'phase')
+        turns = dynamics.turns
     else:
-        turns = Turn.objects.filter(game=game).filter( Q(phase=CREATION) | Q(phase=DAWN) | Q(phase=SUNSET) ).order_by('date', 'phase')
+        turns = [turn for turn in dynamics.turns if turn.phase in [CREATION, DAWN, SUNSET]]
     
-    events = Event.objects.filter(turn__game=game).order_by('timestamp', 'pk')
+    events = dynamics.events
     
     result = { turn: { 'standard': [], VOTE: {}, ELECT: {}, 'initial_propositions': [], 'soothsayer_propositions': [] } for turn in turns }
     
-    for e in events:
-        event = e.as_child()
+    for event in events:
         message = event.to_player_string(player)
         if message is not None:
             assert event.turn in result.keys()
