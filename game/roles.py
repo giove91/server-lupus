@@ -26,6 +26,11 @@ class Role(object):
 
     def __unicode__(self):
         return u"%s" % self.name
+        
+    @staticmethod
+    def get_from_name(role_name):
+        [role_class] = [x for x in Role.__subclasses__() if x.__name__ == role_name]
+        return role_class
     
     def can_use_power(self):
         return False

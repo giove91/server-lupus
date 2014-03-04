@@ -164,7 +164,7 @@ class AvailableRoleEvent(Event):
             knowledge_classes = {}
             knowledge_classes_rev = {}
             for player in dynamics.players:
-                [role_class] = [x for x in Role.__subclasses__() if x.__name__ == given_roles[player.pk]]
+                role_class = Role.get_from_name(given_roles[player.pk])
                 knowledge_class = role_class.knowledge_class
                 if knowledge_class is not None:
                     if not knowledge_class in knowledge_classes:
@@ -189,7 +189,7 @@ class SetRoleEvent(Event):
     role_name = models.CharField(max_length=200)
 
     def apply(self, dynamics):
-        [role_class] = [x for x in Role.__subclasses__() if x.__name__ == self.role_name]
+        role_class = Role.get_from_name(self.role_name)
         player = self.player.canonicalize()
         role = role_class(player)
         player.role = role
