@@ -9,7 +9,7 @@ from datetime import datetime
 
 from models import Event, Turn
 from events import CommandEvent, VoteAnnouncedEvent, TallyAnnouncedEvent, \
-    ElectNewMayorEvent, PlayerDiesEvent
+    ElectNewMayorEvent, PlayerDiesEvent, PowerOutcomeEvent
 from constants import *
 from roles import *
 
@@ -20,6 +20,8 @@ ANCIENT_DATETIME = datetime(year=1970, month=1, day=1, tzinfo=REF_TZINFO)
 class Dynamics:
 
     def __init__(self, game):
+        if DEBUG_DYNAMICS:
+            print >> sys.stderr, "New dynamics spawned: %r" % (self)
         self.game = game
         self.check_mode = False  # Not supported at the moment
         self.update_lock = RLock()
@@ -268,15 +270,13 @@ class Dynamics:
 
         self._check_team_exile()
 
-    def _solve_blockers(self, critical_blockers, block_graph):
+    def _solve_blockers(self, critical_blockers, block_graph, rev_block_graph):
         # First some checks and build the reverse graph
-        rev_block_graph = dict([(x.pk, []) for x in critical_blockers])
         critical_pks = [x.pk for x in critical_blockers]
         for src, dsts in block_graph.iteritems():
             for dst in dsts:
-                assert self.players_dict[dst] in critical_blocker
                 assert dst != src
-                rev_block_graph[dst].append(src)
+                assert src in rev_block_graph[dst]
 
         def iter_competitors():
             current = dict([(x.pk, True) for x in critical_blockers])
@@ -291,16 +291,16 @@ class Dynamics:
 
         # Start generating competitors
         min_score = len(critical_blockers) + 1
-        minimizers = []
+        minimizers = None
         for competitor in iter_competitors():
             score = 0
             skip = False
-            for src, success in competitor:
+            for src, success in competitor.iteritems():
                 # If this player succeeds, we have to check that its
                 # blocks are successful
                 if success:
                     for dst in block_graph[src]:
-                        if competitor[dst]:
+                        if dst in critical_pks and competitor[dst]:
                             skip = True
                             break
                     if skip:
@@ -310,7 +310,7 @@ class Dynamics:
                 # justified or not
                 else:
                     for dst in rev_block_graph[src]:
-                        if competitor[dst]:
+                        if dst in critical_pks and competitor[dst]:
                             break
                     else:
                         score += 1
@@ -324,7 +324,7 @@ class Dynamics:
                     min_score = score
 
         # Choose a random minimizing competitor
-        return rev_block_graph, self.random.choice(minimizers)
+        return self.random.choice(minimizers)
 
     def _compute_entering_dawn(self):
         if DEBUG_DYNAMICS:
@@ -355,24 +355,15 @@ class Dynamics:
         for player in self.get_active_players():
             player.apparent_aura = player.aura
             player.apparent_mystic = player.is_mystic
-            player.visiting = None
+            player.visiting = []
             player.visitors = []
-
-        def apply_roles(roles):
-            for role in roles:
-                if isinstance(role, str):
-                    if role in ghosts_by_power:
-                        player = ghosts_by_power[role]
-                        player.role.apply_dawn(dynamics)
-                else:
-                    if role.__name__ in players_by_role:
-                        for player in players_by_role[role.__name__]:
-                            player.role.apply_dawn(self)
 
         # So, here comes the big little male house ("gran casino");
         # first of all we consider powers that can block powers that
         # can block powers: Spettro dell'Occultamento, Sequestratore,
         # Profanatore di Tombe, Esorcista
+
+        # Build the list of blockers
         critical_blockers = players_by_role[Sequestratore.__name__] + \
             players_by_role[Profanatore.__name__] + \
             players_by_role[Esorcista.__name__]
@@ -380,21 +371,89 @@ class Dynamics:
         if OCCULTAMENTO in ghosts_by_power:
             ghost = ghosts_by_power[OCCULTAMENTO]
             critical_blockers.append(ghost)
-        block_graph = dict([(x.pk, [x.role.get_blocked(critical_blockers, ghost)]) for x in critical_blockers])
-        rev_block_graph, blockers_success = self._solve_blockers(critical_blockers, block_graph)
+        critical_blockers = [x for x in critical_blockers if x.role.recorded_target is not None]
 
-        # Then powers that can block other powers: Guardia del Corpo
-        # and Custode del Cimitero (TODO)
+        # Build the block graph and compute blocking success
+        block_graph = dict([(x.pk, x.role.get_blocked(self.players, ghost)) for x in self.players])
+        rev_block_graph = dict([(x.pk, []) for x in self.players])
+        for x, ys in block_graph.iteritems():
+            for y in ys:
+                rev_block_graph[y].append(x)
+        blockers_success = self._solve_blockers(critical_blockers, block_graph, rev_block_graph)
+        if DEBUG_DYNAMICS:
+            print >> sys.stderr, block_graph
+            print >> sys.stderr, rev_block_graph
+            print >> sys.stderr, blockers_success
 
-        # Powers that influence the querying powers: Fattucchiera,
-        # Spettro dell'Illusione and Spettro della Mistificazione
-        # (TODO)
+        # Extend the success status to all players and compute who has
+        # been sequestrated
+        powers_success = dict([(x.pk, True) for x in self.players])
+        powers_success.update(blockers_success)
+        sequestrated = {}
+        for src, success in blockers_success.iteritems():
+            if success:
+                for dst in block_graph[src]:
+                    if dst in blockers_success:
+                        assert not powers_success[dst]
+                    else:
+                        powers_success[dst] = False
+                    if self.players_dict[src].role.__class__ == Sequestratore:
+                        sequestrated[dst] = True
+        if DEBUG_DYNAMICS:
+            print >> sys.stderr, powers_success
+            print >> sys.stderr, sequestrated
+
+        # The compute the visit graph
+        for player in self.get_active_players():
+            if player.role.recorded_target is not None and \
+                    player.role.__class__ != Spettro and \
+                    player.pk not in sequestrated:
+                player.visiting.append(player.role.recorded_target)
+                player.role.recorded_target.visitors.append(player)
+        if DEBUG_DYNAMICS:
+            print >> sys.stderr, dict([(x, x.visiting) for x in self.get_active_players()])
+            print >> sys.stderr, dict([(x, x.visitors) for x in self.get_active_players()])
+
+        # Utility methods for later
+        def apply_role(player):
+            if player.role.recorded_target is None:
+                return
+            event = PowerOutcomeEvent(player=player, success=powers_success[player.pk], sequestrated=player.pk in sequestrated, command=player.role.recorded_command)
+            self.generate_event(event)
+            if not powers_success[player.pk]:
+                return
+            player.role.apply_dawn(self)
+
+        def apply_roles(roles):
+            for role in roles:
+                if isinstance(role, str):
+                    if role in ghosts_by_power:
+                        player = ghosts_by_power[role]
+                        apply_role(player)
+                else:
+                    if role.__name__ in players_by_role:
+                        for player in players_by_role[role.__name__]:
+                            apply_role(player)
+
+        # Apply roles of blockers computed above, so that
+        # PowerOutcomeEvent's are properly generated
+        BLOCK_ROLES = [Sequestratore, Profanatore, Esorcista,
+                       OCCULTAMENTO]
+        apply_roles(BLOCK_ROLES)
+
+        # Then powers that influence modifying powers: Guardia del
+        # Corpo and Custode del Cimitero
+        MODIFY_INFLUENCE_ROLES = [Guardia, Custode]
+        apply_roles(MODIFY_INFLUENCE_ROLES)
+
+        # Powers that influence querying powers: Fattucchiera, Spettro
+        # dell'Illusione and Spettro della Mistificazione
         QUERY_INFLUENCE_ROLES = [Fattucchiera, ILLUSIONE, MISTIFICAZIONE]
         apply_roles(QUERY_INFLUENCE_ROLES)
 
         # Powers that query the state: Espansivo, Investigatore, Mago,
         # Stalker, Veggente, Voyeur, Diavolo, Medium and Spettro della
-        # Visione (TODO)
+        # Visione
         QUERY_ROLES = [Espansivo, Investigatore, Mago, Stalker, Veggente,
                        Voyeur, Diavolo, Medium, VISIONE]
         apply_roles(QUERY_ROLES)
@@ -402,7 +461,10 @@ class Dynamics:
         # Powers that modify the state: Cacciatore, Messia, Necrofilo,
         # Lupi, Avvocato del Diavolo, Negromante, Ipnotista, Spettro
         # dell'Amnesia, Spettro della Duplicazione and Spettro della
-        # Morte (TODO)
+        # Morte
+        MODIFY_ROLES = [Cacciatore, Messia, Necrofilo, Lupo, Avvocato,
+                        Negromante, Ipnotista, AMNESIA, DUPLICAZIONE,MORTE]
+        apply_roles(MODIFY_ROLES)
 
         # Roles with no power: Contadino, Divinatore, Massone,
         # Rinnegato, Fantasma and Spettro without power

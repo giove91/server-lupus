@@ -238,9 +238,18 @@ class InitialPropositionEvent(Event):
     AUTOMATIC = False
     
     text = models.TextField()
-    
+
+    def to_dict(self):
+        ret = Event.to_dict(self)
+        ret.update({
+                'text': self.text,
+                })
+        return ret
+
+    def load_from_dict(self, data, players_map):
+        self.text = data['text']
+
     def apply(self,dynamics):
-        # TODO: Gio, qua bisogna mettere qualcosa?
         pass
     
     def to_player_string(self,player):
@@ -518,5 +527,16 @@ class MysticityKnowledgeEvent(Event):
             return u'%s ha utilizzato il proprio potere su %s, scoprendo che %sè un mistico.', (self.player.full_name, self.target.full_name, result)
 
 
+class PowerOutcomeEvent(Event):
+    RELEVANT_PHASES = [DAWN]
+    AUTOMATIC = True
 
+    player = models.ForeignKey(Player, related_name='+')
+    command = models.OneToOneField(CommandEvent)
+    success = models.BooleanField()
+    sequestrated = models.BooleanField()
+
+    def apply(self, dynamics):
+        assert self.command.type == USEPOWER
+        assert self.command.player.pk == self.player.pk
 

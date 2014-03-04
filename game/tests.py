@@ -23,14 +23,23 @@ def create_users(n):
     return users
 
 
+def delete_auto_users():
+    for user in User.objects.all():
+        if user.username.startswith('pk'):
+            user.delete()
+
+
+def delete_games():
+    for game in Game.objects.all():
+        game.delete()
+
+
 def create_test_game(seed, roles):
     game = Game(running=True)
     game.save()
     game.initialize(get_now())
 
-    create_users(len(roles))
-
-    users = User.objects.all()
+    users = create_users(len(roles))
     for user in users:
         if user.is_staff:
             raise Exception()

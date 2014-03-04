@@ -1,5 +1,6 @@
 from datetime import datetime
 from threading import RLock
+import sys
 
 from django.db import models
 from django import forms
@@ -102,6 +103,19 @@ class Game(models.Model):
         _dynamics_map[self.pk].update()
         return _dynamics_map[self.pk]
 
+    def recompute_automatic_events(self):
+        """This is not really race-free, so use with care..."""
+        global _dynamics_map
+        global _dynamics_map_lock
+        with _dynamics_map_lock:
+            if self.pk in _dynamics_map:
+                from dynamics import Dynamics
+                del _dynamics_map[self.pk]
+            for event in Event.objects.filter(turn__game=self):
+                if event.as_child().AUTOMATIC:
+                    event.delete()
+
+
     def get_active_players(self):
         """Players are guaranteed to be sorted in a canonical order,
         which does not change neither by restarting the server (but it
@@ -151,7 +165,8 @@ class Game(models.Model):
 # Delete the dynamics object when the game is deleted
 def game_pre_delete_callback(sender, instance, **kwargs):
     with _dynamics_map_lock:
-        del _dynamics_map[instance.pk]
+        if instance.pk in _dynamics_map:
+            del _dynamics_map[instance.pk]
 pre_delete.connect(game_pre_delete_callback, sender=Game)
 
 class Turn(models.Model):
@@ -331,7 +346,6 @@ class Player(models.Model):
             return "Unassigned"
     role_name = property(get_role_name)
     
-    # TODO: Gio, e' giusto che si chiami self.canonicalize() in ognuna di queste funzioni?
     def aura_as_italian_string(self):
         canonical = self.canonicalize()
         return AURA_IT[ canonical.aura ]

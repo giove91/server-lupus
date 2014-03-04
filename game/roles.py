@@ -22,6 +22,7 @@ class Role(object):
         self.recorded_target = None
         self.recorded_target2 = None
         self.recorded_target_ghost = None
+        self.recorded_command = None
 
     def __unicode__(self):
         return u"%s" % self.name
@@ -51,6 +52,7 @@ class Role(object):
         self.recorded_target = None
         self.recorded_target2 = None
         self.recorded_target_ghost = None
+        self.recorded_command = None
 
     def apply_usepower(self, dynamics, event):
         # First checks
@@ -78,16 +80,19 @@ class Role(object):
         else:
             assert event.target_ghost is None or event.target_ghost in targets_ghost
 
-        # Record targets
+        # Record targets and command
         self.recorded_target = event.target
         self.recorded_target2 = event.target2
         self.recorded_target_ghost = event.target_ghost
+        self.recorded_command = event
 
     def apply_dawn(self, dynamics):
-        raise NotImplementedError("Please extend this method in subclasses")
+        # FIXME: to test
+        #raise NotImplementedError("Please extend this method in subclasses")
+        pass
 
-    def get_blocked(self, blockers, ghost):
-        raise NotImplementedError("Please extend this method in relevant subclasses")
+    def get_blocked(self, players, ghost):
+        return []
 
 
 # Fazione dei Popolani
@@ -143,7 +148,7 @@ class Esorcista(Role):
     def get_targets(self):
         return self.player.game.get_active_players()
 
-    def get_blocked(self, blockers, ghost):
+    def get_blocked(self, players, ghost):
         if ghost is not None and \
                 ghost.role.recorded_target is not None and \
                 self.recorded_target is not None and \
@@ -367,7 +372,7 @@ class Profanatore(Role):
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
-    def get_blocked(self, blockers, ghost):
+    def get_blocked(self, players, ghost):
         if ghost is not None and self.recorded_target is not None and ghost.pk == self.recorded_target.pk:
             return [ghost.pk]
         else:
@@ -396,7 +401,7 @@ class Sequestratore(Role):
             excluded.append(self.last_target.pk)
         return [player for player in self.player.game.get_alive_players() if player.pk not in excluded]
 
-    def get_blocked(self, blockers, ghost):
+    def get_blocked(self, players, ghost):
         if self.recorded_target is not None:
             return [self.recorded_target.pk]
         else:
@@ -517,12 +522,12 @@ class Spettro(Role):
         else:
             raise NotImplementedError()
 
-    def get_blocked(self, blockers, ghost):
+    def get_blocked(self, players, ghost):
         if self.power == OCCULTAMENTO:
             if self.recorded_target is None:
                 return []
             ret = []
-            for blocker in blockers:
+            for blocker in players:
                 if blocker.role.__class__ == Esorcista:
                     continue
                 if blocker.pk == self.player.pk:
