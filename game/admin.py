@@ -41,16 +41,21 @@ class CommentAdmin(admin.ModelAdmin):
     search_fields = ['user__first_name', 'user__last_name', 'text']
 
 class EventAdmin(admin.ModelAdmin):
+    list_filter = ['turn']
     list_display = ('subclass', 'turn', 'is_automatic', 'timestamp', 'pk')
 
 class CommandEventAdmin(admin.ModelAdmin):
+    list_filter = ['type', 'turn']
     list_display = ('event_name', 'turn', 'timestamp', 'player', 'type', 'target', 'target2', 'target_ghost')
+    search_fields = ['player__user__first_name', 'player__user__last_name']
 
 class InitialPropositionEventAdmin(admin.ModelAdmin):
     list_display = ('event_name', 'turn', 'timestamp', 'text')
 
 class RoleKnowledgeEventAdmin(admin.ModelAdmin):
+    list_filter = ['cause', 'turn']
     list_display = ('event_name', 'turn', 'timestamp', 'player', 'target', 'role_name', 'cause')
+    search_fields = ['player__user__first_name', 'player__user__last_name', 'target__user__first_name', 'target__user__last_name']
 
 admin.site.register(Player, PlayerAdmin)
 admin.site.register(Event, EventAdmin)
