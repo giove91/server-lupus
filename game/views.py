@@ -114,7 +114,7 @@ def advance_turn(request):
     turn.end = get_now()
     turn.save()
     game.advance_turn()
-    return render(request, 'index.html')
+    return redirect('status')
 
 
 def ruleset(request):
@@ -198,7 +198,9 @@ class Weather:
     type = property(weather_type)
     
     def adjective(self):
-        if self.type == 'light rain' or self.type == 'heavy rain':
+        if self.type == 'light rain':
+            return u'umid'
+        elif self.type == 'heavy rain':
             return u'piovos'
         elif self.type == 'cloudy':
             return u'nuvolos'

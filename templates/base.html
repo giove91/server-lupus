@@ -30,9 +30,14 @@
                     {% endif %}
                     </div>
                     {% if user.is_authenticated %}
-                    <div class="username">
-                        Sei loggato come {{ user.username }} ({{ user.first_name }} {{ user.last_name }})
-                    </div>
+                        <div class="username">
+                            Sei loggato come {{ user.username }} ({{ user.first_name }} {{ user.last_name }})
+                        </div>
+                    {% endif %}
+                    {% if user.is_staff and player %}
+                        <div class="point-of-view">
+                            Punto di vista di {{ player.full_name }}
+                        </div>
                     {% endif %}
 			    </span>
 			    <ul>
@@ -50,8 +55,17 @@
         
 	    <div class="clear"></div>
         
+        <div class="grid_16">
+			<div class="security-banner">
+				<img id="visibility-indicator" src="{% static "classified.png" %}" />
+				In questa pagina ci sono informazioni riservate. Non farle vedere ad altri.
+			</div>
+        </div>
+        
+        <div class="clear vertical-space"></div>
+        
         <div class="grid_3">
-	        <div id="nav-menu">
+	        <div class="nav-menu">
 	            <h1>Area riservata</h1>
 	            <ul>
                     <li><a href="{% url 'personalinfo' %}">Informazioni personali</a></li>
@@ -61,77 +75,35 @@
                     {% if player.is_mayor %}
                         <li><a href="{% url 'appoint' %}">Designa successore</a></li>
                     {% endif %}
-                    <li><a href="{% url 'contacts' %}">Contatti</a></li>
                     <li><a href="{% url 'comment' %}">Commenti alla partita</a></li>
                 </ul>
 	        </div>
+	        
+	        <div class="nav-menu">
+	            <h1>Altro</h1>
+	            <ul>
+                    <li><a href="{% url 'contacts' %}">Contatti</a></li>
+                    <li><a href="{% url 'credits' %}">Riconoscimenti</a></li>
+                </ul>
+	        </div>
+	        
+	        {% if user.is_staff %}
+            <div class="nav-menu">
+	            <h1>GM</h1>
+                <ul>
+                    <li><a href="{% url 'setup' %}">Setup</a></li>
+                    <li><a href="{% url 'advanceturn' %}">Turno successivo</a></li>
+                    <li><a href="{% url 'createletters' %}">Crea lettere iniziali</a></li>
+                    <li><a href="{% url 'pointofview' %}">Punto di vista</a></li>
+                </ul>
+            </div>
+            {% endif %}
 	        
 	    </div>
 	    
 	    {% block content %}{% endblock %}
 
 	    <div class="clear"></div>
-    </div>
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    {% if user.is_authenticated %}
-    <div id="user_block">
-        Sei loggato come {{ user.username }}
-        {% if player != None %}
-            ({{ player.user.first_name }} {{ player.user.last_name }})
-        {% endif %}
-    </div>
-    {% endif %}
-    
-    {% if game %}
-    <div id="game_block">
-        Turno: {{ current_turn.turn_as_italian_string_property }}
-    </div>
-    {% endif %}
-    
-    
-    
-    <div id="sidebar">
-        {% block sidebar %}
-        
-        <ul>
-            <li><a href="/">Home</a></li>
-            {% if user.is_authenticated %}
-            <li><a href="{% url 'logout' %}">Logout</a> ({{ user.username }})</li>
-            {% else %}
-            <li><a href="{% url 'login' %}">Login</a></li>
-            {% endif %}
-            
-            <li><a href="{% url 'status' %}">Stato del villaggio</a></li>
-            <li><a href="{% url 'ruleset' %}">Regolamento</a></li>
-            <li><a href="{% url 'credits' %}">Riconoscimenti</a></li>
-        </ul>
-        
-        
-        
-        {% if user.is_staff %}
-        
-        Amministrazione
-        
-        <ul>
-            
-            <li><a href="{% url 'setup' %}">Setup</a></li>
-            <li><a href="{% url 'advanceturn' %}">Turno successivo</a></li>
-            <li><a href="{% url 'createletters' %}">Crea lettere iniziali</a></li>
-            <li><a href="{% url 'pointofview' %}">Punto di vista</a></li>
-        </ul>
-        
-        {% endif %}
-        
-        {% endblock %}
     </div>
     
 </body>

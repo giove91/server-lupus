@@ -1,5 +1,7 @@
 body {
 	background-color: #d5d9e0;
+	background-image: url('bg-gradient.png');
+	color: #272a2e;
 }
 
 h1 {
@@ -31,29 +33,14 @@ h3 {
 
 p {
 	margin-bottom: 3px;
-	color: #272a2e;
 }
 
-thead {
-	border-bottom: 1px;
-	border-color:  #272a2e;
-	border-style: solid;
+.name-container {
+	width: 140px;
 }
 
-td {
-	border-left: 1px;
-	border-color: #272a2e;
-	border-style: solid;
-	
-	padding: 2px 6px 2px 6px;
-}
-
-td:first-child {
-	border-style: none;
-}
-
-thead td {
-	padding-top: 0px;
+.vote-container {
+	width: 20px;
 }
 
 .info-block {
@@ -63,14 +50,89 @@ thead td {
 	margin-bottom: 25px;
 }
 
+.info-block table {
+	width: 90%;
+	margin-bottom: 10px;
+}
+
+.info-block thead {
+	border-bottom: 1px;
+	border-color:  #272a2e;
+	border-style: solid;
+	background-color: #f1f1f1;
+}
+
+.info-block td {
+	border-left: 1px;
+	border-color: #272a2e;
+	border-style: solid;
+	
+	padding: 2px 6px 2px 6px;
+}
+
+.info-block td:first-child {
+	border-style: none;
+}
+
+.info-block thead td {
+	padding-top: 0px;
+}
+
+.info-block table.normal {
+    width: auto;
+}
+
+.info-block table.normal td {
+    padding: 1px 6px 1px 6px;
+}
+
+.info-block ul {
+	list-style-type: none;
+	padding: 0px;
+	padding-left:0;
+	margin: 0 7px 5px 0;
+}
+
+.info-block ul li {
+	padding-left: 20px;
+	margin: 0px; 
+}
+
+.separator {
+	height: 1px;
+	background-color: #bbb;
+	width: 100%;
+	margin: 5px 0px 12px 0;
+}
+
+.separator h2 {
+	display: inline-block;
+	margin-left: 10px;
+	padding: 0 7px 0 7px;
+	background-color: #fff;
+	position: relative; top: -9px;
+	
+}
+
 .players-status {
 	text-align: right;
-	padding: 7px 7px 3px 2px;
+	/*padding: 7px 7px 3px 2px;*/
+	background-color: #fcfcfc;
 	/*margin-left: 10px;*/
+	font-size: 12px;
 }
 
 .players-status h2 {
-	margin-bottom: 1px;
+	display: block;
+	padding: 0 7px 0 7px;
+	font-size: 14px;
+	font-family: sans;
+	font-weight: bold;
+	text-transform:uppercase;
+	/*color: #272a2e;*/
+	color: #F7F8FC;
+	background-color: #383c42;
+	margin-bottom: 4px;
 }
 
 .players-status ul {
@@ -78,7 +140,7 @@ thead td {
 	list-style-type: none;
 	padding: 0px;
 	padding-left:0;
-	margin: 0 0 20px 0;
+	margin: 0 7px 5px 0;
 }
 
 .players-status ul li {
@@ -108,7 +170,7 @@ thead td {
 
 #header {
 	position: relative;
-	margin-bottom: 20px;
+	margin-bottom: 10px;
 }
 
 #header-upper {
@@ -146,8 +208,8 @@ thead td {
 }
 
 #header-upper a:link, #header-upper a:visited, #header-upper a:hover, #header-upper a:active {
-	color: #fff;
-	text-decoration: none;
+	color: inherit;
+	text-decoration: inherit;
 }
 
 
@@ -176,39 +238,76 @@ thead td {
 	font-weight: normal;
 }
 
-#nav-menu {
-	
-}
-
-#nav-menu ul {
-	list-style-type: none;
-	padding: 0px;
-	padding-left:0;
-	margin: 0px;
+.point-of-view {
+	font-size: 12px;
+	text-transform: none;
 	font-weight: bold;
+	color: #ff0000;
+}
+
+.nav-menu {
+	width: 155px;
+	/*background-color: #eaebef;*/
+}
+
+.nav-menu h1 {
+	display: block;
+	padding: 0 7px 0 7px;
 	font-size: 14px;
-	color: #383c42;
-}
-
-#nav-menu ul li {
-	padding-left: 0px; 
-	margin: 0px; 
-}
-
-#nav-menu h1 {
-	font-size: 16px;
 	font-family: sans;
 	font-weight: bold;
 	text-transform:uppercase;
-	color: #272a2e;
+	/*color: #272a2e;*/
+	color: #f7f8fc;
+	background-color: #383c42;
+	margin-bottom: 4px;
+}
+
+.nav-menu ul {
+	list-style-type: none;
 	margin-bottom: 7px;
-}
-
-#nav-menu a:link, #nav-menu a:visited, #nav-menu a:hover, #nav-menu a:active {
+	font-weight: bold;
+	font-size: 12px;
 	color: #383c42;
-	text-decoration: none;
 }
 
+.nav-menu ul li {
+	padding-left: 7px;
+	margin: 0 0 1px 0; 
+}
+
+.nav-menu ul li:hover {
+	background-color: #eaebef; 
+}
+
+.nav-menu a:link, .nav-menu a:visited, .nav-menu a:hover, .nav-menu a:active {
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	color: inherit;
+	text-decoration: inherit;
+}
+
+.security-banner {
+	background-color: #fdf5f5;
+	margin-bottom: 10px;
+	padding: 5px 10px 5px 10px;
+	font-weight: bold;
+	color: #383C42;
+	font-size: 14px;
+}
+
+.vertical-space {
+	margin-bottom: 15px;
+}
+
+#visibility-indicator {
+	display:inline-block;
+	width: 140px;
+	height: auto;
+	margin-right: 30px;
+	/*float: left;*/
+}
 
 #logo {
 	position: absolute;
@@ -216,3 +315,4 @@ thead td {
 	top: 0;
 	z-index: 2;
 }
+
