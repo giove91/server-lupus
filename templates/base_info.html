@@ -1,20 +1,28 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div id="content" class="grid_10">
-    
-    {% block personal_info %}{% endblock %}
-    
-    {% include "status.html" %}
-    
-    {% block events %}{% endblock %}
-	{% include "events.html" %}
+
+{% if current_turn.phase == DAY or current_turn.phase == NIGHT or user.is_staff %}
+    <div id="content" class="grid_10">
+        
+        {% block personal_info %}{% endblock %}
+        
+        {% include "status.html" with display_mayor=True %}
+        
+        {% block events_title %}{% endblock %}
+	    {% include "events.html" %}
 	
-</div>
-<div class="grid_3">
-    
-    {% include "players.html" %}
-    
-</div>
+    </div>
+    <div class="grid_3">
+        
+        {% include "players.html" %}
+        
+    </div>
+{% else %}
+    <div id="content" class="grid_13">
+        {% include "status.html" with display_mayor=False %}
+    </div>
+{% endif %}
+
 {% endblock %}
 

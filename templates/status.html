@@ -41,15 +41,17 @@
             Alcuni ne approfittano portando avanti le proprie losche attività; altri, invece, cercano di prendere sonno nella speranza di risvegliarsi di nuovo.
         {% endif %}
         {% if weather.type == "light rain" %}
-            
+            Una piogga leggera rompe delicatamente il silenzio della notte.
+            Ogni tanto si possono a malapena percepire anche dei passi frettolosi, ai quali l'oscurità impedisce di attribuire un nome.
         {% endif %}
         {% if weather.type == "heavy rain" %}
-            
+            Il rumore della pioggia battente copre quasi qualsiasi altro suono.
+            Ma, attraverso l'oscurità impenetrabile, si possono talvolta distinguere degli ululati.
         {% endif %}
     {% endif %}
 </p>
 
-{% if game %}
+{% if display_mayor %}
     <p>Il Sindaco del villaggio è {{ game.mayor.full_name }}.</p>
 {% endif %}
 

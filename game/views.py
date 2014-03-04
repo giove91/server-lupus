@@ -165,7 +165,7 @@ class Weather:
         # Fetching weather data from openweathermap.org
         url = 'http://api.openweathermap.org/data/2.5/weather?q=Pisa&mode=xml&APPID=a7956a78c44d8f1d55ce58ad08e0e2b3'
         try:
-            data = urllib2.urlopen(url, timeout = 2)
+            data = urllib2.urlopen(url, timeout = 3)
             rawdata = data.read()
             root = ET.fromstring(rawdata)
             self.description = int( root.find('weather').get('number') )
@@ -185,9 +185,9 @@ class Weather:
         # see http://bugs.openweathermap.org/projects/api/wiki/Weather_Condition_Codes
         if self.description is None:
             return 'unknown'
-        elif 500 <= self.description <= 501:
+        elif 300 <= self.description <= 321 or 500 == self.description:
             return 'light rain'
-        elif 200 <= self.description <= 232 or 502 <= self.description <= 531:
+        elif 200 <= self.description <= 232 or 501 <= self.description <= 531:
             return 'heavy rain'
         elif 802 <= self.description <= 804:
             return 'cloudy'
@@ -209,24 +209,53 @@ class Weather:
     adjective = property(adjective)
 
 
+def get_weather(request):
+    stored_weather = request.session.get('weather', None)
+    weather = Weather(stored_weather)
+    uptodate = weather.get_data()
+    if not uptodate:
+        request.session['weather'] = weather.stored()
+    return weather
+
 # View of village status and public events
 class VillageStatusView(View):
     def get(self, request):
         
         game = request.game
         events = get_events(request, 'public')
-        
-        stored_weather = request.session.get('weather', None)
-        weather = Weather(stored_weather)
-        uptodate = weather.get_data()
-        if not uptodate:
-            request.session['weather'] = weather.stored()
+        weather = get_weather(request)
         
         context = {
-            'weather': weather,
             'events': events,
+            'weather': weather,
         }   
         return render(request, 'public_info.html', context)
+
+
+# View of personal info and events
+class PersonalInfoView(View):
+    def get(self, request):
+        
+        if request.player is None:
+            return redirect('pointofview')
+        
+        player = request.player.canonicalize()
+        game = player.game
+        
+        events = get_events(request, player)
+        weather = get_weather(request)
+        
+        context = {
+            'events': events,
+            'weather': weather,
+        }
+        
+        return render(request, 'personal_info.html', context)
+    
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(PersonalInfoView, self).dispatch(*args, **kwargs)
+
 
 
 # "Generic" form for submitting actions
@@ -313,8 +342,7 @@ class CommandView(View):
     
     def get(self, request):
         if request.player is None:
-            # TODO: fare qualcosa di piu' ragionevole, tipo reindirizzare alla pagina in cui l'amministratore puo' trasformarsi in un altro giocatore.
-            return render(request, 'index.html')
+            return redirect('pointofview')
         
         if not self.check(request):
             return self.not_allowed(request)
@@ -492,28 +520,6 @@ class AppointView(CommandView):
 
 
 
-class PersonalInfoView(View):
-    def get(self, request):
-        
-        if request.player is None:
-            # TODO: fare qualcosa di piu' ragionevole, tipo reindirizzare alla pagina in cui l'amministratore puo' trasformarsi in un altro giocatore.
-            return render(request, 'index.html')
-        
-        player = request.player.canonicalize()
-        game = player.game
-        # TODO : forse bisognerebbe fare dei controlli per verificare (tipo) che la partita sia in corso
-        
-        events = get_events(request, player)
-        
-        context = {
-            'events': events,
-        }
-        
-        return render(request, 'personal_info.html', context)
-    
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(PersonalInfoView, self).dispatch(*args, **kwargs)
 
 
 class ContactsView(ListView):
