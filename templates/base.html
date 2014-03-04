@@ -55,12 +55,14 @@
         
 	    <div class="clear"></div>
         
-        <div class="grid_16">
-			<div class="security-banner">
-				<img id="visibility-indicator" src="{% static "classified.png" %}" />
-				In questa pagina ci sono informazioni riservate. Non farle vedere ad altri.
-			</div>
-        </div>
+        {% if classified %}
+            <div class="grid_16">
+			    <div class="security-banner">
+				    <img id="visibility-indicator" src="{% static "classified.png" %}" />
+				    Questa pagina contiene informazioni riservate. Accertati di essere da sol{{ user.profile.oa }}.
+			    </div>
+            </div>
+        {% endif %}
         
         <div class="clear vertical-space"></div>
         

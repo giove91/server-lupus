@@ -11,7 +11,7 @@
         <form action="{% url 'pointofview' %}" method="post">
         {% csrf_token %}
         {{ form.as_p }}
-        <input type="submit" value="Cambia punto di vista" />
+        <p><input type="submit" value="Cambia punto di vista" /></p>
         </form>
         </p>
         

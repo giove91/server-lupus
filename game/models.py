@@ -264,6 +264,14 @@ class Profile(models.Model):
     
     user = models.OneToOneField(User)
     gender = models.CharField(max_length=1, choices=GENDERS)
+    
+    # Returns 'o' or 'a' depending on the gender
+    def get_oa(self):
+        if self.gender == FEMALE:
+            return 'a'
+        else:
+            return 'o'
+    oa = property(get_oa)
 
 
 class Player(models.Model):
@@ -282,7 +290,7 @@ class Player(models.Model):
     game = models.ForeignKey(Game)
     
     class Meta:
-        ordering = ['user']
+        ordering = ['user__last_name', 'user__first_name']
     
     def get_full_name(self):
         return "%s %s" % (self.user.first_name, self.user.last_name)
@@ -300,10 +308,10 @@ class Player(models.Model):
     
     # Returns 'o' or 'a' depending on the player's gender
     def get_oa(self):
-        if self.gender == MALE:
+        try:
+            return self.user.profile.oa
+        except Profile.DoesNotExist:
             return 'o'
-        else:
-            return 'a'
     oa = property(get_oa)
     
     

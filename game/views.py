@@ -250,6 +250,7 @@ class PersonalInfoView(View):
         context = {
             'events': events,
             'weather': weather,
+            'classified': True,
         }
         
         return render(request, 'personal_info.html', context)
@@ -320,10 +321,10 @@ class CommandView(View):
         raise Exception ('Command not specified.')
     
     def not_allowed(self, request):
-        return render(request, 'command_not_allowed.html', {'message': 'Non puoi eseguire questa azione.', 'title': self.title})
+        return render(request, 'command_not_allowed.html', {'message': 'Non puoi eseguire questa azione.', 'title': self.title, 'classified': True})
     
     def submitted(self, request):
-        return render(request, 'command_submitted.html', {'title': self.title})
+        return render(request, 'command_submitted.html', {'title': self.title, 'classified': True})
     
     def save_command(self, request, cleaned_data):
         # Validates the form data and possibly saves the command, returning True in case of success and False otherwise
@@ -338,9 +339,9 @@ class CommandView(View):
             if self.save_command(request, form.cleaned_data):
                 return self.submitted(request)
             else:
-                return render(request, 'command_not_allowed.html', {'message': 'La scelta effettuata non &egrave; valida.'})
+                return render(request, 'command_not_allowed.html', {'message': 'La scelta effettuata non &egrave; valida.', 'classified': True})
         else:
-            return render(request, self.template_name, {'form': form})
+            return render(request, self.template_name, {'form': form, 'classified': True})
     
     def get(self, request):
         if request.player is None:
@@ -350,7 +351,13 @@ class CommandView(View):
             return self.not_allowed(request)
         
         form = CommandForm(fields=self.get_fields(request))
-        return render(request, self.template_name, {'form': form, 'title': self.title, 'url_name': self.url_name})
+        context = {
+            'form': form,
+            'title': self.title,
+            'url_name': self.url_name,
+            'classified': True,
+        }
+        return render(request, self.template_name, {'form': form, 'title': self.title, 'url_name': self.url_name, 'classified': True})
     
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -563,7 +570,7 @@ class PointOfView(View):
     def get(self, request):
         player = request.player
         form = ChangePointOfViewForm(initial={'player': player})
-        return render(request, 'point_of_view.html', {'form': form, 'message': None})
+        return render(request, 'point_of_view.html', {'form': form, 'message': None, 'classified': True})
     
     def post(self, request):
         player = request.player
@@ -580,9 +587,9 @@ class PointOfView(View):
             request.player = player
             
             form2 = ChangePointOfViewForm(initial={'player': player})
-            return render(request, 'point_of_view.html', {'form': form, 'message': 'Punto di vista cambiato con successo'})
+            return render(request, 'point_of_view.html', {'form': form, 'message': 'Punto di vista cambiato con successo', 'classified': True})
         else:
-            return render(request, 'point_of_view.html', {'form': form, 'message': 'Scelta non valida'})
+            return render(request, 'point_of_view.html', {'form': form, 'message': 'Scelta non valida', 'classified': True})
     
     @method_decorator(user_passes_test(is_GM_check))
     def dispatch(self, *args, **kwargs):
@@ -620,7 +627,7 @@ class CommentView(View):
         form = CommentForm()
         old_comments = Comment.objects.filter(user=user).filter(turn__game=game).filter(visible=True).order_by('-timestamp')
         can_comment = self.can_comment(request)
-        return render(request, 'comment.html', {'form': form, 'old_comments': old_comments, 'can_comment': can_comment})
+        return render(request, 'comment.html', {'form': form, 'old_comments': old_comments, 'can_comment': can_comment, 'classified': True})
     
     def post(self, request):
         form = CommentForm(request.POST)
