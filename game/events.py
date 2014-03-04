@@ -445,7 +445,7 @@ class RoleKnowledgeEvent(Event):
         
         if self.cause == SOOTHSAYER:
             if player == 'admin':
-                return u'Il Divinatore %s viene a conoscenza della frase: %s' % (self.player.full_name, self.to_soothsayer_proposition())
+                return u'Il Divinatore %s riceve la frase: "%s"' % (self.player.full_name, self.to_soothsayer_proposition())
         
         elif self.cause == EXPANSIVE:
             if player == self.player:

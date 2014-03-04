@@ -20,6 +20,7 @@ urlpatterns = patterns('',
     url(r'^contacts/$', ContactsView.as_view(), name='contacts'),
     url(r'^comment/$', CommentView.as_view(), name='comment'),
     
+    url(r'^adminstatus/$', AdminStatusView.as_view(), name='adminstatus'),
     url(r'^setup/$', setup, name='setup'),
     url(r'^advanceturn/$', advance_turn, name='advanceturn'),
     url(r'^createletters/$', create_letters, name='createletters'),

@@ -56,6 +56,7 @@ def get_events(request, player):
         event = e.as_child()
         message = event.to_player_string(player)
         if message is not None:
+            assert event.turn in result.keys()
             result[event.turn]['standard'].append(message)
         
         if event.subclass == 'VoteAnnouncedEvent':
@@ -258,6 +259,25 @@ class PersonalInfoView(View):
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         return super(PersonalInfoView, self).dispatch(*args, **kwargs)
+
+
+# View of all info (for GM only)
+class AdminStatusView(View):
+    def get(self, request):
+        events = get_events(request, 'admin')
+        weather = get_weather(request)
+        
+        context = {
+            'events': events,
+            'weather': weather,
+            'classified': True,
+        }
+        
+        return render(request, 'public_info.html', context)
+    
+    @method_decorator(user_passes_test(is_GM_check))
+    def dispatch(self, *args, **kwargs):
+        return super(AdminStatusView, self).dispatch(*args, **kwargs)
 
 
 
