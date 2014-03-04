@@ -50,7 +50,7 @@ def get_events(request, player):
     
     events = Event.objects.filter(turn__game=game).order_by('timestamp', 'pk')
     
-    result = { turn: { 'standard': [], VOTE: {}, ELECT: {}, 'initial_propositions': [] } for turn in turns }
+    result = { turn: { 'standard': [], VOTE: {}, ELECT: {}, 'initial_propositions': [], 'soothsayer_propositions': [] } for turn in turns }
     
     for e in events:
         event = e.as_child()
@@ -73,6 +73,9 @@ def get_events(request, player):
         
         if event.subclass == 'InitialPropositionEvent':
             result[event.turn]['initial_propositions'].append(event.text)
+        
+        if event.subclass == 'RoleKnowledgeEvent' and event.cause == SOOTHSAYER and event.player == player:
+            result[event.turn]['soothsayer_propositions'].append(event.to_soothsayer_proposition())
     
     ordered_result = [ (turn, result[turn]) for turn in turns ]
     return ordered_result

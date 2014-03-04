@@ -435,10 +435,8 @@ class RoleKnowledgeEvent(Event):
         role = self.role_name
         
         if self.cause == SOOTHSAYER:
-            if player == self.player:
-                return u'Le tue straordinarie capacità divinatorie ti permettono di sapere che %s potrebbe avere il ruolo di %s.' % (self.target.full_name, role)
-            elif player == 'admin':
-                return u'Il Divinatore %s viene a sapere che forse %s ha il ruolo di %s.' % (self.player.full_name, self.target.full_name, role)
+            if player == 'admin':
+                return u'Il Divinatore %s viene a conoscenza della frase: %s' % (self.player.full_name, self.to_soothsayer_proposition())
         
         elif self.cause == EXPANSIVE:
             if player == self.player:
@@ -460,6 +458,14 @@ class RoleKnowledgeEvent(Event):
         
         else:
             raise Exception ('Unknown cause for RoleKnowledgeEvent.')
+        
+        return None
+    
+    def to_soothsayer_proposition(self):
+        assert self.cause == SOOTHSAYER
+        # TODO: risalire al nome esteso del ruolo
+        role = self.role_name
+        return u'%s ha il ruolo di %s.' % (self.target.full_name, role)
 
 
 class AuraKnowledgeEvent(Event):
@@ -485,6 +491,7 @@ class AuraKnowledgeEvent(Event):
             return u'Hai utilizzato il tuo potere su %s, scoprendo che ha aura %s.' % (self.target.full_name, aura)
         elif player == 'admin':
             return u'%s ha utilizzato il proprio potere su %s, scoprendo che ha aura %s.', (self.player.full_name, self.target.full_name, aura)
+        return None
             
 
 

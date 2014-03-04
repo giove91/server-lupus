@@ -10,6 +10,15 @@
         {% endfor %}
         
         {% if turn.phase == CREATION %}
+            {% if values.soothsayer_propositions %}
+                <p>In virtù del tuo potere ti vengono fornite le seguenti quattro proposizioni, di cui esattamente due sono vere ed esattamente due sono false.
+                <ul>
+                    {% for text in values.soothsayer_propositions %}
+                        <li>{{ text }}</li>
+                    {% endfor %}
+                </ul>
+                </p>
+            {% endif %}
             {% if values.initial_propositions %}
                 <p>Alcune recenti indagini hanno portato alla luce le seguenti preziose informazioni, che potrete usare a vostro vantaggio.
                 <ul>

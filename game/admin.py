@@ -31,15 +31,6 @@ class PlayerAdmin(admin.ModelAdmin):
     #list_filter = ['team', 'alive', 'active']
     search_fields = ['user__first_name', 'user__last_name']
 
-class EventAdmin(admin.ModelAdmin):
-    list_display = ('subclass', 'turn', 'is_automatic', 'timestamp', 'pk')
-
-class CommandEventAdmin(admin.ModelAdmin):
-    list_display = ('event_name', 'turn', 'timestamp', 'player', 'type', 'target', 'target2', 'target_ghost')
-
-class InitialPropositionEventAdmin(admin.ModelAdmin):
-    list_display = ('event_name', 'turn', 'timestamp', 'text')
-
 class AnnouncementAdmin(admin.ModelAdmin):
     list_display = ('announcement_name', 'timestamp', 'text', 'visible')
     list_filter = ['visible']
@@ -49,6 +40,17 @@ class CommentAdmin(admin.ModelAdmin):
     list_filter = ['visible']
     search_fields = ['user__first_name', 'user__last_name', 'text']
 
+class EventAdmin(admin.ModelAdmin):
+    list_display = ('subclass', 'turn', 'is_automatic', 'timestamp', 'pk')
+
+class CommandEventAdmin(admin.ModelAdmin):
+    list_display = ('event_name', 'turn', 'timestamp', 'player', 'type', 'target', 'target2', 'target_ghost')
+
+class InitialPropositionEventAdmin(admin.ModelAdmin):
+    list_display = ('event_name', 'turn', 'timestamp', 'text')
+
+class RoleKnowledgeEventAdmin(admin.ModelAdmin):
+    list_display = ('event_name', 'turn', 'timestamp', 'player', 'target', 'role_name', 'cause')
 
 admin.site.register(Player, PlayerAdmin)
 admin.site.register(Event, EventAdmin)
@@ -59,3 +61,5 @@ admin.site.register(Comment, CommentAdmin)
 
 admin.site.register(CommandEvent, CommandEventAdmin)
 admin.site.register(InitialPropositionEvent, InitialPropositionEventAdmin)
+admin.site.register(RoleKnowledgeEvent, RoleKnowledgeEventAdmin)
+
