@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="content" class="grid_13">
+    <h1>{{ title }}</h1>
+    
+    <div class="info-block">
+        <form action="{% url url_name %}" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Invia" />
+        </form>
+    </div>
+</div>
+{% endblock %}
+
