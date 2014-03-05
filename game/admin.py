@@ -57,6 +57,12 @@ class RoleKnowledgeEventAdmin(admin.ModelAdmin):
     list_display = ('event_name', 'turn', 'timestamp', 'player', 'target', 'role_name', 'cause')
     search_fields = ['player__user__first_name', 'player__user__last_name', 'target__user__first_name', 'target__user__last_name']
 
+class PowerOutcomeEventAdmin(admin.ModelAdmin):
+    list_filter = ['success', 'turn']
+    list_display = ('event_name', 'turn', 'timestamp', 'player', 'success', 'sequestrated')
+    search_fields = ['player__user__first_name', 'player__user__last_name']
+
+
 admin.site.register(Player, PlayerAdmin)
 admin.site.register(Event, EventAdmin)
 admin.site.register(Game, GameAdmin)
@@ -67,4 +73,5 @@ admin.site.register(Comment, CommentAdmin)
 admin.site.register(CommandEvent, CommandEventAdmin)
 admin.site.register(InitialPropositionEvent, InitialPropositionEventAdmin)
 admin.site.register(RoleKnowledgeEvent, RoleKnowledgeEventAdmin)
+admin.site.register(PowerOutcomeEvent, PowerOutcomeEventAdmin)
 

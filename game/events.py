@@ -537,4 +537,31 @@ class PowerOutcomeEvent(Event):
     def apply(self, dynamics):
         assert self.command.type == USEPOWER
         assert self.command.player.pk == self.player.pk
+        # TODO: Gio, qua si può asserire che self.command.target non è None?
+    
+    def to_player_string(self, player):
+        target = self.command.target
+        target2 = self.command.target2
+        target_ghost = self.command.target_ghost
+        oa = self.player.oa
+        
+        if self.success:
+            if player == self.player:
+                return u'Hai utilizzato con successo il tuo potere su %s.' % target.full_name
+            
+            elif player == 'admin':
+                return u'%s ha utilizzato con successo il proprio potere su %s.' % (self.player.full_name, target.full_name)
+        
+        else:
+            if player == self.player:
+                return u'Ti risvegli confus%s e stordit%s: l\'unica cosa di cui sei cert%s è di non essere riuscit%s ad utilizzare il tuo potere su %s, questa notte.' % (oa, oa, oa, oa, target.full_name)
+            
+            elif player == 'admin':
+                string = u'%s non è riuscit%s ad utilizzare il proprio potere su %s, questa notte ' % (self.player.full_name, oa, target.full_name)
+                if self.sequestrated:
+                    string += '(sequestrat%s)' % oa
+                else:
+                    string += '(non sequestrat%s)' %oa
+
+
 

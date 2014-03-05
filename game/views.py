@@ -224,6 +224,9 @@ class VillageStatusView(View):
     def get(self, request):
         
         game = request.game
+        if game is None:
+            return redirect('home')
+        
         events = get_events(request, 'public')
         weather = get_weather(request)
         
