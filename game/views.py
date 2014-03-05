@@ -43,7 +43,6 @@ def get_events(request, player):
     game = request.game
     dynamics = game.get_dynamics()
     
-    # TODO: prendere le cose dalla dynamics
     if player == 'admin':
         turns = dynamics.turns
     else:

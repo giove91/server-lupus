@@ -440,8 +440,7 @@ class RoleKnowledgeEvent(Event):
     
     
     def to_player_string(self, player):
-        # TODO: risalire al nome esteso del ruolo
-        role = self.role_name
+        role = Role.get_from_name(self.role_name).name
         
         if self.cause == SOOTHSAYER:
             if player == 'admin':
@@ -472,8 +471,7 @@ class RoleKnowledgeEvent(Event):
     
     def to_soothsayer_proposition(self):
         assert self.cause == SOOTHSAYER
-        # TODO: risalire al nome esteso del ruolo
-        role = self.role_name
+        role = Role.get_from_name(self.role_name).name
         return u'%s ha il ruolo di %s.' % (self.target.full_name, role)
 
 
