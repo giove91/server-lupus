@@ -148,7 +148,7 @@ class Esorcista(Role):
     aura = WHITE
     is_mystic = True
     
-    message = 'Benedici la casa di:'
+    # message = 'Benedici la casa di:'
     
     def can_use_power(self):
         return self.player.alive
@@ -187,7 +187,7 @@ class Guardia(Role):
     team = POPOLANI
     aura = WHITE
     
-    message = 'Proteggi:'
+    # message = 'Proteggi:'
     
     def can_use_power(self):
         return self.player.alive
