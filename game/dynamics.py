@@ -50,6 +50,7 @@ class Dynamics:
         self.giove_is_happy = False
         self.server_is_on_fire = False  # so far...
         self.playing_teams = []
+        self.advocated_players = []
         for player in self.players:
             self.players_dict[player.pk] = player
             player.team = None
@@ -65,6 +66,8 @@ class Dynamics:
             player.apparent_aura = None
             player.visiting = None
             player.visitors = None
+            player.protected_by_guard = False
+            player.protected_by_keeper = False
 
     def get_active_players(self):
         """Players are guaranteed to be sorted in a canonical order,
@@ -336,6 +339,7 @@ class Dynamics:
             print >> sys.stderr, "Computing dawn"
 
         self.ghosts_created_last_night = False
+        self.advocated_players = []
 
         # Create an index of all roles and ghost powers
         players_by_role = {}
@@ -468,7 +472,7 @@ class Dynamics:
         # dell'Amnesia, Spettro della Duplicazione and Spettro della
         # Morte
         MODIFY_ROLES = [Cacciatore, Messia, Necrofilo, Lupo, Avvocato,
-                        Negromante, Ipnotista, AMNESIA, DUPLICAZIONE,MORTE]
+                        Negromante, Ipnotista, AMNESIA, DUPLICAZIONE, MORTE]
         apply_roles(MODIFY_ROLES)
 
         # Roles with no power: Contadino, Divinatore, Massone,
@@ -481,6 +485,8 @@ class Dynamics:
             player.apparent_mystic = None
             player.visiting = None
             player.visitors = None
+            player.protected_by_guard = False
+            player.protected_by_keeper = False
 
     def _compute_entering_day(self):
         if DEBUG_DYNAMICS:
@@ -602,8 +608,13 @@ class Dynamics:
             winner = mayor_ballot.pk
         else:
             winner = self.random.choice(winners)
+        winner_player = self.players_dict[winner]
 
-        return self.players_dict[winner]
+        # Check for protection by Avvocato del Diavolo
+        if winner_player in self.advocated_players:
+            winner_player = None
+
+        return winner_player
 
     def _count_alive_teams(self):
         teams = []

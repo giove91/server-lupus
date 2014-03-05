@@ -131,6 +131,9 @@ class Custode(Role):
     def get_targets(self):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
 
+    def apply_dawn(self, dynamics):
+        self.target.protected_by_keeper = True
+
 
 class Divinatore(Role):
     name = 'Divinatore'
@@ -175,9 +178,8 @@ class Espansivo(Role):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        if self.recorded_target is not None:
-            from events import RoleKnowledgeEvent
-            dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=self.__class__.__name__, cause=EXPANSIVE))
+        from events import RoleKnowledgeEvent
+        dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=self.__class__.__name__, cause=EXPANSIVE))
 
 
 class Guardia(Role):
@@ -193,6 +195,9 @@ class Guardia(Role):
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
+    def apply_dawn(self, dynamics):
+        self.target.protected_by_guard = True
+
 
 class Investigatore(Role):
     name = 'Investigatore'
@@ -206,9 +211,8 @@ class Investigatore(Role):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        if self.recorded_target is not None:
-            from events import AuraKnowledgeEvent
-            dynamics.generate_event(AuraKnowledgeEvent(player=self.player, target=self.recorded_target, aura=self.recorded_target.apparent_aura, cause=DETECTIVE))
+        from events import AuraKnowledgeEvent
+        dynamics.generate_event(AuraKnowledgeEvent(player=self.player, target=self.recorded_target, aura=self.recorded_target.apparent_aura, cause=DETECTIVE))
 
 
 class Mago(Role):
@@ -224,9 +228,8 @@ class Mago(Role):
         return [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        if self.recorded_target is not None:
-            from events import MysticityKnowledgeEvent
-            dynamics.generate_event(MysticityKnowledgeEvent(player=self.player, target=self.recorded_target, is_mystic=self.recorded_target.apparent_mystic))
+        from events import MysticityKnowledgeEvent
+        dynamics.generate_event(MysticityKnowledgeEvent(player=self.player, target=self.recorded_target, is_mystic=self.recorded_target.apparent_mystic))
 
 
 class Massone(Role):
@@ -286,9 +289,8 @@ class Veggente(Role):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        if self.recorded_target is not None:
-            from events import AuraKnowledgeEvent
-            dynamics.generate_event(AuraKnowledgeEvent(player=self.player, target=self.recorded_target, aura=self.recorded_target.apparent_aura, cause=SEER))
+        from events import AuraKnowledgeEvent
+        dynamics.generate_event(AuraKnowledgeEvent(player=self.player, target=self.recorded_target, aura=self.recorded_target.apparent_aura, cause=SEER))
 
 
 class Voyeur(Role):
@@ -330,6 +332,10 @@ class Avvocato(Role):
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
+    def apply_dawn(self, dynamics):
+        if self.recorded_target not in dynamics.advocated_players:
+            dynamics.advocated_players.append(self.recorded_targets)
+
 
 class Diavolo(Role):
     name = 'Diavolo'
@@ -359,10 +365,9 @@ class Fattucchiera(Role):
         return self.player.game.get_active_players()
 
     def apply_dawn(self, dynamics):
-        if self.recorded_target is not None:
-            target = self.recorded_target.canonicalize()
-            assert target.apparent_aura in [BLACK, WHITE]
-            target.apparent_aura = WHITE if target.apparent_aura is BLACK else BLACK
+        target = self.recorded_target.canonicalize()
+        assert target.apparent_aura in [BLACK, WHITE]
+        target.apparent_aura = WHITE if target.apparent_aura is BLACK else BLACK
 
 
 class Profanatore(Role):
@@ -520,10 +525,9 @@ class Spettro(Role):
 
     def apply_dawn(self):
         if self.power == MISTIFICAZIONE:
-            if self.recorded_target is not None:
-                target = self.recorded_target.canonicalize()
-                assert target.apparent_mystic is not None
-                target.apparent_mystic = True
+            target = self.recorded_target.canonicalize()
+            assert target.apparent_mystic is not None
+            target.apparent_mystic = True
         else:
             raise NotImplementedError()
 
