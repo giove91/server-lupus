@@ -41,8 +41,8 @@
                     {% endif %}
 			    </span>
 			    <ul>
+			        <li><a href="{% url 'home' %}">Home</a></li>
 				    <li><a href="{% url 'status' %}">Stato del villaggio</a></li>
-				    <li><a href="{% url 'ruleset' %}">Regolamento</a></li>
 				    <li><a href="{% url 'announcements' %}">Annunci dei GM</a></li>
 			    </ul>
 		    </div>
@@ -84,6 +84,7 @@
 	        <div class="nav-menu">
 	            <h1>Altro</h1>
 	            <ul>
+	                <li><a href="{% url 'ruleset' %}">Regolamento</a></li>
                     <li><a href="{% url 'contacts' %}">Contatti</a></li>
                     <li><a href="{% url 'credits' %}">Riconoscimenti</a></li>
                 </ul>

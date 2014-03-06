@@ -5,6 +5,7 @@ from game.views import *
 
 
 urlpatterns = patterns('',
+    url(r'^index/$', home, name='home'),
     
     url(r'^ruleset/$', ruleset, name='ruleset'),
     url(r'^credits/$', credits, name='credits'),
