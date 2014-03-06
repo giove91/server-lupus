@@ -294,12 +294,14 @@ class Player(models.Model):
         (WHITE, 'White'),
         (BLACK, 'Black'),
     )
+    AURA_COLORS_DICT = dict(AURA_COLORS)
     
     TEAMS = (
         (POPOLANI, 'Popolani'),
         (LUPI, 'Lupi'),
         (NEGROMANTI, 'Negromanti'),
     )
+    TEAMS_DICT = dict(TEAMS)
     
     user = models.OneToOneField(User, primary_key=True)
     game = models.ForeignKey(Game)
@@ -395,10 +397,10 @@ class Player(models.Model):
     can_use_power.boolean = True
 
     def team(self):
-        return self.canonicalize().team
+        return Player.TEAMS_DICT[self.canonicalize().team]
 
     def aura(self):
-        return self.canonicalize().aura
+        return Player.AURA_COLORS_DICT[self.canonicalize().aura]
 
     def alive(self):
         return self.canonicalize().alive

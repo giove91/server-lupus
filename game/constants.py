@@ -96,3 +96,16 @@ GHOST = 'G'
 # Aura knowledge causes
 SEER = 'S'
 DETECTIVE = 'D'
+
+# Misticity knowledge causes
+MAGE = 'M'
+
+# Team knowledge causes
+VISION_GHOST = 'V'
+
+# Movement knowledge causes
+STALKER = 'S'
+VOYEUR = 'V'
+
+# Medium knowledge causes
+MEDIUM = 'M'

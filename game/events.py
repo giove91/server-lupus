@@ -481,7 +481,7 @@ class AuraKnowledgeEvent(Event):
 
     player = models.ForeignKey(Player, related_name='+')
     target = models.ForeignKey(Player, related_name='+')
-    aura = models.CharField(max_length=1, default=None)
+    aura = models.CharField(max_length=1, default=None, choices=Player.AURA_COLORS)
     KNOWLEDGE_CAUSE_TYPES = (
         (SEER, 'Seer'),
         (DETECTIVE, 'Detective'),
@@ -509,6 +509,12 @@ class MysticityKnowledgeEvent(Event):
     player = models.ForeignKey(Player, related_name='+')
     target = models.ForeignKey(Player, related_name='+')
     is_mystic = models.BooleanField(default=None)
+    # There is only one choice, but I like to have this for
+    # homogeneity
+    KNOWLEDGE_CAUSE_TYPES = (
+        (MAGE, 'Mage'),
+        )
+    cause = models.CharField(max_length=1, choices=KNOWLEDGE_CAUSE_TYPES, default=None)
 
     def apply(self, dynamics):
         pass
@@ -525,6 +531,64 @@ class MysticityKnowledgeEvent(Event):
             return u'%s ha utilizzato il proprio potere su %s, scoprendo che %sè un mistico.', (self.player.full_name, self.target.full_name, result)
 
 
+class TeamKnowledgeEvent(Event):
+    RELEVANT_PHASES = [DAWN]
+    AUTOMATIC = True
+
+    player = models.ForeignKey(Player, related_name='+')
+    target = models.ForeignKey(Player, related_name='+')
+    team = models.CharField(max_length=1, default=None, choices=Player.TEAMS)
+    # There is only one choice, but I like to have this for
+    # homogeneity
+    KNOWLEDGE_CAUSE_TYPES = (
+        (VISION_GHOST, 'VisionGhost'),
+        )
+    cause = models.CharField(max_length=1, choices=KNOWLEDGE_CAUSE_TYPES, default=None)
+
+    def apply(self, dynamics):
+        pass
+
+
+class MovementKnowledgeEvent(Event):
+    RELEVANT_PHASES = [DAWN]
+    AUTOMATIC = True
+
+    # Target and target2 are to be understood as how they are in
+    # CommandEvent; that is, target is the player that was watched and
+    # target2 is where he went (for the Stalker) or who went by him
+    # (for the Voyeur)
+    player = models.ForeignKey(Player, related_name='+')
+    target = models.ForeignKey(Player, related_name='+')
+    target2 = models.ForeignKey(Player, related_name='+')
+    KNOWLEDGE_CAUSE_TYPES = (
+        (STALKER, 'Stalker'),
+        (VOYEUR, 'Voyeur'),
+        )
+    cause = models.CharField(max_length=1, choices=KNOWLEDGE_CAUSE_TYPES, default=None)
+
+    def apply(self, dynamics):
+        pass
+
+
+class MediumKnowledgeEvent(Event):
+    RELEVANT_PHASES = [DAWN]
+    AUTOMATIC = True
+
+    player = models.ForeignKey(Player, related_name='+')
+    target = models.ForeignKey(Player, related_name='+')
+    aura = models.CharField(max_length=1, default=None, choices=Player.AURA_COLORS)
+    is_ghost = models.BooleanField(default=None)
+    # There is only one choice, but I like to have this for
+    # homogeneity
+    KNOWLEDGE_CAUSE_TYPES = (
+        (MEDIUM, 'Medium'),
+        )
+    cause = models.CharField(max_length=1, choices=KNOWLEDGE_CAUSE_TYPES, default=None)
+
+    def apply(self, dynamics):
+        pass
+
+
 class PowerOutcomeEvent(Event):
     RELEVANT_PHASES = [DAWN]
     AUTOMATIC = True
@@ -537,7 +601,7 @@ class PowerOutcomeEvent(Event):
     def apply(self, dynamics):
         assert self.command.type == USEPOWER
         assert self.command.player.pk == self.player.pk
-        # TODO: Gio, qua si può asserire che self.command.target non è None?
+        assert self.command.target is not None
     
     def to_player_string(self, player):
         target = self.command.target
