@@ -315,7 +315,61 @@ class ElectNewMayorEvent(Event):
             return u'Sei stat%s elett%s Sindaco del villaggio.' % (oa, oa)
         else:
             return u'%s è stat%s elett%s nuovo Sindaco del villaggio.' % (self.player.full_name, oa, oa)
-        
+
+
+class PlayerResurrectsEvent(Event):
+    RELEVANT_PHASES = [DAWN]
+    AUTOMATIC = True
+
+    player = models.ForeignKey(Player, related_name='+')
+
+    def apply(self, dynamics):
+        player = self.player.canonicalize()
+        assert not player.alive
+
+        # If the player is a ghost, its power gets deactivated. Poor
+        # they!
+        if isinstance(player.role, Spettro):
+            assert player.role.has_power
+            player.role.has_power = False
+
+        # FIXME: what else do we have to check or do here?
+
+        player.alive = True
+
+
+class NecrofilizationEvent(Event):
+    RELEVANT_PHASES = [DAWN]
+    AUTOMATIC = True
+
+    player = models.ForeignKey(Player, related_name='+')
+    target = models.ForeignKey(Player, related_name='+')
+    role_name = models.CharField(max_length=200, default=None)
+
+    def apply(self, dynamics):
+        player = self.player.canonicalize()
+        target = self.target.canonicalize()
+
+        assert player.alive
+        assert not target.alive
+
+        # Check for forbidden roles
+        if isinstance(target.role, (Lupo, Negromante, Fantasma)):
+            return
+
+        # TODO: check that power is not una tantum
+
+        # Take original role class if the target is a ghost
+        new_role_class = target.role.__class__
+        if isinstance(target.role, Spettro):
+            new_role_class = target.role_class_before_ghost
+            assert new_role_class is not None
+
+        # Instantiate new role class and copy attributes
+        player.role = new_role_class(player)
+        player.aura = target.aura
+        player.is_mystic = target.is_mystic
+        assert player.team == POPOLANI
 
 
 class PlayerDiesEvent(Event):
@@ -342,8 +396,9 @@ class PlayerDiesEvent(Event):
         assert dynamics.current_turn.phase in PlayerDiesEvent.REAL_RELEVANT_PHASES[self.cause]
 
         player = self.player.canonicalize()
-        assert player.alive
+        assert player.alive or player.just_dead
 
+        # Trigger mayour succession
         if player.is_mayor():
             if dynamics.appointed_mayor is not None:
                 assert dynamics.appointed_mayor.alive
@@ -354,13 +409,17 @@ class PlayerDiesEvent(Event):
                 candidates = [x for x in dynamics.get_alive_players() if x.pk != player.pk]
                 dynamics.mayor = dynamics.random.choice(candidates)
 
+        # Trigger loss of appointed mayor
         if player.is_appointed_mayor():
             dynamics.appointed_mayor = None
 
         # TODO: other actions to trigger: Cacciatore power, Fantasma
         # power, release of Ipnotista lock
 
+        # Yeah, finally kill player!
         player.alive = False
+        if dynamics.current_turn.phase == NIGHT:
+            player.just_dead = True
 
     def to_player_string(self, player):
         oa = self.player.oa
@@ -628,4 +687,47 @@ class PowerOutcomeEvent(Event):
                     string += '(non sequestrat%s)' %oa
 
 
+class ExileEvent(Event):
+    RELEVANT_PHASES = [DAY, NIGHT]
+    AUTOMATIC = True
 
+    player = models.ForeignKey(Player, related_name='+')
+    EXILE_CAUSES = (
+        (DISQUALIFICATION, 'Disqualification'),
+        (TEAM_DEFEAT, 'TeamDefeat'),
+        )
+    cause = models.CharField(max_length=1, choices=EXILE_CAUSES, default=None)
+
+    def apply(self, dynamics):
+        player = self.player.canonicalize()
+
+        assert player.active
+
+        player.active = False
+
+
+class VictoryEvent(Event):
+    RELEVANT_PHASES = [DAY, NIGHT]
+    AUTOMATIC = True
+
+    popolani_win = models.BooleanField(default=None)
+    lupi_win = models.BooleanField(default=None)
+    negromanti_win = models.BooleanField(default=None)
+    VICTORY_CAUSES = (
+        (NATURAL, 'Natural'),
+        (FORCED, 'Forced'),
+        )
+    cause = models.CharField(max_length=1, choices=VICTORY_CAUSES, default=None)
+
+    def apply(self, dynamics):
+        winners = []
+        if self.popolani_win:
+            winners.append(POPOLANI)
+        if self.lupi_win:
+            winners.append(LUPI)
+        if self.negromanti_win:
+            winners.append(NEGROMANTI)
+
+        dynamics.winners = winners
+        dynamics.giove_is_happy = True
+        dynamics.server_is_on_fire = True

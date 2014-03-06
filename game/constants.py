@@ -109,3 +109,11 @@ VOYEUR = 'V'
 
 # Medium knowledge causes
 MEDIUM = 'M'
+
+# Exile causes
+DISQUALIFICATION = 'D'
+TEAM_DEFEAT = 'T'
+
+# Victory causes
+NATURAL = 'N'
+FORCED = 'F'

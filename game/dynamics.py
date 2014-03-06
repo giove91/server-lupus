@@ -51,10 +51,12 @@ class Dynamics:
         self.server_is_on_fire = False  # so far...
         self.playing_teams = []
         self.advocated_players = []
+        self.winners = None
         for player in self.players:
             self.players_dict[player.pk] = player
             player.team = None
             player.role = None
+            player.role_class_before_ghost = None
             player.aura = None
             player.is_mystic = None
             player.alive = True
@@ -68,6 +70,7 @@ class Dynamics:
             player.visitors = None
             player.protected_by_guard = False
             player.protected_by_keeper = False
+            player.just_dead = False
 
     def get_active_players(self):
         """Players are guaranteed to be sorted in a canonical order,
@@ -487,6 +490,7 @@ class Dynamics:
             player.visitors = None
             player.protected_by_guard = False
             player.protected_by_keeper = False
+            player.just_dead = False
 
     def _compute_entering_day(self):
         if DEBUG_DYNAMICS:
@@ -647,8 +651,9 @@ class Dynamics:
         for team in dying_teams:
             if team in [LUPI, NEGROMANTI]:
                 for player in self.players:
-                    if player.team == team:
-                        player.active = False
+                    if player.team == team and player.active:
+                        event = ExileEvent(player=player, cause=TEAM_DEFEAT)
+                        self.generate_event(event)
 
         # Check victory condition
         winning_teams = None
