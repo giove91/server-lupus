@@ -334,6 +334,7 @@ class PlayerResurrectsEvent(Event):
             player.role.has_power = False
 
         # FIXME: what else do we have to check or do here?
+        # TODO (by Giove, perché mi è venuto in mente): il fatto che se un Ipnotista resuscita allora ha ancora i vecchi giocatori sotto il suo controllo funziona automaticamente oppure devi fare qualcosa qui? Suppongo la prima, ma non si sa mai.
 
         player.alive = True
 
