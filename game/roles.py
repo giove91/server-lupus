@@ -524,7 +524,7 @@ class Spettro(Role):
     POWERS_LIST = POWER_NAMES.items()
     
     power = models.CharField(max_length=1, choices=POWERS_LIST)
-    has_power = models.BooleanField(default=True)   # Should be set to False when revived by the Messiah
+    has_power = models.BooleanField(default=True)   # To be set to False when revived by the Messiah
     
     def can_use_power(self):
         return not self.player.alive and self.has_power
