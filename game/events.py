@@ -337,6 +337,13 @@ class PlayerResurrectsEvent(Event):
         # TODO (by Giove, perché mi è venuto in mente): il fatto che se un Ipnotista resuscita allora ha ancora i vecchi giocatori sotto il suo controllo funziona automaticamente oppure devi fare qualcosa qui? Suppongo la prima, ma non si sa mai.
 
         player.alive = True
+        
+    def to_player_string(self,player):
+        oa = self.player.oa
+        if player == self.player:
+            return u'Sei stat%s resuscitat%s! Gioisci, una seconda vita ricca di possibilità ti si apre davanti!' % (oa, oa)
+        else:
+            return u'%s ritorna al villaggio viv%s, veget%s e sorridente, e riprende la sua vita come se niente fosse.' % (self.player.full_name, oa, oa)
 
 
 class NecrofilizationEvent(Event):
@@ -371,6 +378,15 @@ class NecrofilizationEvent(Event):
         player.aura = target.aura
         player.is_mystic = target.is_mystic
         assert player.team == POPOLANI
+    
+    def to_player_string(self,player):
+        role = Role.get_from_name(self.role_name).name
+        
+        if player == self.player:
+            return u'Dopo aver utilizzato il tuo potere su %s hai assunto il ruolo di %s.' % (self.target.full_name, role)
+        elif player == 'admin':
+            return u'%s ha utilizzato il proprio potere da Necrofilo su %s assumendo il ruolo di %s.' % (self.player.full_name, self.target.full_name, role)
+            
 
 
 class PlayerDiesEvent(Event):
@@ -563,9 +579,9 @@ class AuraKnowledgeEvent(Event):
         aura = AURA_IT[ self.aura ]
         
         if player == self.player:
-            return u'Hai utilizzato il tuo potere su %s, scoprendo che ha aura %s.' % (self.target.full_name, aura)
+            return u'Scopri che %s ha aura %s.' % (self.target.full_name, aura)
         elif player == 'admin':
-            return u'%s ha utilizzato il proprio potere su %s, scoprendo che ha aura %s.', (self.player.full_name, self.target.full_name, aura)
+            return u'%s scopre che %s ha aura %s.', (self.player.full_name, self.target.full_name, aura)
         return None
             
 
@@ -594,9 +610,9 @@ class MysticityKnowledgeEvent(Event):
             result = 'non '
         
         if player == self.player:
-            return u'Hai utilizzato il tuo potere su %s, scoprendo che %sè un mistico.' % (self.target.full_name, result)
+            return u'Scopri che %s %sè un mistico.' % (self.target.full_name, result)
         elif player == 'admin':
-            return u'%s ha utilizzato il proprio potere su %s, scoprendo che %sè un mistico.', (self.player.full_name, self.target.full_name, result)
+            return u'%s scopre che %s %sè un mistico.', (self.player.full_name, self.target.full_name, result)
 
 
 class TeamKnowledgeEvent(Event):
@@ -615,6 +631,15 @@ class TeamKnowledgeEvent(Event):
 
     def apply(self, dynamics):
         pass
+    
+    def to_player_string(self, player):
+        team = TEAM_IT[ self.team ]
+        
+        if player == self.player:
+            return u'Scopri che %s appartiene alla Fazione dei %s.' % (self.target.full_name, team)
+        elif player == 'admin':
+            return u'%s scopre che %s appartiene alla Fazione dei %s.', (self.player.full_name, self.target.full_name, team)
+        return None
 
 
 class MovementKnowledgeEvent(Event):
@@ -636,6 +661,23 @@ class MovementKnowledgeEvent(Event):
 
     def apply(self, dynamics):
         pass
+    
+    def to_player_string(self, player):
+        if self.cause == STALKER:
+            moving_player = self.target
+            destination = self.target2
+        elif self.cause == VOYEUR:
+            moving_player = self.target2
+            destination = self.target
+        else:
+            raise Exception ('Unknown cause')
+        
+        if player == self.player:
+            return u'Scopri che stanotte %s si è recat%s da %s.' % (moving_player.full_name, moving_player.oa, destination.full_name)
+        elif player == 'admin':
+            return u'%s scopre che stanotte %s si è recat%s da %s.' % (self.player.full_name, moving_player.full_name, moving_player.oa, destination.full_name)
+        else:
+            return None
 
 
 class MediumKnowledgeEvent(Event):
@@ -656,6 +698,19 @@ class MediumKnowledgeEvent(Event):
     def apply(self, dynamics):
         if self.cause == MEDIUM:
             assert isinstance(self.player.canonicalize().role, Medium)
+    
+    def to_player_string(self, player):
+        aura = AURA_IT[ self.aura ]
+        if self.is_ghost:
+            ghost_res = ''
+        else:
+            ghost_res = 'non '
+        
+        if player == self.player:
+            return u'Scopri che %s ha aura %s e che %sè un Fantasma.' % (self.target.full_name, aura, ghost_res)
+        elif player == 'admin':
+            return u'%s scopre che %s ha aura %s e che %è un Fantasma.', (self.player.full_name, self.target.full_name, aura, ghost_res)
+        return None
 
 
 class HypnotizationEvent(Event):
@@ -673,6 +728,13 @@ class HypnotizationEvent(Event):
         assert isinstance(hypnotist.role, Ipnotista)
 
         player.hypnotist = hypnotist
+    
+    def to_player_string(self, player):
+        if player == 'admin':
+            return u'%s è stato ipnotizzato da %s.' % (self.player.full_name, self.hypnotist.full_name)
+        else:
+            return None
+    
 
 
 class PowerOutcomeEvent(Event):
@@ -731,6 +793,23 @@ class ExileEvent(Event):
         assert player.active
 
         player.active = False
+    
+    def to_player_string(self, player):
+        oa = self.player.oa
+        
+        if self.cause == DISQUALIFICATION:
+            if player == self.player:
+                return u'Sei stat%s squalificat%s.' % (oa, oa)
+            else:
+                return u'%s è stat%s squalificat%s.' % (self.player.full_name, oa, oa)
+        
+        elif self.cause == TEAM_DEFEAT:
+            team = TEAM_IT[ self.team ]
+            
+            if player == self.player:
+                return u'La tua Fazione è stata sconfitta. Per te non rimane che l\'esilio.'
+            else:
+                return u'%s è stato esiliato a causa della sconfitta della Fazione dei %s.' % (self.player.full_name, team)
 
 
 class VictoryEvent(Event):
@@ -758,3 +837,7 @@ class VictoryEvent(Event):
         dynamics.winners = winners
         dynamics.giove_is_happy = True
         dynamics.server_is_on_fire = True
+    
+    def to_player_string(self, player):
+        # TODO: scrivere (sono troppo stanco per capire come faccia a funzionare apply()
+        pass
