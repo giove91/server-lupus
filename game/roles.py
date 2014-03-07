@@ -578,3 +578,5 @@ class Spettro(Role):
             raise ValueError("Invalid ghost type")
 
 roles_map = dict([(x.__name__, x) for x in Role.__subclasses__()])
+
+UNA_TANTUM_ROLES = [Cacciatore, Messia, Necrofilo]

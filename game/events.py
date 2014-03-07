@@ -355,10 +355,10 @@ class NecrofilizationEvent(Event):
         assert not target.alive
 
         # Check for forbidden roles
-        if isinstance(target.role, (Lupo, Negromante, Fantasma)):
-            return
+        assert not isinstance(target.role, (Lupo, Negromante, Fantasma)):
 
-        # TODO: check that power is not una tantum
+        # Check that power is not una tantum
+        assert not isinstance(target.role, tuple(UNA_TANTUM_ROLES))
 
         # Take original role class if the target is a ghost
         new_role_class = target.role.__class__
