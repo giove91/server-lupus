@@ -1,0 +1,7 @@
+
+ * Lupi e negromanti sequestrati: contano nella determinazione di chi muore o viene spettrizzato?
+
+ * Come rappresentiamo sul database i casi in cui una persona muore varie volte nella stessa notte?
+
+ * Interazione tra Ipnotista e Spettro dell'Amnesia: chi vince? (direi lo Spettro, visto che la metafora è che il tizio non va proprio a votare)
+

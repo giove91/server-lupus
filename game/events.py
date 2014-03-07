@@ -449,6 +449,7 @@ class RoleKnowledgeEvent(Event):
         (EXPANSIVE, 'Expansive'),
         (KNOWLEDGE_CLASS, 'KnowledgeClass'),
         (GHOST, 'Ghost'),
+        (DEVIL, 'Devil'),
         )
     cause = models.CharField(max_length=1, choices=KNOWLEDGE_CAUSE_TYPES, default=None)
 
@@ -494,6 +495,9 @@ class RoleKnowledgeEvent(Event):
             assert self.target.canonicalize().role.knowledge_class is not None
             assert self.player.canonicalize().role.knowledge_class == self.target.canonicalize().role.knowledge_class
 
+        elif self.cause == DEVIL:
+            assert isinstance(self.player.canonicalize().role, Diavolo)
+
         if self.cause != SOOTHSAYER:
             role_class = roles_map[self.role_name]
             assert isinstance(self.target.canonicalize().role, role_class)
@@ -523,7 +527,11 @@ class RoleKnowledgeEvent(Event):
                 return u'Vieni a sapere che %s è un %s.' % (self.target.full_name, role)
             elif player == 'admin':
                 return u'Per spettrificazione, %s viene a sapere che %s è un %s.' % (self.player.full_name, self.target.full_name, role)
-        
+
+        elif self.cause == DEVIL:
+            # TODO: implement
+            raise NotImplementedError("Giove, this is for you! :-)")
+
         else:
             raise Exception ('Unknown cause for RoleKnowledgeEvent.')
         
@@ -646,7 +654,25 @@ class MediumKnowledgeEvent(Event):
     cause = models.CharField(max_length=1, choices=KNOWLEDGE_CAUSE_TYPES, default=None)
 
     def apply(self, dynamics):
-        pass
+        if self.cause == MEDIUM:
+            assert isinstance(self.player.canonicalize().role, Medium)
+
+
+class HypnotizationEvent(Event):
+    RELEVANT_PHASES = [DAWN]
+    AUTOMATIC = True
+
+    player = models.ForeignKey(Player, related_name='+')
+    hypnotist = models.ForeignKey(Player, related_name='+')
+
+    def apply(self, dynamics):
+        player = self.player.canonicalize()
+        hypnotist = self.hypnotist.canonicalize()
+
+        assert not isinstance(player.role, Ipnotista)
+        assert isinstance(hypnotist.role, Ipnotista)
+
+        player.hypnotist = hypnotist
 
 
 class PowerOutcomeEvent(Event):

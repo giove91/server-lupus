@@ -92,6 +92,7 @@ SOOTHSAYER = 'S'
 EXPANSIVE = 'E'
 KNOWLEDGE_CLASS = 'C'
 GHOST = 'G'
+DEVIL = 'D'
 
 # Aura knowledge causes
 SEER = 'S'

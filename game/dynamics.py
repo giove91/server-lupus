@@ -71,6 +71,7 @@ class Dynamics:
             player.protected_by_guard = False
             player.protected_by_keeper = False
             player.just_dead = False
+            player.hypnotist = None
 
     def get_active_players(self):
         """Players are guaranteed to be sorted in a canonical order,
@@ -361,7 +362,6 @@ class Dynamics:
         # Shuffle players in each role
         for role_players in players_by_role.itervalues():
             self.random.shuffle(role_players)
-            pass
 
         # Prepare temporary status
         for player in self.get_active_players():
@@ -415,7 +415,7 @@ class Dynamics:
             print >> sys.stderr, powers_success
             print >> sys.stderr, sequestrated
 
-        # The compute the visit graph
+        # Then compute the visit graph
         for player in self.get_active_players():
             if player.role.recorded_target is not None and \
                     player.role.__class__ != Spettro and \
@@ -564,12 +564,18 @@ class Dynamics:
         # Count last ballot for each player
         ballots = {}
         mayor_ballot = None
-        for player in self.players:
+        for player in self.get_alive_players():
+
+            # Count Ipnotista
+            real_vote = player.recorded_vote
+            if player.hypnotist is not None and player.hypnotist.alive:
+                real_vote = player.hypnotist.recorded_vote
+
+            # TODO: count Spettro dell'Amnesia
+
             ballots[player.pk] = player.recorded_vote
             if player.is_mayor():
                 mayor_ballot = player.recorded_vote
-
-        # TODO: count Ipnotista and Spettro dell'Amnesia
 
         # Fill the tally sheet
         tally_sheet = {}

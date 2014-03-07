@@ -275,6 +275,12 @@ class Stalker(Role):
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
+    def apply_dawn(self, dynamics):
+        from events import MovementKnowledgeEvent
+        for visiting_pk in dynamics.visiting[self.recorded_target.pk]:
+            visiting = dynamics.players_dict[visiting_pk]
+            dynamics.generate_event(MovementKnowledgeEvent(player=self.player, target=self.recorded_target, target2=visiting, cause=STALKER))
+
 
 class Veggente(Role):
     name = 'Veggente'
@@ -303,6 +309,12 @@ class Voyeur(Role):
     
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
+
+    def apply_dawn(self, dynamics):
+        from events import MovementKnowledgeEvent
+        for visitor_pk in dynamics.visitors[self.recorded_target.pk]:
+            visitor = dynamics.players_dict[visitor_pk]
+            dynamics.generate_event(MovementKnowledgeEvent(player=self.player, target=self.recorded_target, target2=visitor, cause=VOYEUR))
 
 
 # Fazione dei Lupi
@@ -349,6 +361,10 @@ class Diavolo(Role):
     
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
+
+    def apply_dawn(self, dynamics):
+        from events import RoleKnowledgeEvent
+        dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, role=self.recorded_target.role.__class__.__name__, cause=DEVIL))
 
 
 class Fattucchiera(Role):
@@ -463,6 +479,10 @@ class Ipnotista(Role):
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
+    def apply_dawn(self, dynamics):
+        from events import HypnotizationEvent
+        dynamics.generate_event(HypnotizationEvent(player=self.target, hypnotist=self.player))
+
 
 class Medium(Role):
     name = 'Medium'
@@ -476,6 +496,14 @@ class Medium(Role):
     
     def get_targets(self):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
+
+    def apply_dawn(self, dynamics):
+        from events import MediumKnowledgeEvent
+        dynamics.generate_event(MediumKnowledgeEvent(player=self.player,
+                                                     target=self.recorded_target,
+                                                     aura=self.recorded_target.apparent_aura,
+                                                     is_ghost=isinstance(self.recorded_target.role, Spettro),
+                                                     cause=MEDIUM))
 
 
 class Spettro(Role):
@@ -528,6 +556,9 @@ class Spettro(Role):
             target = self.recorded_target.canonicalize()
             assert target.apparent_mystic is not None
             target.apparent_mystic = True
+        elif self.power == VISIONE:
+            from events import TeamKnowledgeEvent
+            dynamics.generate_event(TeamKnowledgeEvent(player=self.player, target=self.recorded_target, team=self.recorded_target.team, cause=VISION_GHOST))
         else:
             raise NotImplementedError()
 
