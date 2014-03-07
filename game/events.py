@@ -366,6 +366,9 @@ class NecrofilizationEvent(Event):
 
         # Check that power is not una tantum
         assert not isinstance(target.role, tuple(UNA_TANTUM_ROLES))
+        
+        # TODO (Giove a Gio): bisogna escludere anche i ruoli senza un potere (Contadino, Divinatore, Massone, Rinnegato)
+        # Quelli una tantum mi torna che siano i tre che hai scritto.
 
         # Take original role class if the target is a ghost
         new_role_class = target.role.__class__
