@@ -712,7 +712,7 @@ class MediumKnowledgeEvent(Event):
         if player == self.player:
             return u'Scopri che %s ha aura %s e che %sè un Fantasma.' % (self.target.full_name, aura, ghost_res)
         elif player == 'admin':
-            return u'%s scopre che %s ha aura %s e che %è un Fantasma.', (self.player.full_name, self.target.full_name, aura, ghost_res)
+            return u'%s scopre che %s ha aura %s e che %sè un Fantasma.', (self.player.full_name, self.target.full_name, aura, ghost_res)
         return None
 
 
