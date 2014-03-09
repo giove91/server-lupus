@@ -828,7 +828,7 @@ class VictoryEvent(Event):
         )
     cause = models.CharField(max_length=1, choices=VICTORY_CAUSES, default=None)
 
-    def apply(self, dynamics):
+    def get_winners(self, dynamics):
         winners = []
         if self.popolani_win:
             winners.append(POPOLANI)
@@ -836,11 +836,26 @@ class VictoryEvent(Event):
             winners.append(LUPI)
         if self.negromanti_win:
             winners.append(NEGROMANTI)
+        return winners
 
+    def apply(self, dynamics):
+        winners = self.get_winner(dynamics)
         dynamics.winners = winners
         dynamics.giove_is_happy = True
         dynamics.server_is_on_fire = True
     
     def to_player_string(self, player):
-        # TODO: scrivere (sono troppo stanco per capire come faccia a funzionare apply()
-        pass
+        dynamics = self.turn.game.get_dynamics()
+        winners = self.get_winners(dynamics)
+        if len(winners) == 1:
+            return u'La partita si è conclusa con la vittoria della Fazione dei %s.' % winners[0]
+        elif len(winners) == 2:
+            return u'La partita si è conclusa con la vittoria della Fazione dei %s e della Fazione dei %s.' % (winners[0], winners[1])
+        elif len(winners) == 3:
+            # Questa cosa mi auguro che non possa davvero succedere
+            return u'La partita si è conclusa con la vittoria di tutte le Fazioni.'
+        else:
+            raise Exception ('Number of winner is not reasonable')
+
+
+
