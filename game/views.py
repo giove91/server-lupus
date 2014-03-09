@@ -124,6 +124,9 @@ def ruleset(request):
 def credits(request):
     return render(request, 'credits.html')
 
+def trailer(request):
+    return render(request, 'trailer.html')
+
 
 class Weather:
     
@@ -561,7 +564,7 @@ class ContactsView(ListView):
     # TODO: forse un giorno bisognerebbe filtrare con il Game giusto
     
     def get_queryset(self):
-        return Player.objects.all().order_by('user__last_name', 'user__first_name')
+        return Player.objects.all().select_related('user').order_by('user__last_name', 'user__first_name')
     
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -579,9 +582,8 @@ class AnnouncementsView(ListView):
 
 # Form for changing point of view (for GMs only)
 class ChangePointOfViewForm(forms.Form):
-    
     player = forms.ModelChoiceField(
-                queryset=Player.objects.all(),
+                queryset=Player.objects.select_related('user').all(),
                 empty_label='(Nessuno)',
                 required=False,
                 label='Scegli un giocatore:'
