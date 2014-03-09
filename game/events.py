@@ -404,8 +404,12 @@ class StakeFailedEvent(Event):
         pass
 
     def to_player_string(self, player):
-        # TODO
-        raise NotImplementedError()
+        if self.cause == MISSING_QUORUM:
+            return u'Quest\'oggi non è stato raggiunto il quorum, per cui non viene ucciso nessuno. Che giornata sprecata.'
+        elif self.cause == ADVOCATE:
+            return u'Sebbene sia stato raggiunto il quorum, dei grovigli burocratici invalidano la sentenza: non viene pertanto ucciso nessuno. Che giornata sprecata.'
+        else:
+            raise Exception ('Unknown cause for StakeFailedEvent')
 
 
 class PlayerDiesEvent(Event):
@@ -547,6 +551,7 @@ class RoleKnowledgeEvent(Event):
     
     
     def to_player_string(self, player):
+        toa = self.target.oa
         role = Role.get_from_name(self.role_name).name
         
         if self.cause == SOOTHSAYER:
@@ -566,21 +571,26 @@ class RoleKnowledgeEvent(Event):
                 return u'Per conoscenza iniziale, %s sa che %s ha il ruolo di %s.' % (self.player.full_name, self.target.full_name, role)
 
         elif self.cause == PHANTOM:
-            # TODO: implement
-            raise NotImplementedError("Giove, this is for you! :-)")
+            # self.player is a Necromancer, self.target has just become a Ghost
+            if player == self.player:
+                return u'Percepisci che %s era un Fantasma: dopo la morte è diventat%s uno Spettro.' % (self.target.full_name, toa)
+            elif player == 'admin':
+                return u'Il Negromante %s viene a sapere che il Fantasma %s è diventato uno Spettro.' % (self.player.full_name, self.target.full_name)
 
         elif self.cause == GHOST:
             if player == self.player:
-                return u'Vieni a sapere che %s è un %s.' % (self.target.full_name, role)
+                return u'Vieni a sapere che %s è un Negromante.' % (self.target.full_name)
             elif player == 'admin':
-                return u'Per spettrificazione, %s viene a sapere che %s è un %s.' % (self.player.full_name, self.target.full_name, role)
+                return u'Per spettrificazione, %s viene a sapere che %s è un Negromante.' % (self.player.full_name, self.target.full_name)
 
         elif self.cause == DEVIL:
-            # TODO: implement
-            raise NotImplementedError("Giove, this is for you! :-)")
+            if player == self.player:
+                return u'Scopri che %s ha il ruolo di %s.' % (self.target.full_name, role)
+            elif player == 'admin':
+                return u'Il Diavolo %s scopre che %s ha il ruolo di %s.' % (self.player.full_name, self.target.full_name, role)
 
         else:
-            raise Exception ('Unknown cause for RoleKnowledgeEvent.')
+            raise Exception ('Unknown cause for RoleKnowledgeEvent')
         
         return None
     
@@ -761,8 +771,10 @@ class HypnotizationEvent(Event):
         player.hypnotist = hypnotist
     
     def to_player_string(self, player):
+        oa = self.player.oa
+        
         if player == 'admin':
-            return u'%s è stato ipnotizzato da %s.' % (self.player.full_name, self.hypnotist.full_name)
+            return u'%s è stat%s ipnotizzat%s da %s.' % (self.player.full_name, oa, oa, self.hypnotist.full_name)
         else:
             return None
 
@@ -791,8 +803,25 @@ class GhostificationEvent(Event):
         raise NotImplementedError()
 
     def to_player_string(self, player):
-        # TODO
-        raise NotImplementedError()
+        oa = self.player.oa
+        power = Spettro.POWER_NAMES[self.ghost]
+        
+        if self.cause == NECROMANCER:
+            if player == self.player:
+                return u'Credevi che i giochi fossero fatti? Pensavi che la morte fosse un evento definitivo? Certo che no! Come nelle migliori soap opera, non c\'è pace neanche dopo la sepoltura. Sei stat%s risvegliat%s come Spettro, e ti è stato assegnato il seguente potere soprannaturale: %s.' % (oa, oa, power)
+            elif player == 'admin':
+                return u'%s è stat%s risvegliat%s come Spettro con il seguente potere soprannaturale: %s.' % (self.player.full_name, oa, oa, power)
+        
+        elif self.cause == PHANTOM:
+            if player == self.player:
+                return u'La sopraggiunta morte ti dà un senso di beatitudine. Sei diventat%s uno Spettro, e possiedi ora il seguente potere soprannaturale: %s.' % (oa, power)
+            elif player == 'admin':
+                return u'Il Fantasma %s è divenuto uno Spettro con il seguente potere soprannaturale: %s' % (self.player.full_name, power)
+        
+        else:
+            raise Exception ('Unknown cause for GhostificationEvent')
+        
+        return None
 
 
 class GhostificationFailedEvent(Event):
@@ -810,8 +839,14 @@ class GhostificationFailedEvent(Event):
         # TODO: anything else to check?
 
     def to_player_string(self, player):
-        # TODO
-        raise NotImplementedError()
+        oa = self.player.oa
+        
+        if player == self.player:
+            return u'Sembra che tu abbia aspettato troppo a morire: i poteri soprannaturali sono stati tutti assegnati, per cui sei condannat%s a rimanere un Fantasma.' % oa
+        elif player == 'admin':
+            return u'Il Fantasma %s non diventa uno Spettro per mancanza di poteri soprannaturali.' % self.player.full_name
+        else:
+            return None
 
 
 class PowerOutcomeEvent(Event):
@@ -859,14 +894,20 @@ class DisqualificationEvent(Event):
 
     player = models.ForeignKey(Player, related_name='+')
     private_message = models.TextField()
-    public_message = models.TextField()
+    public_message = models.TextField(null=True, blank=True, default=None)
 
     def apply(self, dynamics):
         assert self.player.canonicalize().active
 
     def to_player_string(self, player):
-        # TODO
-        raise NotImplementedError()
+        oa = self.player.oa
+        
+        if player == self.player:
+            return u'Sei stat%s squalificat%s. Il motivo della squalifica è: %s' % (oa, oa, self.private_message)
+        elif player == 'admin':
+            return u'%s è stat%s squalificat%s.' % (self.player.full_name, oa, oa)
+        else:
+            return None
 
 
 class ExileEvent(Event):
@@ -879,7 +920,7 @@ class ExileEvent(Event):
         (TEAM_DEFEAT, 'TeamDefeat'),
         )
     cause = models.CharField(max_length=1, choices=EXILE_CAUSES, default=None)
-    disqualification = models.OneToOneField(DisqualificationEvent)
+    disqualification = models.OneToOneField(DisqualificationEvent, null=True, blank=True, default=None)
 
     def apply(self, dynamics):
         player = self.player.canonicalize()
@@ -897,9 +938,12 @@ class ExileEvent(Event):
         
         if self.cause == DISQUALIFICATION:
             if player == self.player:
-                return u'Sei stat%s squalificat%s.' % (oa, oa)
+                return u'Sei stat%s squalificat%s. Il motivo della squalifica è: %s' % (oa, oa, self.disqualification.private_message)
             else:
-                return u'%s è stat%s squalificat%s.' % (self.player.full_name, oa, oa)
+                if self.disqualification.public_message is None:
+                    return u'%s è stat%s squalificat%s.' % (self.player.full_name, oa, oa)
+                else:
+                    return u'%s è stat%s squalificat%s. Il motivo della squalifica è: %s' % (self.player.full_name, oa, oa, self.disqualification.public_message)
         
         elif self.cause == TEAM_DEFEAT:
             team = TEAM_IT[ self.team ]
