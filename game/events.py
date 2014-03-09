@@ -364,11 +364,9 @@ class NecrofilizationEvent(Event):
         # Check for forbidden roles
         assert not isinstance(target.role, (Lupo, Negromante, Fantasma))
 
-        # Check that power is not una tantum
+        # Check that power is not una tantum or that role is powerless
         assert not isinstance(target.role, tuple(UNA_TANTUM_ROLES))
-        
-        # TODO (Giove a Gio): bisogna escludere anche i ruoli senza un potere (Contadino, Divinatore, Massone, Rinnegato)
-        # Quelli una tantum mi torna che siano i tre che hai scritto.
+        assert not isinstance(target.role, tuple(POWERLESS_ROLES))
 
         # Take original role class if the target is a ghost
         new_role_class = target.role.__class__
@@ -389,7 +387,25 @@ class NecrofilizationEvent(Event):
             return u'Dopo aver utilizzato il tuo potere su %s hai assunto il ruolo di %s.' % (self.target.full_name, role)
         elif player == 'admin':
             return u'%s ha utilizzato il proprio potere da Necrofilo su %s assumendo il ruolo di %s.' % (self.player.full_name, self.target.full_name, role)
-            
+
+
+class StakeFailedEvent(Event):
+    RELEVANT_PHASES = [SUNSET]
+    AUTOMATIC = True
+
+    STAKE_FAILED_CAUSES = (
+        (MISSING_QUORUM, 'MissingQuorum'),
+        (ADVOCATE, 'Advocate'),
+        )
+    cause = models.CharField(max_length=1, choices=STAKE_FAILED_CAUSES, default=None)
+
+    def apply(self, dynamics):
+        # XXX: is there anything sensible to check or do here?
+        pass
+
+    def to_player_string(self, player):
+        # TODO
+        raise NotImplementedError()
 
 
 class PlayerDiesEvent(Event):
@@ -467,7 +483,12 @@ class RoleKnowledgeEvent(Event):
         (SOOTHSAYER, 'Soothsayer'),
         (EXPANSIVE, 'Expansive'),
         (KNOWLEDGE_CLASS, 'KnowledgeClass'),
+        # GHOST: a new Spettro (possibly a former Fantasma) is made
+        # aware of its Negromanti
         (GHOST, 'Ghost'),
+        # PHANTOM: a Negromante is made aware of the Fantasma just
+        # transformed to Ghost
+        (PHANTOM, 'Phantom'),
         (DEVIL, 'Devil'),
         )
     cause = models.CharField(max_length=1, choices=KNOWLEDGE_CAUSE_TYPES, default=None)
@@ -476,9 +497,8 @@ class RoleKnowledgeEvent(Event):
         SOOTHSAYER: [CREATION],
         KNOWLEDGE_CLASS: [CREATION],
         EXPANSIVE: [DAWN],
-        # FIXME: what happens when Fantasma dies and becomes a ghost?
-        # It can happen also during sunset
-        GHOST: [DAWN],
+        GHOST: [DAWN, SUNSET],
+        PHANTOM: [DAWN, SUNSET],
         }
 
     # def to_dict(self):
@@ -508,6 +528,10 @@ class RoleKnowledgeEvent(Event):
 
         elif self.cause == GHOST:
             assert isinstance(self.target.canonicalize().role, Negromante)
+
+        elif self.cause == PHANTOM:
+            assert isinstance(self.player.canonicalize().role, Negromante)
+            assert isinstance(self.target.canonicalize().role, Spettro)
 
         elif self.cause == KNOWLEDGE_CLASS:
             assert self.player.canonicalize().role.knowledge_class is not None
@@ -540,7 +564,11 @@ class RoleKnowledgeEvent(Event):
                 return u'A %s è stato assegnato il ruolo di %s.' % (self.target.full_name, role)
             elif player == 'admin':
                 return u'Per conoscenza iniziale, %s sa che %s ha il ruolo di %s.' % (self.player.full_name, self.target.full_name, role)
-        
+
+        elif self.cause == PHANTOM:
+            # TODO: implement
+            raise NotImplementedError("Giove, this is for you! :-)")
+
         elif self.cause == GHOST:
             if player == self.player:
                 return u'Vieni a sapere che %s è un %s.' % (self.target.full_name, role)
@@ -737,7 +765,53 @@ class HypnotizationEvent(Event):
             return u'%s è stato ipnotizzato da %s.' % (self.player.full_name, self.hypnotist.full_name)
         else:
             return None
-    
+
+
+class GhostificationEvent(Event):
+    RELEVANT_PHASES = [DAWN, SUNSET]
+    AUTOMATIC = True
+
+    player = models.ForeignKey(Player, related_name='+')
+    ghost = models.CharField(max_length=1, choices=Spettro.POWERS_LIST, default=None)
+    GHOSTIFICATION_CAUSES = (
+        (NECROMANCER, 'Necromancer'),
+        (PHANTOM, 'Phantom'),
+        )
+    cause = models.CharField(max_length=1, choices=GHOSTIFICATION_CAUSES, default=None)
+
+    def apply(self, dynamics):
+        player = self.player.canonicalize()
+
+        assert not player.alive
+        assert self.ghost not in dynamics.used_ghost_powers
+        assert not dynamics.death_ghost_created
+        assert not dynamics.ghost_created_last_night
+
+        # TODO
+        raise NotImplementedError()
+
+    def to_player_string(self, player):
+        # TODO
+        raise NotImplementedError()
+
+
+class GhostificationFailedEvent(Event):
+    RELEVANT_PHASES = [DAWN, SUNSET]
+    AUTOMATIC = True
+
+    player = models.ForeignKey(Player, related_name='+')
+
+    def apply(self, dynamics):
+        player = self.player.canonicalize()
+
+        assert not player.alive
+        assert isinstance(player.role, Fantasma)
+
+        # TODO: anything else to check?
+
+    def to_player_string(self, player):
+        # TODO
+        raise NotImplementedError()
 
 
 class PowerOutcomeEvent(Event):
@@ -779,6 +853,22 @@ class PowerOutcomeEvent(Event):
                     string += '(non sequestrat%s)' %oa
 
 
+class DisqualificationEvent(Event):
+    RELEVANT_PHASES = [DAY, NIGHT]
+    AUTOMATIC = False
+
+    player = models.ForeignKey(Player, related_name='+')
+    private_message = models.TextField()
+    public_message = models.TextField()
+
+    def apply(self, dynamics):
+        assert self.player.canonicalize().active
+
+    def to_player_string(self, player):
+        # TODO
+        raise NotImplementedError()
+
+
 class ExileEvent(Event):
     RELEVANT_PHASES = [DAY, NIGHT]
     AUTOMATIC = True
@@ -789,11 +879,16 @@ class ExileEvent(Event):
         (TEAM_DEFEAT, 'TeamDefeat'),
         )
     cause = models.CharField(max_length=1, choices=EXILE_CAUSES, default=None)
+    disqualification = models.OneToOneField(DisqualificationEvent)
 
     def apply(self, dynamics):
         player = self.player.canonicalize()
 
         assert player.active
+        if self.cause == DISQUALIFICATION:
+            assert self.disqualification is not None
+        else:
+            assert self.disqualification is None
 
         player.active = False
     

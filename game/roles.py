@@ -580,3 +580,4 @@ class Spettro(Role):
 roles_map = dict([(x.__name__, x) for x in Role.__subclasses__()])
 
 UNA_TANTUM_ROLES = [Cacciatore, Messia, Necrofilo]
+POWERLESS_ROLES = [Contadino, Divinatore, Massone, Rinnegato]

@@ -87,11 +87,22 @@ HUNTER = 'H'
 WOLVES = 'W'
 DEATH_GHOST = 'D'
 
-# Role knowledge causes
+# Stake failure causes
+MISSING_QUORUM = 'Q'
+ADVOCATE = 'A'
+
+# Ghostification causes
+NECROMANCER = 'N'
+PHANTOM = 'P'
+
+# Role knowledge causes (PHANTOM clashes with the ghostification cause
+# and so must set to the same value --- curse insufficient namespace
+# separation!)
 SOOTHSAYER = 'S'
 EXPANSIVE = 'E'
 KNOWLEDGE_CLASS = 'C'
 GHOST = 'G'
+PHANTOM = 'P'
 DEVIL = 'D'
 
 # Aura knowledge causes
