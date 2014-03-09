@@ -1,10 +1,13 @@
 from django.conf.urls import patterns, url
 from django.contrib.auth.decorators import user_passes_test
 
+from django.views.generic.base import RedirectView
+
 from game.views import *
 
 
 urlpatterns = patterns('',
+    url(r'^$', RedirectView.as_view(url='index', permanent=False)),
     url(r'^index/$', home, name='home'),
     
     url(r'^ruleset/$', ruleset, name='ruleset'),
