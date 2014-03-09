@@ -78,6 +78,7 @@ def get_events(request, player):
             result[event.turn]['soothsayer_propositions'].append(event.to_soothsayer_proposition())
     
     ordered_result = [ (turn, result[turn]) for turn in turns ]
+    
     return ordered_result
 
 

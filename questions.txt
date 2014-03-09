@@ -1,7 +1,10 @@
 
  * Lupi e negromanti sequestrati: contano nella determinazione di chi muore o viene spettrizzato?
+ A: contano ai fini del controllo che tutti i Lupi (Negromanti) siano andati dalla stessa persona (se il Lupo X va da A, il Lupo Y va da B ma viene sequestrato, e A è diverso da B, allora i Lupi non uccidono).
+ Però, affinché l'uccisione (spettrizzazione) avvenga, serve che almeno un Lupo (Negromante) abbia agito con successo sul bersaglio.
 
  * Come rappresentiamo sul database i casi in cui una persona muore varie volte nella stessa notte?
 
  * Interazione tra Ipnotista e Spettro dell'Amnesia: chi vince? (direi lo Spettro, visto che la metafora è che il tizio non va proprio a votare)
+ A: Vince lo Spettro (è scritto all'inizio di pagina 11).
 
