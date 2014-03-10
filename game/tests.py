@@ -225,8 +225,11 @@ class GameTests(TestCase):
             self.assertFalse(players[expect_to_die].canonicalize().alive)
             if players[expect_to_die].pk == mayor_after_election.pk:
                 mayor_dead = True
+            self.assertEqual([event for event in dynamics.debug_event_bin if isinstance(event, StakeFailedEvent)], [])
         else:
             self.assertEqual([event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)], [])
+            [stake_failed_event] = [event for event in dynamics.debug_event_bin if isinstance(event, StakeFailedEvent)]
+            self.assertEqual(stake_failed_event.cause, MISSING_QUORUM)
 
         # FIXME: here expected_final_mayor changes type!
         if expected_final_mayor is None:

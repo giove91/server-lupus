@@ -9,7 +9,7 @@ from datetime import datetime
 
 from models import Event, Turn
 from events import CommandEvent, VoteAnnouncedEvent, TallyAnnouncedEvent, \
-    ElectNewMayorEvent, PlayerDiesEvent, PowerOutcomeEvent
+    ElectNewMayorEvent, PlayerDiesEvent, PowerOutcomeEvent, StakeFailedEvent
 from constants import *
 from roles import *
 
@@ -511,9 +511,12 @@ class Dynamics:
         while self._update_step(advancing_turn=True):
             pass
 
-        winner = self._compute_vote_winner()
+        winner, cause = self._compute_vote_winner()
         if winner is not None:
             event = PlayerDiesEvent(player=winner, cause=STAKE)
+            self.generate_event(event)
+        else:
+            event = StakeFailedEvent(cause=cause)
             self.generate_event(event)
 
         # Unrecord all elect and vote events
@@ -607,7 +610,7 @@ class Dynamics:
 
         # Abort the vote if the quorum wasn't reached
         if quorum_failed:
-            return None
+            return None, MISSING_QUORUM
 
         # Compute winners (or maybe loosers...)
         tally_sheet = tally_sheet.items()
@@ -622,10 +625,12 @@ class Dynamics:
         winner_player = self.players_dict[winner]
 
         # Check for protection by Avvocato del Diavolo
+        cause = None
         if winner_player in self.advocated_players:
             winner_player = None
+            cause = ADVOCATE
 
-        return winner_player
+        return winner_player, cause
 
     def _count_alive_teams(self):
         teams = []
