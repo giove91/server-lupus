@@ -229,7 +229,7 @@ class Mago(Role):
 
     def apply_dawn(self, dynamics):
         from events import MysticityKnowledgeEvent
-        dynamics.generate_event(MysticityKnowledgeEvent(player=self.player, target=self.recorded_target, is_mystic=self.recorded_target.apparent_mystic))
+        dynamics.generate_event(MysticityKnowledgeEvent(player=self.player, target=self.recorded_target, is_mystic=self.recorded_target.apparent_mystic, cause=MAGE))
 
 
 class Massone(Role):

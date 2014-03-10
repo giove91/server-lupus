@@ -463,6 +463,53 @@ class GameTests(TestCase):
 
         dynamics.debug_event_bin = None
 
+    @record_name
+    def test_mago_and_mistificazione(self):
+        roles = [ Mago, Negromante, Negromante, Lupo, Lupo, Contadino, Contadino ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [mago] = [x for x in players if isinstance(x.role, Mago)]
+        [negromante, _] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+
+        # Test on Negromante
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=mago, target=negromante, timestamp=get_now()))
+
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, MysticityKnowledgeEvent)]
+        self.assertEqual(event.player, mago)
+        self.assertEqual(event.target, negromante)
+        self.assertEqual(event.cause, MAGE)
+        self.assertEqual(event.is_mystic, True)
+
+        dynamics.debug_event_bin = None
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        # Test on Lupo
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=mago, target=lupo, timestamp=get_now()))
+
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, MysticityKnowledgeEvent)]
+        self.assertEqual(event.player, mago)
+        self.assertEqual(event.target, lupo)
+        self.assertEqual(event.cause, MAGE)
+        self.assertEqual(event.is_mystic, False)
+
+        dynamics.debug_event_bin = None
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        # TODO: test with Spettro della Mistificazione
+
 
     @record_name
     def test_load_test(self):
