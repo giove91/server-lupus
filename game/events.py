@@ -334,7 +334,6 @@ class PlayerResurrectsEvent(Event):
             player.role.has_power = False
 
         # FIXME: what else do we have to check or do here?
-        # TODO (by Giove, perché mi è venuto in mente): il fatto che se un Ipnotista resuscita allora ha ancora i vecchi giocatori sotto il suo controllo funziona automaticamente oppure devi fare qualcosa qui? Suppongo la prima, ma non si sa mai.
 
         player.alive = True
         
@@ -671,7 +670,7 @@ class TeamKnowledgeEvent(Event):
     cause = models.CharField(max_length=1, choices=KNOWLEDGE_CAUSE_TYPES, default=None)
 
     def apply(self, dynamics):
-        pass
+        assert self.target.canonicalize().team == self.team
     
     def to_player_string(self, player):
         team = TEAM_IT[ self.team ]
@@ -837,6 +836,7 @@ class GhostificationFailedEvent(Event):
         assert isinstance(player.role, Fantasma)
 
         # TODO: anything else to check?
+        raise NotImplementedError()
 
     def to_player_string(self, player):
         oa = self.player.oa
@@ -898,6 +898,8 @@ class DisqualificationEvent(Event):
 
     def apply(self, dynamics):
         assert self.player.canonicalize().active
+
+        raise NotImplementedError()
 
     def to_player_string(self, player):
         oa = self.player.oa
