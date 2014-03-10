@@ -52,6 +52,8 @@ class Dynamics:
         self.server_is_on_fire = False  # so far...
         self.playing_teams = []
         self.advocated_players = []
+        self.amnesia_target = None
+        self.duplication_target = None
         self.winners = None
         for player in self.players:
             self.players_dict[player.pk] = player
@@ -344,7 +346,6 @@ class Dynamics:
             print >> sys.stderr, "Computing dawn"
 
         self.ghosts_created_last_night = False
-        self.advocated_players = []
 
         # Create an index of all roles and ghost powers
         players_by_role = {}
@@ -519,6 +520,11 @@ class Dynamics:
             event = StakeFailedEvent(cause=cause)
             self.generate_event(event)
 
+        # Unrecord all data setting during previous dawn
+        self.advocated_players = []
+        self.amnesia_target = None
+        self.duplication_target = None
+
         # Unrecord all elect and vote events
         for player in self.players:
             player.recorded_vote = None
@@ -575,7 +581,9 @@ class Dynamics:
             if player.hypnotist is not None and player.hypnotist.alive:
                 real_vote = player.hypnotist.recorded_vote
 
-            # TODO: count Spettro dell'Amnesia
+            # Count Spettro dell'Amnesia
+            if self.amnesia_target is not None and self.amnesia_target.pk == player.pk:
+                real_vote = None
 
             ballots[player.pk] = player.recorded_vote
             if player.is_mayor():
@@ -596,13 +604,17 @@ class Dynamics:
         if votes_num * 2 < len(self.get_alive_players()):
             quorum_failed = True
 
-        # TODO: count Spettro della Duplicazione
-
-        # Send announcements
+        # Send vote announcements
         for player in self.get_alive_players():
             if ballots[player.pk] is not None:
                 event = VoteAnnouncedEvent(voter=player, voted=ballots[player.pk], type=VOTE)
                 self.generate_event(event)
+
+        # Count Spettro della Duplicazione
+        if self.duplication_target is not None:
+            tally_sheet[self.duplication_target.pk] += 1
+
+        # Send tally announcements
         for player in self.get_alive_players():
             if tally_sheet[player.pk] != 0:
                 event = TallyAnnouncedEvent(voted=player, vote_num=tally_sheet[player.pk], type=VOTE)

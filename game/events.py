@@ -896,6 +896,20 @@ class DisqualificationEvent(Event):
     private_message = models.TextField()
     public_message = models.TextField(null=True, blank=True, default=None)
 
+    def to_dict(self):
+        ret = Event.to_dict(self)
+        ret.update({
+                'player': self.player.user.username,
+                'private_message': self.private_message,
+                'public_message': self.public_message,
+                })
+        return ret
+
+    def load_from_dict(self, data, players_map):
+        self.player = players_map[data['player']]
+        self.private_message = data['private_message']
+        self.public_message = data['public_message']
+
     def apply(self, dynamics):
         assert self.player.canonicalize().active
 

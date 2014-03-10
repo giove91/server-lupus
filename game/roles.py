@@ -549,7 +549,7 @@ class Spettro(Role):
         else:
             return None
 
-    def apply_dawn(self):
+    def apply_dawn(self, dynamics):
         if self.power == MISTIFICAZIONE:
             target = self.recorded_target.canonicalize()
             assert target.apparent_mystic is not None
@@ -557,6 +557,12 @@ class Spettro(Role):
         elif self.power == VISIONE:
             from events import TeamKnowledgeEvent
             dynamics.generate_event(TeamKnowledgeEvent(player=self.player, target=self.recorded_target, team=self.recorded_target.team, cause=VISION_GHOST))
+        elif self.power == AMNESIA:
+            assert dynamics.amnesia_target is None
+            dynamics.amnesia_target = self.recorded_target.canonicalize()
+        elif self.power == DUPLICAZIONE:
+            assert dynamics.duplication_target is None
+            dynamics.duplication_target = self.recorded_target.canonicalize()
         else:
             raise NotImplementedError()
 
