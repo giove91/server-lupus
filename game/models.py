@@ -463,7 +463,10 @@ class Event(KnowsChild):
         ordering = ['turn', 'timestamp', 'pk']
 
     def __unicode__(self):
-        return u"Event %d" % self.pk
+        if self.pk is not None:
+            return u"Event %d" % self.pk
+        else:
+            return u"Event without pk"
     event_name = property(__unicode__)
 
     def is_automatic(self):

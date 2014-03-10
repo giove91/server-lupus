@@ -148,7 +148,6 @@ class Dynamics:
             if queued_event is not None:
                 if self.debug_event_bin is not None:
                     self.debug_event_bin.append(queued_event)
-                self.events.append(queued_event)
             if event is not None:
                 self._receive_event(event)
                 return True
@@ -236,6 +235,7 @@ class Dynamics:
 
         # Process the event
         self._process_event(event)
+        self.events.append(event)
         self.event_num += 1
 
     def _process_event(self, event):
@@ -249,7 +249,6 @@ class Dynamics:
         event.save()
         if self.debug_event_bin is not None:
             self.debug_event_bin.append(event)
-        self.events.append(event)
         self.update()
 
     def generate_event(self, event):

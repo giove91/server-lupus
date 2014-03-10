@@ -49,7 +49,13 @@ def get_events(request, player):
         turns = [turn for turn in dynamics.turns if turn.phase in [CREATION, DAWN, SUNSET]]
     
     events = dynamics.events
-    
+
+    # XXX: expensive verification code (disable it in production
+    # environment)
+    #db_events = set([x.pk for x in Event.objects.order_by('pk')])
+    #list_events = set([x.pk for x in events])
+    #assert db_events == list_events, "%r %r" % (db_events - list_events, list_events - db_events)
+
     result = { turn: { 'standard': [], VOTE: {}, ELECT: {}, 'initial_propositions': [], 'soothsayer_propositions': [] } for turn in turns }
     
     for event in events:
