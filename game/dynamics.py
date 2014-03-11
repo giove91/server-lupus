@@ -54,6 +54,8 @@ class Dynamics:
         self.advocated_players = []
         self.amnesia_target = None
         self.duplication_target = None
+        self.wolves_target = None
+        self.necromancers_target = None
         self.winners = None
         for player in self.players:
             self.players_dict[player.pk] = player
@@ -75,6 +77,7 @@ class Dynamics:
             player.protected_by_keeper = False
             player.just_dead = False
             player.hypnotist = None
+            player.hunter_shooted = False
 
     def get_active_players(self):
         """Players are guaranteed to be sorted in a canonical order,
@@ -340,6 +343,31 @@ class Dynamics:
         # Choose a random minimizing competitor
         return self.random.choice(minimizers)
 
+    def _solve_common_target(self, players, ghosts=False):
+        target = None
+        target_ghost = None
+        for player in players:
+            role = player.role
+            if role.recorded_target is not None:
+                if ghosts:
+                    assert role.recorded_target_ghost is not None
+                if target is None:
+                    target = role.recorded_target
+                    if ghosts:
+                        target_ghost = role.recorded_target_ghost
+                elif target.pk != role.recorded_target.pk:
+                    return None
+                elif ghosts and target_ghost != role.recorded_target_ghost:
+                    return None
+            else:
+                if ghosts:
+                    assert role.recorded_target_ghost is None
+
+        if not ghosts:
+            return target
+        else:
+            return target, target_ghost
+
     def _compute_entering_dawn(self):
         if DEBUG_DYNAMICS:
             print >> sys.stderr, "Computing dawn"
@@ -365,6 +393,8 @@ class Dynamics:
             self.random.shuffle(role_players)
 
         # Prepare temporary status
+        self.wolves_target = None
+        self.necromancers_target = None
         for player in self.get_active_players():
             player.apparent_aura = player.aura
             player.apparent_mystic = player.is_mystic
@@ -471,18 +501,24 @@ class Dynamics:
                        Voyeur, Diavolo, Medium, VISIONE]
         apply_roles(QUERY_ROLES)
 
+        # Identify targets for Lupi and Negromanti
+        self.wolves_target = self._solve_common_target(players_by_role[Lupo.__name__], ghosts=False)
+        self.necromancers_target = self._solve_common_target(players_by_role[Negromante.__name__], ghosts=True)
+
         # Powers that modify the state: Cacciatore, Messia, Necrofilo,
         # Lupi, Avvocato del Diavolo, Negromante, Ipnotista, Spettro
         # dell'Amnesia, Spettro della Duplicazione and Spettro della
-        # Morte
-        MODIFY_ROLES = [Cacciatore, Messia, Necrofilo, Lupo, Avvocato,
-                        Negromante, Ipnotista, AMNESIA, DUPLICAZIONE, MORTE]
+        # Morte (the order is important here!)
+        MODIFY_ROLES = [Avvocato, AMNESIA, DUPLICAZIONE, Ipnotista, Necrofilo,
+                        Messia, Negromante, Cacciatore, Lupo, MORTE]
         apply_roles(MODIFY_ROLES)
 
         # Roles with no power: Contadino, Divinatore, Massone,
         # Rinnegato, Fantasma and Spettro without power
 
         # Unset all temporary status
+        self.wolves_target = None
+        self.necromancers_target = None
         for player in self.players:
             player.role.unrecord_targets()
             player.apparent_aura = None
@@ -610,7 +646,7 @@ class Dynamics:
                 self.generate_event(event)
 
         # Count Spettro della Duplicazione
-        if self.duplication_target is not None:
+        if self.duplication_target is not None and self.duplication_target.alive:
             tally_sheet[self.duplication_target.pk] += 1
 
         # Send tally announcements

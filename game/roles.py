@@ -92,9 +92,7 @@ class Role(object):
         self.recorded_command = event
 
     def apply_dawn(self, dynamics):
-        # FIXME: to test
-        #raise NotImplementedError("Please extend this method in subclasses")
-        pass
+        raise NotImplementedError("Please extend this method in subclasses")
 
     def get_blocked(self, players, ghost):
         return []
@@ -114,10 +112,18 @@ class Cacciatore(Role):
     aura = BLACK
     
     def can_use_power(self):
-        return self.player.alive and self.player.game.current_turn.date > 1
+        return self.player.alive and self.player.game.current_turn.date > 1 and not self.player.hunter_shooted
     
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
+
+    def apply_dawn(self, dynamics):
+        if not self.player.just_dead:
+            assert self.player.alive
+            from events import PlayerDiesEvent
+            dynamics.generate_event(PlayerDiesEvent(player=self.recorded_target, cause=HUNTER))
+            self.player.just_dead = True
+            self.player.hunter_shooted = True
 
 
 class Custode(Role):
@@ -550,6 +556,7 @@ class Spettro(Role):
             return None
 
     def apply_dawn(self, dynamics):
+        assert self.has_power
         if self.power == MISTIFICAZIONE:
             target = self.recorded_target.canonicalize()
             assert target.apparent_mystic is not None
@@ -586,4 +593,4 @@ class Spettro(Role):
 roles_map = dict([(x.__name__, x) for x in Role.__subclasses__()])
 
 UNA_TANTUM_ROLES = [Cacciatore, Messia, Necrofilo]
-POWERLESS_ROLES = [Contadino, Divinatore, Massone, Rinnegato]
+POWERLESS_ROLES = [Contadino, Divinatore, Massone, Rinnegato, Fantasma]
