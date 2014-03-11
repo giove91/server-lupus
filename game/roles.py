@@ -344,6 +344,11 @@ class Lupo(Role):
     def apply_dawn(self, dynamics):
         if dynamics.wolves_target is not None:
             assert self.recorded_target.pk == dynamics.wolves_target.pk
+
+            # Negromanti cannot be killed by wolves
+            if isinstance(self.recorded_target.role, Negromante):
+                return
+
             if not self.recorded_target.just_dead:
                 assert self.recorded_target.alive
                 from events import PlayerDiesEvent
