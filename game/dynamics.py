@@ -44,7 +44,6 @@ class Dynamics:
         self.mayor = None
         self.appointed_mayor = None
         self.available_roles = []
-        # TODO: update the following three
         self.death_ghost_created = False
         self.ghosts_created_last_night = False
         self.used_ghost_powers = set()
@@ -76,6 +75,7 @@ class Dynamics:
             player.protected_by_guard = False
             player.protected_by_keeper = False
             player.just_dead = False
+            player.just_ghostified = False
             player.hypnotist = None
             player.hunter_shooted = False
 
@@ -537,6 +537,7 @@ class Dynamics:
             player.protected_by_guard = False
             player.protected_by_keeper = False
             player.just_dead = False
+            player.just_ghostified = False
 
     def _compute_entering_day(self):
         if DEBUG_DYNAMICS:

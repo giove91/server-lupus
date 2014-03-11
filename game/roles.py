@@ -1,6 +1,7 @@
-from django.db import models
 from models import KnowsChild, Player
 from constants import *
+
+import sys
 
 class Role(object):
     name = 'Generic role'
@@ -125,6 +126,10 @@ class Cacciatore(Role):
             self.recorded_target.just_dead = True
             self.player.hunter_shooted = True
 
+        # XXX: this requires immediate update
+        #else:
+        #    assert not self.recorded_target.alive
+
 
 class Custode(Role):
     name = 'Custode del cimitero'
@@ -138,7 +143,7 @@ class Custode(Role):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        self.target.protected_by_keeper = True
+        self.recorded_target.protected_by_keeper = True
 
 
 class Divinatore(Role):
@@ -206,7 +211,7 @@ class Guardia(Role):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        self.target.protected_by_guard = True
+        self.recorded_target.protected_by_guard = True
 
 
 class Investigatore(Role):
@@ -345,8 +350,12 @@ class Lupo(Role):
         if dynamics.wolves_target is not None:
             assert self.recorded_target.pk == dynamics.wolves_target.pk
 
-            # Negromanti cannot be killed by wolves
+            # Lupi cannot kill Negromanti
             if isinstance(self.recorded_target.role, Negromante):
+                return
+
+            # Check protection by Guardia
+            if self.recorded_target.protected_by_guard:
                 return
 
             if not self.recorded_target.just_dead:
@@ -354,6 +363,10 @@ class Lupo(Role):
                 from events import PlayerDiesEvent
                 dynamics.generate_event(PlayerDiesEvent(player=self.recorded_target, cause=WOLVES))
                 self.recorded_target.just_dead = True
+
+            # XXX: this requires immediate update
+            #else:
+            #    assert not self.recorded_target.alive
 
 
 class Avvocato(Role):
@@ -492,6 +505,38 @@ class Negromante(Role):
         available_powers = powers - dynamics.used_ghost_powers
         return list(available_powers)
 
+    def apply_dawn(self, dynamics):
+        if dynamics.necromancers_target is not None:
+            necromancers_target_player, necromancers_target_ghost = dynamics.necromancers_target
+            assert self.recorded_target.pk == necromancers_target_player.pk
+            assert self.recorded_target_ghost == necromancers_target_ghost
+
+            # Negromanti cannot ghostify Lupi and Fattucchiere
+            if isinstance(self.recorded_target.role, (Lupo, Fattucchiera)):
+                return
+
+            # Negromanti cannot ghostify people in their team
+            if self.recorded_target.team == NEGROMANTI:
+                return
+
+            # Check protection by Custode
+            if self.recorded_target.protected_by_keeper:
+                return
+
+            assert not self.recorded_target.alive
+            from events import GhostificationEvent, RoleKnowledgeEvent
+
+            if not self.recorded_target.just_ghostified:
+                assert not isinstance(self.recorded_target.role, Spettro)
+                dynamics.generate_event(GhostificationEvent(player=self.recorded_target, ghost=self.recorded_target_ghost, cause=NECROMANCER))
+                self.recorded_target.just_ghostified = True
+
+            # XXX: this requires immediate update
+            #else:
+            #    assert isinstance(self.recorded_target.role, Spettro)
+
+            dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=Negromante.__name__, cause=GHOST))
+
 
 class Fantasma(Role):
     name = 'Fantasma'
@@ -542,6 +587,7 @@ class Spettro(Role):
     name = 'Spettro'
     team = NEGROMANTI
     aura = None
+    is_mystic = None
     
     POWER_NAMES = {
         AMNESIA: 'Amnesia',
@@ -554,10 +600,12 @@ class Spettro(Role):
     }
     
     POWERS_LIST = POWER_NAMES.items()
-    
-    power = models.CharField(max_length=1, choices=POWERS_LIST)
-    has_power = models.BooleanField(default=True)   # To be set to False when revived by the Messiah
-    
+
+    def __init__(self, player, power):
+        Role.__init__(self, player)
+        self.power = power
+        self.has_power = True
+
     def can_use_power(self):
         return not self.player.alive and self.has_power
     

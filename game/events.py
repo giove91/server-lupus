@@ -373,6 +373,10 @@ class NecrofilizationEvent(Event):
             new_role_class = target.role_class_before_ghost
             assert new_role_class is not None
 
+        # If the new role is Ipnotista, dishypnotize the player
+        if isinstance(target.role, Ipnotista):
+            player.hypotist = None
+
         # Instantiate new role class and copy attributes
         player.role = new_role_class(player)
         player.aura = target.aura
@@ -437,7 +441,7 @@ class PlayerDiesEvent(Event):
         player = self.player.canonicalize()
         assert player.alive or player.just_dead
 
-        # Trigger mayour succession
+        # Trigger mayor succession
         if player.is_mayor():
             if dynamics.appointed_mayor is not None:
                 assert dynamics.appointed_mayor.alive
@@ -448,12 +452,17 @@ class PlayerDiesEvent(Event):
                 candidates = [x for x in dynamics.get_alive_players() if x.pk != player.pk]
                 dynamics.mayor = dynamics.random.choice(candidates)
 
+                # FIXME: pass through an appropriate event?
+
+                # TODO: handle the case when the appointed mayor is
+                # also about to die
+
         # Trigger loss of appointed mayor
         if player.is_appointed_mayor():
             dynamics.appointed_mayor = None
 
-        # TODO: other actions to trigger: Cacciatore power, Fantasma
-        # power, release of Ipnotista lock
+        # TODO: other actions to trigger: Fantasma power (and handling
+        # of multiple Fantasmi dying together)
 
         # Yeah, finally kill player!
         player.alive = False
@@ -503,22 +512,6 @@ class RoleKnowledgeEvent(Event):
         GHOST: [DAWN, SUNSET],
         PHANTOM: [DAWN, SUNSET],
         }
-
-    # def to_dict(self):
-    #     ret = Event.to_dict(self)
-    #     ret.update({
-    #             'player': self.player.user.username,
-    #             'target': self.target.user.username,
-    #             'role_name': self.role_name,
-    #             'cause': self.cause,
-    #             })
-    #     return ret
-
-    # def load_from_dict(self, data, players_map):
-    #     self.player = players_map[data['player']]
-    #     self.target = players_map[data['target']]
-    #     self.role_name = data['role_name']
-    #     self.cause = data['cause']
 
     def apply(self, dynamics):
         assert dynamics.current_turn.phase in RoleKnowledgeEvent.REAL_RELEVANT_PHASES[self.cause]
@@ -796,10 +789,21 @@ class GhostificationEvent(Event):
         assert not player.alive
         assert self.ghost not in dynamics.used_ghost_powers
         assert not dynamics.death_ghost_created
-        assert not dynamics.ghost_created_last_night
+        assert not dynamics.ghosts_created_last_night
 
-        # TODO
-        raise NotImplementedError()
+        # Update global status
+        dynamics.ghosts_created_last_night = True
+        dynamics.used_ghost_powers.add(self.ghost)
+        if self.ghost == MORTE:
+            dynamics.death_ghost_created = True
+
+        # Save original role for Messia
+        assert player.role_class_before_ghost is None
+        player.role_class_before_ghost = player.role.__class__
+
+        # Real ghostification
+        player.role = Spettro(player, power=self.ghost)
+        player.team = NEGROMANTI
 
     def to_player_string(self, player):
         oa = self.player.oa
@@ -913,6 +917,7 @@ class DisqualificationEvent(Event):
     def apply(self, dynamics):
         assert self.player.canonicalize().active
 
+        # TODO
         raise NotImplementedError()
 
     def to_player_string(self, player):

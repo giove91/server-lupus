@@ -592,6 +592,96 @@ class GameTests(TestCase):
         dynamics.debug_event_bin = None
 
     @record_name
+    def test_lupo_with_guardia(self):
+        roles = [ Cacciatore, Negromante, Negromante, Lupo, Lupo, Contadino, Contadino, Guardia ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [cacciatore] = [x for x in players if isinstance(x.role, Cacciatore)]
+        [lupo, lupo2] = [x for x in players if isinstance(x.role, Lupo)]
+        [guardia] = [x for x in players if isinstance(x.role, Guardia)]
+
+        # Advance to second night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=cacciatore, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=guardia, target=cacciatore, timestamp=get_now()))
+
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        self.assertEqual([event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)], [])
+        self.assertTrue(cacciatore.alive)
+
+        dynamics.debug_event_bin = None
+
+    @record_name
+    def test_lupo_with_wrong_guardia(self):
+        roles = [ Cacciatore, Negromante, Negromante, Lupo, Lupo, Contadino, Contadino, Guardia ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [cacciatore] = [x for x in players if isinstance(x.role, Cacciatore)]
+        [lupo, lupo2] = [x for x in players if isinstance(x.role, Lupo)]
+        [guardia] = [x for x in players if isinstance(x.role, Guardia)]
+
+        # Advance to second night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=cacciatore, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=guardia, target=lupo2, timestamp=get_now()))
+
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
+        self.assertEqual(event.player, cacciatore)
+        self.assertEqual(event.cause, WOLVES)
+        self.assertFalse(cacciatore.alive)
+
+        dynamics.debug_event_bin = None
+
+    @record_name
+    def test_lupi_with_guardia(self):
+        roles = [ Cacciatore, Negromante, Negromante, Lupo, Lupo, Contadino, Contadino, Guardia ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [cacciatore] = [x for x in players if isinstance(x.role, Cacciatore)]
+        [lupo, lupo2] = [x for x in players if isinstance(x.role, Lupo)]
+        [guardia] = [x for x in players if isinstance(x.role, Guardia)]
+
+        # Advance to second night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=cacciatore, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo2, target=cacciatore, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=guardia, target=cacciatore, timestamp=get_now()))
+
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        self.assertEqual([event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)], [])
+        self.assertTrue(cacciatore.alive)
+
+        dynamics.debug_event_bin = None
+
+    @record_name
     def test_lupo_on_negromante(self):
         roles = [ Cacciatore, Negromante, Negromante, Lupo, Lupo, Contadino, Contadino ]
         self.game = create_test_game(1, roles)
@@ -909,6 +999,47 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
 
         # TODO: test with Spettro della Mistificazione
+
+    @record_name
+    def test_negromante(self):
+        roles = [ Negromante, Negromante, Lupo, Lupo, Contadino, Contadino ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [negromante, _] = [x for x in players if isinstance(x.role, Negromante)]
+        [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
+
+        # Advance to first day
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        # Put Contadino to stake
+        for player in players:
+            dynamics.inject_event(CommandEvent(type=VOTE, player=player, target=contadino, timestamp=get_now()))
+
+        # Advance to sunset and check death
+        test_advance_turn(self.game)
+        self.assertFalse(contadino.alive)
+        self.assertTrue(negromante.alive)
+
+        # Advance to night and ghostify Contadino
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=AMNESIA, timestamp=get_now()))
+
+        # Advance to dawn
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        # Check result
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
+        self.assertEqual(event.player, contadino)
+        self.assertEqual(event.ghost, AMNESIA)
+        self.assertEqual(event.cause, NECROMANCER)
+        self.assertTrue(isinstance(contadino.role, Spettro))
+
+        dynamics.debug_event_bin = None
 
 
     @record_name
