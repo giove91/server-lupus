@@ -118,11 +118,11 @@ class Cacciatore(Role):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        if not self.player.just_dead:
-            assert self.player.alive
+        if not self.recorded_target.just_dead:
+            assert self.recorded_target.alive
             from events import PlayerDiesEvent
             dynamics.generate_event(PlayerDiesEvent(player=self.recorded_target, cause=HUNTER))
-            self.player.just_dead = True
+            self.recorded_target.just_dead = True
             self.player.hunter_shooted = True
 
 
@@ -337,6 +337,15 @@ class Lupo(Role):
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
+    def apply_dawn(self, dynamics):
+        if dynamics.wolves_target is not None:
+            assert self.recorded_target.pk == dynamics.wolves_target.pk
+            if not self.recorded_target.just_dead:
+                assert self.recorded_target.alive
+                from events import PlayerDiesEvent
+                dynamics.generate_event(PlayerDiesEvent(player=self.recorded_target, cause=WOLVES))
+                self.recorded_target.just_dead = True
+
 
 class Avvocato(Role):
     name = 'Avvocato del diavolo'
@@ -438,6 +447,10 @@ class Sequestratore(Role):
             return [self.recorded_target.pk]
         else:
             return []
+
+    def apply_dawn(self, dynamics):
+        # Nothing to do here...
+        pass
 
 
 # Fazione dei Negromanti

@@ -298,7 +298,7 @@ class Dynamics:
         def iter_competitors():
             current = dict([(x.pk, True) for x in critical_blockers])
             while True:
-                yield current
+                yield current.copy()
                 for i in critical_pks:
                     current[i] = not current[i]
                     if not current[i]:
@@ -310,6 +310,8 @@ class Dynamics:
         min_score = len(critical_blockers) + 1
         minimizers = None
         for competitor in iter_competitors():
+            if DEBUG_DYNAMICS:
+                print >> sys.stderr, "  competitor: " + repr(competitor)
             score = 0
             skip = False
             for src, success in competitor.iteritems():
@@ -332,6 +334,10 @@ class Dynamics:
                     else:
                         score += 1
 
+            if DEBUG_DYNAMICS:
+                print >> sys.stderr, "    skip: " + repr(skip)
+                print >> sys.stderr, "    score: " + repr(score)
+
             # Finally, count the score of this competitor
             if not skip:
                 if score == min_score:
@@ -341,6 +347,9 @@ class Dynamics:
                     min_score = score
 
         # Choose a random minimizing competitor
+            if DEBUG_DYNAMICS:
+                print >> sys.stderr, "minimizers: " + repr(minimizers)
+                print >> sys.stderr, "min_score: " + repr(min_score)
         return self.random.choice(minimizers)
 
     def _solve_common_target(self, players, ghosts=False):
@@ -424,9 +433,9 @@ class Dynamics:
                 rev_block_graph[y].append(x)
         blockers_success = self._solve_blockers(critical_blockers, block_graph, rev_block_graph)
         if DEBUG_DYNAMICS:
-            print >> sys.stderr, block_graph
-            print >> sys.stderr, rev_block_graph
-            print >> sys.stderr, blockers_success
+            print >> sys.stderr, "block_graph:" + repr(block_graph)
+            print >> sys.stderr, "rev_block_graph:" + repr(rev_block_graph)
+            print >> sys.stderr, "blockers_success:" + repr(blockers_success)
 
         # Extend the success status to all players and compute who has
         # been sequestrated
