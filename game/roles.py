@@ -171,6 +171,10 @@ class Esorcista(Role):
         else:
             return []
 
+    def apply_dawn(self, dynamics):
+        # Nothing to do here...
+        pass
+
 
 class Espansivo(Role):
     name = 'Espansivo'
@@ -419,6 +423,10 @@ class Profanatore(Role):
         else:
             return []
 
+    def apply_dawn(self, dynamics):
+        # Nothing to do here...
+        pass
+
 
 class Rinnegato(Role):
     name = 'Rinnegato'
@@ -583,6 +591,9 @@ class Spettro(Role):
         elif self.power == DUPLICAZIONE:
             assert dynamics.duplication_target is None
             dynamics.duplication_target = self.recorded_target.canonicalize()
+        elif self.power == OCCULTAMENTO:
+            # Nothing to do here...
+            pass
         else:
             raise NotImplementedError()
 
