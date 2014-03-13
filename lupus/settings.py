@@ -63,6 +63,16 @@ DATABASES = {
     }
 }
 
+# This should make SQLite a lot faster by disabling fsync(), which has
+# dramatic performance implications when used with AUTOCOMMIT
+# See http://stackoverflow.com/questions/4534992/place-to-set-sqlite-pragma-option-in-django-project
+from django.db.backends.signals import connection_created
+def disable_synchronous(sender, connection, **kwargs):
+    if connection.vendor == 'sqlite':
+        cursor = connection.cursor()
+        cursor.execute('PRAGMA synchronous = OFF;')
+connection_created.connect(disable_synchronous)
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
 
