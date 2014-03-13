@@ -13,6 +13,7 @@ urlpatterns = patterns('',
     url(r'^ruleset/$', ruleset, name='ruleset'),
     url(r'^credits/$', credits, name='credits'),
     url(r'^trailer/$', trailer, name='trailer'),
+    url(r'^prototypes/$', prototypes, name='prototypes'),
     
     url(r'^status/$', VillageStatusView.as_view(), name='status'),
     url(r'^announcements/$', AnnouncementsView.as_view(), name='announcements'),

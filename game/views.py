@@ -133,6 +133,9 @@ def credits(request):
 def trailer(request):
     return render(request, 'trailer.html')
 
+def prototypes(request):
+    return render(request, 'prototypes.html')
+
 
 class Weather:
     
