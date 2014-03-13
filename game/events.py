@@ -202,10 +202,12 @@ class SetRoleEvent(Event):
         assert player.is_mystic is not None
     
     def to_player_string(self, player):
+        role = Role.get_from_name(self.role_name).name
+        
         if player == self.player:
-            return u'Ti è stato assegnato il ruolo di %s.' % self.role_name
+            return u'Ti è stato assegnato il ruolo di %s.' % role
         elif player == 'admin':
-            return u'A %s è stato assegnato il ruolo di %s.' % (self.player.full_name, self.role_name)
+            return u'A %s è stato assegnato il ruolo di %s.' % (self.player.full_name, role)
         else:
             return None
 

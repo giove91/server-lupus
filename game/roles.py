@@ -198,7 +198,7 @@ class Espansivo(Role):
 
 
 class Guardia(Role):
-    name = 'Guardia'
+    name = 'Guardia del corpo'
     team = POPOLANI
     aura = WHITE
     
@@ -433,7 +433,7 @@ class Profanatore(Role):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
 
     def get_targets(self):
-        return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
+        return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
 
     def get_blocked(self, players, ghost):
         if ghost is not None and self.recorded_target is not None and ghost.pk == self.recorded_target.pk:
