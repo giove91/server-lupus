@@ -292,8 +292,7 @@ class Stalker(Role):
 
     def apply_dawn(self, dynamics):
         from events import MovementKnowledgeEvent
-        for visiting_pk in dynamics.visiting[self.recorded_target.pk]:
-            visiting = dynamics.players_dict[visiting_pk]
+        for visiting in self.recorded_target.visiting:
             dynamics.generate_event(MovementKnowledgeEvent(player=self.player, target=self.recorded_target, target2=visiting, cause=STALKER))
 
 
@@ -327,8 +326,9 @@ class Voyeur(Role):
 
     def apply_dawn(self, dynamics):
         from events import MovementKnowledgeEvent
-        for visitor_pk in dynamics.visitors[self.recorded_target.pk]:
-            visitor = dynamics.players_dict[visitor_pk]
+        # TODO: ignore the information that the Voyeur go to their
+        # target
+        for visitor in self.recorded_target.visitors:
             dynamics.generate_event(MovementKnowledgeEvent(player=self.player, target=self.recorded_target, target2=visitor, cause=VOYEUR))
 
 
