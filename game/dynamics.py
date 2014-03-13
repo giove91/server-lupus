@@ -17,6 +17,13 @@ DEBUG_DYNAMICS = False
 RELAX_TIME_CHECKS = False
 ANCIENT_DATETIME = datetime(year=1970, month=1, day=1, tzinfo=REF_TZINFO)
 
+# When SINGLE_MODE is set, at most one dynamics can act concurrently
+# on the same game; when SINGLE_MODE is not set automatic events won't
+# be written to the database, so many dynamics can act concurrently;
+# when switching from single mode to non single mode, all automatic
+# events have to be deleted from the database
+SINGLE_MODE = False
+
 class Dynamics:
 
     def __init__(self, game):
@@ -32,6 +39,22 @@ class Dynamics:
         self.events = []
         self.turns = []
         self.initialize_augmented_structure()
+
+        # If in single mode, delete all automatic events
+        if SINGLE_MODE:
+            for event in Event.objects.all():
+                event = event.as_child()
+                if event.AUTOMATIC:
+                    if DEBUG_DYNAMICS:
+                        print >> sys.stderr, "Deleting event %r" % (event)
+                    event.delete()
+
+        # Otherwise expect that there are no automatic events in the
+        # database
+        else:
+            for event in Event.objects.all():
+                event = event.as_child()
+                assert not event.AUTOMATIC, "Please delete automatic events from database using delete_automatic_events.py"
 
     def initialize_augmented_structure(self):
         self.players = list(self.game.player_set.order_by('user__last_name', 'user__first_name', 'user__username'))
@@ -135,29 +158,23 @@ class Dynamics:
     def _update_step(self, advancing_turn=False):
         # First check for new events in current turn
         if self.current_turn is not None:
-            # TODO: the following code has race conditions when
-            # executed in autocommit mode; fix it! (also, check the
-            # fix with the real database we're going to use)
             queued_event = self._pop_event_from_queue()
-            # If there is not queued event and we're advancing turn,
-            # do not process any other event
-            if advancing_turn and queued_event is None:
-                return False
-            event = self._pop_event_from_db()
-            if event is not None and queued_event is not None:
-                # TODO: implement the following
-                #assert event == queued_event
-                pass
             if queued_event is not None:
                 if self.debug_event_bin is not None:
                     self.debug_event_bin.append(queued_event)
-            if event is not None:
-                self._receive_event(event)
-                return True
-            elif queued_event is not None:
-                queued_event.save()
+                if SINGLE_MODE:
+                    queued_event.save()
                 self._receive_event(queued_event)
                 return True
+            else:
+                # If there is not queued event and we're advancing
+                # turn, do not process any other event
+                if advancing_turn:
+                    return False
+                event = self._pop_event_from_db()
+                if event is not None:
+                    self._receive_event(event)
+                    return True
 
         # If we are advancing the turn right now, do now attempt to do
         # it twice
@@ -229,11 +246,15 @@ class Dynamics:
         # Do some check on the new event
         if not RELAX_TIME_CHECKS:
             assert event.timestamp >= self.current_turn.begin
-        assert (event.timestamp > self.last_timestamp_in_turn) or \
-            (event.timestamp >= self.last_timestamp_in_turn and event.pk >= self.last_pk_in_turn), \
-            repr((event.timestamp, self.last_timestamp_in_turn, event.pk, self.last_pk_in_turn))
-        self.last_timestamp_in_turn = event.timestamp
-        self.last_pk_in_turn = event.pk
+        if not event.AUTOMATIC or SINGLE_MODE:
+            assert (event.timestamp > self.last_timestamp_in_turn) or \
+                (event.timestamp >= self.last_timestamp_in_turn and event.pk >= self.last_pk_in_turn), \
+                repr((event.timestamp, self.last_timestamp_in_turn, event.pk, self.last_pk_in_turn))
+            self.last_timestamp_in_turn = event.timestamp
+            self.last_pk_in_turn = event.pk
+        else:
+            assert event.timestamp >= self.last_timestamp_in_turn
+            self.last_timestamp_in_turn = event.timestamp
         assert self.current_turn.phase in event.RELEVANT_PHASES
 
         # Process the event
