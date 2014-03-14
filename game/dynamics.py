@@ -370,9 +370,9 @@ class Dynamics:
                     min_score = score
 
         # Choose a random minimizing competitor
-            if DEBUG_DYNAMICS:
-                print >> sys.stderr, "minimizers: " + repr(minimizers)
-                print >> sys.stderr, "min_score: " + repr(min_score)
+        if DEBUG_DYNAMICS:
+            print >> sys.stderr, "minimizers: " + repr(minimizers)
+            print >> sys.stderr, "min_score: " + repr(min_score)
         return self.random.choice(minimizers)
 
     def _solve_common_target(self, players, ghosts=False):
