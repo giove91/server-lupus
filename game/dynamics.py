@@ -493,11 +493,13 @@ class Dynamics:
         def apply_role(player):
             if player.role.recorded_target is None:
                 return
-            event = PowerOutcomeEvent(player=player, success=powers_success[player.pk], sequestrated=player.pk in sequestrated, command=player.role.recorded_command)
+            success = powers_success[player.pk]
+            if success:
+                success = player.role.pre_apply_dawn(self)
+            event = PowerOutcomeEvent(player=player, success=success, sequestrated=player.pk in sequestrated, command=player.role.recorded_command)
             self.generate_event(event)
-            if not powers_success[player.pk]:
-                return
-            player.role.apply_dawn(self)
+            if success:
+                player.role.apply_dawn(self)
 
         def apply_roles(roles):
             for role in roles:

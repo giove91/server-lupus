@@ -90,6 +90,9 @@ class Role(object):
         self.recorded_target_ghost = event.target_ghost
         self.recorded_command = event
 
+    def pre_apply_dawn(self, dynamics):
+        return True
+
     def apply_dawn(self, dynamics):
         raise NotImplementedError("Please extend this method in subclasses")
 
@@ -503,7 +506,7 @@ class Negromante(Role):
         available_powers = powers - dynamics.used_ghost_powers
         return list(available_powers)
 
-    def apply_dawn(self, dynamics):
+    def pre_apply_dawn(self, dynamics):
         if dynamics.necromancers_target is not None:
             necromancers_target_player, necromancers_target_ghost = dynamics.necromancers_target
             assert self.recorded_target.pk == necromancers_target_player.pk
@@ -511,15 +514,28 @@ class Negromante(Role):
 
             # Negromanti cannot ghostify Lupi and Fattucchiere
             if isinstance(self.recorded_target.role, (Lupo, Fattucchiera)):
-                return
+                return False
 
             # Negromanti cannot ghostify people in their team
             if self.recorded_target.team == NEGROMANTI:
-                return
+                return False
 
             # Check protection by Custode
             if self.recorded_target.protected_by_keeper:
-                return
+                return False
+
+        return True
+
+    def apply_dawn(self, dynamics):
+        if dynamics.necromancers_target is not None:
+            necromancers_target_player, necromancers_target_ghost = dynamics.necromancers_target
+            assert self.recorded_target.pk == necromancers_target_player.pk
+            assert self.recorded_target_ghost == necromancers_target_ghost
+
+            # Assert checks in pre_dawn_apply(), just to be sure
+            assert not isinstance(self.recorded_target.role, (Lupo, Fattucchiera))
+            assert self.recorded_target.team != NEGROMANTI
+            assert not self.recorded_target.protected_by_keeper
 
             assert not self.recorded_target.alive
             from events import GhostificationEvent, RoleKnowledgeEvent
