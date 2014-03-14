@@ -1177,11 +1177,11 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
+        self.assertTrue(negromante.can_use_power())
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=MORTE, timestamp=get_now()))
         self.assertTrue(custode.can_use_power())
         with self.assertRaises(AssertionError):
             dynamics.inject_event(CommandEvent(type=USEPOWER, player=custode, target=contadino, timestamp=get_now()))
-        self.assertTrue(negromante.can_use_power())
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=MORTE, timestamp=get_now()))
 
     @record_name
     def test_veggente_medium_investigatore_diavolo(self):
@@ -1208,10 +1208,8 @@ class GameTests(TestCase):
         
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=veggente, target=lupo, timestamp=get_now()))
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=diavolo, target=lupo, timestamp=get_now()))
-        with self.assertRaises(AssertionError):
-            dynamics.inject_event(CommandEvent(type=USEPOWER, player=medium, target=lupo, timestamp=get_now()))
-        with self.assertRaises(AssertionError):
-            dynamics.inject_event(CommandEvent(type=USEPOWER, player=investigatore, target=lupo, timestamp=get_now()))
+        self.assertFalse(lupo in medium.role.get_targets())
+        self.assertFalse(lupo in investigatore.role.get_targets())
         
         # Advance to dawn and check
         dynamics.debug_event_bin = []
@@ -1245,10 +1243,8 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         
         # Use powers
-        with self.assertRaises(AssertionError):
-            dynamics.inject_event(CommandEvent(type=USEPOWER, player=veggente, target=lupo, timestamp=get_now()))
-        with self.assertRaises(AssertionError):
-            dynamics.inject_event(CommandEvent(type=USEPOWER, player=diavolo, target=lupo, timestamp=get_now()))
+        self.assertFalse(lupo in veggente.role.get_targets())
+        self.assertFalse(lupo in diavolo.role.get_targets())
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=medium, target=lupo, timestamp=get_now()))
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=investigatore, target=lupo, timestamp=get_now()))
         
@@ -1268,7 +1264,69 @@ class GameTests(TestCase):
         self.assertEqual(event.aura, BLACK)
         self.assertFalse(event.is_ghost)
         self.assertEqual(event.cause, MEDIUM)
-    
+
+    @record_name
+    def test_fattucchiera_with_veggente(self):
+        roles = [ Veggente, Medium, Investigatore, Negromante, Lupo, Lupo, Contadino, Fattucchiera ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+        
+        [veggente] = [x for x in players if isinstance(x.role, Veggente)]
+        [medium] = [x for x in players if isinstance(x.role, Medium)]
+        [investigatore] = [x for x in players if isinstance(x.role, Investigatore)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+        [fattucchiera] = [x for x in players if isinstance(x.role, Fattucchiera)]
+        
+        # Advance to night and use powers
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=fattucchiera, target=fattucchiera, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=veggente, target=fattucchiera, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, AuraKnowledgeEvent)]
+        self.assertEqual(event.player, veggente)
+        self.assertEqual(event.target, fattucchiera)
+        self.assertEqual(event.aura, WHITE)
+        self.assertEqual(event.cause, SEER)
+
+    @record_name
+    def test_multiple_fattucchiere_with_veggente(self):
+        roles = [ Veggente, Medium, Investigatore, Negromante, Lupo, Lupo, Fattucchiera, Fattucchiera, Fattucchiera, Fattucchiera ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+        
+        [veggente] = [x for x in players if isinstance(x.role, Veggente)]
+        [medium] = [x for x in players if isinstance(x.role, Medium)]
+        [investigatore] = [x for x in players if isinstance(x.role, Investigatore)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [f1, f2, f3, f4] = [x for x in players if isinstance(x.role, Fattucchiera)]
+        
+        # Advance to night and use powers
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=f1, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=f2, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=f3, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=f4, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=veggente, target=negromante, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, AuraKnowledgeEvent)]
+        self.assertEqual(event.player, veggente)
+        self.assertEqual(event.target, negromante)
+        self.assertEqual(event.aura, WHITE)
+        self.assertEqual(event.cause, SEER)
+
     @record_name
     def test_load_test(self):
         self.game = self.load_game_helper('test.json')
