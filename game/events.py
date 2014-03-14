@@ -870,7 +870,7 @@ class PowerOutcomeEvent(Event):
         assert self.command.target is not None
 
         player = self.player.canonicalize()
-        player.role.last_usage = dynamics.current_turn
+        player.role.last_usage = dynamics.previous_turn
         player.role.last_target = self.command.target.canonicalize()
     
     def to_player_string(self, player):

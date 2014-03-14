@@ -141,7 +141,10 @@ class Custode(Role):
         return self.player.alive
     
     def get_targets(self):
-        return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
+        excluded = [self.player.pk]
+        if self.last_usage is not None and self.days_from_last_usage() <= 1:
+            excluded.append(self.last_target.pk)
+        return [player for player in self.player.game.get_dead_players() if player.pk not in excluded]
 
     def apply_dawn(self, dynamics):
         self.recorded_target.protected_by_keeper = True
@@ -465,7 +468,7 @@ class Sequestratore(Role):
     
     def get_targets(self):
         excluded = [self.player.pk]
-        if self.last_usage is not None and self.days_from_last_usage <= 1:
+        if self.last_usage is not None and self.days_from_last_usage() <= 1:
             excluded.append(self.last_target.pk)
         return [player for player in self.player.game.get_alive_players() if player.pk not in excluded]
 
@@ -626,7 +629,7 @@ class Spettro(Role):
     def get_targets(self):
         if self.power == AMNESIA:
             excluded = [self.player.pk]
-            if self.last_usage is not None and self.days_from_last_usage <= 1:
+            if self.last_usage is not None and self.days_from_last_usage() <= 1:
                 excluded.append(self.last_target.pk)
             targets = [player for player in self.player.game.get_alive_players() if player.pk not in excluded]
         elif self.power == DUPLICAZIONE or self.power == ILLUSIONE or self.power == MORTE or self.power == VISIONE:
