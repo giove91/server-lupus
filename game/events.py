@@ -329,13 +329,11 @@ class PlayerResurrectsEvent(Event):
         player = self.player.canonicalize()
         assert not player.alive
 
-        # If the player is a ghost, its power gets deactivated. Poor
+        # If the player is a ghost, their power gets deactivated. Poor
         # they!
         if isinstance(player.role, Spettro):
             assert player.role.has_power
             player.role.has_power = False
-
-        # FIXME: what else do we have to check or do here?
 
         player.alive = True
         
