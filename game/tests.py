@@ -65,11 +65,8 @@ def create_game_from_dump(data):
     game.save()
     game.initialize(get_now())
 
-    users = create_users(len(data['players']))
-    for i, user in enumerate(users):
-        if user.is_staff:
-            raise Exception()
-        user.username = data['players'][i]['username']
+    for player_data in data['players']:
+        user = User.objects.create(username=player_data['username'], first_name=player_data['username'])
         user.save()
         player = Player.objects.create(user=user, game=game)
         player.save()
