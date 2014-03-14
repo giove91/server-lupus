@@ -1914,8 +1914,8 @@ class GameTests(TestCase):
         self.assertEqual(len(events), 2)
         for event in events:
             self.assertEqual(event.player, voyeur)
-            self.assertTrue(event.target == guardia or event.target == esorcista)
-            self.assertEqual(event.target2, fattucchiera)
+            self.assertTrue(event.target2 == guardia or event.target2 == esorcista)
+            self.assertEqual(event.target, fattucchiera)
             self.assertEqual(event.cause, VOYEUR)
         
         # Advance to second night and check that power cannot be used
@@ -1991,8 +1991,8 @@ class GameTests(TestCase):
         events = [event for event in dynamics.debug_event_bin if isinstance(event, MovementKnowledgeEvent) and event.player == voyeur]
         self.assertEqual(len(events), 1)
         [event] = events
-        self.assertEqual(event.target, lupo)
-        self.assertEqual(event.target2, investigatore)
+        self.assertEqual(event.target2, lupo)
+        self.assertEqual(event.target, investigatore)
         self.assertEqual(event.cause, VOYEUR)
 
     @record_name

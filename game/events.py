@@ -695,7 +695,7 @@ class MovementKnowledgeEvent(Event):
     cause = models.CharField(max_length=1, choices=KNOWLEDGE_CAUSE_TYPES, default=None)
 
     def apply(self, dynamics):
-        pass
+        assert self.target.pk != self.target2.pk
     
     def to_player_string(self, player):
         if self.cause == STALKER:

@@ -318,7 +318,8 @@ class Stalker(Role):
     def apply_dawn(self, dynamics):
         from events import MovementKnowledgeEvent
         for visiting in self.recorded_target.visiting:
-            dynamics.generate_event(MovementKnowledgeEvent(player=self.player, target=self.recorded_target, target2=visiting, cause=STALKER))
+            if visiting.pk != self.recorded_target.pk:
+                dynamics.generate_event(MovementKnowledgeEvent(player=self.player, target=self.recorded_target, target2=visiting, cause=STALKER))
 
 
 class Veggente(Role):
@@ -351,10 +352,9 @@ class Voyeur(Role):
 
     def apply_dawn(self, dynamics):
         from events import MovementKnowledgeEvent
-        # TODO: ignore the information that the Voyeur go to their
-        # target
         for visitor in self.recorded_target.visitors:
-            dynamics.generate_event(MovementKnowledgeEvent(player=self.player, target=self.recorded_target, target2=visitor, cause=VOYEUR))
+            if visitor.pk != self.recorded_target.pk and visitor.pk != self.player.pk:
+                dynamics.generate_event(MovementKnowledgeEvent(player=self.player, target=self.recorded_target, target2=visitor, cause=VOYEUR))
 
 
 # Fazione dei Lupi
@@ -688,7 +688,7 @@ class Spettro(Role):
         elif self.power == MISTIFICAZIONE or self.power == OCCULTAMENTO:
             targets = [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
         else:
-            raise ValueError('Missing supernatural power.')
+            raise ValueError('Invalid ghost type')
         return targets
     
     def get_targets2(self):
@@ -722,8 +722,12 @@ class Spettro(Role):
         elif self.power == OCCULTAMENTO:
             # Nothing to do here...
             pass
-        else:
+        elif self.power == ILLUSIONE:
             raise NotImplementedError()
+        elif self.power == MORTE:
+            raise NotImplementedError()
+        else:
+            raise ValueError("Invalid ghost type")
 
     def get_blocked(self, players, ghost):
         if self.power == OCCULTAMENTO:
