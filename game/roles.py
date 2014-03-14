@@ -317,9 +317,15 @@ class Stalker(Role):
 
     def apply_dawn(self, dynamics):
         from events import MovementKnowledgeEvent
+        gen_set = set()
+        gen_num = 0
         for visiting in self.recorded_target.visiting:
             if visiting.pk != self.recorded_target.pk:
                 dynamics.generate_event(MovementKnowledgeEvent(player=self.player, target=self.recorded_target, target2=visiting, cause=STALKER))
+                gen_set.add(visiting.pk)
+                gen_num += 1
+        assert len(gen_set) <= 1
+        assert len(gen_set) == gen_num
 
 
 class Veggente(Role):
@@ -352,9 +358,14 @@ class Voyeur(Role):
 
     def apply_dawn(self, dynamics):
         from events import MovementKnowledgeEvent
+        gen_set = set()
+        gen_num = 0
         for visitor in self.recorded_target.visitors:
             if visitor.pk != self.recorded_target.pk and visitor.pk != self.player.pk:
                 dynamics.generate_event(MovementKnowledgeEvent(player=self.player, target=self.recorded_target, target2=visitor, cause=VOYEUR))
+                gen_set.add(visitor.pk)
+                gen_num += 1
+        assert len(gen_set) == gen_num
 
 
 # Fazione dei Lupi
