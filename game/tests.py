@@ -1069,9 +1069,26 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         
         # Check result
-        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, VoteAnnouncedEvent) and event.voter == contadino]
-        self.assertEqual(event.voted, negromante)
-
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, VoteAnnouncedEvent) and (event.voter == contadino or event.voter == ipnotista)]
+        for event in events:
+            self.assertEqual(event.voted, negromante)
+        self.assertTrue(negromante.alive)
+        
+        # Advance to second day
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Vote (Ipnotista does not vote)
+        dynamics.inject_event(CommandEvent(type=VOTE, player=contadino, target=ipnotista, timestamp=get_now()))
+        
+        # Advance to sunset
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        
+        # Check result
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, VoteAnnouncedEvent) and (event.voter == contadino or event.voter == ipnotista)]
+        self.assertEqual(events, [])
 
     @record_name
     def test_load_test(self):
