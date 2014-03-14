@@ -1065,6 +1065,7 @@ class GameTests(TestCase):
         dynamics.inject_event(CommandEvent(type=VOTE, player=contadino, target=lupo, timestamp=get_now()))
         
         # Advance to sunset
+        dynamics.debug_event_bin = []
         test_advance_turn(self.game)
         
         # Check result
