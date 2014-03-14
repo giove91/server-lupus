@@ -2106,6 +2106,7 @@ class GameTests(TestCase):
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
+        self.assertTrue(isinstance(contadino.role, Spettro))
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -2151,6 +2152,7 @@ class GameTests(TestCase):
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
+        self.assertTrue(isinstance(contadino.role, Spettro))
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)

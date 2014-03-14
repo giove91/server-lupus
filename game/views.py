@@ -323,6 +323,12 @@ class CommandForm(forms.Form):
                     self.fields[key].initial = None
             elif key == 'target_ghost':
                 self.fields[key].initial = field['initial']
+        
+        keyorder = []
+        for key in ['target', 'target2', 'target_ghost']:
+            if key in fields.keys():
+                keyorder.append(key)
+        self.fields.keyOrder = keyorder
     
     def clean(self):
         cleaned_data = super(CommandForm, self).clean()
