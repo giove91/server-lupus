@@ -164,6 +164,8 @@ class Dynamics:
                     self.debug_event_bin.append(queued_event)
                 if SINGLE_MODE:
                     queued_event.save()
+                else:
+                    queued_event.fill_subclass()
                 self._receive_event(queued_event)
                 return True
             else:
@@ -585,6 +587,9 @@ class Dynamics:
         else:
             event = StakeFailedEvent(cause=cause)
             self.generate_event(event)
+
+        while self._update_step(advancing_turn=True):
+            pass
 
         # Unrecord all data setting during previous dawn
         self.advocated_players = []

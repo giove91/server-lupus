@@ -23,10 +23,12 @@ class KnowsChild(models.Model):
  
     def as_child(self):
         return getattr(self, self.subclass.lower())
- 
-    def save(self, *args, **kwargs):
-        # save what kind we are.
+
+    def fill_subclass(self):
         self.subclass = self.__class__.__name__
+
+    def save(self, *args, **kwargs):
+        self.fill_subclass()
         super(KnowsChild, self).save(*args, **kwargs)
 
 
