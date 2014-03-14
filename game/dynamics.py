@@ -546,7 +546,11 @@ class Dynamics:
         apply_roles(MODIFY_ROLES)
 
         # Roles with no power: Contadino, Divinatore, Massone,
-        # Rinnegato, Fantasma and Spettro without power
+        # Rinnegato, Fantasma; we apply them anyway, so that we are
+        # sure that all players pass through apply_role()
+        STUPID_ROLES = [Contadino, Divinatore, Massone, Rinnegato,
+                        Fantasma]
+        apply_roles(STUPID_ROLES)
 
         # Unset all temporary status
         self.wolves_target = None

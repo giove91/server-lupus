@@ -16,8 +16,6 @@ class Role(object):
     
     def __init__(self, player):
         self.player = player
-        # TODO: check that last_usage and last_target are correctly
-        # set and unset
         self.last_usage = None
         self.last_target = None
         self.recorded_target = None
@@ -49,7 +47,7 @@ class Role(object):
         return None
     
     def days_from_last_usage(self):
-        if last_usage is None:
+        if self.last_usage is None:
             return None
         else:
             return self.player.game.current_turn.date - self.last_usage.date
