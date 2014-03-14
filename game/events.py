@@ -361,6 +361,7 @@ class NecrofilizationEvent(Event):
 
         assert player.alive
         assert not target.alive
+        assert self.role_name == self.target.role.__class__.__name__
 
         # Check for forbidden roles
         assert not isinstance(target.role, (Lupo, Negromante, Fantasma))

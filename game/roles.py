@@ -282,6 +282,21 @@ class Necrofilo(Role):
     def get_targets(self):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
 
+    def pre_apply_dawn(self, dynamics):
+        # There are some forbidden roles
+        if isinstance(self.recorded_target.role, (Lupo, Negromante, Fantasma)):
+            return False
+        if isinstance(self.recorded_target.role, tuple(UNA_TANTUM_ROLES)):
+            return False
+        if isinstance(self.recorded_target.role, tuple(POWERLESS_ROLES)):
+            return False
+
+        return True
+
+    def apply_dawn(self, dynamics):
+        from events import NecrofilizationEvent
+        dynamics.generate_event(NecrofilizationEvent(player=self.player, target=self.recorded_target, role_name=self.recorded_target.role.__class__.__name__))
+
 
 class Stalker(Role):
     name = 'Stalker'
