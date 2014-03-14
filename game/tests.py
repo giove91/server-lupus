@@ -1273,7 +1273,7 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
         self.assertEqual(event.player, diavolo)
         self.assertEqual(event.target, lupo)
-        self.assertEqual(event.role_name, Lupo.name)
+        self.assertEqual(event.role_name, Lupo.__name__)
         self.assertEqual(event.cause, DEVIL)
         
         # Advance to day and kill lupo
@@ -1514,7 +1514,7 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, NecrofilizationEvent)]
         self.assertEqual(event.player, necrofilo)
         self.assertEqual(event.target, stalker)
-        self.assertEqual(event.role_name, Stalker.name)
+        self.assertEqual(event.role_name, Stalker.__name__)
         
         self.assertEqual(necrofilo.team, POPOLANI)
         self.assertEqual(necrofilo.aura, WHITE)
@@ -1568,7 +1568,7 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, NecrofilizationEvent)]
         self.assertEqual(event.player, necrofilo)
         self.assertEqual(event.target, fattucchiera)
-        self.assertEqual(event.role_name, Fattucchiera.name)
+        self.assertEqual(event.role_name, Fattucchiera.__name__)
         
         self.assertEqual(necrofilo.team, POPOLANI)
         self.assertEqual(necrofilo.aura, BLACK)
@@ -1631,7 +1631,7 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, NecrofilizationEvent)]
         self.assertEqual(event.player, necrofilo)
         self.assertEqual(event.target, investigatore)
-        self.assertEqual(event.role_name, Investigatore.name)
+        self.assertEqual(event.role_name, Investigatore.__name__)
         
         self.assertEqual(necrofilo.team, POPOLANI)
         self.assertEqual(necrofilo.aura, WHITE)
