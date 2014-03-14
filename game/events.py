@@ -875,23 +875,26 @@ class PowerOutcomeEvent(Event):
         target_ghost = self.command.target_ghost
         oa = self.player.oa
         
+        player_role = self.player.role.name
+        target_role = target.role.name
+        
         if self.success:
             if player == self.player:
                 return u'Hai utilizzato con successo il tuo potere su %s.' % target.full_name
             
             elif player == 'admin':
-                return u'%s ha utilizzato con successo il proprio potere su %s.' % (self.player.full_name, target.full_name)
+                return u'%s (%s) ha utilizzato con successo il proprio potere su %s (%s).' % (self.player.full_name, player_role, target.full_name, target_role)
         
         else:
             if player == self.player:
                 return u'Ti risvegli confus%s e stordit%s: l\'unica cosa di cui sei cert%s è di non essere riuscit%s ad utilizzare il tuo potere su %s, questa notte.' % (oa, oa, oa, oa, target.full_name)
             
             elif player == 'admin':
-                string = u'%s non è riuscit%s ad utilizzare il proprio potere su %s, questa notte ' % (self.player.full_name, oa, target.full_name)
+                string = u'%s (%s) non è riuscit%s ad utilizzare il proprio potere su %s (%s), questa notte ' % (self.player.full_name, player_role, oa, target.full_name, target_role)
                 if self.sequestrated:
-                    string += '(sequestrat%s)' % oa
+                    string += '(sequestrat%s).' % oa
                 else:
-                    string += '(non sequestrat%s)' %oa
+                    string += '(non sequestrat%s).' %oa
 
 
 class DisqualificationEvent(Event):
