@@ -63,14 +63,14 @@ class Role(object):
     def apply_usepower(self, dynamics, event):
         # First checks
         assert event.player.pk == self.player.pk
-        assert self.can_use_power(), "%r %r %r" % (event, event.player, event.player.role)
+        assert self.can_use_power(), (event, event.player, event.player.role)
 
         # Check target validity
         targets = self.get_targets()
         if targets is None:
             assert event.target is None
         else:
-            assert event.target is None or event.target in targets, (event.target, targets)
+            assert event.target is None or event.target in targets, (event.target, targets, event, event.player, event.player.role)
 
         # Check target2 validity
         targets2 = self.get_targets2()
@@ -383,7 +383,7 @@ class Avvocato(Role):
 
     def apply_dawn(self, dynamics):
         if self.recorded_target not in dynamics.advocated_players:
-            dynamics.advocated_players.append(self.recorded_targets)
+            dynamics.advocated_players.append(self.recorded_target)
 
 
 class Diavolo(Role):
@@ -558,7 +558,7 @@ class Ipnotista(Role):
 
     def apply_dawn(self, dynamics):
         from events import HypnotizationEvent
-        dynamics.generate_event(HypnotizationEvent(player=self.target, hypnotist=self.player))
+        dynamics.generate_event(HypnotizationEvent(player=self.recorded_target, hypnotist=self.player))
 
 
 class Medium(Role):

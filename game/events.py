@@ -647,7 +647,7 @@ class MysticityKnowledgeEvent(Event):
         if player == self.player:
             return u'Scopri che %s %sè un mistico.' % (self.target.full_name, result)
         elif player == 'admin':
-            return u'%s scopre che %s %sè un mistico.', (self.player.full_name, self.target.full_name, result)
+            return u'%s scopre che %s %sè un mistico.' % (self.player.full_name, self.target.full_name, result)
 
 
 class TeamKnowledgeEvent(Event):
