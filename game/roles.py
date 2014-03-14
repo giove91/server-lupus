@@ -127,9 +127,8 @@ class Cacciatore(Role):
             self.recorded_target.just_dead = True
             self.player.hunter_shooted = True
 
-        # XXX: this requires immediate update
-        #else:
-        #    assert not self.recorded_target.alive
+        else:
+            assert not self.recorded_target.alive
 
 
 class Custode(Role):
@@ -402,9 +401,8 @@ class Lupo(Role):
                 dynamics.generate_event(PlayerDiesEvent(player=self.recorded_target, cause=WOLVES))
                 self.recorded_target.just_dead = True
 
-            # XXX: this requires immediate update
-            #else:
-            #    assert not self.recorded_target.alive
+            else:
+                assert not self.recorded_target.alive
 
         else:
             assert self.recorded_target is None
@@ -596,9 +594,8 @@ class Negromante(Role):
                 dynamics.generate_event(GhostificationEvent(player=self.recorded_target, ghost=self.recorded_target_ghost, cause=NECROMANCER))
                 self.recorded_target.just_ghostified = True
 
-            # XXX: this requires immediate update
-            #else:
-            #    assert isinstance(self.recorded_target.role, Spettro)
+            else:
+                assert isinstance(self.recorded_target.role, Spettro)
 
             dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=Negromante.__name__, cause=GHOST))
 

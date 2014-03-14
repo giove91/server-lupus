@@ -508,10 +508,14 @@ class Dynamics:
                     if role in ghosts_by_power:
                         player = ghosts_by_power[role]
                         apply_role(player)
+                        while self._update_step(advancing_turn=True):
+                            pass
                 else:
                     if role.__name__ in players_by_role:
                         for player in players_by_role[role.__name__]:
                             apply_role(player)
+                            while self._update_step(advancing_turn=True):
+                                pass
 
         # Apply roles of blockers computed above, so that
         # PowerOutcomeEvent's are properly generated
