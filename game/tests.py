@@ -1184,8 +1184,8 @@ class GameTests(TestCase):
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=MORTE, timestamp=get_now()))
 
     @record_name
-    def test_veggente_medium_investigatore(self):
-        roles = [ Veggente, Medium, Investigatore, Negromante, Lupo, Lupo, Contadino, Contadino, Fattucchiera ]
+    def test_veggente_medium_investigatore_diavolo(self):
+        roles = [ Veggente, Medium, Investigatore, Negromante, Lupo, Lupo, Contadino, Contadino, Diavolo ]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
         players = self.game.get_players()
@@ -1196,7 +1196,7 @@ class GameTests(TestCase):
         [negromante] = [x for x in players if isinstance(x.role, Negromante)]
         [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
         [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
-        [fattucchiera] = [x for x in players if isinstance(x.role, Fattucchiera)]
+        [diavolo] = [x for x in players if isinstance(x.role, Diavolo)]
         
         # Advance to night and use powers
         test_advance_turn(self.game)
@@ -1207,6 +1207,7 @@ class GameTests(TestCase):
         self.assertEqual(investigatore.role.get_targets(), [])
         
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=veggente, target=lupo, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=diavolo, target=lupo, timestamp=get_now()))
         with self.assertRaises(AssertionError):
             dynamics.inject_event(CommandEvent(type=USEPOWER, player=medium, target=lupo, timestamp=get_now()))
         with self.assertRaises(AssertionError):
@@ -1221,6 +1222,12 @@ class GameTests(TestCase):
         self.assertEqual(event.target, lupo)
         self.assertEqual(event.aura, BLACK)
         self.assertEqual(event.cause, SEER)
+        
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
+        self.assertEqual(event.player, diavolo)
+        self.assertEqual(event.target, lupo)
+        self.assertEqual(event.role_name, Lupo.name)
+        self.assertEqual(event.cause, DEVIL)
         
         # Advance to day and kill lupo
         test_advance_turn(self.game)
@@ -1240,6 +1247,8 @@ class GameTests(TestCase):
         # Use powers
         with self.assertRaises(AssertionError):
             dynamics.inject_event(CommandEvent(type=USEPOWER, player=veggente, target=lupo, timestamp=get_now()))
+        with self.assertRaises(AssertionError):
+            dynamics.inject_event(CommandEvent(type=USEPOWER, player=diavolo, target=lupo, timestamp=get_now()))
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=medium, target=lupo, timestamp=get_now()))
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=investigatore, target=lupo, timestamp=get_now()))
         
