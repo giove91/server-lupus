@@ -737,7 +737,7 @@ class Spettro(Role):
                     ret.append(blocker.pk)
                 return ret
         else:
-            raise ValueError("Invalid ghost type")
+            return []
 
 roles_map = dict([(x.__name__, x) for x in Role.__subclasses__()])
 
