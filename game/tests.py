@@ -1037,6 +1037,39 @@ class GameTests(TestCase):
         self.assertTrue(isinstance(contadino.role, Spettro))
 
         dynamics.debug_event_bin = None
+    
+    @record_name
+    def test_ipnotista(self):
+        roles = [ Ipnotista, Negromante, Lupo, Lupo, Contadino, Contadino ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
+
+        # Advance to night
+        test_advance_turn(self.game)
+        
+        # Use Ipnotista power
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=ipnotista, target=contadino, timestamp=get_now()))
+        
+        # Advance to day
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Vote
+        dynamics.inject_event(CommandEvent(type=VOTE, player=ipnotista, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=contadino, target=lupo, timestamp=get_now()))
+        
+        # Advance to sunset
+        test_advance_turn(self.game)
+        
+        # Check result
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, VoteAnnouncedEvent) and event.voter == contadino]
+        self.assertEqual(event.voted, negromante)
 
 
     @record_name
