@@ -717,26 +717,49 @@ class Spettro(Role):
 
     def apply_dawn(self, dynamics):
         assert self.has_power
+
         if self.power == MISTIFICAZIONE:
             target = self.recorded_target.canonicalize()
             assert target.apparent_mystic is not None
             target.apparent_mystic = True
+
         elif self.power == VISIONE:
             from events import TeamKnowledgeEvent
             dynamics.generate_event(TeamKnowledgeEvent(player=self.player, target=self.recorded_target, team=self.recorded_target.team, cause=VISION_GHOST))
+
         elif self.power == AMNESIA:
             assert dynamics.amnesia_target is None
             dynamics.amnesia_target = self.recorded_target.canonicalize()
+
         elif self.power == DUPLICAZIONE:
             assert dynamics.duplication_target is None
             dynamics.duplication_target = self.recorded_target.canonicalize()
+
         elif self.power == OCCULTAMENTO:
             # Nothing to do here...
             pass
+
         elif self.power == ILLUSIONE:
-            raise NotImplementedError()
+            assert self.recorded_target2.alive
+
+            # Visiting: Stalker illusion, we have to replace the
+            # original location
+            self.recorded_target2.visiting = [self.recorded_target]
+
+            # Visitors: Voyeur illusion, we have to add to the
+            # original list
+            if self.recorded_target2 not in self.recorded_target.visitors:
+                self.recorded_target.visitors.append(self.recorded_target2)
+
         elif self.power == MORTE:
-            raise NotImplementedError()
+            if not self.recorded_target.just_dead:
+                assert self.recorded_target.alive
+                from events import PlayerDiesEvent
+                dynamics.generate_event(PlayerDiesEvent(player=self.recorded_target, cause=DEATH_GHOST))
+                self.recorded_target.just_dead = True
+            else:
+                assert not self.recorded_target.alive
+
         else:
             raise ValueError("Invalid ghost type")
 
