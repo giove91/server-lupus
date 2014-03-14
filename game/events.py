@@ -359,7 +359,6 @@ class NecrofilizationEvent(Event):
 
         assert player.alive
         assert not target.alive
-        assert self.role_name == self.target.role.__class__.__name__
 
         # Check for forbidden roles
         assert not isinstance(target.role, (Lupo, Negromante, Fantasma))
@@ -373,6 +372,7 @@ class NecrofilizationEvent(Event):
         if isinstance(target.role, Spettro):
             new_role_class = target.role_class_before_ghost
             assert new_role_class is not None
+        assert self.role_name == new_role_class.__name__
 
         # If the new role is Ipnotista, dishypnotize the player
         if isinstance(target.role, Ipnotista):

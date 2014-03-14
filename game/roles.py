@@ -298,7 +298,10 @@ class Necrofilo(Role):
 
     def apply_dawn(self, dynamics):
         from events import NecrofilizationEvent
-        dynamics.generate_event(NecrofilizationEvent(player=self.player, target=self.recorded_target, role_name=self.recorded_target.role.__class__.__name__))
+        new_role_class = self.recorded_target.role.__class__
+        if isinstance(self.recorded_target.role, Spettro):
+            new_role_class = self.recorded_target.role_class_before_ghost
+        dynamics.generate_event(NecrofilizationEvent(player=self.player, target=self.recorded_target, role_name=new_role_class.__name__))
 
 
 class Stalker(Role):
