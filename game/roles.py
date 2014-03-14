@@ -405,7 +405,7 @@ class Diavolo(Role):
 
     def apply_dawn(self, dynamics):
         from events import RoleKnowledgeEvent
-        dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, role=self.recorded_target.role.__class__.__name__, cause=DEVIL))
+        dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, role_name=self.recorded_target.role.__class__.__name__, cause=DEVIL))
 
 
 class Fattucchiera(Role):

@@ -513,6 +513,7 @@ class RoleKnowledgeEvent(Event):
         EXPANSIVE: [DAWN],
         GHOST: [DAWN, SUNSET],
         PHANTOM: [DAWN, SUNSET],
+        DEVIL: [DAWN],
         }
 
     def apply(self, dynamics):
