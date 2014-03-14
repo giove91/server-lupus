@@ -96,7 +96,7 @@ class Role(object):
     def apply_dawn(self, dynamics):
         raise NotImplementedError("Please extend this method in subclasses")
 
-    def get_blocked(self, players, ghost):
+    def get_blocked(self, players):
         return []
 
 
@@ -170,14 +170,19 @@ class Esorcista(Role):
     def get_targets(self):
         return self.player.game.get_active_players()
 
-    def get_blocked(self, players, ghost):
-        if ghost is not None and \
-                ghost.role.recorded_target is not None and \
-                self.recorded_target is not None and \
-                self.recorded_target.pk == ghost.role.recorded_target.pk:
-            return [ghost.pk]
-        else:
+    def get_blocked(self, players):
+        if self.recorded_target is None:
             return []
+        ret = []
+        for blocker in players:
+            if blocker.pk == self.player.pk:
+                continue
+            if not isinstance(blocker.role, Spettro):
+                continue
+            if blocker.role.recorded_target is not None and \
+                    blocker.role.recorded_target.pk == self.recorded_target.pk:
+                ret.append(blocker.pk)
+        return ret
 
     def apply_dawn(self, dynamics):
         # Nothing to do here...
@@ -488,9 +493,11 @@ class Profanatore(Role):
     def get_targets(self):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
 
-    def get_blocked(self, players, ghost):
-        if ghost is not None and self.recorded_target is not None and ghost.pk == self.recorded_target.pk:
-            return [ghost.pk]
+    def get_blocked(self, players):
+        if self.recorded_target is None:
+            return []
+        if isinstance(self.recorded_target.role, Spettro):
+            return [self.recorded_target.pk]
         else:
             return []
 
@@ -521,7 +528,7 @@ class Sequestratore(Role):
             excluded.append(self.last_target.pk)
         return [player for player in self.player.game.get_alive_players() if player.pk not in excluded]
 
-    def get_blocked(self, players, ghost):
+    def get_blocked(self, players):
         if self.recorded_target is not None:
             return [self.recorded_target.pk]
         else:
@@ -765,7 +772,7 @@ class Spettro(Role):
         else:
             raise ValueError("Invalid ghost type")
 
-    def get_blocked(self, players, ghost):
+    def get_blocked(self, players):
         if self.power == OCCULTAMENTO:
             if self.recorded_target is None:
                 return []
@@ -778,7 +785,7 @@ class Spettro(Role):
                 if blocker.role.recorded_target is not None and \
                         blocker.role.recorded_target.pk == self.recorded_target.pk:
                     ret.append(blocker.pk)
-                return ret
+            return ret
         else:
             return []
 

@@ -443,14 +443,12 @@ class Dynamics:
         critical_blockers = players_by_role[Sequestratore.__name__] + \
             players_by_role[Profanatore.__name__] + \
             players_by_role[Esorcista.__name__]
-        ghost = None
         if OCCULTAMENTO in ghosts_by_power:
-            ghost = ghosts_by_power[OCCULTAMENTO]
-            critical_blockers.append(ghost)
+            critical_blockers.append(ghosts_by_power[OCCULTAMENTO])
         critical_blockers = [x for x in critical_blockers if x.role.recorded_target is not None]
 
         # Build the block graph and compute blocking success
-        block_graph = dict([(x.pk, x.role.get_blocked(self.players, ghost)) for x in self.players])
+        block_graph = dict([(x.pk, x.role.get_blocked(self.players)) for x in self.players])
         rev_block_graph = dict([(x.pk, []) for x in self.players])
         for x, ys in block_graph.iteritems():
             for y in ys:
