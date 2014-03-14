@@ -1694,7 +1694,6 @@ class GameTests(TestCase):
         
         # Fail a second resurrection
         test_advance_turn(self.game)
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=fattucchiera, target=fattucchiera, timestamp=get_now()))
         with self.assertRaises(AssertionError):
             dynamics.inject_event(CommandEvent(type=USEPOWER, player=messia, target=fattucchiera, timestamp=get_now()))
 
