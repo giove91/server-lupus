@@ -1874,6 +1874,39 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         self.assertEqual([event for event in dynamics.debug_event_bin if isinstance(event, MovementKnowledgeEvent)], [])
 
+    @record_name
+    def test_voyeur(self):
+        roles = [ Voyeur, Guardia, Fattucchiera, Investigatore, Negromante, Lupo, Lupo, Contadino, Esorcista ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+        
+        [voyeur] = [x for x in players if isinstance(x.role, Voyeur)]
+        [guardia] = [x for x in players if isinstance(x.role, Guardia)]
+        [fattucchiera] = [x for x in players if isinstance(x.role, Fattucchiera)]
+        [investigatore] = [x for x in players if isinstance(x.role, Investigatore)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+        [esorcista] = [x for x in players if isinstance(x.role, Esorcista)]
+        
+        # Advance to night and use powers
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=voyeur, target=fattucchiera, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=guardia, target=fattucchiera, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=fattucchiera, target=fattucchiera, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=esorcista, target=fattucchiera, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, MovementKnowledgeEvent)]
+        self.assertEqual(len(events), 2)
+        for event in events:
+            self.assertEqual(event.player, voyeur)
+            self.assertTrue(event.target == guardia or event.target == esorcista)
+            self.assertEqual(event.target2, fattucchiera)
+            self.assertEqual(event.cause, VOYEUR)
 
     @record_name
     def test_load_test(self):
