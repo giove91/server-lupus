@@ -694,9 +694,9 @@ class Spettro(Role):
             if self.last_usage is not None and self.days_from_last_usage() <= 1:
                 excluded.append(self.last_target.pk)
             targets = [player for player in self.player.game.get_alive_players() if player.pk not in excluded]
-        elif self.power == DUPLICAZIONE or self.power == ILLUSIONE or self.power == MORTE or self.power == VISIONE:
+        elif self.power == DUPLICAZIONE or self.power == MORTE or self.power == VISIONE:
             targets = [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
-        elif self.power == MISTIFICAZIONE or self.power == OCCULTAMENTO:
+        elif self.power == MISTIFICAZIONE or self.power == OCCULTAMENTO or self.power == ILLUSIONE:
             targets = [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
         else:
             raise ValueError('Invalid ghost type')
@@ -704,7 +704,7 @@ class Spettro(Role):
     
     def get_targets2(self):
         if self.power == ILLUSIONE:
-            return self.player.game.get_active_players()
+            return self.player.game.get_alive_players()
         else:
             return None
 
