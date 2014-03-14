@@ -560,6 +560,11 @@ class Negromante(Role):
             if self.recorded_target.protected_by_keeper:
                 return False
 
+            # Check that target has not just been resurrected by
+            # Messia
+            if self.recorded_target.alive:
+                return False
+
         else:
             # Check if necromancers tried to strike, but they didn't
             # agree
