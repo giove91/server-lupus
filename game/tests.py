@@ -1801,6 +1801,34 @@ class GameTests(TestCase):
         self.assertEqual(investigatore.team, POPOLANI)
 
     @record_name
+    def test_stalker(self):
+        roles = [ Stalker, Fattucchiera, Investigatore, Negromante, Lupo, Lupo, Contadino ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+        
+        [stalker] = [x for x in players if isinstance(x.role, Stalker)]
+        [fattucchiera] = [x for x in players if isinstance(x.role, Fattucchiera)]
+        [investigatore] = [x for x in players if isinstance(x.role, Investigatore)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+        
+        # Advance to night and use powers
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=stalker, target=fattucchiera, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=fattucchiera, target=lupo, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, MovementKnowledgeEvent)]
+        self.assertEqual(event.target, fattucchiera)
+        self.assertEqual(event.target2, lupo)
+        self.assertEqual(event.player, stalker)
+        self.assertEqual(event.cause, STALKER)
+
+    @record_name
     def test_load_test(self):
         self.game = self.load_game_helper('test.json')
 
