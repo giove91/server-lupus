@@ -1328,6 +1328,262 @@ class GameTests(TestCase):
         self.assertEqual(event.cause, SEER)
 
     @record_name
+    def test_necrofilo_with_lupo(self):
+        roles = [ Necrofilo, Messia, Investigatore, Negromante, Lupo, Lupo, Contadino ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+        
+        [necrofilo] = [x for x in players if isinstance(x.role, Necrofilo)]
+        [messia] = [x for x in players if isinstance(x.role, Messia)]
+        [investigatore] = [x for x in players if isinstance(x.role, Investigatore)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+        
+        # Advance to day and kill lupo
+        test_advance_turn(self.game)
+        
+        self.assertTrue(necrofilo.can_use_power())
+        self.assertFalse(lupo in necrofilo.role.get_targets())
+        
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=VOTE, player=necrofilo, target=lupo, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=messia, target=lupo, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=lupo, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=contadino, target=lupo, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=investigatore, target=lupo, timestamp=get_now()))
+        
+        # Advance to night and use power
+        test_advance_turn(self.game)
+        self.assertFalse(lupo.alive)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=necrofilo, target=lupo, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        test_advance_turn(self.game)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent)]
+        self.assertEqual(event.player, necrofilo)
+        self.assertFalse(event.success)
+        self.assertTrue(isinstance(lupo.role, Lupo))
+        self.assertEqual([event for event in dynamics.debug_event_bin if isinstance(event, NecrofilizationEvent)], [])
+
+    @record_name
+    def test_necrofilo_with_messia(self):
+        roles = [ Necrofilo, Messia, Investigatore, Negromante, Lupo, Lupo, Contadino ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+        
+        [necrofilo] = [x for x in players if isinstance(x.role, Necrofilo)]
+        [messia] = [x for x in players if isinstance(x.role, Messia)]
+        [investigatore] = [x for x in players if isinstance(x.role, Investigatore)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+        
+        # Advance to day and kill messia
+        test_advance_turn(self.game)
+        
+        self.assertTrue(necrofilo.can_use_power())
+        self.assertFalse(messia in necrofilo.role.get_targets())
+        
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=VOTE, player=necrofilo, target=messia, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=messia, target=messia, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=messia, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=contadino, target=messia, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=investigatore, target=messia, timestamp=get_now()))
+        
+        # Advance to night and use power
+        test_advance_turn(self.game)
+        self.assertFalse(messia.alive)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=necrofilo, target=messia, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        test_advance_turn(self.game)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent)]
+        self.assertEqual(event.player, necrofilo)
+        self.assertFalse(event.success)
+        self.assertTrue(isinstance(necrofilo.role, Necrofilo))
+        self.assertEqual([event for event in dynamics.debug_event_bin if isinstance(event, NecrofilizationEvent)], [])
+
+    @record_name
+    def test_necrofilo_with_stalker(self):
+        roles = [ Necrofilo, Stalker, Investigatore, Negromante, Lupo, Lupo, Contadino ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+        
+        [necrofilo] = [x for x in players if isinstance(x.role, Necrofilo)]
+        [stalker] = [x for x in players if isinstance(x.role, Stalker)]
+        [investigatore] = [x for x in players if isinstance(x.role, Investigatore)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+        
+        # Advance to day and kill stalker
+        test_advance_turn(self.game)
+        
+        self.assertTrue(necrofilo.can_use_power())
+        self.assertFalse(stalker in necrofilo.role.get_targets())
+        
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=VOTE, player=necrofilo, target=stalker, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=stalker, target=stalker, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=stalker, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=contadino, target=stalker, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=investigatore, target=stalker, timestamp=get_now()))
+        
+        # Advance to night and use power
+        test_advance_turn(self.game)
+        self.assertFalse(stalker.alive)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=necrofilo, target=stalker, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        test_advance_turn(self.game)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent)]
+        self.assertEqual(event.player, necrofilo)
+        self.assertTrue(event.success)
+        
+        self.assertTrue(isinstance(necrofilo.role, Stalker))
+        
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, NecrofilizationEvent)]
+        self.assertEqual(event.player, necrofilo)
+        self.assertEqual(event.target, stalker)
+        self.assertEqual(event.role_name, Stalker.name)
+        
+        self.assertEqual(necrofilo.team, POPOLANI)
+        self.assertEqual(necrofilo.aura, WHITE)
+        self.assertFalse(necrofilo.is_mystic)
+
+    @record_name
+    def test_necrofilo_with_fattucchiera(self):
+        roles = [ Necrofilo, Fattucchiera, Investigatore, Negromante, Lupo, Lupo, Contadino ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+        
+        [necrofilo] = [x for x in players if isinstance(x.role, Necrofilo)]
+        [fattucchiera] = [x for x in players if isinstance(x.role, Fattucchiera)]
+        [investigatore] = [x for x in players if isinstance(x.role, Investigatore)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+        
+        # Advance to day and kill fattucchiera
+        test_advance_turn(self.game)
+        
+        self.assertTrue(necrofilo.can_use_power())
+        self.assertFalse(fattucchiera in necrofilo.role.get_targets())
+        
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=VOTE, player=necrofilo, target=fattucchiera, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=fattucchiera, target=fattucchiera, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=fattucchiera, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=contadino, target=fattucchiera, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=investigatore, target=fattucchiera, timestamp=get_now()))
+        
+        # Advance to night and use power
+        test_advance_turn(self.game)
+        self.assertFalse(fattucchiera.alive)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=necrofilo, target=fattucchiera, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        test_advance_turn(self.game)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent)]
+        self.assertEqual(event.player, necrofilo)
+        self.assertTrue(event.success)
+        
+        self.assertTrue(isinstance(necrofilo.role, Fattucchiera))
+        
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, NecrofilizationEvent)]
+        self.assertEqual(event.player, necrofilo)
+        self.assertEqual(event.target, fattucchiera)
+        self.assertEqual(event.role_name, Fattucchiera.name)
+        
+        self.assertEqual(necrofilo.team, POPOLANI)
+        self.assertEqual(necrofilo.aura, BLACK)
+        self.assertTrue(necrofilo.is_mystic)
+
+    @record_name
+    def test_necrofilo_with_ghostified_fattucchiera(self):
+        roles = [ Necrofilo, Fattucchiera, Investigatore, Negromante, Lupo, Lupo, Contadino ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+        
+        [necrofilo] = [x for x in players if isinstance(x.role, Necrofilo)]
+        [fattucchiera] = [x for x in players if isinstance(x.role, Fattucchiera)]
+        [investigatore] = [x for x in players if isinstance(x.role, Investigatore)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+        
+        # Advance to day and kill fattucchiera
+        test_advance_turn(self.game)
+        
+        self.assertTrue(necrofilo.can_use_power())
+        self.assertFalse(fattucchiera in necrofilo.role.get_targets())
+        
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=VOTE, player=necrofilo, target=fattucchiera, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=fattucchiera, target=fattucchiera, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=fattucchiera, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=contadino, target=fattucchiera, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=investigatore, target=fattucchiera, timestamp=get_now()))
+        
+        # Advance to night and ghostify fattucchiera
+        test_advance_turn(self.game)
+        self.assertFalse(fattucchiera.alive)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=fattucchiera, target_ghost=AMNESIA, timestamp=get_now()))
+        
+        # Advance to second night and use power
+        test_advance_turn(self.game)
+        self.assertTrue(isinstance(fattucchiera.role, Spettro))
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=necrofilo, target=fattucchiera, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        test_advance_turn(self.game)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent)]
+        self.assertEqual(event.player, necrofilo)
+        self.assertTrue(event.success)
+        
+        self.assertTrue(isinstance(necrofilo.role, Fattucchiera))
+        
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, NecrofilizationEvent)]
+        self.assertEqual(event.player, necrofilo)
+        self.assertEqual(event.target, fattucchiera)
+        self.assertEqual(event.role_name, Fattucchiera.name)
+        
+        self.assertEqual(necrofilo.team, POPOLANI)
+        self.assertEqual(necrofilo.aura, BLACK)
+        self.assertTrue(necrofilo.is_mystic)
+
+    @record_name
     def test_load_test(self):
         self.game = self.load_game_helper('test.json')
 
