@@ -656,9 +656,9 @@ class Dynamics:
             if self.amnesia_target is not None and self.amnesia_target.pk == player.pk:
                 real_vote = None
 
-            ballots[player.pk] = player.recorded_vote
+            ballots[player.pk] = real_vote
             if player.is_mayor():
-                mayor_ballot = player.recorded_vote
+                mayor_ballot = real_vote
 
         # Fill the tally sheet
         tally_sheet = {}
