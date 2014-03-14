@@ -350,17 +350,32 @@ class Lupo(Role):
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
-    def apply_dawn(self, dynamics):
+    def pre_apply_dawn(self, dynamics):
         if dynamics.wolves_target is not None:
             assert self.recorded_target.pk == dynamics.wolves_target.pk
 
             # Lupi cannot kill Negromanti
             if isinstance(self.recorded_target.role, Negromante):
-                return
+                return False
 
             # Check protection by Guardia
             if self.recorded_target.protected_by_guard:
-                return
+                return False
+
+        else:
+            # Check if wolves tried to strike, but they didn't agree
+            if self.recorded_target is not None:
+                return False
+
+        return True
+
+    def apply_dawn(self, dynamics):
+        if dynamics.wolves_target is not None:
+            assert self.recorded_target.pk == dynamics.wolves_target.pk
+
+            # Assert checks in pre_dawn_apply(), just to be sure
+            assert not isinstance(self.recorded_target.role, Negromante)
+            assert not self.recorded_target.protected_by_guard
 
             if not self.recorded_target.just_dead:
                 assert self.recorded_target.alive
@@ -371,6 +386,9 @@ class Lupo(Role):
             # XXX: this requires immediate update
             #else:
             #    assert not self.recorded_target.alive
+
+        else:
+            assert self.recorded_target is None
 
 
 class Avvocato(Role):
@@ -527,6 +545,12 @@ class Negromante(Role):
             if self.recorded_target.protected_by_keeper:
                 return False
 
+        else:
+            # Check if necromancers tried to strike, but they didn't
+            # agree
+            if self.recorded_target is not None:
+                return False
+
         return True
 
     def apply_dawn(self, dynamics):
@@ -553,6 +577,9 @@ class Negromante(Role):
             #    assert isinstance(self.recorded_target.role, Spettro)
 
             dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=Negromante.__name__, cause=GHOST))
+
+        else:
+            assert self.recorded_target is None
 
 
 class Fantasma(Role):

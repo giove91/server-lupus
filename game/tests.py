@@ -581,6 +581,9 @@ class GameTests(TestCase):
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
 
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == lupo]
+        self.assertTrue(event.success)
+
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
         self.assertEqual(event.player, cacciatore)
         self.assertEqual(event.cause, WOLVES)
@@ -612,6 +615,9 @@ class GameTests(TestCase):
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
 
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == lupo]
+        self.assertFalse(event.success)
+
         self.assertEqual([event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)], [])
         self.assertTrue(cacciatore.alive)
 
@@ -640,6 +646,9 @@ class GameTests(TestCase):
 
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == lupo]
+        self.assertTrue(event.success)
 
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
         self.assertEqual(event.player, cacciatore)
@@ -673,6 +682,11 @@ class GameTests(TestCase):
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
 
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == lupo]
+        self.assertFalse(event.success)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == lupo2]
+        self.assertFalse(event.success)
+
         self.assertEqual([event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)], [])
         self.assertTrue(cacciatore.alive)
 
@@ -699,6 +713,9 @@ class GameTests(TestCase):
 
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == lupo]
+        self.assertFalse(event.success)
 
         self.assertEqual([event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)], [])
         self.assertTrue(negromante.alive)
@@ -728,6 +745,9 @@ class GameTests(TestCase):
 
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == lupo]
+        self.assertFalse(event.success)
 
         self.assertEqual([event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)], [])
         self.assertTrue(cacciatore.alive)
@@ -759,6 +779,9 @@ class GameTests(TestCase):
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
 
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == lupo]
+        self.assertFalse(event.success)
+
         self.assertEqual([event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)], [])
         self.assertTrue(cacciatore.alive)
 
@@ -788,6 +811,9 @@ class GameTests(TestCase):
 
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == lupo]
+        self.assertTrue(event.success)
 
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
         self.assertEqual(event.player, cacciatore)
@@ -820,6 +846,9 @@ class GameTests(TestCase):
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
 
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == lupo]
+        self.assertTrue(event.success)
+
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
         self.assertEqual(event.player, cacciatore)
         self.assertEqual(event.cause, WOLVES)
@@ -849,6 +878,11 @@ class GameTests(TestCase):
 
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == lupo]
+        self.assertTrue(event.success)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == lupo2]
+        self.assertTrue(event.success)
 
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
         self.assertEqual(event.player, cacciatore)
@@ -881,6 +915,11 @@ class GameTests(TestCase):
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
 
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == lupo]
+        self.assertFalse(event.success)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == lupo2]
+        self.assertFalse(event.success)
+
         self.assertEqual([event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)], [])
         self.assertTrue(cacciatore.alive)
 
@@ -912,6 +951,11 @@ class GameTests(TestCase):
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
 
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == lupo]
+        self.assertFalse(event.success)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == lupo2]
+        self.assertFalse(event.success)
+
         self.assertEqual([event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)], [])
         self.assertTrue(cacciatore.alive)
 
@@ -942,6 +986,11 @@ class GameTests(TestCase):
 
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == lupo]
+        self.assertFalse(event.success)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == lupo2]
+        self.assertTrue(event.success)
 
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
         self.assertEqual(event.player, cacciatore)
