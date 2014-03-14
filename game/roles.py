@@ -668,6 +668,8 @@ class Spettro(Role):
     aura = None
     is_mystic = None
     
+    message2 = 'Genera l\'illusione di:'
+    
     POWER_NAMES = {
         AMNESIA: 'Amnesia',
         DUPLICAZIONE: 'Duplicazione',
