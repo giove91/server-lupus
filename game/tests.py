@@ -1047,4 +1047,4 @@ class GameTests(TestCase):
     def test_load_test2(self):
         self.game = self.load_game_helper('mayor_appointing.json')
         players = self.game.get_players()
-        self.assertEqual(self.game.get_dynamics().appointed_mayor.pk, players[4].pk)
+        self.assertEqual(self.game.get_dynamics().appointed_mayor.user.username, "")
