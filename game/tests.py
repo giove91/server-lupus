@@ -1575,7 +1575,7 @@ class GameTests(TestCase):
         self.assertTrue(necrofilo.is_mystic)
 
     @record_name
-    def test_necrofilo_with_ghostified_fattucchiera(self):
+    def test_necrofilo_with_ghostified_investigatore(self):
         roles = [ Necrofilo, Fattucchiera, Investigatore, Negromante, Lupo, Lupo, Contadino ]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
@@ -1588,36 +1588,36 @@ class GameTests(TestCase):
         [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
         [contadino] = [x for x in players if isinstance(x.role, Contadino)]
         
-        # Advance to day and kill fattucchiera
+        # Advance to day and kill investigatore
         test_advance_turn(self.game)
         
         self.assertTrue(necrofilo.can_use_power())
-        self.assertFalse(fattucchiera in necrofilo.role.get_targets())
+        self.assertFalse(investigatore in necrofilo.role.get_targets())
         
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         
-        dynamics.inject_event(CommandEvent(type=VOTE, player=necrofilo, target=fattucchiera, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=VOTE, player=fattucchiera, target=fattucchiera, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=fattucchiera, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=VOTE, player=contadino, target=fattucchiera, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=VOTE, player=investigatore, target=fattucchiera, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=necrofilo, target=investigatore, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=fattucchiera, target=investigatore, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=investigatore, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=contadino, target=investigatore, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=investigatore, target=investigatore, timestamp=get_now()))
         
-        # Advance to night and ghostify fattucchiera
+        # Advance to night and ghostify investigatore
         test_advance_turn(self.game)
-        self.assertFalse(fattucchiera.alive)
+        self.assertFalse(investigatore.alive)
         test_advance_turn(self.game)
         
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=fattucchiera, target_ghost=AMNESIA, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=investigatore, target_ghost=AMNESIA, timestamp=get_now()))
         
         # Advance to second night and use power
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(fattucchiera.role, Spettro))
+        self.assertTrue(isinstance(investigatore.role, Spettro))
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=necrofilo, target=fattucchiera, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=necrofilo, target=investigatore, timestamp=get_now()))
         
         # Advance to dawn and check
         dynamics.debug_event_bin = []
@@ -1626,16 +1626,16 @@ class GameTests(TestCase):
         self.assertEqual(event.player, necrofilo)
         self.assertTrue(event.success)
         
-        self.assertTrue(isinstance(necrofilo.role, Fattucchiera))
+        self.assertTrue(isinstance(necrofilo.role, Investigatore))
         
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, NecrofilizationEvent)]
         self.assertEqual(event.player, necrofilo)
-        self.assertEqual(event.target, fattucchiera)
-        self.assertEqual(event.role_name, Fattucchiera.name)
+        self.assertEqual(event.target, investigatore)
+        self.assertEqual(event.role_name, Investigatore.name)
         
         self.assertEqual(necrofilo.team, POPOLANI)
-        self.assertEqual(necrofilo.aura, BLACK)
-        self.assertTrue(necrofilo.is_mystic)
+        self.assertEqual(necrofilo.aura, WHITE)
+        self.assertFalse(necrofilo.is_mystic)
 
     @record_name
     def test_messia_with_fattucchiera(self):
