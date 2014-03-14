@@ -1699,6 +1699,60 @@ class GameTests(TestCase):
             dynamics.inject_event(CommandEvent(type=USEPOWER, player=messia, target=fattucchiera, timestamp=get_now()))
 
     @record_name
+    def test_messia_with_cacciatore(self):
+        roles = [ Messia, Cacciatore, Investigatore, Negromante, Lupo, Lupo, Contadino ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+        
+        [messia] = [x for x in players if isinstance(x.role, Messia)]
+        [cacciatore] = [x for x in players if isinstance(x.role, Cacciatore)]
+        [investigatore] = [x for x in players if isinstance(x.role, Investigatore)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+        
+        # Advance to second night and use cacciatore power
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=cacciatore, target=contadino, timestamp=get_now()))
+        
+        # Advance to second day and kill cacciatore
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=VOTE, player=messia, target=cacciatore, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=cacciatore, target=cacciatore, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=cacciatore, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=investigatore, target=cacciatore, timestamp=get_now()))
+        
+        # Advance to third night and revive cacciatore
+        test_advance_turn(self.game)
+        self.assertFalse(cacciatore.alive)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=messia, target=cacciatore, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        self.assertTrue(cacciatore.alive)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerResurrectsEvent)]
+        self.assertEqual(event.player, cacciatore)
+        
+        # Advance to fourth night and check that cacciatore can't use his power
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        self.assertTrue(cacciatore.alive)
+        self.assertFalse(cacciatore.can_use_power())
+        with self.assertRaises(AssertionError):
+            dynamics.inject_event(CommandEvent(type=USEPOWER, player=cacciatore, target=investigatore, timestamp=get_now()))
+
+    @record_name
     def test_load_test(self):
         self.game = self.load_game_helper('test.json')
 
