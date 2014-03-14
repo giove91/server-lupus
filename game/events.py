@@ -611,12 +611,12 @@ class AuraKnowledgeEvent(Event):
         pass
     
     def to_player_string(self, player):
-        aura = AURA_IT[ self.aura ]
+        aura = AURA_IT[ self.aura ].lower()
         
         if player == self.player:
             return u'Scopri che %s ha aura %s.' % (self.target.full_name, aura)
         elif player == 'admin':
-            return u'%s scopre che %s ha aura %s.', (self.player.full_name, self.target.full_name, aura)
+            return u'%s scopre che %s ha aura %s.' % (self.player.full_name, self.target.full_name, aura)
         return None
             
 
@@ -735,7 +735,7 @@ class MediumKnowledgeEvent(Event):
             assert isinstance(self.player.canonicalize().role, Medium)
     
     def to_player_string(self, player):
-        aura = AURA_IT[ self.aura ]
+        aura = AURA_IT[ self.aura ].lower()
         if self.is_ghost:
             ghost_res = ''
         else:
@@ -890,11 +890,12 @@ class PowerOutcomeEvent(Event):
                 return u'Ti risvegli confus%s e stordit%s: l\'unica cosa di cui sei cert%s è di non essere riuscit%s ad utilizzare il tuo potere su %s, questa notte.' % (oa, oa, oa, oa, target.full_name)
             
             elif player == 'admin':
-                string = u'%s (%s) non è riuscit%s ad utilizzare il proprio potere su %s (%s), questa notte ' % (self.player.full_name, player_role, oa, target.full_name, target_role)
+                string = u'%s (%s) non è riuscit%s ad utilizzare il proprio potere su %s (%s) ' % (self.player.full_name, player_role, oa, target.full_name, target_role)
                 if self.sequestrated:
                     string += '(sequestrat%s).' % oa
                 else:
                     string += '(non sequestrat%s).' %oa
+                return string
 
 
 class DisqualificationEvent(Event):

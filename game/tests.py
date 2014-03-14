@@ -1074,8 +1074,11 @@ class GameTests(TestCase):
             self.assertEqual(event.voted, negromante)
         self.assertTrue(negromante.alive)
         
-        # Advance to second day
+        # Advance to second night
         test_advance_turn(self.game)
+        self.assertFalse(ipnotista.can_use_power())
+        
+        # Advance to second day
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         
