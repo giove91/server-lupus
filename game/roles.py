@@ -688,6 +688,13 @@ class Spettro(Role):
         else:
             return None
 
+    def pre_apply_dawn(self, dynamics):
+        if self.power == AMNESIA:
+            if isinstance(self.recorded_target.role, Ipnotista):
+                return False
+
+        return True
+
     def apply_dawn(self, dynamics):
         assert self.has_power
         if self.power == MISTIFICAZIONE:
