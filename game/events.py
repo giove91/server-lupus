@@ -440,35 +440,32 @@ class PlayerDiesEvent(Event):
         assert dynamics.current_turn.phase in PlayerDiesEvent.REAL_RELEVANT_PHASES[self.cause]
 
         player = self.player.canonicalize()
-        assert player.alive or player.just_dead
+        player.just_dead = True
+
+        dynamics.upcoming_deaths.append(self)
+
+    def apply_death(self, dynamics):
+        assert dynamics.current_turn.phase in PlayerDiesEvent.REAL_RELEVANT_PHASES[self.cause]
+
+        player = self.player.canonicalize()
+        assert player.just_dead
 
         # Trigger mayor succession
         if player.is_mayor():
-            if dynamics.appointed_mayor is not None:
-                assert dynamics.appointed_mayor.alive
-                dynamics.mayor = dynamics.appointed_mayor
-                dynamics.appointed_mayor = None
-
-            else:
-                candidates = [x for x in dynamics.get_alive_players() if x.pk != player.pk]
-                dynamics.mayor = dynamics.random.choice(candidates)
-
-                # FIXME: pass through an appropriate event?
-
-                # TODO: handle the case when the appointed mayor is
-                # also about to die
+            assert not dynamics.mayor_dying
+            dynamics.mayor_dying = True
 
         # Trigger loss of appointed mayor
         if player.is_appointed_mayor():
-            dynamics.appointed_mayor = None
+            assert not dynamics.appointed_mayor_dying
+            dynamics.appointed_mayor_dying = False
 
         # TODO: other actions to trigger: Fantasma power (and handling
         # of multiple Fantasmi dying together)
 
         # Yeah, finally kill player!
         player.alive = False
-        if dynamics.current_turn.phase == NIGHT:
-            player.just_dead = True
+        player.just_dead = False
 
     def to_player_string(self, player):
         oa = self.player.oa

@@ -124,11 +124,7 @@ class Cacciatore(Role):
             assert self.recorded_target.alive
             from events import PlayerDiesEvent
             dynamics.generate_event(PlayerDiesEvent(player=self.recorded_target, cause=HUNTER))
-            self.recorded_target.just_dead = True
             self.player.hunter_shooted = True
-
-        else:
-            assert not self.recorded_target.alive
 
 
 class Custode(Role):
@@ -418,10 +414,6 @@ class Lupo(Role):
                 assert self.recorded_target.alive
                 from events import PlayerDiesEvent
                 dynamics.generate_event(PlayerDiesEvent(player=self.recorded_target, cause=WOLVES))
-                self.recorded_target.just_dead = True
-
-            else:
-                assert not self.recorded_target.alive
 
         else:
             assert self.recorded_target is None
@@ -779,9 +771,6 @@ class Spettro(Role):
                 assert self.recorded_target.alive
                 from events import PlayerDiesEvent
                 dynamics.generate_event(PlayerDiesEvent(player=self.recorded_target, cause=DEATH_GHOST))
-                self.recorded_target.just_dead = True
-            else:
-                assert not self.recorded_target.alive
 
         else:
             raise ValueError("Invalid ghost type")

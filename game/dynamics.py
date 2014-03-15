@@ -80,6 +80,9 @@ class Dynamics:
         self.wolves_target = None
         self.necromancers_target = None
         self.winners = None
+        self.upcoming_deaths = []
+        self.mayor_dying = False
+        self.appointed_mayor_dying = False
         for player in self.players:
             self.players_dict[player.pk] = player
             player.team = None
@@ -543,6 +546,8 @@ class Dynamics:
         self.wolves_target = self._solve_common_target(players_by_role[Lupo.__name__], ghosts=False)
         self.necromancers_target = self._solve_common_target(players_by_role[Negromante.__name__], ghosts=True)
 
+        assert self.upcoming_deaths == []
+
         # Powers that modify the state: Cacciatore, Messia, Necrofilo,
         # Lupi, Avvocato del Diavolo, Negromante, Ipnotista, Spettro
         # dell'Amnesia, Spettro della Duplicazione and Spettro della
@@ -569,9 +574,9 @@ class Dynamics:
             player.visitors = None
             player.protected_by_guard = False
             player.protected_by_keeper = False
-            player.just_dead = False
             player.just_ghostified = False
 
+        self._check_deaths()
         self._check_team_exile()
 
     def _compute_entering_day(self):
@@ -589,6 +594,8 @@ class Dynamics:
 
         while self._update_step(advancing_turn=True):
             pass
+
+        assert self.upcoming_deaths == []
 
         winner, cause = self._compute_vote_winner()
         if winner is not None:
@@ -611,6 +618,7 @@ class Dynamics:
             player.recorded_vote = None
             player.recorded_elect = None
 
+        self._check_deaths()
         self._check_team_exile()
 
     def _compute_elected_mayor(self):
@@ -686,7 +694,7 @@ class Dynamics:
             tally_sheet[ballot.pk] += 1
             votes_num += 1
 
-        # Check that at least halg of the alive people voted
+        # Check that at least half of the alive people voted
         if votes_num * 2 < len(self.get_alive_players()):
             quorum_failed = True
 
@@ -729,6 +737,34 @@ class Dynamics:
             cause = ADVOCATE
 
         return winner_player, cause
+
+    def _check_deaths(self):
+        # We randomize deaths in order to mix Fantasma powers
+        self.random.shuffle(self.upcoming_deaths)
+
+        for event in self.upcoming_deaths:
+            event.apply_death(self)
+
+        # Loss of appointed mayor
+        if self.appointed_mayor_dying:
+            self.appointed_mayor = None
+
+        # Loss of mayor
+        if self.mayor_dying:
+            if self.appointed_mayor is not None:
+                assert self.appointed_mayor.alive
+                self.mayor = self.appointed_mayor
+                self.appointed_mayor = None
+
+            else:
+                candidates = self.get_alive_players()
+                self.mayor = self.random.choice(candidates)
+
+                # TODO: pass through an appropriate event?
+
+        self.mayor_dying = False
+        self.appointed_mayor_dying = False
+        self.upcoming_deaths = []
 
     def _count_alive_teams(self):
         teams = []
