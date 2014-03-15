@@ -680,6 +680,10 @@ class Spettro(Role):
     }
     
     POWERS_LIST = POWER_NAMES.items()
+    
+    def get_power_name(self):
+        return self.POWER_NAMES[self.power]
+    power_name = property(get_power_name)
 
     def __init__(self, player, power):
         Role.__init__(self, player)

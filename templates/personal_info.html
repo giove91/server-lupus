@@ -7,7 +7,12 @@
         <table class="normal">
             <tr><td>Nome</td><td>{{ player.full_name }}</td></tr>
             <tr><td>Fazione</td><td>{{ player.team_as_italian_string_property }}</td></tr>
-            <tr><td>Ruolo</td><td>{{ player.role.name }}</td></tr>
+            <tr><td>Ruolo</td><td>
+                {{ player.role_name }}
+                {% if player.role_name == "Spettro" %}
+                    ({{ player.role.power_name }})
+                {% endif %}
+            </td></tr>
             <tr><td>Aura</td><td>{{ player.aura_as_italian_string_property }}</td></tr>
             <tr><td>Stato</td><td>{{ player.status_as_italian_string_property }}</td></tr>
             <tr><td>Mistico</td><td>{{ player.is_mystic|yesno:"Sì,No,Boh" }}
