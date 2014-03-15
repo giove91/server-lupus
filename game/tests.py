@@ -70,11 +70,11 @@ def create_game_from_dump(data):
 
     for player_data in data['players']:
         user = User.objects.create(username=player_data['username'],
-                                   first_name=player_data['first_name'],
-                                   last_name=player_data['last_name'],
-                                   password=player_data['password'],
-                                   email=player_data['email'])
-        profile = Profile.objects.create(user=user, gender=player_data['gender'])
+                                   first_name=player_data.get('first_name', ''),
+                                   last_name=player_data.get('last_name', ''),
+                                   password=player_data.get('password', ''),
+                                   email=player_data.get('email', ''))
+        profile = Profile.objects.create(user=user, gender=player_data.get('gender', ''))
         profile.save()
         user.save()
         player = Player.objects.create(user=user, game=game)
