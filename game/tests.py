@@ -3086,7 +3086,7 @@ class GameTests(TestCase):
             self.assertEqual(event.cause, TEAM_DEFEAT)
 
     @record_name
-    def test_victory_popolani(self):
+    def test_victory_lupi(self):
         roles = [ Negromante, Lupo, Cacciatore, Ipnotista, Contadino, Rinnegato ]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
