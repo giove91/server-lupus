@@ -1150,7 +1150,84 @@ class GameTests(TestCase):
         # Check result
         events = [event for event in dynamics.debug_event_bin if isinstance(event, VoteAnnouncedEvent) and (event.voter == contadino or event.voter == ipnotista)]
         self.assertEqual(events, [])
-    
+
+    def test_ipnotista_resurrected(self):
+        roles = [ Ipnotista, Negromante, Lupo, Lupo, Contadino, Contadino, Messia ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
+        [messia] = [x for x in players if isinstance(x.role, Messia)]
+
+        # Advance to night
+        test_advance_turn(self.game)
+        
+        # Use Ipnotista power
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=ipnotista, target=contadino, timestamp=get_now()))
+        
+        # Advance to day
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Vote
+        dynamics.inject_event(CommandEvent(type=VOTE, player=ipnotista, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=contadino, target=lupo, timestamp=get_now()))
+        
+        # Advance to sunset
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        
+        # Check result
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, VoteAnnouncedEvent) and (event.voter == contadino or event.voter == ipnotista)]
+        for event in events:
+            self.assertEqual(event.voted, negromante)
+        self.assertTrue(negromante.alive)
+        
+        # Advance to second night and kill ipnotista
+        test_advance_turn(self.game)
+        self.assertFalse(ipnotista.can_use_power())
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=ipnotista, timestamp=get_now()))
+        
+        test_advance_turn(self.game)
+        self.assertFalse(ipnotista.alive)
+        
+        # Advance to second day and check that contadino is not controlled
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=VOTE, player=contadino, target=lupo, timestamp=get_now()))
+        
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, VoteAnnouncedEvent)]
+        self.assertEqual(event.voter, contadino)
+        self.assertEqual(event.voted, lupo)
+        
+        # Advance to third night and resurrect ipnotista
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=messia, target=ipnotista, timestamp=get_now()))
+        
+        test_advance_turn(self.game)
+        self.assertTrue(ipnotista.alive)
+        
+        # Advance to third day and check votes
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=VOTE, player=contadino, target=lupo, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=ipnotista, target=contadino, timestamp=get_now()))
+        
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, VoteAnnouncedEvent)]
+        self.assertEqual(len(events), 2)
+        for event in events:
+            self.assertEqual(event.voted, contadino)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, TallyAnnouncedEvent)]
+        self.assertEqual(event.voted, contadino)
+        self.assertEqual(event.vote_num, 2)
+
     @record_name
     def test_fantasma(self):
         roles = [ Fantasma, Negromante, Lupo, Contadino, Contadino ]
