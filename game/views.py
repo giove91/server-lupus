@@ -56,7 +56,7 @@ def get_events(request, player):
     #list_events = set([x.pk for x in events])
     #assert db_events == list_events, "%r %r" % (db_events - list_events, list_events - db_events)
 
-    result = { turn: { 'standard': [], VOTE: {}, ELECT: {}, 'initial_propositions': [], 'soothsayer_propositions': [] } for turn in turns }
+    result = dict([(turn, { 'standard': [], VOTE: {}, ELECT: {}, 'initial_propositions': [], 'soothsayer_propositions': [] }) for turn in turns ])
     
     for event in events:
         message = event.to_player_string(player)
