@@ -634,6 +634,12 @@ class Ipnotista(Role):
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
+    def pre_apply_dawn(self, dynamics):
+        if isinstance(self.recorded_target.role, Ipnotista):
+            return False
+
+        return True
+
     def apply_dawn(self, dynamics):
         from events import HypnotizationEvent
         dynamics.generate_event(HypnotizationEvent(player=self.recorded_target, hypnotist=self.player))
