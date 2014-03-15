@@ -460,8 +460,15 @@ class PlayerDiesEvent(Event):
             assert not dynamics.appointed_mayor_dying
             dynamics.appointed_mayor_dying = False
 
-        # TODO: other actions to trigger: Fantasma power (and handling
-        # of multiple Fantasmi dying together)
+        # Fantasma death
+        if isinstance(player.role, Fantasma):
+            powers = set(Spettro.POWER_NAMES.keys())
+            available_powers = powers - dynamics.used_ghost_powers - set([MORTE])
+            if len(available_powers) >= 1:
+                power = dynamics.random.choice(list(available_powers))
+                dynamics.generate_event(GhostificationEvent(player=player, cause=PHANTOM, ghost=power))
+            else:
+                dynamics.generate_event(GhostificationFailedEvent(player=player))
 
         # Yeah, finally kill player!
         player.alive = False

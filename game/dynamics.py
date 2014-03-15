@@ -762,6 +762,9 @@ class Dynamics:
 
                 # TODO: pass through an appropriate event?
 
+        while self._update_step(advancing_turn=True):
+            pass
+
         self.mayor_dying = False
         self.appointed_mayor_dying = False
         self.upcoming_deaths = []
