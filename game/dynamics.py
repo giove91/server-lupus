@@ -654,6 +654,7 @@ class Dynamics:
         # Count last ballot for each player
         ballots = {}
         mayor_ballot = None
+        duplication_ballot = None
         for player in self.get_alive_players():
 
             # Count Ipnotista
@@ -668,6 +669,8 @@ class Dynamics:
             ballots[player.pk] = real_vote
             if player.is_mayor():
                 mayor_ballot = real_vote
+            if self.duplication_target is not None and self.duplication_target.pk == player.pk:
+                duplication_ballot = real_vote
 
         # Fill the tally sheet
         tally_sheet = {}
@@ -691,8 +694,8 @@ class Dynamics:
                 self.generate_event(event)
 
         # Count Spettro della Duplicazione
-        if self.duplication_target is not None and self.duplication_target.alive:
-            tally_sheet[self.duplication_target.pk] += 1
+        if duplication_ballot:
+            tally_sheet[duplication_ballot.pk] += 1
 
         # Send tally announcements
         for player in self.get_alive_players():
