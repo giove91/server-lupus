@@ -165,7 +165,7 @@ class Esorcista(Role):
     # message = 'Benedici la casa di:'
     
     def can_use_power(self):
-        return self.player.alive
+        return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
     
     def get_targets(self):
         return self.player.game.get_active_players()

@@ -2130,6 +2130,12 @@ class GameTests(TestCase):
         self.assertFalse(event.success)
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == esorcista]
         self.assertTrue(event.success)
+        
+        # Advance to fourth night and try again
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        self.assertFalse(esorcista.can_use_power())
 
     @record_name
     def test_esorcista_with_morte(self):
@@ -3137,6 +3143,60 @@ class GameTests(TestCase):
         self.assertFalse(event.popolani_win)
         self.assertFalse(event.negromanti_win)
         self.assertEqual(event.cause, NATURAL)
+
+    @record_name
+    def test_blocking_roles(self):
+        roles = [ Negromante, Lupo, Esorcista, Sequestratore, Profanatore, Contadino]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+        
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo] = [x for x in players if isinstance(x.role, Lupo)]
+        [esorcista] = [x for x in players if isinstance(x.role, Esorcista)]
+        [sequestratore] = [x for x in players if isinstance(x.role, Sequestratore)]
+        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+        [profanatore] = [x for x in players if isinstance(x.role, Profanatore)]
+        
+        # Advance to day and kill contadino
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=VOTE, player=sequestratore, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=contadino, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=contadino, timestamp=get_now()))
+        
+        # Advance to second night and create ghost
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=OCCULTAMENTO, timestamp=get_now()))
+        
+        # Advance to third night and use powers
+        test_advance_turn(self.game)
+        self.assertTrue(isinstance(contadino.role, Spettro))
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=esorcista, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=sequestratore, target=esorcista, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=esorcista, target=esorcista, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=profanatore, target=contadino, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        self.assertEqual(self.game.current_turn.phase, DAWN)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == contadino]
+        self.assertFalse(event.success)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == sequestratore]
+        self.assertTrue(event.success)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == esorcista]
+        self.assertFalse(event.success)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == profanatore]
+        self.assertTrue(event.success)
 
     @record_name
     def test_load_test(self):
