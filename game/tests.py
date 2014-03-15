@@ -2216,6 +2216,14 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == profanatore]
         self.assertTrue(event.success)
         self.assertTrue(esorcista.alive)
+        
+        # Advance to fourth night and try again
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        self.assertFalse(profanatore.can_use_power())
+        with self.assertRaises(AssertionError):
+            dynamics.inject_event(CommandEvent(type=USEPOWER, player=profanatore, target=contadino, timestamp=get_now()))
 
     @record_name
     def test_voyeur_with_spettro(self):
@@ -2256,7 +2264,7 @@ class GameTests(TestCase):
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=negromante, timestamp=get_now()))
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=voyeur, target=negromante, timestamp=get_now()))
         
-        # Advance to dawn and check (voyeur cannot see spettro)
+        # Advance to dawn and check (voyeur cannot see ghosts)
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == contadino]
