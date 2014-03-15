@@ -2502,7 +2502,7 @@ class GameTests(TestCase):
         [contadino] = [x for x in players if isinstance(x.role, Contadino)]
         
         # The test assumes that negromante is the mayor
-        self.assertTrue(negromante.is_mayor)
+        self.assertTrue(lupo.is_mayor())
         
         # Advance to day and kill contadino
         test_advance_turn(self.game)
@@ -2526,14 +2526,14 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=lupo, timestamp=get_now()))
         
         # Advance to day and vote
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         self.assertEqual(self.game.current_turn.phase, DAY)
-        dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=messia, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=ipnotista, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=messia, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=ipnotista, timestamp=get_now()))
         dynamics.inject_event(CommandEvent(type=VOTE, player=ipnotista, target=ipnotista, timestamp=get_now()))
         
         # Advance to sunset and check that messia died
@@ -2543,9 +2543,11 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
         self.assertEqual(event.cause, STAKE)
         self.assertEqual(event.player, messia)
-        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, TallyAnnouncedEvent)]
-        self.assertEqual(event.voted, messia)
-        self.assertEqual(event.vote_num, 3)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, TallyAnnouncedEvent) and event.voted == messia]
+        self.assertEqual(event.vote_num, 2)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, TallyAnnouncedEvent) and event.voted == ipnotista]
+        self.assertEqual(event.vote_num, 2)
+        
         self.assertFalse(messia.alive)
         self.assertTrue(ipnotista.alive)
         
