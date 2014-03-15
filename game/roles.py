@@ -730,6 +730,10 @@ class Spettro(Role):
             if isinstance(self.recorded_target.role, Ipnotista):
                 return False
 
+        elif self.power == MORTE:
+            if isinstance(self.recorded_target.role, Lupo):
+                return False
+
         return True
 
     def apply_dawn(self, dynamics):
@@ -758,6 +762,7 @@ class Spettro(Role):
 
         elif self.power == ILLUSIONE:
             assert self.recorded_target2.alive
+            assert not isinstance(self.recorded_target.role, Ipnotista)
 
             # Visiting: Stalker illusion, we have to replace the
             # original location
@@ -769,6 +774,7 @@ class Spettro(Role):
                 self.recorded_target.visitors.append(self.recorded_target2)
 
         elif self.power == MORTE:
+            assert not isinstance(self.recorded_target.role, Lupo)
             if not self.recorded_target.just_dead:
                 assert self.recorded_target.alive
                 from events import PlayerDiesEvent
