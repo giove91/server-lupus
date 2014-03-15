@@ -702,6 +702,8 @@ class Spettro(Role):
             return True
         elif self.power == ILLUSIONE or self.power == MORTE:
             return self.last_usage is None or self.days_from_last_usage() >= 2
+        else:
+            raise ValueError('Invalid ghost type')
     
     def get_targets(self):
         if self.power == AMNESIA:
