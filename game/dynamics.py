@@ -10,7 +10,7 @@ from datetime import datetime
 from models import Event, Turn
 from events import CommandEvent, VoteAnnouncedEvent, TallyAnnouncedEvent, \
     ElectNewMayorEvent, PlayerDiesEvent, PowerOutcomeEvent, StakeFailedEvent, \
-    ExileEvent
+    ExileEvent, VictoryEvent
 from constants import *
 from roles import *
 
@@ -814,8 +814,7 @@ class Dynamics:
         self.playing_teams = teams
 
         if winning_teams is not None:
-            self._compute_victory(winning_teams)
-
-    def _compute_victory(self, winning_teams):
-        # TODO
-        pass
+            self.generate_event(VictoryEvent(popolani_win=POPOLANI in winning_teams,
+                                             lupi_win=LUPI in winning_teams,
+                                             negromanti_win=NEGROMANTI in winning_teams,
+                                             cause=NATURAL))

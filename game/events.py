@@ -1013,7 +1013,7 @@ class VictoryEvent(Event):
         return winners
 
     def apply(self, dynamics):
-        winners = self.get_winner(dynamics)
+        winners = self.get_winners(dynamics)
         dynamics.winners = winners
         dynamics.giove_is_happy = True
         dynamics.server_is_on_fire = True
