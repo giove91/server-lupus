@@ -37,7 +37,13 @@ def dump_game(game, fout):
     data = {'players': [],
             'turns': []}
     for player in Player.objects.filter(game=game):
-        data['players'].append({'username': player.user.username})
+        data['players'].append({'username': player.user.username,
+                                'first_name': player.user.first_name,
+                                'last_name': player.user.last_name,
+                                'email': player.user.email,
+                                'password': player.user.password,
+                                #'gender': player.user.profile.gender
+                                })
 
     for turn in Turn.objects.filter(game=game).order_by('date', 'phase'):
         turn_data = {'events': []}
