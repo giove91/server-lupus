@@ -750,6 +750,7 @@ class Spettro(Role):
 
         elif self.power == AMNESIA:
             assert dynamics.amnesia_target is None
+            assert not isinstance(self.recorded_target.role, Ipnotista)
             dynamics.amnesia_target = self.recorded_target.canonicalize()
 
         elif self.power == DUPLICAZIONE:
@@ -762,7 +763,6 @@ class Spettro(Role):
 
         elif self.power == ILLUSIONE:
             assert self.recorded_target2.alive
-            assert not isinstance(self.recorded_target.role, Ipnotista)
 
             # Visiting: Stalker illusion, we have to replace the
             # original location
