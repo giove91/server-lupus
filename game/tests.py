@@ -2218,6 +2218,54 @@ class GameTests(TestCase):
         self.assertTrue(esorcista.alive)
 
     @record_name
+    def test_voyeur_with_spettro(self):
+        roles = [ Negromante, Lupo, Lupo, Profanatore, Voyeur, Contadino ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+        
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [profanatore] = [x for x in players if isinstance(x.role, Profanatore)]
+        [voyeur] = [x for x in players if isinstance(x.role, Voyeur)]
+        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+        
+        # Advance to day and kill contadino
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=VOTE, player=profanatore, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=voyeur, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=contadino, timestamp=get_now()))
+        
+        # Advance to second night and create ghost
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=DUPLICAZIONE, timestamp=get_now()))
+        
+        # Advance to third night and use powers
+        test_advance_turn(self.game)
+        self.assertTrue(isinstance(contadino.role, Spettro))
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        self.assertFalse(negromante in profanatore.role.get_targets())
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=voyeur, target=negromante, timestamp=get_now()))
+        
+        # Advance to dawn and check (voyeur cannot see spettro)
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == contadino]
+        self.assertTrue(event.success)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == voyeur]
+        self.assertTrue(event.success)
+        self.assertEqual([event for event in dynamics.debug_event_bin if isinstance(event, MovementKnowledgeEvent)], [])
+
+    @record_name
     def test_load_test(self):
         self.game = self.load_game_helper('test.json')
 
