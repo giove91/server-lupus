@@ -9,7 +9,8 @@ from datetime import datetime
 
 from models import Event, Turn
 from events import CommandEvent, VoteAnnouncedEvent, TallyAnnouncedEvent, \
-    ElectNewMayorEvent, PlayerDiesEvent, PowerOutcomeEvent, StakeFailedEvent
+    ElectNewMayorEvent, PlayerDiesEvent, PowerOutcomeEvent, StakeFailedEvent, \
+    ExileEvent
 from constants import *
 from roles import *
 
@@ -571,11 +572,11 @@ class Dynamics:
             player.just_dead = False
             player.just_ghostified = False
 
+        self._check_team_exile()
+
     def _compute_entering_day(self):
         if DEBUG_DYNAMICS:
             print >> sys.stderr, "Computing day"
-
-        self._check_team_exile()
 
     def _compute_entering_sunset(self):
         if DEBUG_DYNAMICS:
@@ -609,6 +610,8 @@ class Dynamics:
         for player in self.players:
             player.recorded_vote = None
             player.recorded_elect = None
+
+        self._check_team_exile()
 
     def _compute_elected_mayor(self):
         new_mayor = None

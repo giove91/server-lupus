@@ -942,7 +942,7 @@ class DisqualificationEvent(Event):
 
 
 class ExileEvent(Event):
-    RELEVANT_PHASES = [DAY, NIGHT]
+    RELEVANT_PHASES = [DAWN, SUNSET]
     AUTOMATIC = True
 
     player = models.ForeignKey(Player, related_name='+')
@@ -977,7 +977,7 @@ class ExileEvent(Event):
                     return u'%s è stat%s squalificat%s. Il motivo della squalifica è: %s' % (self.player.full_name, oa, oa, self.disqualification.public_message)
         
         elif self.cause == TEAM_DEFEAT:
-            team = TEAM_IT[ self.team ]
+            team = TEAM_IT[ self.player.canonicalize().team ]
             
             if player == self.player:
                 return u'La tua Fazione è stata sconfitta. Per te non rimane che l\'esilio.'
@@ -986,7 +986,7 @@ class ExileEvent(Event):
 
 
 class VictoryEvent(Event):
-    RELEVANT_PHASES = [DAY, NIGHT]
+    RELEVANT_PHASES = [DAWN, SUNSET]
     AUTOMATIC = True
 
     popolani_win = models.BooleanField(default=None)
