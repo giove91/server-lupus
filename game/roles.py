@@ -568,7 +568,7 @@ class Negromante(Role):
                 return False
 
             # Negromanti cannot ghostify people in their team
-            if self.recorded_target.team == NEGROMANTI:
+            if self.recorded_target.team == NEGROMANTI and not self.recorded_target.just_ghostified:
                 return False
 
             # Check protection by Custode
@@ -596,7 +596,7 @@ class Negromante(Role):
 
             # Assert checks in pre_dawn_apply(), just to be sure
             assert not isinstance(self.recorded_target.role, (Lupo, Fattucchiera))
-            assert self.recorded_target.team != NEGROMANTI
+            assert self.recorded_target.team != NEGROMANTI or self.recorded_target.just_ghostified
             assert not self.recorded_target.protected_by_keeper
 
             assert not self.recorded_target.alive

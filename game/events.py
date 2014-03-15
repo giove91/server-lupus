@@ -467,6 +467,7 @@ class PlayerDiesEvent(Event):
             if len(available_powers) >= 1:
                 power = dynamics.random.choice(list(available_powers))
                 dynamics.generate_event(GhostificationEvent(player=player, cause=PHANTOM, ghost=power))
+                # TODO: generale RoleKnowledgeEvents
             else:
                 dynamics.generate_event(GhostificationFailedEvent(player=player))
 

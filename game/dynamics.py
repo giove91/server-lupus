@@ -499,6 +499,9 @@ class Dynamics:
             success = powers_success[player.pk]
             if success:
                 success = player.role.pre_apply_dawn(self)
+                if DEBUG_DYNAMICS:
+                    if not success:
+                        print >> sys.stderr, "pre_apply_dawn() failed for %r" % (player)
             event = PowerOutcomeEvent(player=player, success=success, sequestrated=player.pk in sequestrated, command=player.role.recorded_command)
             self.generate_event(event)
             if success:
