@@ -2532,7 +2532,7 @@ class GameTests(TestCase):
         dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=messia, timestamp=get_now()))
         dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=messia, timestamp=get_now()))
         
-        # Advance to sunset and check
+        # Advance to sunset and check that messia died
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
         self.assertEqual(self.game.current_turn.phase, SUNSET)

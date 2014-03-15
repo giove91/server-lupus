@@ -695,7 +695,13 @@ class Spettro(Role):
         self.has_power = True
 
     def can_use_power(self):
-        return not self.player.alive and self.has_power
+        if self.player.alive or not self.has_power:
+            return False
+        
+        if self.power == AMNESIA or self.power == DUPLICAZIONE or self.power == MISTIFICAZIONE or self.power == OCCULTAMENTO or self.power == VISIONE:
+            return True
+        elif self.power == ILLUSIONE or self.power == MORTE:
+            return self.last_usage is None or self.days_from_last_usage() >= 2
     
     def get_targets(self):
         if self.power == AMNESIA:
