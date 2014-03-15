@@ -2501,6 +2501,9 @@ class GameTests(TestCase):
         [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
         [contadino] = [x for x in players if isinstance(x.role, Contadino)]
         
+        # The test assumes that negromante is the mayor
+        self.assertTrue(negromante.is_mayor)
+        
         # Advance to day and kill contadino
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -2529,8 +2532,9 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         self.assertEqual(self.game.current_turn.phase, DAY)
-        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=messia, timestamp=get_now()))
         dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=messia, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=ipnotista, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=ipnotista, target=ipnotista, timestamp=get_now()))
         
         # Advance to sunset and check that messia died
         dynamics.debug_event_bin = []
@@ -2543,6 +2547,7 @@ class GameTests(TestCase):
         self.assertEqual(event.voted, messia)
         self.assertEqual(event.vote_num, 3)
         self.assertFalse(messia.alive)
+        self.assertTrue(ipnotista.alive)
         
         # Advance to fourth night and try again
         test_advance_turn(self.game)
@@ -3003,6 +3008,43 @@ class GameTests(TestCase):
         self.assertEqual(event.target, ipnotista)
         self.assertEqual(event.team, NEGROMANTI)
         self.assertEqual(event.cause, VISION_GHOST)
+
+    @record_name
+    def test_lupi_exile(self):
+        roles = [ Negromante, Lupo, Stalker, Ipnotista, Contadino, Rinnegato ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+        
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo] = [x for x in players if isinstance(x.role, Lupo)]
+        [stalker] = [x for x in players if isinstance(x.role, Stalker)]
+        [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
+        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+        [rinnegato] = [x for x in players if isinstance(x.role, Rinnegato)]
+        
+        # Advance to day and kill lupo
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=VOTE, player=stalker, target=lupo, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=ipnotista, target=lupo, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=lupo, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=lupo, timestamp=get_now()))
+        
+        # Advance to sunset and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        self.assertEqual(self.game.current_turn.phase, SUNSET)
+        self.assertFalse(lupo.alive)
+        self.assertFalse(lupo.active)
+        self.assertFalse(rinnegato.active)
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, ExileEvent)]
+        self.assertEqual(len(events), 2)
+        for event in events:
+            self.assertTrue(event.player == lupo or event.player == rinnegato)
+            self.assertEqual(event.cause, TEAM_DEFEAT)
 
     @record_name
     def test_load_test(self):
