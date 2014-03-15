@@ -18,6 +18,9 @@ def create_users(n):
     users = []
     for i in xrange(n):
         user = User.objects.create(username='pk%d' % (i), first_name='Paperinik', last_name='%d' % (i), email='paperinik.%d@sns.it' % (i), password='ciaociao')
+        profile = Profile.objects.create(user=user, gender=MALE)
+        profile.save()
+        user.set_password('ciaociao')
         user.save()
         users.append(user)
     return users
@@ -69,8 +72,9 @@ def create_game_from_dump(data):
         user = User.objects.create(username=player_data['username'],
                                    first_name=player_data['first_name'],
                                    last_name=player_data['last_name'],
-                                   password=player_data['password'])
-        profile = Profile.objects.create(user=user, gender=MALE)
+                                   password=player_data['password'],
+                                   email=player_data['email'])
+        profile = Profile.objects.create(user=user, gender=player_data['gender'])
         profile.save()
         user.save()
         player = Player.objects.create(user=user, game=game)
