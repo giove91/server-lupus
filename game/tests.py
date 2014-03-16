@@ -3477,9 +3477,10 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
         self.assertEqual(event.cause, STAKE)
         self.assertEqual(event.player, fantasma)
-        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationFailedEvent)]
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
         self.assertEqual(event.player, fantasma)
-        self.assertTrue(isinstance(fantasma.role, Fantasma))
+        self.assertTrue(isinstance(fantasma.role, Spettro))
+        self.assertEqual(event.cause, PHANTOM)
 
     @record_name
     def test_load_test(self):
