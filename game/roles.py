@@ -114,7 +114,7 @@ class Cacciatore(Role):
     aura = BLACK
     
     def can_use_power(self):
-        return self.player.alive and self.player.game.current_turn.date > 1 and not self.player.hunter_shooted
+        return self.player.alive and self.player.game.current_turn.date > 1 and self.last_usage is None
     
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
@@ -124,7 +124,6 @@ class Cacciatore(Role):
             assert self.recorded_target.alive
             from events import PlayerDiesEvent
             dynamics.generate_event(PlayerDiesEvent(player=self.recorded_target, cause=HUNTER))
-            self.player.hunter_shooted = True
 
 
 class Custode(Role):

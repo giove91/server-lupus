@@ -104,7 +104,6 @@ class Dynamics:
             player.just_dead = False
             player.just_ghostified = False
             player.hypnotist = None
-            player.hunter_shooted = False
 
     def get_active_players(self):
         """Players are guaranteed to be sorted in a canonical order,
