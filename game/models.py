@@ -7,6 +7,7 @@ from django import forms
 from django.utils.text import capfirst
 from django.contrib.auth.models import User
 from django.db.models.signals import pre_delete
+from django.conf import settings
 
 from constants import *
 
@@ -108,8 +109,16 @@ class Game(models.Model):
                 if self.pk not in _dynamics_map:
                     from dynamics import Dynamics
                     _dynamics_map[self.pk] = Dynamics(self)
-        _dynamics_map[self.pk].update()
-        return _dynamics_map[self.pk]
+        dynamics = _dynamics_map[self.pk]
+        try:
+            dynamics.update()
+        except Exception:
+            if settings.DEBUG:
+                raise
+        if not dynamics.failed:
+            return dynamics
+        else:
+            return None
 
     def recompute_automatic_events(self):
         """This is not really race-free, so use with care..."""

@@ -39,6 +39,8 @@ class Dynamics:
         self.auto_event_queue = []
         self.events = []
         self.turns = []
+        self.failed = False
+
         self.initialize_augmented_structure()
 
         # If in single mode, delete all automatic events
@@ -134,12 +136,16 @@ class Dynamics:
 
     def update(self):
         with self.update_lock:
-            if self._updating:
-                return
-            self._updating = True
-            while self._update_step():
-                pass
-            self._updating = False
+            try:
+                if self._updating:
+                    return
+                self._updating = True
+                while self._update_step():
+                    pass
+                self._updating = False
+            except Exception:
+                self.failed = True
+                raise
 
     def _pop_event_from_db(self):
         try:
