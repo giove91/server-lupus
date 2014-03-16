@@ -467,7 +467,16 @@ class PlayerDiesEvent(Event):
             if len(available_powers) >= 1:
                 power = dynamics.random.choice(list(available_powers))
                 dynamics.generate_event(GhostificationEvent(player=player, cause=PHANTOM, ghost=power))
-                # TODO: generale RoleKnowledgeEvents
+                for negromante in dynamics.players:
+                    if isinstance(negromante.role, Negromante):
+                        dynamics.generate_event(RoleKnowledgeEvent(player=player,
+                                                                   target=negromante,
+                                                                   role_name=Negromante.__name__,
+                                                                   cause=GHOST))
+                        dynamics.generate_event(RoleKnowledgeEvent(player=negromante,
+                                                                   target=player,
+                                                                   role_name=Spettro.__name__,
+                                                                   cause=PHANTOM))
             else:
                 dynamics.generate_event(GhostificationFailedEvent(player=player))
 
@@ -490,7 +499,7 @@ class PlayerDiesEvent(Event):
 
 
 class RoleKnowledgeEvent(Event):
-    RELEVANT_PHASES = [CREATION, DAWN]
+    RELEVANT_PHASES = [CREATION, DAWN, SUNSET]
     # FIXME: probably SOOTHSAYER is not really automatic
     AUTOMATIC = True
 
@@ -795,11 +804,12 @@ class GhostificationEvent(Event):
 
         assert not player.alive
         assert self.ghost not in dynamics.used_ghost_powers
-        assert not dynamics.death_ghost_created
-        assert not dynamics.ghosts_created_last_night
+        assert not dynamics.death_ghost_created or self.cause == PHANTOM
+        assert not dynamics.ghosts_created_last_night or self.cause == PHANTOM
 
         # Update global status
-        dynamics.ghosts_created_last_night = True
+        if self.cause == NECROMANCER:
+            dynamics.ghosts_created_last_night = True
         dynamics.used_ghost_powers.add(self.ghost)
         if self.ghost == MORTE:
             dynamics.death_ghost_created = True
