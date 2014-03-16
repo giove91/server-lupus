@@ -3432,6 +3432,56 @@ class GameTests(TestCase):
         self.assertEqual(event.cause, NECROMANCER)
 
     @record_name
+    def test_fantasma_dies_after_death_ghost(self):
+        roles = [ Negromante, Lupo, Fantasma, Messia, Ipnotista, Contadino ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+        
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo] = [x for x in players if isinstance(x.role, Lupo)]
+        [messia] = [x for x in players if isinstance(x.role, Messia)]
+        [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
+        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+        [fantasma] = [x for x in players if isinstance(x.role, Fantasma)]
+        
+        # Advance to day and kill contadino
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=VOTE, player=messia, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=ipnotista, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=contadino, timestamp=get_now()))
+        
+        # Advance to second night and create death ghost
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=MORTE, timestamp=get_now()))
+        
+        # Advance to second day and kill fantasma
+        test_advance_turn(self.game)
+        self.assertTrue(isinstance(contadino.role, Spettro))
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=VOTE, player=messia, target=fantasma, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=ipnotista, target=fantasma, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=fantasma, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=fantasma, timestamp=get_now()))
+        
+        # Advance to sunset and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        self.assertEqual(self.game.current_turn.phase, SUNSET)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
+        self.assertEqual(event.cause, STAKE)
+        self.assertEqual(event.player, fantasma)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationFailedEvent)]
+        self.assertEqual(event.player, fantasma)
+        self.assertTrue(isinstance(fantasma.role, Fantasma))
+
+    @record_name
     def test_load_test(self):
         self.game = self.load_game_helper('test.json')
 
