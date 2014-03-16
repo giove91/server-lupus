@@ -88,6 +88,7 @@
 	            <h1>Altro</h1>
 	            <ul>
 	                <li><a href="{% url 'ruleset' %}">Regolamento</a></li>
+	                <li><a href="{% url 'prototypes' %}">Prototipi</a></li>
                     <li><a href="{% url 'contacts' %}">Contatti</a></li>
                     <li><a href="{% url 'credits' %}">Riconoscimenti</a></li>
                 </ul>
@@ -98,7 +99,7 @@
 	            <h1>GM</h1>
                 <ul>
                     <li><a href="{% url 'adminstatus' %}">Tutte le informazioni</a></li>
-                    <li><a href="{% url 'advanceturn' %}">Turno successivo</a></li>
+                    <li><a href="{% url 'advanceturn' %}" onclick="return confirm('Vuoi davvero avanzare al turno successivo?');">Turno successivo</a></li>
                     <li><a href="{% url 'pointofview' %}">Punto di vista</a></li>
                 </ul>
             </div>
