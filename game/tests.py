@@ -63,10 +63,13 @@ def create_test_game(seed, roles):
     return game
 
 
-def create_game_from_dump(data):
+def create_game_from_dump(data, start_moment=None):
+    if start_moment is None:
+        start_moment = get_now()
+
     game = Game(running=True)
     game.save()
-    game.initialize(get_now())
+    game.initialize(start_moment)
 
     for player_data in data['players']:
         user = User.objects.create(username=player_data['username'],
