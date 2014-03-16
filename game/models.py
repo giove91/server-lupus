@@ -176,7 +176,7 @@ class Game(models.Model):
     def check_turn_advance(self):
         """Compare current timestamp against current turn's end time
         and, if necessary, create the new turn."""
-        while self.current_turn.end is not None and datetime.now() >= self.current_turn.end:
+        while self.current_turn.end is not None and get_now() >= self.current_turn.end:
             self.advance_turn()
 
 # Delete the dynamics object when the game is deleted
