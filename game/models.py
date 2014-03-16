@@ -110,11 +110,7 @@ class Game(models.Model):
                     from dynamics import Dynamics
                     _dynamics_map[self.pk] = Dynamics(self)
         dynamics = _dynamics_map[self.pk]
-        try:
-            dynamics.update()
-        except Exception:
-            if settings.DEBUG:
-                raise
+        dynamics.update()
         if not dynamics.failed:
             return dynamics
         else:
@@ -171,7 +167,9 @@ class Game(models.Model):
         next_turn = self.current_turn.next_turn()
         next_turn.set_begin_end(self.current_turn)
         next_turn.save()
-        self.get_dynamics().update()
+        dynamics = self.get_dynamics()
+        assert dynamics is not None
+        dynamics.update()
 
     def check_turn_advance(self):
         """Compare current timestamp against current turn's end time
