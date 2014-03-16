@@ -458,7 +458,7 @@ class PlayerDiesEvent(Event):
         # Trigger loss of appointed mayor
         if player.is_appointed_mayor():
             assert not dynamics.appointed_mayor_dying
-            dynamics.appointed_mayor_dying = False
+            dynamics.appointed_mayor_dying = True
 
         # Fantasma death
         if isinstance(player.role, Fantasma):
