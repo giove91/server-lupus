@@ -122,13 +122,13 @@ class Dynamics:
         """Players are guaranteed to be sorted in a canonical order,
         which does not change neither by restarting the server (but it
         can change if players' data is changed)."""
-        return [player for player in self.players if player.alive]
+        return [player for player in self.players if player.alive and player.active]
 
     def get_dead_players(self):
         """Players are guaranteed to be sorted in a canonical order,
         which does not change neither by restarting the server (but it
         can change if players' data is changed)."""
-        return [player for player in self.players if not player.alive]
+        return [player for player in self.players if not player.alive and player.active]
 
     def get_canonical_player(self, player):
         return self.players_dict[player.pk]
