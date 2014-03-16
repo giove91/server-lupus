@@ -404,7 +404,6 @@ class StakeFailedEvent(Event):
     cause = models.CharField(max_length=1, choices=STAKE_FAILED_CAUSES, default=None)
 
     def apply(self, dynamics):
-        # XXX: is there anything sensible to check or do here?
         pass
 
     def to_player_string(self, player):
@@ -500,7 +499,6 @@ class PlayerDiesEvent(Event):
 
 class RoleKnowledgeEvent(Event):
     RELEVANT_PHASES = [CREATION, DAWN, SUNSET]
-    # FIXME: probably SOOTHSAYER is not really automatic
     AUTOMATIC = True
 
     player = models.ForeignKey(Player, related_name='+')
@@ -855,9 +853,6 @@ class GhostificationFailedEvent(Event):
 
         assert not player.alive
         assert isinstance(player.role, Fantasma)
-
-        # TODO: anything else to check?
-        raise NotImplementedError()
 
     def to_player_string(self, player):
         oa = self.player.oa
