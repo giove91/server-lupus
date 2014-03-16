@@ -213,7 +213,6 @@ class Dynamics:
         # last time we obtained it)
         if self.current_turn is not None:
             self.prev_turn = Turn.objects.get(pk=self.current_turn.pk)
-        self.previous_turn = self.current_turn
         self.current_turn = turn
 
         # Debug print
