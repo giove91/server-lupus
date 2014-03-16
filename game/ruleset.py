@@ -3,6 +3,7 @@ from game.models import *
 from game.roles import *
 from game.constants import *
 from game.events import *
+from game.utils import get_now
 
 import datetime
 
@@ -41,3 +42,28 @@ def play_dummy_game():
     game.advance_turn()
 
     # Now it is day; let us vote for death!
+
+def create_game(seed, roles):
+    game = Game(running=True)
+    game.save()
+    game.initialize(get_now())
+
+    users = User.objects.filter(is_staff=False).all()
+    assert len(roles) == len(users)
+    for user in users:
+        assert not user.is_staff
+        player = Player.objects.create(user=user, game=game)
+        player.save()
+
+    first_turn = game.get_dynamics().current_turn
+
+    event = SeedEvent(seed=seed)
+    event.timestamp = first_turn.begin
+    game.get_dynamics().inject_event(event)
+
+    for i in xrange(len(game.get_dynamics().players)):
+        event = AvailableRoleEvent(role_name=roles[i%len(roles)].__name__)
+        event.timestamp = first_turn.begin
+        game.get_dynamics().inject_event(event)
+
+    return game
