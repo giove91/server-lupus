@@ -37,7 +37,7 @@ def dump_game(game, fout):
     import json
     data = {'players': [],
             'turns': []}
-    for player in Player.objects.filter(game=game):
+    for player in Player.objects.filter(game=game).order_by('pk'):
         data['players'].append({'username': player.user.username,
                                 'first_name': player.user.first_name,
                                 'last_name': player.user.last_name,
@@ -360,7 +360,7 @@ class Player(models.Model):
     def get_role_name(self):
         canonical = self.canonicalize()
         if canonical.role is not None:
-            return canonical.role.name
+            return canonical.role.__class__.__name__
         else:
             return "Unassigned"
     role_name = property(get_role_name)

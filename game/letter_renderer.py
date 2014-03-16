@@ -36,7 +36,7 @@ class LetterRenderer:
         
         self.initial_propositions = InitialPropositionEvent.objects.filter(turn__game=self.game)
         
-        knowledge_events = RoleKnowledgeEvent.objects.filter(player=player).filter(cause=KNOWLEDGE_CLASS)
+        knowledge_events = [event for event in self.game.get_dynamics().events if event.subclass == 'RoleKnowledgeEvent' and event.player.pk == player.pk and cause == KNOWLEDGE_CLASS]
         self.initial_knowledge = []
         for event in knowledge_events:
             message = event.to_player_string(player)

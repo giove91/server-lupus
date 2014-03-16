@@ -10,7 +10,7 @@ from datetime import datetime
 from models import Event, Turn
 from events import CommandEvent, VoteAnnouncedEvent, TallyAnnouncedEvent, \
     ElectNewMayorEvent, PlayerDiesEvent, PowerOutcomeEvent, StakeFailedEvent, \
-    ExileEvent, VictoryEvent
+    ExileEvent, VictoryEvent, AvailableRoleEvent
 from constants import *
 from roles import *
 
@@ -254,6 +254,8 @@ class Dynamics:
         # Debug prints
         if DEBUG_DYNAMICS:
             print >> sys.stderr, "Received event %r of subclass %s" % (event, event.subclass)
+            if isinstance(event, AvailableRoleEvent):
+                print >> sys.stderr, "  Available role: %s" % (event.role_name)
 
         # Do some check on the new event
         if not RELAX_TIME_CHECKS:
