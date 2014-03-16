@@ -63,11 +63,14 @@ class LetterRenderer:
             'soothsayer_knowledge': self.soothsayer_knowledge,
         }
     
+    def escape_name(self, name):
+        # TODO: fare l'escape in un modo più elegante
+        return name.replace(u' ', u'').replace(u'à', u'a').replace(u'ò', u'o')
+    
     def render_setting(self):
         template = self.template_setting
         
-        # TODO: escape basename
-        basename = self.player.user.last_name.replace(u' ', u'').replace(u'à', u'a').replace(u'ò', u'o') + '1'
+        basename = escape_name(self.player.user.last_name) + '1'
         filename = basename + '.tex'
         
         # Rendering .tex
@@ -84,8 +87,7 @@ class LetterRenderer:
     def render_role(self):
         template = self.template_role
         
-        # TODO: escape basename
-        basename = self.player.user.last_name.replace(u' ', u'').replace(u'à', u'a').replace(u'ò', u'o') + '2'
+        basename = escape_name(self.player.user.last_name) + '2'
         filename = basename + '.tex'
         
         # Rendering .tex
