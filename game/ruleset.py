@@ -43,7 +43,7 @@ def play_dummy_game():
 
     # Now it is day; let us vote for death!
 
-def create_game(seed, roles):
+def create_game(seed, roles, initial_info):
     game = Game(running=True)
     game.save()
     game.initialize(get_now())
@@ -65,5 +65,8 @@ def create_game(seed, roles):
         event = AvailableRoleEvent(role_name=roles[i%len(roles)].__name__)
         event.timestamp = first_turn.begin
         game.get_dynamics().inject_event(event)
+
+    for text in initial_info:
+        game.get_dynamics().inject_event(InitialPropositionEvent(text=text, timestamp=get_now()))
 
     return game
