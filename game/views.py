@@ -137,6 +137,8 @@ def trailer(request):
 def prototypes(request):
     return render(request, 'prototypes.html')
 
+def errorpage(request):
+    return render(request, 'error.html')
 
 class Weather:
     
@@ -242,6 +244,9 @@ class VillageStatusView(View):
         if game is None:
             return redirect('home')
         
+        if request.dynamics is None:
+            return redirect('error')
+        
         events = get_events(request, 'public')
         weather = get_weather(request)
         
@@ -258,6 +263,9 @@ class PersonalInfoView(View):
         
         if request.player is None:
             return redirect('pointofview')
+        
+        if request.dynamics is None:
+            return redirect('error')
         
         player = request.player.canonicalize()
         game = player.game
@@ -374,6 +382,9 @@ class CommandView(View):
         raise Exception ('Command not specified.')
     
     def post(self, request):
+        if request.dynamics is None:
+            return redirect('error')
+        
         if not self.check(request):
             return self.not_allowed(request)
         
@@ -389,6 +400,9 @@ class CommandView(View):
     def get(self, request):
         if request.player is None:
             return redirect('pointofview')
+        
+        if request.dynamics is None:
+            return redirect('error')
         
         if not self.check(request):
             return self.not_allowed(request)

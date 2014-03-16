@@ -14,6 +14,7 @@ urlpatterns = patterns('',
     url(r'^credits/$', credits, name='credits'),
     url(r'^trailer/$', trailer, name='trailer'),
     url(r'^prototypes/$', prototypes, name='prototypes'),
+    url(r'^error/$', errorpage, name='error'),
     
     url(r'^status/$', VillageStatusView.as_view(), name='status'),
     url(r'^announcements/$', AnnouncementsView.as_view(), name='announcements'),
