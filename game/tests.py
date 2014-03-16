@@ -89,7 +89,12 @@ def create_game_from_dump(data):
         players_map[player.user.username] = player
 
     # Now we're ready to reply turns and events
+    first_turn = True
     for turn_data in data['turns']:
+        if not first_turn:
+            test_advance_turn(game)
+        else:
+            first_turn = False
         current_turn = game.current_turn
         for event_data in turn_data['events']:
             event = Event.from_dict(event_data, players_map)
@@ -99,7 +104,6 @@ def create_game_from_dump(data):
                 event.timestamp = current_turn.begin
             #print >> sys.stderr, "Injecting event of type %s" % (event.subclass)
             game.get_dynamics().inject_event(event)
-        test_advance_turn(game)
 
     return game
 
