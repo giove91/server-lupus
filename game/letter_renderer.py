@@ -67,7 +67,7 @@ class LetterRenderer:
         template = self.template_setting
         
         # TODO: escape basename
-        basename = self.player.user.last_name.replace(u' ', u'').replace(u'à', u'a') + '1'
+        basename = self.player.user.last_name.replace(u' ', u'').replace(u'à', u'a').replace(u'ò', u'o') + '1'
         filename = basename + '.tex'
         
         # Rendering .tex
@@ -85,7 +85,7 @@ class LetterRenderer:
         template = self.template_role
         
         # TODO: escape basename
-        basename = self.player.user.last_name.replace(u' ', u'').replace(u'à', u'a') + '2'
+        basename = self.player.user.last_name.replace(u' ', u'').replace(u'à', u'a').replace(u'ò', u'o') + '2'
         filename = basename + '.tex'
         
         # Rendering .tex
