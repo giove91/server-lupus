@@ -547,4 +547,19 @@ class Comment(models.Model):
     comment_name = property(__unicode__)
 
 
+class PageRequest(models.Model):
+    
+    user = models.ForeignKey(User)
+    timestamp = models.DateTimeField()
+    path = models.TextField()
+    ip_address = models.TextField()
+    hostname = models.TextField()
+    
+    class Meta:
+        ordering = ['timestamp']
+    
+    def __unicode__(self):
+        return u"PageRequest %d" % self.pk
+    pagerequest_name = property(__unicode__)
+
 

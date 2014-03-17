@@ -142,6 +142,7 @@ if DEBUG:
         'django.contrib.sessions.middleware.SessionMiddleware',
         'game.middleware.PlayerMiddleware',
         'game.middleware.GameMiddleware',
+        'game.middleware.PageRequestMiddleware',
     )
 
     INSTALLED_APPS += (
@@ -165,3 +166,7 @@ if DEBUG:
     DEBUG_TOOLBAR_CONFIG = {
         'INTERCEPT_REDIRECTS': False,
     }
+
+# GeoIP
+# GEOIP_PATH = os.path.join(BASE_DIR, 'geoip')
+

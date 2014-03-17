@@ -61,6 +61,10 @@ class PowerOutcomeEventAdmin(admin.ModelAdmin):
     list_display = ('event_name', 'turn', 'timestamp', 'player', 'success', 'sequestrated')
     search_fields = ['player__user__first_name', 'player__user__last_name']
 
+class PageRequestAdmin(admin.ModelAdmin):
+    list_filter = ['user']
+    list_display = ('pagerequest_name', 'user', 'timestamp', 'path', 'ip_address', 'hostname')
+    search_fields = ['user__username', 'user__first_name', 'user__last_name']
 
 admin.site.register(Player, PlayerAdmin)
 admin.site.register(Event, EventAdmin)
@@ -74,3 +78,4 @@ admin.site.register(InitialPropositionEvent, InitialPropositionEventAdmin)
 admin.site.register(RoleKnowledgeEvent, RoleKnowledgeEventAdmin)
 admin.site.register(PowerOutcomeEvent, PowerOutcomeEventAdmin)
 
+admin.site.register(PageRequest, PageRequestAdmin)

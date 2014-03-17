@@ -1,6 +1,7 @@
 from django.contrib.auth.models import Permission, User
 
 from game.models import *
+from game.utils import get_now
 
 # Middleware for assigning a Player to the (possibly) logged User
 class PlayerMiddleware:
@@ -53,6 +54,10 @@ class GameMiddleware:
         return None
 
 
-
+class PageRequestMiddleware:
+    def process_request(self, request):
+        user = request.user
+        if user.is_authenticated():
+            PageRequest.objects.create(user=user, timestamp=get_now(), path=request.path, ip_address=request.META['REMOTE_ADDR'], hostname=request.META['REMOTE_HOST'])
 
 
