@@ -417,6 +417,10 @@ class Player(models.Model):
     def aura(self):
         return Player.AURA_COLORS_DICT[self.canonicalize().aura]
 
+    def is_mystic(self):
+        return self.canonicalize().is_mystic
+    is_mystic.boolean = True
+
     def alive(self):
         return self.canonicalize().alive
     alive.boolean = True

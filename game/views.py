@@ -199,10 +199,10 @@ class Weather:
             return 'light rain'
         elif 200 <= self.description <= 232 or 501 <= self.description <= 531:
             return 'heavy rain'
-        elif 802 <= self.description <= 804 or 701 <= self.description <= 741:
+        elif 803 <= self.description <= 804 or 701 <= self.description <= 741:
             # 7** sarebbero nebbia o affini
             return 'cloudy'
-        elif 800 <= self.description <= 801:
+        elif 800 <= self.description <= 802:
             return 'clear'
         else:
             return 'unknown'
@@ -243,6 +243,7 @@ class VillageStatusView(View):
         
         events = get_events(request, 'public')
         weather = get_weather(request)
+        print weather.description
         
         context = {
             'events': events,

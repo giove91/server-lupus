@@ -27,8 +27,7 @@ class TurnAdmin(admin.ModelAdmin):
     list_display = ('as_string', 'date', 'phase', 'begin', 'end')
 
 class PlayerAdmin(admin.ModelAdmin):
-    list_display = ('full_name', 'gender', 'team', 'role_name', 'aura', 'alive', 'active', 'can_use_power', 'can_vote', 'is_mayor', 'is_appointed_mayor')
-    #list_filter = ['team', 'alive', 'active']
+    list_display = ('full_name', 'gender', 'team', 'role_name', 'aura', 'is_mystic', 'alive', 'active', 'can_use_power', 'can_vote', 'is_mayor', 'is_appointed_mayor')
     search_fields = ['user__first_name', 'user__last_name']
 
 class AnnouncementAdmin(admin.ModelAdmin):
