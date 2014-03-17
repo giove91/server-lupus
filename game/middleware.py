@@ -58,6 +58,8 @@ class PageRequestMiddleware:
     def process_request(self, request):
         user = request.user
         if user.is_authenticated():
-            PageRequest.objects.create(user=user, timestamp=get_now(), path=request.path, ip_address=request.META['REMOTE_ADDR'], hostname=request.META['REMOTE_HOST'])
+            ip_address = request.META['REMOTE_ADDR'] if 'REMOTE_ADDR' in request.META else ''
+            hostname = request.META['REMOTE_HOST'] if 'REMOTE_HOST' in request.META else ''
+            PageRequest.objects.create(user=user, timestamp=get_now(), path=request.path, ip_address=ip_address, hostname=hostname)
 
 
