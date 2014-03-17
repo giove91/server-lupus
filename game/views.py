@@ -243,7 +243,6 @@ class VillageStatusView(View):
         
         events = get_events(request, 'public')
         weather = get_weather(request)
-        print weather.description
         
         context = {
             'events': events,
