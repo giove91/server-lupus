@@ -36,6 +36,24 @@ class CommandEvent(Event):
     def __unicode__(self):
         return u"CommandEvent %d" % self.pk
 
+    def player_role(self):
+        if self.player is not None:
+            return self.player.canonicalize().role.name
+        else:
+            return None
+
+    def target_role(self):
+        if self.target is not None:
+            return self.target.canonicalize().role.name
+        else:
+            return None
+
+    def target2_role(self):
+        if self.target2 is not None:
+            return self.target2.canonicalize().role.name
+        else:
+            return None
+
     def to_dict(self):
         ret = Event.to_dict(self)
         ret.update({

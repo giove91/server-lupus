@@ -45,7 +45,7 @@ class EventAdmin(admin.ModelAdmin):
 
 class CommandEventAdmin(admin.ModelAdmin):
     list_filter = ['type', 'turn']
-    list_display = ('event_name', 'turn', 'timestamp', 'player', 'type', 'target', 'target2', 'target_ghost')
+    list_display = ('event_name', 'turn', 'timestamp', 'player', 'player_role', 'type', 'target', 'target_role', 'target2', 'target2_role', 'target_ghost')
     search_fields = ['player__user__first_name', 'player__user__last_name']
 
 class InitialPropositionEventAdmin(admin.ModelAdmin):
