@@ -62,7 +62,7 @@ class PowerOutcomeEventAdmin(admin.ModelAdmin):
     search_fields = ['player__user__first_name', 'player__user__last_name']
 
 class PageRequestAdmin(admin.ModelAdmin):
-    list_filter = ['user']
+    list_filter = ['user__is_staff', 'user']
     list_display = ('pagerequest_name', 'user', 'timestamp', 'path', 'ip_address', 'hostname')
     search_fields = ['user__username', 'user__first_name', 'user__last_name']
 
