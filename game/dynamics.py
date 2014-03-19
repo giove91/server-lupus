@@ -680,6 +680,7 @@ class Dynamics:
             # Count Ipnotista
             real_vote = player.recorded_vote
             if player.hypnotist is not None and player.hypnotist.alive:
+                assert isinstance(player.hypnotist.role, Ipnotista)
                 real_vote = player.hypnotist.recorded_vote
 
             # Count Spettro dell'Amnesia
