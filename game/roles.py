@@ -270,8 +270,9 @@ class Messia(Role):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        from events import PlayerResurrectsEvent
-        dynamics.generate_event(PlayerResurrectsEvent(player=self.recorded_target))
+        if not self.recorded_target.alive:
+            from events import PlayerResurrectsEvent
+            dynamics.generate_event(PlayerResurrectsEvent(player=self.recorded_target))
 
 
 class Necrofilo(Role):
