@@ -969,6 +969,29 @@ class DisqualificationEvent(Event):
             return None
 
 
+class FreeTextEvent(Event):
+    RELEVANT_PHASES = [CREATION, NIGHT, DAWN, SUNSET, DAY]
+    AUTOMATIC = False
+
+    text = models.TextField()
+
+    def to_dict(self):
+        ret = Event.to_dict(self)
+        ret.update({
+                'text': self.text,
+                })
+        return ret
+
+    def load_from_dict(self, data, players_map):
+        self.text = data['text']
+
+    def apply(self, dynamics):
+        pass
+
+    def to_player_string(self, player):
+        return self.text
+
+
 class ExileEvent(Event):
     RELEVANT_PHASES = [DAWN, SUNSET]
     AUTOMATIC = True

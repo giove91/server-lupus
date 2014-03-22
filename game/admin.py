@@ -48,6 +48,9 @@ class CommandEventAdmin(admin.ModelAdmin):
     list_display = ('event_name', 'turn', 'timestamp', 'player', 'player_role', 'type', 'target', 'target_role', 'target2', 'target2_role', 'target_ghost')
     search_fields = ['player__user__first_name', 'player__user__last_name']
 
+class FreeTextEventAdmin(admin.ModelAdmin):
+    list_display = ('event_name', 'turn', 'timestamp', 'text')
+
 class InitialPropositionEventAdmin(admin.ModelAdmin):
     list_display = ('event_name', 'turn', 'timestamp', 'text')
 
@@ -75,6 +78,7 @@ admin.site.register(Comment, CommentAdmin)
 
 admin.site.register(CommandEvent, CommandEventAdmin)
 admin.site.register(InitialPropositionEvent, InitialPropositionEventAdmin)
+admin.site.register(FreeTextEvent, FreeTextEventAdmin)
 admin.site.register(RoleKnowledgeEvent, RoleKnowledgeEventAdmin)
 admin.site.register(PowerOutcomeEvent, PowerOutcomeEventAdmin)
 
