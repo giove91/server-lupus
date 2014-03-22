@@ -6,7 +6,7 @@
         <div class="separator"><div class="separator"><h2>{{ turn.turn_as_italian_string_property }}</h2></div></div>
         
         {% for message in values.standard %}
-            <p>{{ message }}</p>
+            <p>{{ message|safe }}</p>
         {% endfor %}
         
         {% if turn.phase == CREATION %}
