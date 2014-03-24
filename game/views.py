@@ -692,7 +692,7 @@ class CommentView(View):
        
         old_comments = Comment.objects.filter(user=user).filter(turn__game=game).filter(visible=True).order_by('-timestamp')
         can_comment = self.can_comment(request)
-        return render(request, 'comment.html', {'form': form, 'old_comments': old_comments, 'can_comment': can_comment})
+        return render(request, 'comment.html', {'form': form, 'old_comments': old_comments, 'can_comment': can_comment, 'classified': True})
     
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
