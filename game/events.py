@@ -703,7 +703,7 @@ class TeamKnowledgeEvent(Event):
         if player == self.player:
             return u'Scopri che %s appartiene alla Fazione dei %s.' % (self.target.full_name, team)
         elif player == 'admin':
-            return u'%s scopre che %s appartiene alla Fazione dei %s.', (self.player.full_name, self.target.full_name, team)
+            return u'%s scopre che %s appartiene alla Fazione dei %s.' % (self.player.full_name, self.target.full_name, team)
         return None
 
 
