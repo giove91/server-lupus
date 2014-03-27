@@ -1,3 +1,12 @@
 
- * Remove all Giove's datetime.now from the code, which are not time
-   zone aware
+ * Mayor or appointed mayor being exiled
+
+ * Messia superposition
+
+ * Ipnotista being revived as Ghost without power
+
+ * Mayor change events (unify and cover all cases)
+
+ * Death superposition (bug in visualization order)
+
+ * Refactor end-of-turn checks

@@ -755,30 +755,6 @@ class Dynamics:
         for event in self.upcoming_deaths:
             event.apply_death(self)
 
-        # Loss of appointed mayor
-        if self.appointed_mayor_dying:
-            self.appointed_mayor = None
-
-        # Loss of mayor
-        if self.mayor_dying:
-            if self.appointed_mayor is not None:
-                assert self.appointed_mayor.alive
-                self.mayor = self.appointed_mayor
-                self.appointed_mayor = None
-
-            else:
-                candidates = self.get_alive_players()
-                self.mayor = self.random.choice(candidates)
-
-                # TODO: pass through an appropriate event?
-
-        while self._update_step(advancing_turn=True):
-            pass
-
-        self.mayor_dying = False
-        self.appointed_mayor_dying = False
-        self.upcoming_deaths = []
-
     def _count_alive_teams(self):
         teams = []
 
@@ -811,8 +787,42 @@ class Dynamics:
             if team in [LUPI, NEGROMANTI]:
                 for player in self.players:
                     if player.team == team and player.active:
+                        if player.is_mayor():
+                            self.mayor_dying = True
+                        elif player.is_appointed_mayor():
+                            self.appointed_mayor_dying = True
                         event = ExileEvent(player=player, cause=TEAM_DEFEAT)
                         self.generate_event(event)
+
+        while self._update_step(advancing_turn=True):
+            pass
+
+        # Loss of appointed mayor
+        if self.appointed_mayor_dying:
+            self.appointed_mayor = None
+
+        # Loss of mayor
+        if self.mayor_dying:
+            if self.appointed_mayor is not None:
+                assert self.appointed_mayor.alive and self.appointed_mayor.active
+                self.mayor = self.appointed_mayor
+                self.appointed_mayor = None
+
+            else:
+                candidates = self.get_alive_players()
+                self.mayor = self.random.choice(candidates)
+
+                # TODO: pass through an appropriate event?
+
+        else:
+            assert self.mayor.alive and self.mayor.active
+
+        while self._update_step(advancing_turn=True):
+            pass
+
+        self.mayor_dying = False
+        self.appointed_mayor_dying = False
+        self.upcoming_deaths = []
 
         # Check victory condition
         winning_teams = None
