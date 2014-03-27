@@ -1033,7 +1033,7 @@ class ExileEvent(Event):
             if player == self.player:
                 return u'La tua Fazione è stata sconfitta. Per te non rimane che l\'esilio.'
             else:
-                return u'%s è stato esiliato a causa della sconfitta della Fazione dei %s.' % (self.player.full_name, team)
+                return u'%s è stat%s esiliat%s a causa della sconfitta della Fazione dei %s.' % (self.player.full_name, oa, oa, team)
 
 
 class VictoryEvent(Event):
