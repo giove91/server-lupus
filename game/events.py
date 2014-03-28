@@ -1036,6 +1036,39 @@ class ExileEvent(Event):
                 return u'%s è stat%s esiliat%s a causa della sconfitta della Fazione dei %s.' % (self.player.full_name, oa, oa, team)
 
 
+class ForceVictoryEvent(Event):
+    RELEVANT_PHASES = [DAWN, SUNSET]
+    AUTOMATIC = False
+
+    popolani_win = models.BooleanField(default=None)
+    lupi_win = models.BooleanField(default=None)
+    negromanti_win = models.BooleanField(default=None)
+
+    def to_dict(self):
+        ret = Event.to_dict(self)
+        ret.update({
+                'popolani_win': self.popolani_win,
+                'lupi_win': self.lupi_win,
+                'negromanti_win': self.negromanti_win,
+                })
+        return ret
+
+    def load_from_dict(self, data, players_map):
+        self.popolani_win = data['popolani_win']
+        self.lupi_win = data['lupi_win']
+        self.negromanti_win = data['negromanti_win']
+
+    def apply(self, dynamics):
+        dynamics.generate_event(VictoryEvent(popolani_win=self.popolani_win,
+                                             lupi_win=self.lupi_win,
+                                             negromanti_win=self.negromanti_win,
+                                             cause=FORCED,
+                                             timestamp=self.timestamp))
+
+    def to_player_string(self, player):
+        return None
+
+
 class VictoryEvent(Event):
     RELEVANT_PHASES = [DAWN, SUNSET]
     AUTOMATIC = True
@@ -1069,12 +1102,12 @@ class VictoryEvent(Event):
         dynamics = self.turn.game.get_dynamics()
         winners = self.get_winners(dynamics)
         if len(winners) == 1:
-            return u'La partita si è conclusa con la vittoria della Fazione dei %s.' % winners[0]
+            return u'<b>La partita si è conclusa con la vittoria della Fazione dei %s.</b>' % (TEAM_IT[winners[0]])
         elif len(winners) == 2:
-            return u'La partita si è conclusa con la vittoria della Fazione dei %s e della Fazione dei %s.' % (winners[0], winners[1])
+            return u'<b>La partita si è conclusa con la vittoria della Fazione dei %s e della Fazione dei %s.</b>' % (TEAM_IT[winners[0]], TEAM_IT[winners[1]])
         elif len(winners) == 3:
             # Questa cosa mi auguro che non possa davvero succedere
-            return u'La partita si è conclusa con la vittoria di tutte le Fazioni.'
+            return u'<b>La partita si è conclusa con la vittoria di tutte le Fazioni.</b>'
         else:
             raise Exception ('Number of winner is not reasonable')
 

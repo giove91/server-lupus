@@ -293,8 +293,8 @@ class Dynamics:
         assert event.AUTOMATIC
         assert self.current_turn.phase in event.RELEVANT_PHASES
         event.turn = self.current_turn
-        # XXX: probably we want to check the originating event
-        event.timestamp = self.current_turn.begin
+        if event.timestamp is None:
+            event.timestamp = self.current_turn.begin
         self.auto_event_queue.append(event)
 
     def _compute_entering_creation(self):
@@ -833,7 +833,7 @@ class Dynamics:
 
         self.playing_teams = teams
 
-        if winning_teams is not None:
+        if winning_teams is not None and self.winners is None:
             self.generate_event(VictoryEvent(popolani_win=POPOLANI in winning_teams,
                                              lupi_win=LUPI in winning_teams,
                                              negromanti_win=NEGROMANTI in winning_teams,
