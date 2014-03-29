@@ -49,7 +49,7 @@
         {% endif %}
         
         {% if values.comments %}
-            <h3><a href="javascript:;" onClick="document.getElementById('comments{{ turn.pk }}').style.display='block';">Visualizza i commenti</a></h3>
+            <h3><a id="commentslink{{ turn.pk }}" href="javascript:;" onClick="toggle_comments('comments{{ turn.pk }}', 'commentslink{{ turn.pk }}');">Visualizza i commenti</a></h3>
             <div id="comments{{ turn.pk }}" style="display:none;">
             {% for comment in values.comments %}
                 <p><strong>{{ comment.user.first_name }} {{ comment.user.last_name }}</strong> <em>{{ comment.timestamp|date:"d/m/Y H:i" }}</em> {{ comment.text }}</p>
