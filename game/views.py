@@ -49,8 +49,12 @@ def get_events(request, player):
         turns = [turn for turn in dynamics.turns if turn.phase in [CREATION, DAWN, SUNSET]]
     
     events = dynamics.events
+    if player == 'admin':
+        comments = Comment.objects.filter(turn__game=game).filter(visible=True).order_by('timestamp')
+    else:
+        comments = []
 
-    result = dict([(turn, { 'standard': [], VOTE: {}, ELECT: {}, 'initial_propositions': [], 'soothsayer_propositions': [] }) for turn in turns ])
+    result = dict([(turn, { 'standard': [], VOTE: {}, ELECT: {}, 'initial_propositions': [], 'soothsayer_propositions': [], 'comments': [] }) for turn in turns ])
     
     for event in events:
         message = event.to_player_string(player)
@@ -76,6 +80,9 @@ def get_events(request, player):
         
         if event.subclass == 'RoleKnowledgeEvent' and event.cause == SOOTHSAYER and event.player == player:
             result[event.turn]['soothsayer_propositions'].append(event.to_soothsayer_proposition())
+    
+    for comment in comments:
+        result[comment.turn]['comments'].append(comment)
     
     ordered_result = [ (turn, result[turn]) for turn in turns ]
     
@@ -285,6 +292,7 @@ class AdminStatusView(View):
     def get(self, request):
         events = get_events(request, 'admin')
         weather = get_weather(request)
+        game = request.game
         
         context = {
             'events': events,

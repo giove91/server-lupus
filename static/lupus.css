@@ -98,6 +98,10 @@ p {
 	margin: 0px; 
 }
 
+.info-block a {
+	color: inherit;
+}
+
 .separator {
 	height: 1px;
 	background-color: #bbb;
@@ -315,4 +319,5 @@ p {
 	top: 0;
 	z-index: 2;
 }
+
 
