@@ -36,7 +36,7 @@ class AnnouncementAdmin(admin.ModelAdmin):
 
 class CommentAdmin(admin.ModelAdmin):
     list_display = ('comment_name', 'user', 'timestamp', 'turn', 'text', 'visible')
-    list_filter = ['visible']
+    list_filter = ['visible', 'user']
     search_fields = ['user__first_name', 'user__last_name', 'text']
 
 class EventAdmin(admin.ModelAdmin):
