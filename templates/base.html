@@ -124,8 +124,13 @@
     </div>
     
     <script>
-      fish_images = ["{% static 'fish.svg' %}"];
-      create_fishes_by_density(0.00002);
+      fish_images = [
+          "{% static 'fishes/fish1.svg' %}",
+          "{% static 'fishes/fish2.svg' %}",
+          "{% static 'fishes/fish3.svg' %}",
+          "{% static 'fishes/fish4.svg' %}",
+      ];
+      create_fishes_by_density(0.00001);
     </script>
 </body>
 </html>
