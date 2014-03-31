@@ -39,3 +39,7 @@ function create_fishes_by_density(density) {
     var num = $(window).width() * $(window).height() * density;
     create_fishes(num);
 }
+
+function disable_fishes() {
+    $('.fish').css('display', 'none');
+}
