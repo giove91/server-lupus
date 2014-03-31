@@ -1,5 +1,5 @@
 
-speed = 2.0;
+speed = 3.0;
 
 function create_fish(name) {
     var fish_id = 'fish_' + name;
@@ -25,7 +25,7 @@ function create_fish(name) {
             y += deltay;
             $('#'+fish_id).css('top', y);
             $('#'+fish_id).css('left', x);
-        }, 50);
+        }, 150);
 }
 
 function create_fishes(num) {
