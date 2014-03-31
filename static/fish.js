@@ -36,6 +36,6 @@ function create_fishes(num) {
 }
 
 function create_fishes_by_density(density) {
-    var num = $(document).width() * $(document).height() * density;
+    var num = $(window).width() * $(window).height() * density;
     create_fishes(num);
 }
