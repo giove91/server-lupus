@@ -11,8 +11,11 @@
     <link rel="stylesheet" href="{% static "text.css" %}" />
     <link rel="stylesheet" href="{% static "960.css" %}" />
     <link rel="stylesheet" href="{% static "lupus.css" %}" />
+    <link rel="stylesheet" href="{% static "fish.css" %}" />
     
     <script src="{% static "script.js" %}"></script>
+    <script src="{% static "jquery-1.11.0.min.js" %}"></script>
+    <script src="{% static "fish.js" %}"></script>
 </head>
 
 <body>
@@ -120,5 +123,9 @@
 	    <div class="clear"></div>
     </div>
     
+    <script>
+      fish_images = ["{% static 'fish.svg' %}"];
+      create_fishes_by_density(0.00002);
+    </script>
 </body>
 </html>

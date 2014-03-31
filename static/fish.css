@@ -1,0 +1,6 @@
+
+.fish {
+    position: fixed;
+    display: none;
+    z-index: 10;
+}
