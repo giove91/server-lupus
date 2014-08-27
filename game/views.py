@@ -417,7 +417,7 @@ class CommandView(View):
             'url_name': self.url_name,
             'classified': True,
         }
-        return render(request, self.template_name, {'form': form, 'title': self.title, 'url_name': self.url_name, 'classified': True})
+        return render(request, self.template_name, context)
     
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
