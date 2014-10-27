@@ -14,3 +14,13 @@
  * Fix DST TZ selection during automatic turn advancement
 
  * Events before beginning of turn are silently ignored
+
+ * Implement Scrutatore.
+
+ * Remove Ghost with Duplicazione.
+
+ * Implement ghostification of Ipnotista.
+
+ * Update Profanatore di Tombe.
+
+ * Update prototypes and letters' templates.
