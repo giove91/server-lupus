@@ -889,8 +889,8 @@ class PowerOutcomeEvent(Event):
 
     player = models.ForeignKey(Player, related_name='+')
     command = models.OneToOneField(CommandEvent)
-    success = models.BooleanField()
-    sequestrated = models.BooleanField()
+    success = models.BooleanField(default=False)
+    sequestrated = models.BooleanField(default=False)
 
     def apply(self, dynamics):
         assert self.command.type == USEPOWER
