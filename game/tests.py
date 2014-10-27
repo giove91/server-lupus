@@ -3688,7 +3688,7 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
         self.assertEqual(event.player, ipnotista)
         self.assertEqual(event.ghost, IPNOSI)
-        self.assertEqual(event.cause, SCRIVERE_QUI_IL_NOME_SCELTO_PER_QUESTA_CAUSA)
+        self.assertEqual(event.cause, HYPNOTIST_DEATH)
         self.assertTrue(isinstance(ipnotista.role, Spettro))
         
         # Advance to night
