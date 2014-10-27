@@ -557,11 +557,11 @@ class Dynamics:
 
         assert self.upcoming_deaths == []
 
-        # Powers that modify the state: Cacciatore, Messia, Trasformista,
-        # Lupi, Avvocato del Diavolo, Negromante, Ipnotista, Spettro
-        # dell'Amnesia, Spettro della Duplicazione and Spettro della
-        # Morte (the order is important here!)
-        MODIFY_ROLES = [Avvocato, AMNESIA, DUPLICAZIONE, Ipnotista, Trasformista,
+        # Powers that modify the state: Cacciatore, Messia,
+        # Trasformista, Lupi, Avvocato del Diavolo, Negromante,
+        # Ipnotista, Spettro dell'Amnesia and Spettro della Morte (the
+        # order is important here!)
+        MODIFY_ROLES = [Avvocato, AMNESIA, Ipnotista, Trasformista,
                         Messia, Negromante, Cacciatore, Lupo, MORTE]
         apply_roles(MODIFY_ROLES)
 
@@ -713,10 +713,6 @@ class Dynamics:
             if ballots[player.pk] is not None:
                 event = VoteAnnouncedEvent(voter=player, voted=ballots[player.pk], type=VOTE)
                 self.generate_event(event)
-
-        # Count Spettro della Duplicazione
-        if duplication_ballot:
-            tally_sheet[duplication_ballot.pk] += 1
 
         # Send tally announcements
         for player in self.get_alive_players():

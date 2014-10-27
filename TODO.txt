@@ -17,8 +17,6 @@
 
  * Implement Scrutatore.
 
- * Remove Ghost with Duplicazione.
-
  * Implement ghostification of Ipnotista.
 
  * Update Profanatore di Tombe.

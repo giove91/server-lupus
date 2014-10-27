@@ -68,12 +68,12 @@ AURA_IT = {
 
 # Supernatural powers
 AMNESIA = 'A'
-DUPLICAZIONE = 'D'
 ILLUSIONE = 'I'
 MISTIFICAZIONE = 'M'
 MORTE = 'R'
 OCCULTAMENTO = 'O'
 VISIONE = 'V'
+IPNOSI = 'P'
 
 # Commands
 USEPOWER = 'P'

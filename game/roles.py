@@ -677,8 +677,8 @@ class Spettro(Role):
     
     POWER_NAMES = {
         AMNESIA: 'Amnesia',
-        DUPLICAZIONE: 'Duplicazione',
         ILLUSIONE: 'Illusione',
+        IPNOSI: 'Ipnosi',
         MISTIFICAZIONE: 'Mistificazione',
         MORTE: 'Morte',
         OCCULTAMENTO: 'Occultamento',
@@ -700,7 +700,7 @@ class Spettro(Role):
         if self.player.alive or not self.has_power:
             return False
         
-        if self.power == AMNESIA or self.power == DUPLICAZIONE or self.power == MISTIFICAZIONE or self.power == OCCULTAMENTO or self.power == VISIONE:
+        if self.power == AMNESIA or self.power == MISTIFICAZIONE or self.power == OCCULTAMENTO or self.power == VISIONE:
             return True
         elif self.power == ILLUSIONE or self.power == MORTE:
             return self.last_usage is None or self.days_from_last_usage() >= 2
@@ -713,7 +713,7 @@ class Spettro(Role):
             if self.last_usage is not None and self.days_from_last_usage() <= 1:
                 excluded.append(self.last_target.pk)
             targets = [player for player in self.player.game.get_alive_players() if player.pk not in excluded]
-        elif self.power == DUPLICAZIONE or self.power == MORTE or self.power == VISIONE:
+        elif self.power == MORTE or self.power == VISIONE:
             targets = [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
         elif self.power == MISTIFICAZIONE or self.power == OCCULTAMENTO or self.power == ILLUSIONE:
             targets = [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
@@ -754,10 +754,6 @@ class Spettro(Role):
             assert dynamics.amnesia_target is None
             assert not isinstance(self.recorded_target.role, Ipnotista)
             dynamics.amnesia_target = self.recorded_target.canonicalize()
-
-        elif self.power == DUPLICAZIONE:
-            assert dynamics.duplication_target is None
-            dynamics.duplication_target = self.recorded_target.canonicalize()
 
         elif self.power == OCCULTAMENTO:
             # Nothing to do here...
