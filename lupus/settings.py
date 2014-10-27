@@ -147,7 +147,6 @@ if DEBUG:
 
     INSTALLED_APPS += (
         'debug_toolbar',
-        'django.contrib.sessions',
     )
     DEBUG_TOOLBAR_PANELS = [
     'debug_toolbar.panels.versions.VersionsPanel',
