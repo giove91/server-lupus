@@ -94,6 +94,7 @@ ADVOCATE = 'A'
 # Ghostification causes
 NECROMANCER = 'N'
 PHANTOM = 'P'
+HYPNOTIST_DEATH = 'H'
 
 # Role knowledge causes (PHANTOM clashes with the ghostification cause
 # and so must set to the same value --- curse insufficient namespace

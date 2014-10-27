@@ -700,7 +700,7 @@ class Spettro(Role):
         if self.player.alive or not self.has_power:
             return False
         
-        if self.power == AMNESIA or self.power == MISTIFICAZIONE or self.power == OCCULTAMENTO or self.power == VISIONE:
+        if self.power == AMNESIA or self.power == IPNOSI or self.power == MISTIFICAZIONE or self.power == OCCULTAMENTO or self.power == VISIONE:
             return True
         elif self.power == ILLUSIONE or self.power == MORTE:
             return self.last_usage is None or self.days_from_last_usage() >= 2
@@ -713,7 +713,7 @@ class Spettro(Role):
             if self.last_usage is not None and self.days_from_last_usage() <= 1:
                 excluded.append(self.last_target.pk)
             targets = [player for player in self.player.game.get_alive_players() if player.pk not in excluded]
-        elif self.power == MORTE or self.power == VISIONE:
+        elif self.power == MORTE or self.power == VISIONE or self.power == IPNOSI:
             targets = [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
         elif self.power == MISTIFICAZIONE or self.power == OCCULTAMENTO or self.power == ILLUSIONE:
             targets = [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
@@ -722,7 +722,7 @@ class Spettro(Role):
         return targets
     
     def get_targets2(self):
-        if self.power == ILLUSIONE:
+        if self.power == ILLUSIONE or self.power == IPNOSI:
             return self.player.game.get_alive_players()
         else:
             return None
@@ -787,7 +787,7 @@ class Spettro(Role):
                 return []
             ret = []
             for blocker in players:
-                if blocker.role.__class__ == Esorcista:
+                if isinstance(blocker.role, Esorcista):
                     continue
                 if blocker.pk == self.player.pk:
                     continue

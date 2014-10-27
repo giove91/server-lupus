@@ -812,6 +812,7 @@ class GhostificationEvent(Event):
     GHOSTIFICATION_CAUSES = (
         (NECROMANCER, 'Necromancer'),
         (PHANTOM, 'Phantom'),
+        (HYPNOTIST_DEATH, 'HypnotistDeath'),
         )
     cause = models.CharField(max_length=1, choices=GHOSTIFICATION_CAUSES, default=None)
 
@@ -821,7 +822,13 @@ class GhostificationEvent(Event):
         assert not player.alive
         assert self.ghost not in dynamics.used_ghost_powers
         assert not dynamics.death_ghost_created or self.cause == PHANTOM
-        assert not dynamics.ghosts_created_last_night or self.cause == PHANTOM
+        assert not dynamics.ghosts_created_last_night or self.cause != NECROMANCER
+        assert isinstance(player.role, Ipnotista) or self.cause != HYPNOTIST_DEATH
+        assert self.ghost == IPNOSI or self.cause != HYPNOTIST_DEATH
+        assert self.ghost != IPNOSI or self.cause == HYPNOTIST_DEATH
+
+        # TODO: check that the clause that only the last Ipnotista is
+        # converted to a ghost is satisfied
 
         # Update global status
         if self.cause == NECROMANCER:
@@ -830,7 +837,7 @@ class GhostificationEvent(Event):
         if self.ghost == MORTE:
             dynamics.death_ghost_created = True
 
-        # Save original role for Messia
+        # Save original role for Trasformista
         assert player.role_class_before_ghost is None
         player.role_class_before_ghost = player.role.__class__
 
