@@ -19,6 +19,4 @@
 
  * Implement ghostification of Ipnotista.
 
- * Update Profanatore di Tombe.
-
  * Update prototypes and letters' templates.

@@ -22,7 +22,7 @@ test_roles = [
     Avvocato,
     Diavolo,
     Fattucchiera,
-    Profanatore,
+    Sciamano,
     Rinnegato,
     Sequestratore, Sequestratore,
     Negromante, Negromante, Negromante,

@@ -275,8 +275,8 @@ class Messia(Role):
             dynamics.generate_event(PlayerResurrectsEvent(player=self.recorded_target))
 
 
-class Profanatore(Role):
-    name = 'Profanatore di Tombe'
+class Sciamano(Role):
+    name = 'Sciamano'
     team = POPOLANI
     aura = BLACK
     is_mystic = True

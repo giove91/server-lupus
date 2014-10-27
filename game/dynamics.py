@@ -447,11 +447,11 @@ class Dynamics:
         # So, here comes the big little male house ("gran casino");
         # first of all we consider powers that can block powers that
         # can block powers: Spettro dell'Occultamento, Sequestratore,
-        # Profanatore di Tombe, Esorcista
+        # Sciamano, Esorcista
 
         # Build the list of blockers
         critical_blockers = players_by_role[Sequestratore.__name__] + \
-            players_by_role[Profanatore.__name__] + \
+            players_by_role[Sciamano.__name__] + \
             players_by_role[Esorcista.__name__]
         if OCCULTAMENTO in ghosts_by_power:
             critical_blockers.append(ghosts_by_power[OCCULTAMENTO])
@@ -530,7 +530,7 @@ class Dynamics:
 
         # Apply roles of blockers computed above, so that
         # PowerOutcomeEvent's are properly generated
-        BLOCK_ROLES = [Sequestratore, Profanatore, Esorcista,
+        BLOCK_ROLES = [Sequestratore, Sciamano, Esorcista,
                        OCCULTAMENTO]
         apply_roles(BLOCK_ROLES)
 
