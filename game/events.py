@@ -824,6 +824,7 @@ class GhostificationEvent(Event):
         assert not dynamics.death_ghost_created or self.cause == PHANTOM
         assert not dynamics.ghosts_created_last_night or self.cause != NECROMANCER
         assert isinstance(player.role, Ipnotista) or self.cause != HYPNOTIST_DEATH
+        assert player.team == NEGROMANTI or self.cause != HYPNOTIST_DEATH
         assert self.ghost == IPNOSI or self.cause != HYPNOTIST_DEATH
         assert self.ghost != IPNOSI or self.cause == HYPNOTIST_DEATH
 
