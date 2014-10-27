@@ -363,7 +363,7 @@ class PlayerResurrectsEvent(Event):
             return u'%s ritorna al villaggio viv%s, veget%s e sorridente, e riprende la sua vita come se niente fosse.' % (self.player.full_name, oa, oa)
 
 
-class NecrofilizationEvent(Event):
+class TransformationEvent(Event):
     RELEVANT_PHASES = [DAWN]
     AUTOMATIC = True
 
@@ -408,7 +408,7 @@ class NecrofilizationEvent(Event):
         if player == self.player:
             return u'Dopo aver utilizzato il tuo potere su %s hai assunto il ruolo di %s.' % (self.target.full_name, role)
         elif player == 'admin':
-            return u'%s ha utilizzato il proprio potere da Necrofilo su %s assumendo il ruolo di %s.' % (self.player.full_name, self.target.full_name, role)
+            return u'%s ha utilizzato il proprio potere di Trasformista su %s assumendo il ruolo di %s.' % (self.player.full_name, self.target.full_name, role)
 
 
 class StakeFailedEvent(Event):

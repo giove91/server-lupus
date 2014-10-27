@@ -275,8 +275,8 @@ class Messia(Role):
             dynamics.generate_event(PlayerResurrectsEvent(player=self.recorded_target))
 
 
-class Necrofilo(Role):
-    name = 'Necrofilo'
+class Trasformista(Role):
+    name = 'Trasformista'
     team = POPOLANI
     aura = WHITE
     
@@ -298,11 +298,11 @@ class Necrofilo(Role):
         return True
 
     def apply_dawn(self, dynamics):
-        from events import NecrofilizationEvent
+        from events import TransformationEvent
         new_role_class = self.recorded_target.role.__class__
         if isinstance(self.recorded_target.role, Spettro):
             new_role_class = self.recorded_target.role_class_before_ghost
-        dynamics.generate_event(NecrofilizationEvent(player=self.player, target=self.recorded_target, role_name=new_role_class.__name__))
+        dynamics.generate_event(TransformationEvent(player=self.player, target=self.recorded_target, role_name=new_role_class.__name__))
 
 
 class Stalker(Role):
@@ -804,5 +804,5 @@ class Spettro(Role):
 
 roles_map = dict([(x.__name__, x) for x in Role.__subclasses__()])
 
-UNA_TANTUM_ROLES = [Cacciatore, Messia, Necrofilo]
+UNA_TANTUM_ROLES = [Cacciatore, Messia, Trasformista]
 POWERLESS_ROLES = [Contadino, Divinatore, Massone, Rinnegato, Fantasma]

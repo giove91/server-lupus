@@ -557,11 +557,11 @@ class Dynamics:
 
         assert self.upcoming_deaths == []
 
-        # Powers that modify the state: Cacciatore, Messia, Necrofilo,
+        # Powers that modify the state: Cacciatore, Messia, Trasformista,
         # Lupi, Avvocato del Diavolo, Negromante, Ipnotista, Spettro
         # dell'Amnesia, Spettro della Duplicazione and Spettro della
         # Morte (the order is important here!)
-        MODIFY_ROLES = [Avvocato, AMNESIA, DUPLICAZIONE, Ipnotista, Necrofilo,
+        MODIFY_ROLES = [Avvocato, AMNESIA, DUPLICAZIONE, Ipnotista, Trasformista,
                         Messia, Negromante, Cacciatore, Lupo, MORTE]
         apply_roles(MODIFY_ROLES)
 

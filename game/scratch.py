@@ -14,7 +14,7 @@ test_roles = [
     Mago,
     Massone,
     Messia,
-    Necrofilo,
+    Trasformista,
     Stalker,
     Veggente,
     Voyeur,
