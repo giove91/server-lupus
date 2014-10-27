@@ -275,6 +275,55 @@ class Messia(Role):
             dynamics.generate_event(PlayerResurrectsEvent(player=self.recorded_target))
 
 
+class Profanatore(Role):
+    name = 'Profanatore di Tombe'
+    team = POPOLANI
+    aura = BLACK
+    is_mystic = True
+
+    def can_use_power(self):
+        return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
+
+    def get_targets(self):
+        return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
+
+    def get_blocked(self, players):
+        if self.recorded_target is None:
+            return []
+        if isinstance(self.recorded_target.role, Spettro):
+            return [self.recorded_target.pk]
+        else:
+            return []
+
+    def apply_dawn(self, dynamics):
+        # Nothing to do here...
+        pass
+
+
+class Stalker(Role):
+    name = 'Stalker'
+    team = POPOLANI
+    aura = WHITE
+    
+    def can_use_power(self):
+        return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
+    
+    def get_targets(self):
+        return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
+
+    def apply_dawn(self, dynamics):
+        from events import MovementKnowledgeEvent
+        gen_set = set()
+        gen_num = 0
+        for visiting in self.recorded_target.visiting:
+            if visiting.pk != self.recorded_target.pk:
+                dynamics.generate_event(MovementKnowledgeEvent(player=self.player, target=self.recorded_target, target2=visiting, cause=STALKER))
+                gen_set.add(visiting.pk)
+                gen_num += 1
+        assert len(gen_set) <= 1
+        assert len(gen_set) == gen_num
+
+
 class Trasformista(Role):
     name = 'Trasformista'
     team = POPOLANI
@@ -303,30 +352,6 @@ class Trasformista(Role):
         if isinstance(self.recorded_target.role, Spettro):
             new_role_class = self.recorded_target.role_class_before_ghost
         dynamics.generate_event(TransformationEvent(player=self.player, target=self.recorded_target, role_name=new_role_class.__name__))
-
-
-class Stalker(Role):
-    name = 'Stalker'
-    team = POPOLANI
-    aura = WHITE
-    
-    def can_use_power(self):
-        return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
-    
-    def get_targets(self):
-        return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
-
-    def apply_dawn(self, dynamics):
-        from events import MovementKnowledgeEvent
-        gen_set = set()
-        gen_num = 0
-        for visiting in self.recorded_target.visiting:
-            if visiting.pk != self.recorded_target.pk:
-                dynamics.generate_event(MovementKnowledgeEvent(player=self.player, target=self.recorded_target, target2=visiting, cause=STALKER))
-                gen_set.add(visiting.pk)
-                gen_num += 1
-        assert len(gen_set) <= 1
-        assert len(gen_set) == gen_num
 
 
 class Veggente(Role):
@@ -471,31 +496,6 @@ class Fattucchiera(Role):
         target = self.recorded_target.canonicalize()
         assert target.apparent_aura in [BLACK, WHITE]
         target.apparent_aura = WHITE if target.apparent_aura is BLACK else BLACK
-
-
-class Profanatore(Role):
-    name = 'Profanatore di Tombe'
-    team = LUPI
-    aura = BLACK
-    knowledge_class = 3
-
-    def can_use_power(self):
-        return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
-
-    def get_targets(self):
-        return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
-
-    def get_blocked(self, players):
-        if self.recorded_target is None:
-            return []
-        if isinstance(self.recorded_target.role, Spettro):
-            return [self.recorded_target.pk]
-        else:
-            return []
-
-    def apply_dawn(self, dynamics):
-        # Nothing to do here...
-        pass
 
 
 class Rinnegato(Role):
