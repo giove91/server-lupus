@@ -3827,6 +3827,40 @@ class GameTests(TestCase):
         events = [event for event in dynamics.debug_event_bin if isinstance(event, VoteAnnouncedEvent)]
         self.assertEqual(events, [])
     
+    @record_name
+    def test_ipnosi_not_created_by_negromanti(self):
+        roles = [ Ipnotista, Negromante, Lupo, Lupo, Contadino, Contadino, Scrutatore ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
+        [scrutatore] = [x for x in players if isinstance(x.role, Scrutatore)]
+
+        # Advance to night
+        test_advance_turn(self.game)
+        
+        # Kill Contadino
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=contadino, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
+        self.assertEqual(event.player, contadino)
+        
+        # Advance to night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Try to create Spettro dell'Ipnosi
+        with self.assertRaises(AssertionError):
+            dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=IPNOSI, timestamp=get_now()))
+    
     
     @record_name
     def test_load_test(self):
