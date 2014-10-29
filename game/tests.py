@@ -3663,7 +3663,7 @@ class GameTests(TestCase):
     
     @record_name
     def test_ipnosi(self):
-        roles = [ Ipnotista, Negromante, Lupo, Lupo, Contadino, Contadino, Scrutatore ]
+        roles = [ Ipnotista, Negromante, Lupo, Lupo, Contadino, Contadino ]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
         players = self.game.get_players()
@@ -3672,9 +3672,12 @@ class GameTests(TestCase):
         [negromante] = [x for x in players if isinstance(x.role, Negromante)]
         [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
         [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
-        [scrutatore] = [x for x in players if isinstance(x.role, Scrutatore)]
 
-        # Advance to night
+        # Advance to second night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
         test_advance_turn(self.game)
         
         # Kill Ipnotista
@@ -3717,7 +3720,7 @@ class GameTests(TestCase):
     
     @record_name
     def test_ipnosi_on_dead(self):
-        roles = [ Ipnotista, Negromante, Lupo, Lupo, Contadino, Contadino, Scrutatore ]
+        roles = [ Ipnotista, Negromante, Lupo, Lupo, Contadino, Contadino ]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
         players = self.game.get_players()
@@ -3726,9 +3729,12 @@ class GameTests(TestCase):
         [negromante] = [x for x in players if isinstance(x.role, Negromante)]
         [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
         [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
-        [scrutatore] = [x for x in players if isinstance(x.role, Scrutatore)]
 
-        # Advance to night
+        # Advance to second night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
         test_advance_turn(self.game)
         
         # Kill Ipnotista
@@ -3773,7 +3779,7 @@ class GameTests(TestCase):
     
     @record_name
     def test_ipnosi_on_dead2(self):
-        roles = [ Ipnotista, Negromante, Lupo, Lupo, Contadino, Contadino, Scrutatore ]
+        roles = [ Ipnotista, Negromante, Lupo, Lupo, Contadino, Contadino ]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
         players = self.game.get_players()
@@ -3782,9 +3788,12 @@ class GameTests(TestCase):
         [negromante] = [x for x in players if isinstance(x.role, Negromante)]
         [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
         [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
-        [scrutatore] = [x for x in players if isinstance(x.role, Scrutatore)]
 
-        # Advance to night
+        # Advance to second night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
         test_advance_turn(self.game)
         
         # Kill Ipnotista
@@ -3829,7 +3838,7 @@ class GameTests(TestCase):
     
     @record_name
     def test_ipnosi_not_created_by_negromanti(self):
-        roles = [ Ipnotista, Negromante, Lupo, Lupo, Contadino, Contadino, Scrutatore ]
+        roles = [ Ipnotista, Negromante, Lupo, Lupo, Contadino, Contadino ]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
         players = self.game.get_players()
@@ -3838,9 +3847,12 @@ class GameTests(TestCase):
         [negromante] = [x for x in players if isinstance(x.role, Negromante)]
         [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
         [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
-        [scrutatore] = [x for x in players if isinstance(x.role, Scrutatore)]
 
-        # Advance to night
+        # Advance to second night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
         test_advance_turn(self.game)
         
         # Kill Contadino
@@ -3860,6 +3872,179 @@ class GameTests(TestCase):
         # Try to create Spettro dell'Ipnosi
         with self.assertRaises(AssertionError):
             dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=IPNOSI, timestamp=get_now()))
+    
+    @record_name
+    def test_ipnosi_not_created_after_morte(self):
+        roles = [ Ipnotista, Negromante, Lupo, Lupo, Contadino, Contadino ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
+
+        # Advance to second night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Kill Contadino
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=contadino, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
+        self.assertEqual(event.player, contadino)
+        
+        # Advance to night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Create Spettro della Morte
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=MORTE, timestamp=get_now()))
+        
+        # Advance to night
+        test_advance_turn(self.game)
+        self.assertTrue(isinstance(contadino.role, Spettro))
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Kill Ipnotista
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=ipnotista, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
+        self.assertEqual(event.player, ipnotista)
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
+        self.assertEqual(events, [])
+    
+    @record_name
+    def test_ipnosi_creation_with_trasformista_and_messia(self):
+        roles = [ Ipnotista, Ipnotista, Negromante, Lupo, Lupo, Contadino, Contadino, Trasformista, Messia, Messia ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [ipnotista, ipnotista2] = [x for x in players if isinstance(x.role, Ipnotista)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
+        [trasformista] = [x for x in players if isinstance(x.role, Trasformista)]
+        [messia, messia2] = [x for x in players if isinstance(x.role, Messia)]
+
+        # Advance to second night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Kill Ipnotista
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=ipnotista, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
+        self.assertEqual(event.player, ipnotista)
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
+        self.assertEqual(events, [])
+        self.assertTrue(isinstance(ipnotista.role, Ipnotista))
+        
+        # Advance to night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Use Trasformista power
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=trasformista, target=ipnotista, timestamp=get_now()))
+        
+        # Advance to night
+        test_advance_turn(self.game)
+        self.assertTrue(isinstance(trasformista.role, Ipnotista))
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Kill the other Ipnotista
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=ipnotista2, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
+        self.assertEqual(event.player, ipnotista2)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
+        self.assertEqual(event.player, ipnotista2)
+        self.assertEqual(event.ghost, IPNOSI)
+        self.assertEqual(event.cause, HYPNOTIST_DEATH)
+        self.assertTrue(isinstance(ipnotista2.role, Spettro))
+        
+        # Advance to night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Revive Spettro dell'Ipnosi and kill ex-Trasformista
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=messia, target=ipnotista2, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=trasformista, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
+        self.assertEqual(event.player, trasformista)
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
+        self.assertEqual(events, [])
+        self.assertTrue(isinstance(ipnotista2.role, Spettro))
+        self.assertTrue(isinstance(trasformista.role, Ipnotista))
+        
+        # Advance to night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Revive Ipnotista and kill Spettro dell'Ipnosi
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=messia2, target=ipnotista, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=ipnotista2, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
+        self.assertEqual(event.player, ipnotista2)
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
+        self.assertEqual(events, [])
+        self.assertTrue(isinstance(ipnotista2.role, Spettro))
+        self.assertTrue(isinstance(ipnotista.role, Ipnotista))
+        
+        # Advance to night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        self.assertFalse(ipnotista2.can_use_power())
+        
+        # Kill Ipnotista
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=ipnotista, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
+        self.assertEqual(event.player, ipnotista)
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
+        self.assertEqual(events, [])
+        self.assertTrue(isinstance(ipnotista2.role, Spettro))
+        self.assertTrue(isinstance(ipnotista.role, Ipnotista))
     
     
     @record_name
