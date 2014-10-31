@@ -1237,39 +1237,41 @@ class GameTests(TestCase):
 
     @record_name
     def test_fantasma(self):
-        roles = [ Fantasma, Negromante, Lupo, Contadino, Contadino ]
-        self.game = create_test_game(1, roles)
-        dynamics = self.game.get_dynamics()
-        players = self.game.get_players()
+        for i in xrange(20):
+            roles = [ Fantasma, Negromante, Lupo, Contadino, Contadino ]
+            self.game = create_test_game(i, roles)
+            dynamics = self.game.get_dynamics()
+            players = self.game.get_players()
 
-        [fantasma] = [x for x in players if isinstance(x.role, Fantasma)]
-        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
-        [lupo] = [x for x in players if isinstance(x.role, Lupo)]
-        [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
+            [fantasma] = [x for x in players if isinstance(x.role, Fantasma)]
+            [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+            [lupo] = [x for x in players if isinstance(x.role, Lupo)]
+            [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
 
-        # Advance to day
-        test_advance_turn(self.game)
-        test_advance_turn(self.game)
-        test_advance_turn(self.game)
-        
-        # Kill Fantasma
-        dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=fantasma, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=VOTE, player=fantasma, target=fantasma, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=fantasma, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=VOTE, player=contadino, target=fantasma, timestamp=get_now()))
-        
-        # Advance to sunset
-        dynamics.debug_event_bin = []
-        test_advance_turn(self.game)
-        
-        # Check result
-        self.assertFalse(fantasma.alive)
-        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
-        self.assertEqual(event.player,fantasma)
-        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
-        self.assertEqual(event.player,fantasma)
-        self.assertEqual(event.cause,PHANTOM)
-        self.assertTrue(isinstance(fantasma.role, Spettro))
+            # Advance to day
+            test_advance_turn(self.game)
+            test_advance_turn(self.game)
+            test_advance_turn(self.game)
+            
+            # Kill Fantasma
+            dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=fantasma, timestamp=get_now()))
+            dynamics.inject_event(CommandEvent(type=VOTE, player=fantasma, target=fantasma, timestamp=get_now()))
+            dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=fantasma, timestamp=get_now()))
+            dynamics.inject_event(CommandEvent(type=VOTE, player=contadino, target=fantasma, timestamp=get_now()))
+            
+            # Advance to sunset
+            dynamics.debug_event_bin = []
+            test_advance_turn(self.game)
+            
+            # Check result
+            self.assertFalse(fantasma.alive)
+            [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
+            self.assertEqual(event.player,fantasma)
+            [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
+            self.assertEqual(event.player,fantasma)
+            self.assertEqual(event.cause,PHANTOM)
+            self.assertTrue(isinstance(fantasma.role, Spettro))
+            self.assertTrue(event.ghost in [AMNESIA, ILLUSIONE, MISTIFICAZIONE, OCCULTAMENTO, VISIONE])
 
     @record_name
     def test_custode(self):
