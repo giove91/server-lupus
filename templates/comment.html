@@ -28,7 +28,7 @@
         
         {% if old_comments %}
             {% for comment in old_comments %}
-                <p><strong>{{ comment.timestamp|date:"d/m/Y H:i" }}</strong> {{ comment.text|linebreaks }}</p>
+                <p><strong>{{ comment.timestamp|date:"d/m/Y H:i" }}</strong></p> {{ comment.text|escape|linebreaks }}
             {% endfor %}
         {% else %}
             <p>Non hai ancora inviato alcun commento.</p>
