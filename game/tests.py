@@ -1400,7 +1400,7 @@ class GameTests(TestCase):
         self.assertEqual(event.aura, BLACK)
         self.assertEqual(event.cause, DETECTIVE)
         
-        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, MediumKnowledgeEvent)]
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
         self.assertEqual(event.player, medium)
         self.assertEqual(event.target, lupo)
         self.assertEqual(event.aura, BLACK)
