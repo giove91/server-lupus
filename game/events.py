@@ -482,7 +482,7 @@ class PlayerDiesEvent(Event):
         # Fantasma death
         if isinstance(player.role, Fantasma):
             powers = set(Spettro.POWER_NAMES.keys())
-            available_powers = powers - dynamics.used_ghost_powers - set([MORTE])
+            available_powers = powers - dynamics.used_ghost_powers - set([MORTE, IPNOSI])
             if len(available_powers) >= 1:
                 power = dynamics.random.choice(list(available_powers))
                 dynamics.generate_event(GhostificationEvent(player=player, cause=PHANTOM, ghost=power))
