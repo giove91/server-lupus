@@ -3757,7 +3757,7 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
         self.assertEqual(event.player, ipnotista)
         self.assertEqual(event.ghost, IPNOSI)
-        self.assertEqual(event.cause, SCRIVERE_QUI_IL_NOME_SCELTO_PER_QUESTA_CAUSA)
+        self.assertEqual(event.cause, HYPNOTIST_DEATH)
         self.assertTrue(isinstance(ipnotista.role, Spettro))
         
         # Advance to night
@@ -3774,7 +3774,7 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
         self.assertEqual(event.player, contadino)
-        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) if event.player == scrutatore]
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) if event.player == ipnotista]
         self.assertTrue(event.success)
         
         # Advance to sunset
@@ -3816,7 +3816,7 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
         self.assertEqual(event.player, ipnotista)
         self.assertEqual(event.ghost, IPNOSI)
-        self.assertEqual(event.cause, SCRIVERE_QUI_IL_NOME_SCELTO_PER_QUESTA_CAUSA)
+        self.assertEqual(event.cause, HYPNOTIST_DEATH)
         self.assertTrue(isinstance(ipnotista.role, Spettro))
         
         # Advance to night
@@ -3825,15 +3825,15 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         
         # Use power
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=ipnotista, target=contadino, target2=negromante, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=ipnotista, target=negromante, target2=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=contadino, timestamp=get_now()))
         
         # Advance to dawn and check
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
         self.assertEqual(event.player, contadino)
-        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) if event.player == scrutatore]
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) if event.player == ipnotista]
         self.assertTrue(event.success)
         
         # Advance to sunset

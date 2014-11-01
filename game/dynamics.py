@@ -686,7 +686,8 @@ class Dynamics:
 
             # Count Spettro dell'Ipnosi
             if self.hypnosis_ghost_target is not None and player is self.hypnosis_ghost_target[0]:
-                real_vote = self.hypnosis_ghost_target[1]
+                if self.hypnosis_ghost_target[1].alive:
+                    real_vote = self.hypnosis_ghost_target[1]
 
             # Count Spettro dell'Amnesia
             if self.amnesia_target is not None and self.amnesia_target.pk == player.pk:
