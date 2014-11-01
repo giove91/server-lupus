@@ -71,6 +71,7 @@ class Dynamics:
         self.appointed_mayor = None
         self.available_roles = []
         self.death_ghost_created = False
+        self.hypnotist_ghost_created = False
         self.ghosts_created_last_night = False
         self.used_ghost_powers = set()
         self.giove_is_happy = False

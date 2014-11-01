@@ -829,6 +829,9 @@ class GhostificationEvent(Event):
         assert player.team == NEGROMANTI or self.cause != HYPNOTIST_DEATH
         assert self.ghost == IPNOSI or self.cause != HYPNOTIST_DEATH
         assert self.ghost != IPNOSI or self.cause == HYPNOTIST_DEATH
+        assert not(self.ghost == IPNOSI and dynamics.hypnotist_ghost_created)
+        if self.ghost == IPNOSI:
+            assert [player for player in dynamics.get_alive_players() if isinstance(player.role, Ipnotista)] == []
 
         # TODO: check that the clause that only the last Ipnotista is
         # converted to a ghost is satisfied
@@ -839,6 +842,8 @@ class GhostificationEvent(Event):
         dynamics.used_ghost_powers.add(self.ghost)
         if self.ghost == MORTE:
             dynamics.death_ghost_created = True
+        if self.ghost == IPNOSI:
+            dynamics.hypnotist_ghost_created = True
 
         # Save original role for Trasformista
         assert player.role_class_before_ghost is None
