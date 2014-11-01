@@ -17,7 +17,10 @@ from game.utils import *
 from game.constants import *
 
 def main():
-    start_moment = advance_to_time(get_now(), FIRST_PHASE_BEGIN_TIME)
+    if 'observe_timings' in sys.argv[1:]:
+        start_moment = advance_to_time(get_now(), FIRST_PHASE_BEGIN_TIME)
+    else:
+        start_moment = get_now()
     game = create_game_from_dump(json.load(sys.stdin), start_moment)
     print >> sys.stdout, game.pk
 

@@ -224,7 +224,7 @@ class Dynamics:
         if self.prev_turn is not None:
             assert self.prev_turn.begin is not None
             assert self.prev_turn.end is not None
-            assert self.prev_turn.begin <= self.prev_turn.end
+            assert self.prev_turn.begin <= self.prev_turn.end, (self.prev_turn.begin, self.prev_turn.end)
             assert self.prev_turn.end == turn.begin
             if not RELAX_TIME_CHECKS:
                 assert self.last_timestamp_in_turn <= self.prev_turn.end
