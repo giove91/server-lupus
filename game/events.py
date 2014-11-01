@@ -467,6 +467,7 @@ class PlayerDiesEvent(Event):
         assert dynamics.current_turn.phase in PlayerDiesEvent.REAL_RELEVANT_PHASES[self.cause]
 
         player = self.player.canonicalize()
+        assert player.alive
         assert player.just_dead
 
         # Trigger mayor succession
@@ -482,6 +483,8 @@ class PlayerDiesEvent(Event):
         # Fantasma death
         if isinstance(player.role, Fantasma):
             powers = set(Spettro.POWER_NAMES.keys())
+            # TODO: available_powers is updated only when applying the
+            # event. Is this enough?
             available_powers = powers - dynamics.used_ghost_powers - set([MORTE, IPNOSI])
             if len(available_powers) >= 1:
                 power = dynamics.random.choice(list(available_powers))
@@ -498,6 +501,17 @@ class PlayerDiesEvent(Event):
                                                                    cause=PHANTOM))
             else:
                 dynamics.generate_event(GhostificationFailedEvent(player=player))
+
+        # Ipnotista death
+        if isinstance(player.role, Ipnotista) and player.team == NEGROMANTI:
+            remaining = [player2 for player2 in dynamics.players if isinstance(player2.role, Ipnotista) and player2.team == NEGROMANTI]
+            assert player in remaining, (player, remaining)
+            # TODO: used_ghost_powers is updated only when applying
+            # the event. Is this enough?
+            if remaining == [player] and (IPNOSI not in dynamics.used_ghost_powers):
+                dynamics.generate_event(GhostificationEvent(player=player, cause=HYPNOTIST_DEATH, ghost=IPNOSI))
+                # TODO: check whether we have to send
+                # RoleKnowledgeEvents
 
         # Yeah, finally kill player!
         player.alive = False
@@ -830,7 +844,7 @@ class GhostificationEvent(Event):
         assert not(self.cause == HYPNOTIST_DEATH and player.team != NEGROMANTI)
         assert not(self.cause == HYPNOTIST_DEATH and self.ghost != IPNOSI)
         assert not(self.cause != HYPNOTIST_DEATH and self.ghost == IPNOSI)
-        assert not(self.ghost == IPNOSI and [player for player in dynamics.get_alive_players() if isinstance(player.role, Ipnotista)] != [])
+        assert not(self.ghost == IPNOSI and [player2 for player2 in dynamics.get_alive_players() if isinstance(player2.role, Ipnotista) and player2.team == NEGROMANTI] != [])
 
         # Update global status
         if self.cause == NECROMANCER:

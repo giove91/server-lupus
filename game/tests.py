@@ -3701,7 +3701,7 @@ class GameTests(TestCase):
         self.assertEqual(event.player, ipnotista)
         self.assertEqual(event.ghost, IPNOSI)
         self.assertEqual(event.cause, HYPNOTIST_DEATH)
-        self.assertTrue(isinstance(ipnotista.role, Spettro))
+        self.assertTrue(isinstance(ipnotista.role, Spettro), ipnotista.role)
         
         # Advance to night
         test_advance_turn(self.game)
@@ -3714,7 +3714,7 @@ class GameTests(TestCase):
         # Advance to dawn and check
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
-        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) if event.player == scrutatore]
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) if event.player == ipnotista]
         self.assertTrue(event.success)
         
         # Advance to sunset

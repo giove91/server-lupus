@@ -746,7 +746,7 @@ class Dynamics:
         return winner_player, cause
 
     def _check_deaths(self):
-        # We randomize deaths in order to mix Fantasma powers
+        # We randomize deaths in order to mix Fantasmi and Ipnotisti
         self.random.shuffle(self.upcoming_deaths)
 
         for event in self.upcoming_deaths:
