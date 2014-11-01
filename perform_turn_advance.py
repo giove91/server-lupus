@@ -7,6 +7,10 @@ import json
 import datetime
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lupus.settings")
+
+import django
+django.setup()
+
 from game.models import *
 from game.tests import *
 from game.utils import *

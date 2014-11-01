@@ -6,6 +6,10 @@ import os
 import json
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lupus.settings")
+
+import django
+django.setup()
+
 from game.models import *
 from game.tests import *
 
