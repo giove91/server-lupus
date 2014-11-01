@@ -778,6 +778,10 @@ class Spettro(Role):
                 from events import PlayerDiesEvent
                 dynamics.generate_event(PlayerDiesEvent(player=self.recorded_target, cause=DEATH_GHOST))
 
+        elif self.power == IPNOSI:
+            assert dynamics.hypnosis_ghost_target is None
+            dynamics.hypnosis_ghost_target = (self.recorded_target, self.recorded_target2)
+
         else:
             raise ValueError("Invalid ghost type")
 

@@ -78,8 +78,8 @@ class Dynamics:
         self.server_is_on_fire = False  # so far...
         self.playing_teams = []
         self.advocated_players = []
+        self.hypnosis_ghost_target = None
         self.amnesia_target = None
-        self.duplication_target = None
         self.wolves_target = None
         self.necromancers_target = None
         self.winners = None
@@ -562,8 +562,9 @@ class Dynamics:
         # Trasformista, Lupi, Avvocato del Diavolo, Negromante,
         # Ipnotista, Spettro dell'Amnesia and Spettro della Morte (the
         # order is important here!)
-        MODIFY_ROLES = [Avvocato, AMNESIA, Ipnotista, Trasformista,
-                        Messia, Negromante, Cacciatore, Lupo, MORTE]
+        MODIFY_ROLES = [Avvocato, AMNESIA, IPNOSI, Ipnotista,
+                        Trasformista, Messia, Negromante, Cacciatore,
+                        Lupo, MORTE]
         apply_roles(MODIFY_ROLES)
 
         # Roles with no power: Contadino, Divinatore, Massone,
@@ -620,8 +621,8 @@ class Dynamics:
 
         # Unrecord all data setting during previous dawn
         self.advocated_players = []
+        self.hypnosis_ghost_target = None
         self.amnesia_target = None
-        self.duplication_target = None
 
         # Unrecord all elect and vote events
         for player in self.players:
@@ -675,7 +676,6 @@ class Dynamics:
         # Count last ballot for each player
         ballots = {}
         mayor_ballot = None
-        duplication_ballot = None
         for player in self.get_alive_players():
 
             # Count Ipnotista
@@ -684,6 +684,10 @@ class Dynamics:
                 assert isinstance(player.hypnotist.role, Ipnotista)
                 real_vote = player.hypnotist.recorded_vote
 
+            # Count Spettro dell'Ipnosi
+            if self.hypnosis_ghost_target is not None and player is self.hypnosis_ghost_target[0]:
+                real_vote = self.hypnosis_ghost_target[1]
+
             # Count Spettro dell'Amnesia
             if self.amnesia_target is not None and self.amnesia_target.pk == player.pk:
                 real_vote = None
@@ -691,8 +695,6 @@ class Dynamics:
             ballots[player.pk] = real_vote
             if player.is_mayor():
                 mayor_ballot = real_vote
-            if self.duplication_target is not None and self.duplication_target.pk == player.pk:
-                duplication_ballot = real_vote
 
         # Fill the tally sheet
         tally_sheet = {}
