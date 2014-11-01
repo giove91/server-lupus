@@ -755,6 +755,9 @@ class Dynamics:
         for event in self.upcoming_deaths:
             event.apply_death(self)
 
+        while self._update_step(advancing_turn=True):
+            pass
+
         self.death_ghost_just_created = False
 
     def _count_alive_teams(self):

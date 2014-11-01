@@ -554,7 +554,7 @@ class Negromante(Role):
     def get_targets_ghost(self):
         dynamics = self.player.game.get_dynamics()
         powers = set(Spettro.POWER_NAMES.keys())
-        available_powers = powers - dynamics.used_ghost_powers
+        available_powers = powers - dynamics.used_ghost_powers - set([IPNOSI])
         return list(available_powers)
 
     def pre_apply_dawn(self, dynamics):

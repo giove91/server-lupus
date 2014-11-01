@@ -508,7 +508,7 @@ class PlayerDiesEvent(Event):
             assert player in remaining, (player, remaining)
             # TODO: used_ghost_powers is updated only when applying
             # the event. Is this enough?
-            if remaining == [player] and (IPNOSI not in dynamics.used_ghost_powers):
+            if remaining == [player] and (IPNOSI not in dynamics.used_ghost_powers) and (not dynamics.death_ghost_created or dynamics.death_ghost_just_created):
                 dynamics.generate_event(GhostificationEvent(player=player, cause=HYPNOTIST_DEATH, ghost=IPNOSI))
                 # TODO: check whether we have to send
                 # RoleKnowledgeEvents
@@ -838,7 +838,7 @@ class GhostificationEvent(Event):
         assert not player.alive
         assert self.ghost not in dynamics.used_ghost_powers
         assert not(dynamics.death_ghost_created and self.cause == NECROMANCER)
-        assert not(dynamics.death_ghost_created and self.cause == HYPNOTIST_DEATH and not dynamics.death_ghost_just_created)
+        assert not(dynamics.death_ghost_created and self.cause == HYPNOTIST_DEATH and not dynamics.death_ghost_just_created), (dynamics.death_ghost_created, dynamics.death_ghost_just_created, self.cause)
         assert not(dynamics.ghosts_created_last_night and self.cause == NECROMANCER)
         assert not(self.cause == HYPNOTIST_DEATH and not isinstance(player.role, Ipnotista))
         assert not(self.cause == HYPNOTIST_DEATH and player.team != NEGROMANTI)
@@ -857,6 +857,13 @@ class GhostificationEvent(Event):
         # Save original role for Trasformista
         assert player.role_class_before_ghost is None
         player.role_class_before_ghost = player.role.__class__
+
+        # If the player was an Ipnotista, dishypnotize everyone
+        # depending on him
+        if isinstance(player.role, Ipnotista):
+            for player2 in dynamics.players:
+                if player2.hypnotist == player:
+                    player2.hypnotist = None
 
         # Real ghostification
         player.role = Spettro(player, power=self.ghost)

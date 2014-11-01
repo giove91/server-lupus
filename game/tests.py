@@ -1159,12 +1159,14 @@ class GameTests(TestCase):
         self.assertEqual(events, [])
 
     def test_ipnotista_resurrected(self):
-        roles = [ Ipnotista, Negromante, Lupo, Lupo, Contadino, Contadino, Messia ]
+        # We need two Ipnotisti, otherwise the Ipnotista that dies
+        # becomes a Spettro and nothing works anymore
+        roles = [ Ipnotista, Ipnotista, Negromante, Lupo, Lupo, Contadino, Contadino, Messia ]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
         players = self.game.get_players()
 
-        [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
+        [ipnotista, _] = [x for x in players if isinstance(x.role, Ipnotista)]
         [negromante] = [x for x in players if isinstance(x.role, Negromante)]
         [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
         [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
