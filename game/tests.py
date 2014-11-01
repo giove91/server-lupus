@@ -1238,6 +1238,13 @@ class GameTests(TestCase):
     @record_name
     def test_fantasma(self):
         for i in xrange(20):
+            # Since this test is repeasted many times, we have to
+            # destroy it and delete all users before testing again
+            if 'game' in self.__dict__ and self.game is not None:
+                self.game.delete()
+                self.game = None
+            delete_auto_users()
+
             roles = [ Fantasma, Negromante, Lupo, Contadino, Contadino ]
             self.game = create_test_game(i, roles)
             dynamics = self.game.get_dynamics()
