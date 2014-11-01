@@ -118,12 +118,14 @@ class SeedEvent(Event):
     RELEVANT_PHASES = [CREATION]
     AUTOMATIC = False
 
-    seed = models.IntegerField()
+    # This is a CharField so that we can store very big integers; it
+    # is expected to contain an integer anyway
+    seed = models.CharField(max_length=200)
 
     def to_dict(self):
         ret = Event.to_dict(self)
         ret.update({
-                'seed': self.seed,
+                'seed': int(self.seed),
                 })
         return ret
 
@@ -136,7 +138,7 @@ class SeedEvent(Event):
         # be a problem for us
         from my_random import WichmannHill
         dynamics.random = WichmannHill()
-        dynamics.random.seed(self.seed)
+        dynamics.random.seed(int(self.seed))
 
 
 class AvailableRoleEvent(Event):
