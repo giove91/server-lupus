@@ -71,7 +71,7 @@ class Dynamics:
         self.appointed_mayor = None
         self.available_roles = []
         self.death_ghost_created = False
-        self.hypnotist_ghost_created = False
+        self.death_ghost_just_created = False
         self.ghosts_created_last_night = False
         self.used_ghost_powers = set()
         self.giove_is_happy = False
@@ -751,6 +751,8 @@ class Dynamics:
 
         for event in self.upcoming_deaths:
             event.apply_death(self)
+
+        self.death_ghost_just_created = False
 
     def _count_alive_teams(self):
         teams = []

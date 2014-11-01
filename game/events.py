@@ -823,18 +823,14 @@ class GhostificationEvent(Event):
 
         assert not player.alive
         assert self.ghost not in dynamics.used_ghost_powers
-        assert not dynamics.death_ghost_created or self.cause == PHANTOM
-        assert not dynamics.ghosts_created_last_night or self.cause != NECROMANCER
-        assert isinstance(player.role, Ipnotista) or self.cause != HYPNOTIST_DEATH
-        assert player.team == NEGROMANTI or self.cause != HYPNOTIST_DEATH
-        assert self.ghost == IPNOSI or self.cause != HYPNOTIST_DEATH
-        assert self.ghost != IPNOSI or self.cause == HYPNOTIST_DEATH
-        assert not(self.ghost == IPNOSI and dynamics.hypnotist_ghost_created)
-        if self.ghost == IPNOSI:
-            assert [player for player in dynamics.get_alive_players() if isinstance(player.role, Ipnotista)] == []
-
-        # TODO: check that the clause that only the last Ipnotista is
-        # converted to a ghost is satisfied
+        assert not(dynamics.death_ghost_created and self.cause == NECROMANCER)
+        assert not(dynamics.death_ghost_created and self.cause == HYPNOTIST_DEATH and not dynamics.death_ghost_just_created)
+        assert not(dynamics.ghosts_created_last_night and self.cause == NECROMANCER)
+        assert not(self.cause == HYPNOTIST_DEATH and not isinstance(player.role, Ipnotista))
+        assert not(self.cause == HYPNOTIST_DEATH and player.team != NEGROMANTI)
+        assert not(self.cause == HYPNOTIST_DEATH and self.ghost != IPNOSI)
+        assert not(self.cause != HYPNOTIST_DEATH and self.ghost == IPNOSI)
+        assert not(self.ghost == IPNOSI and [player for player in dynamics.get_alive_players() if isinstance(player.role, Ipnotista)] != [])
 
         # Update global status
         if self.cause == NECROMANCER:
@@ -842,8 +838,7 @@ class GhostificationEvent(Event):
         dynamics.used_ghost_powers.add(self.ghost)
         if self.ghost == MORTE:
             dynamics.death_ghost_created = True
-        if self.ghost == IPNOSI:
-            dynamics.hypnotist_ghost_created = True
+            dynamics.death_ghost_just_created = True
 
         # Save original role for Trasformista
         assert player.role_class_before_ghost is None
