@@ -659,12 +659,8 @@ class Medium(Role):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        from events import MediumKnowledgeEvent
-        dynamics.generate_event(MediumKnowledgeEvent(player=self.player,
-                                                     target=self.recorded_target,
-                                                     aura=self.recorded_target.apparent_aura,
-                                                     is_ghost=isinstance(self.recorded_target.role, Spettro),
-                                                     cause=MEDIUM))
+        from events import RoleKnowledgeEvent
+        dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, role_name=self.recorded_target.role.__class__.__name__, cause=MEDIUM))
 
 
 class Spettro(Role):

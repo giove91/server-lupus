@@ -17,10 +17,4 @@
 
  * Implement Scrutatore.
 
- * Implement ghostification of Ipnotista.
-
  * Update prototypes and letters' templates.
-
- * Negromanti cannot create Spettro dell'Ipnosi.
-
- * Medium now discovers role.

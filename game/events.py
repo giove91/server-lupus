@@ -510,8 +510,16 @@ class PlayerDiesEvent(Event):
             # the event. Is this enough?
             if remaining == [player] and (IPNOSI not in dynamics.used_ghost_powers) and (not dynamics.death_ghost_created or dynamics.death_ghost_just_created):
                 dynamics.generate_event(GhostificationEvent(player=player, cause=HYPNOTIST_DEATH, ghost=IPNOSI))
-                # TODO: check whether we have to send
-                # RoleKnowledgeEvents
+                for negromante in dynamics.players:
+                    if isinstance(negromante.role, Negromante):
+                        dynamics.generate_event(RoleKnowledgeEvent(player=player,
+                                                                   target=negromante,
+                                                                   role_name=Negromante.__name__,
+                                                                   cause=GHOST))
+                        dynamics.generate_event(RoleKnowledgeEvent(player=negromante,
+                                                                   target=player,
+                                                                   role_name=Spettro.__name__,
+                                                                   cause=HYPNOTIST_DEATH))
 
         # Yeah, finally kill player!
         player.alive = False
@@ -548,7 +556,11 @@ class RoleKnowledgeEvent(Event):
         # PHANTOM: a Negromante is made aware of the Fantasma just
         # transformed to Ghost
         (PHANTOM, 'Phantom'),
+        # HYPNOTIST_DEATH: a Negromante is made aware of the Ipnotista
+        # just transformed to Spettro dell'Ipnosi
+        (HYPNOTIST_DEATH, 'HypnotistDeath'),
         (DEVIL, 'Devil'),
+        (MEDIUM, 'Medium'),
         )
     cause = models.CharField(max_length=1, choices=KNOWLEDGE_CAUSE_TYPES, default=None)
 
@@ -558,7 +570,9 @@ class RoleKnowledgeEvent(Event):
         EXPANSIVE: [DAWN],
         GHOST: [DAWN, SUNSET],
         PHANTOM: [DAWN, SUNSET],
+        HYPNOTIST_DEATH: [DAWN, SUNSET],
         DEVIL: [DAWN],
+        MEDIUM: [DAWN],
         }
 
     def apply(self, dynamics):
@@ -571,9 +585,10 @@ class RoleKnowledgeEvent(Event):
             assert isinstance(self.target.canonicalize().role, Espansivo)
 
         elif self.cause == GHOST:
+            assert isinstance(self.player.canonicalize().role, Spettro)
             assert isinstance(self.target.canonicalize().role, Negromante)
 
-        elif self.cause == PHANTOM:
+        elif self.cause == PHANTOM or self.cause == HYPNOTIST_DEATH:
             assert isinstance(self.player.canonicalize().role, Negromante)
             assert isinstance(self.target.canonicalize().role, Spettro)
 
@@ -584,6 +599,11 @@ class RoleKnowledgeEvent(Event):
 
         elif self.cause == DEVIL:
             assert isinstance(self.player.canonicalize().role, Diavolo)
+            assert self.target.canonicalize().alive
+
+        elif self.cause == MEDIUM:
+            assert isinstance(self.player.canonicalize().role, Medium)
+            assert not self.target.canonicalize().alive
 
         if self.cause != SOOTHSAYER:
             role_class = roles_map[self.role_name]
@@ -760,25 +780,6 @@ class MovementKnowledgeEvent(Event):
         else:
             return None
 
-
-class MediumKnowledgeEvent(Event):
-    RELEVANT_PHASES = [DAWN]
-    AUTOMATIC = True
-
-    player = models.ForeignKey(Player, related_name='+')
-    target = models.ForeignKey(Player, related_name='+')
-    aura = models.CharField(max_length=1, default=None, choices=Player.AURA_COLORS)
-    is_ghost = models.BooleanField(default=None)
-    # There is only one choice, but I like to have this for
-    # homogeneity
-    KNOWLEDGE_CAUSE_TYPES = (
-        (MEDIUM, 'Medium'),
-        )
-    cause = models.CharField(max_length=1, choices=KNOWLEDGE_CAUSE_TYPES, default=None)
-
-    def apply(self, dynamics):
-        if self.cause == MEDIUM:
-            assert isinstance(self.player.canonicalize().role, Medium)
     
     def to_player_string(self, player):
         aura = AURA_IT[ self.aura ].lower()

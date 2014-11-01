@@ -98,13 +98,15 @@ HYPNOTIST_DEATH = 'H'
 
 # Role knowledge causes (PHANTOM clashes with the ghostification cause
 # and so must set to the same value --- curse insufficient namespace
-# separation!)
+# separation! Same for HYPNOTIST_DEATH)
 SOOTHSAYER = 'S'
 EXPANSIVE = 'E'
 KNOWLEDGE_CLASS = 'C'
 GHOST = 'G'
 PHANTOM = 'P'
 DEVIL = 'D'
+HYPNOTIST_DEATH = 'H'
+MEDIUM = 'M'
 
 # Aura knowledge causes
 SEER = 'S'
@@ -119,9 +121,6 @@ VISION_GHOST = 'V'
 # Movement knowledge causes
 STALKER = 'S'
 VOYEUR = 'V'
-
-# Medium knowledge causes
-MEDIUM = 'M'
 
 # Exile causes
 DISQUALIFICATION = 'D'
