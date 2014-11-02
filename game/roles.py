@@ -663,6 +663,25 @@ class Medium(Role):
         dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, role_name=self.recorded_target.role.__class__.__name__, cause=MEDIUM))
 
 
+class Scrutatore(Role):
+    name = 'Scrutatore'
+    team = NEGROMANTI
+    aura = WHITE
+    knowledge_class = 5
+
+    def can_use_power(self):
+        return self.player.alive
+
+    def get_targets(self):
+        return self.player.game.get_alive_players()
+
+    def get_targets2(self):
+        return self.player.game.get_alive_players()
+
+    def apply_dawn(self, dynamics):
+        dynamics.additional_ballots.append((self.recorded_target, self.recorded_target2))
+
+
 class Spettro(Role):
     name = 'Spettro'
     team = NEGROMANTI

@@ -3532,7 +3532,7 @@ class GameTests(TestCase):
         
         # Check result
         events = [event for event in dynamics.debug_event_bin if isinstance(event, VoteAnnouncedEvent)]
-        self.assertEqual(len(events), 2)
+        self.assertEqual(len(events), 1)
         for e in events:
             self.assertEqual(e.voter, contadino)
             self.assertEqual(e.voted, negromante)
@@ -3595,7 +3595,7 @@ class GameTests(TestCase):
         self.assertEqual(event.vote_num, 1)
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, VoteAnnouncedEvent)]
         self.assertEqual(event.voter, lupo)
-        self.assertEqual(event.voter, messia)
+        self.assertEqual(event.voted, messia)
     
     @record_name
     def test_scrutatore_on_dead(self):
@@ -3610,7 +3610,11 @@ class GameTests(TestCase):
         [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
         [scrutatore] = [x for x in players if isinstance(x.role, Scrutatore)]
 
-        # Advance to night
+        # Advance to night of second day
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
         test_advance_turn(self.game)
         
         # Use power
@@ -3647,7 +3651,11 @@ class GameTests(TestCase):
         [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
         [scrutatore] = [x for x in players if isinstance(x.role, Scrutatore)]
 
-        # Advance to night
+        # Advance to night of second day
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
         test_advance_turn(self.game)
         
         # Use power

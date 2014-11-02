@@ -79,6 +79,7 @@ class Dynamics:
         self.playing_teams = []
         self.advocated_players = []
         self.hypnosis_ghost_target = None
+        self.additional_ballots = []
         self.amnesia_target = None
         self.wolves_target = None
         self.necromancers_target = None
@@ -562,9 +563,9 @@ class Dynamics:
         # Trasformista, Lupi, Avvocato del Diavolo, Negromante,
         # Ipnotista, Spettro dell'Amnesia and Spettro della Morte (the
         # order is important here!)
-        MODIFY_ROLES = [Avvocato, AMNESIA, IPNOSI, Ipnotista,
-                        Trasformista, Messia, Negromante, Cacciatore,
-                        Lupo, MORTE]
+        MODIFY_ROLES = [Avvocato, AMNESIA, Scrutatore, IPNOSI,
+                        Ipnotista, Trasformista, Messia, Negromante,
+                        Cacciatore, Lupo, MORTE]
         apply_roles(MODIFY_ROLES)
 
         # Roles with no power: Contadino, Divinatore, Massone,
@@ -622,6 +623,7 @@ class Dynamics:
         # Unrecord all data setting during previous dawn
         self.advocated_players = []
         self.hypnosis_ghost_target = None
+        self.additional_ballots = []
         self.amnesia_target = None
 
         # Unrecord all elect and vote events
@@ -673,6 +675,14 @@ class Dynamics:
         winner = None
         quorum_failed = False
 
+        # Filter out from additional ballots those where one of the
+        # two players has died
+        if DEBUG_DYNAMICS:
+            print "Additional ballots: ", self.additional_ballots
+        self.additional_ballots = [(x, y) for (x, y) in self.additional_ballots if x.alive and y.alive]
+        if DEBUG_DYNAMICS:
+            print "Additional ballots (after filtering): ", self.additional_ballots
+
         # Count last ballot for each player
         ballots = {}
         mayor_ballot = None
@@ -699,14 +709,21 @@ class Dynamics:
 
         # Fill the tally sheet
         tally_sheet = {}
+        additional_ballots_breakdown = {}
         for player in self.get_alive_players():
             tally_sheet[player.pk] = 0
+            additional_ballots_breakdown[player.pk] = []
         votes_num = 0
         for ballot in ballots.itervalues():
             if ballot is None:
                 continue
             tally_sheet[ballot.pk] += 1
             votes_num += 1
+        for player, target in self.additional_ballots:
+            additional_ballots_breakdown[player.pk].append(target)
+            tally_sheet[target.pk] += 1
+            # TODO: decide whether next line must be enabled or not
+            #votes_num += 1
 
         # Check that at least half of the alive people voted
         if votes_num * 2 < len(self.get_alive_players()):
@@ -714,8 +731,10 @@ class Dynamics:
 
         # Send vote announcements
         for player in self.get_alive_players():
-            if ballots[player.pk] is not None:
-                event = VoteAnnouncedEvent(voter=player, voted=ballots[player.pk], type=VOTE)
+            if DEBUG_DYNAMICS:
+                print additional_ballots_breakdown[player.pk], ballots[player.pk], [target for target in self.get_alive_players() if target == ballots[player.pk] or target in additional_ballots_breakdown[player.pk]]
+            for target in [target for target in self.get_alive_players() if target == ballots[player.pk] or target in additional_ballots_breakdown[player.pk]]:
+                event = VoteAnnouncedEvent(voter=player, voted=target, type=VOTE)
                 self.generate_event(event)
 
         # Send tally announcements
