@@ -28,6 +28,10 @@ TESTS (mostly Giove):
  * Exile the Negromanti team after Ipnotista hypnotized at least
    another player and check that now that player votes correctly.
 
+ * Exile mayor and appointed mayor and check that they get properly
+   substituted (both together and in both orders). Use
+   DisqualificationEvent for exiling a single player.
+
 INTERFACE (mostly Giove):
 
  * Update prototypes and letters' templates.
