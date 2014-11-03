@@ -15,11 +15,6 @@ GAME ENGINE AND DYNAMICS (mostly Gio):
 
 TESTS (mostly Giove):
 
-
- * Test disqualification of a player (generating a
-   DisqualificationEvent) and checking that they get properly
-   disqualified (they became exiled, for instance).
-
  * Test that effects of Spettro dell'Ipnosi, Avvocato del Diavolo and
    Scrutatore do not persis in subsequent turns.
 

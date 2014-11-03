@@ -4266,10 +4266,8 @@ class GameTests(TestCase):
         # Advance to day and vote
         test_advance_turn(self.game)
         test_advance_turn(self.game)
-        test_advance_turn(self.game)
-        test_advance_turn(self.game)
         
-        event = CommandEvent(player=cacciatore, type=VOTE, target=lupo, timestamp=get_now())
+        dynamics.inject_event(CommandEvent(player=cacciatore, type=VOTE, target=lupo, timestamp=get_now()))
         
         # Advance to sunset and check (3 votes, 7 alive players, so quorum is not reached)
         dynamics.debug_event_bin = []
@@ -4302,9 +4300,9 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         
-        event = CommandEvent(player=cacciatore, type=VOTE, target=lupo, timestamp=get_now())
-        event = CommandEvent(player=contadino, type=VOTE, target=negromante, timestamp=get_now())
-        event = CommandEvent(player=lupo, type=VOTE, target=lupo, timestamp=get_now())
+        dynamics.inject_event(CommandEvent(player=cacciatore, type=VOTE, target=lupo, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(player=contadino, type=VOTE, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(player=lupo, type=VOTE, target=lupo, timestamp=get_now()))
         
         # Advance to sunset and check
         dynamics.debug_event_bin = []
@@ -4327,6 +4325,33 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, TallyAnnouncedEvent)]
         self.assertEqual(event.voted, lupo)
         self.assertEqual(event.vote_num, 4)
+    
+    @record_name
+    def test_disqualification(self):
+        roles = [ Ipnotista, Negromante, Lupo, Lupo, Contadino, Contadino, Scrutatore, Cacciatore ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
+        [cacciatore] = [x for x in players if isinstance(x.role, Cacciatore)]
+        [scrutatore] = [x for x in players if isinstance(x.role, Scrutatore)]
+
+        # Advance to second night and disqualify Ipnotista
+        test_advance_turn(self.game)
+        
+        disqualification_event = DisqualificationEvent(player=ipnotista, private_message='Fregato!', public_message='L\'ipnotista non ci stava simpatico.', timestamp=get_now())
+        dynamics.inject_event(disqualification_event)
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        [exile_event] = [event for event in dynamics.debug_event_bin if isinstance(event, ExileEvent)]
+        self.assertEqual(exile_event.cause, DISQUALIFICATION)
+        self.assertEqual(exile_event.disqualification, disqualification_event)
     
     @record_name
     def test_load_test(self):
