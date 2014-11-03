@@ -1,9 +1,7 @@
 
+GAME ENGINE AND DYNAMICS (mostly Gio):
+
  * Mayor or appointed mayor being exiled
-
- * Messia superposition
-
- * Ipnotista being revived as Ghost without power
 
  * Mayor change events (unify and cover all cases)
 
@@ -15,4 +13,25 @@
 
  * Events before beginning of turn are silently ignored
 
+TESTS (mostly Giove):
+
+ * Test with 10 Fantasmi that dies the same night (repeated 20 times,
+   as test_fantasma)
+
+ * TODO in tests.py
+
+ * Tests of complicated voting scenarios (with Ipnotista, Fantasma
+   dell'Ipnosi, Scrutatore, ...)
+
+INTERFACE (mostly Giove):
+
  * Update prototypes and letters' templates.
+
+ * Two TODOs in views.py: probably it is enough to filter on game ==
+   Game.get_running_game()
+
+MYSTERIOUS:
+
+ * Ipnotista being revived as Ghost without power
+
+ * Messia superposition

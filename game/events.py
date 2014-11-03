@@ -506,8 +506,6 @@ class PlayerDiesEvent(Event):
         if isinstance(player.role, Ipnotista) and player.team == NEGROMANTI:
             remaining = [player2 for player2 in dynamics.get_alive_players() if isinstance(player2.role, Ipnotista) and player2.team == NEGROMANTI]
             assert player in remaining, (player, remaining)
-            # TODO: used_ghost_powers is updated only when applying
-            # the event. Is this enough?
             if remaining == [player] and (IPNOSI not in dynamics.used_ghost_powers) and (not dynamics.death_ghost_created or dynamics.death_ghost_just_created):
                 dynamics.generate_event(GhostificationEvent(player=player, cause=HYPNOTIST_DEATH, ghost=IPNOSI))
                 for negromante in dynamics.players:
