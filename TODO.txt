@@ -18,6 +18,16 @@ TESTS (mostly Giove):
  * Tests of complicated voting scenarios (with Ipnotista, Fantasma
    dell'Ipnosi, Scrutatore, ...), particularly considering quorum.
 
+ * Test disqualification of a player (generating a
+   DisqualificationEvent) and checking that they get properly
+   disqualified (they became exiled, for instance).
+
+ * Test that effects of Spettro dell'Ipnosi, Avvocato del Diavolo and
+   Scrutatore do not persis in subsequent turns.
+
+ * Exile the Negromanti team after Ipnotista hypnotized at least
+   another player and check that now that player votes correctly.
+
 INTERFACE (mostly Giove):
 
  * Update prototypes and letters' templates.
