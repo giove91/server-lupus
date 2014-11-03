@@ -37,6 +37,11 @@ TESTS (mostly Giove):
    ghostifying the Ipnotista (just in case, check that the same test
    is in place for Fantasma).
 
+ * Test Ipnotista and Spettro dell'Ipnosi acting on the same player.
+
+ * Test Spettro dell'Ipnosi acting on an Ipnotista (what is supposed
+   to happen?).
+
 INTERFACE (mostly Giove):
 
  * Update prototypes and letters' templates.
