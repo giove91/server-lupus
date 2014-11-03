@@ -26,7 +26,8 @@ TESTS (mostly Giove):
    Scrutatore do not persis in subsequent turns.
 
  * Exile the Negromanti team after Ipnotista hypnotized at least
-   another player and check that now that player votes correctly.
+   another player and check that now that player votes correctly
+   (bonus: also check that player.canonicalize().hypnotist is None).
 
  * Exile mayor and appointed mayor and check that they get properly
    substituted (both together and in both orders). Use
