@@ -722,8 +722,7 @@ class Dynamics:
         for player, target in self.additional_ballots:
             additional_ballots_breakdown[player.pk].append(target)
             tally_sheet[target.pk] += 1
-            # TODO: decide whether next line must be enabled or not
-            #votes_num += 1
+            votes_num += 1
 
         # Check that at least half of the alive people voted
         if votes_num * 2 < len(self.get_alive_players()):
