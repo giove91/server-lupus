@@ -773,8 +773,11 @@ class Dynamics:
         for event in self.upcoming_deaths:
             event.apply_death(self)
 
-        while self._update_step(advancing_turn=True):
-            pass
+            # Process events at each iteration, because subsequent
+            # death computations may depend on everything before have
+            # cleared out
+            while self._update_step(advancing_turn=True):
+                pass
 
         self.death_ghost_just_created = False
 

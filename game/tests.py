@@ -4176,7 +4176,7 @@ class GameTests(TestCase):
     
     @record_name
     def test_many_fantasmi(self):
-        for i in xrange(20):
+        for i in xrange(4):
             # Since this test is repeasted many times, we have to
             # destroy it and delete all users before testing again
             if 'game' in self.__dict__ and self.game is not None:
