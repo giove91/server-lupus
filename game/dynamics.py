@@ -694,7 +694,8 @@ class Dynamics:
                 assert isinstance(player.hypnotist.role, Ipnotista)
                 real_vote = player.hypnotist.recorded_vote
 
-            # Count Spettro dell'Ipnosi
+            # Count Spettro dell'Ipnosi (TODO: maybe should happen
+            # before Ipnotista?)
             if self.hypnosis_ghost_target is not None and player is self.hypnosis_ghost_target[0]:
                 if self.hypnosis_ghost_target[1].alive:
                     real_vote = self.hypnosis_ghost_target[1]
