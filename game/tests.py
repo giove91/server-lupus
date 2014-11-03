@@ -4118,6 +4118,42 @@ class GameTests(TestCase):
         self.assertEqual(event.player, contadino)
         self.assertEqual(event.cause, NECROMANCER)
     
+    @record_name
+    def test_many_fantasmi(self):
+        roles = [ Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Negromante, Lupo, Lupo, Contadino, Contadino, Cacciatore, Cacciatore, Cacciatore, Cacciatore, Cacciatore, Cacciatore, Cacciatore, Cacciatore, Cacciatore, Cacciatore ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        fantasmi = [x for x in players if isinstance(x.role, Fantasma)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
+        cacciatori = [x for x in players if isinstance(x.role, Cacciatore)]
+
+        # Advance to second night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Kill Fantasmi
+        for (i, cacciatore) in enumerate(cacciatori):
+            fantasma = fantasmi[i]
+            dynamics.inject_event(CommandEvent(type=USEPOWER, player=cacciatore, target=fantasma, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
+        self.assertEqual(set([e.player for e in events]), set(fantasmi))
+        
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
+        for event in events:
+            self.assertTrue(event.player in fantasmi)
+            self.assertEqual(event.cause, PHANTOM)
+        self.assertEqual(set([e.ghost for e in events]), set([AMNESIA, ILLUSIONE, MISTIFICAZIONE, OCCULTAMENTO, VISIONE]))
     
     @record_name
     def test_load_test(self):
