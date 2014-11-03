@@ -21,7 +21,7 @@ TESTS (mostly Giove):
  * TODO in tests.py
 
  * Tests of complicated voting scenarios (with Ipnotista, Fantasma
-   dell'Ipnosi, Scrutatore, ...)
+   dell'Ipnosi, Scrutatore, ...), particularly considering quorum.
 
 INTERFACE (mostly Giove):
 
