@@ -1025,6 +1025,7 @@ class GameTests(TestCase):
         [mago] = [x for x in players if isinstance(x.role, Mago)]
         [negromante, _] = [x for x in players if isinstance(x.role, Negromante)]
         [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
 
         # Test on Negromante
         test_advance_turn(self.game)
@@ -1056,11 +1057,68 @@ class GameTests(TestCase):
         self.assertEqual(event.cause, MAGE)
         self.assertEqual(event.is_mystic, False)
 
-        dynamics.debug_event_bin = None
+        # Advance to night
         test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Kill Contadino
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=contadino, timestamp=get_now()))
+        
+        # Advance to next night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Create Spettro della Mistificazione
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=MISTIFICAZIONE, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
+        self.assertEqual(event.player, contadino)
+        self.assertEqual(event.ghost, MISTIFICAZIONE)
+        self.assertEqual(event.cause, NECROMANCER)
+        self.assertTrue(isinstance(contadino.role, Spettro))
+        
+        # Advance to next night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Test on Negromante
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=mago, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=negromante, timestamp=get_now()))
+
+        dynamics.debug_event_bin = []
         test_advance_turn(self.game)
 
-        # TODO: test with Spettro della Mistificazione
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, MysticityKnowledgeEvent)]
+        self.assertEqual(event.player, mago)
+        self.assertEqual(event.target, negromante)
+        self.assertEqual(event.cause, MAGE)
+        self.assertEqual(event.is_mystic, True)
+        
+        # Advance to next night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Test on Lupo
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=mago, target=lupo, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=lupo, timestamp=get_now()))
+
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, MysticityKnowledgeEvent)]
+        self.assertEqual(event.player, mago)
+        self.assertEqual(event.target, lupo)
+        self.assertEqual(event.cause, MAGE)
+        self.assertEqual(event.is_mystic, True)
 
     @record_name
     def test_negromante(self):
@@ -1100,8 +1158,6 @@ class GameTests(TestCase):
         self.assertEqual(event.ghost, AMNESIA)
         self.assertEqual(event.cause, NECROMANCER)
         self.assertTrue(isinstance(contadino.role, Spettro))
-
-        dynamics.debug_event_bin = None
     
     @record_name
     def test_ipnotista(self):
