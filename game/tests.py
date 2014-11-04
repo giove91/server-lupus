@@ -4278,9 +4278,9 @@ class GameTests(TestCase):
         
         events = [event for event in dynamics.debug_event_bin if isinstance(event, VoteAnnouncedEvent)]
         voters = [event.voter for event in events]
-        self.assertEqual(len([x for x in voters if x == contadino]), 2)
+        self.assertEqual(len([x for x in voters if x == contadino]), 1)
         self.assertEqual(len([x for x in voters if x == cacciatore]), 1)
-        self.assertEqual(len(voters), 3)
+        self.assertEqual(len(voters), 2)
         for event in events:
             self.assertEqual(event.voted, lupo)
             
@@ -4295,8 +4295,6 @@ class GameTests(TestCase):
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=ipnotista, target=contadino, target2=lupo, timestamp=get_now()))
         
         # Advance to day and vote (kill Lupo)
-        test_advance_turn(self.game)
-        test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         
@@ -4315,10 +4313,10 @@ class GameTests(TestCase):
         
         events = [event for event in dynamics.debug_event_bin if isinstance(event, VoteAnnouncedEvent)]
         voters = [event.voter for event in events]
-        self.assertEqual(len([x for x in voters if x == contadino]), 2)
+        self.assertEqual(len([x for x in voters if x == contadino]), 1)
         self.assertEqual(len([x for x in voters if x == cacciatore]), 1)
         self.assertEqual(len([x for x in voters if x == lupo]), 1)
-        self.assertEqual(len(voters), 4)
+        self.assertEqual(len(voters), 3)
         for event in events:
             self.assertEqual(event.voted, lupo)
             
