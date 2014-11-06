@@ -35,6 +35,8 @@ INTERFACE (mostly Giove):
  * Two TODOs in views.py: probably it is enough to filter on game ==
    Game.get_running_game()
 
+ * Check that session timeout is reasonably short.
+
 MYSTERIOUS:
 
  * Ipnotista being revived as Ghost without power
