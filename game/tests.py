@@ -1293,7 +1293,73 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, TallyAnnouncedEvent)]
         self.assertEqual(event.voted, contadino)
         self.assertEqual(event.vote_num, 2)
+    
+    @record_name
+    def test_ipnotista_after_exile(self):
+        roles = [ Ipnotista, Negromante, Lupo, Lupo, Contadino, Contadino ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
 
+        [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
+
+        # Advance to night
+        test_advance_turn(self.game)
+        
+        # Use Ipnotista power
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=ipnotista, target=contadino, timestamp=get_now()))
+        
+        # Advance to day and kill Negromante
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Vote
+        dynamics.inject_event(CommandEvent(type=VOTE, player=ipnotista, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=contadino, target=lupo, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=negromante, timestamp=get_now()))
+        
+        # Advance to sunset
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        
+        # Check result
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
+        self.assertEqual(event.player, negromante)
+        self.assertFalse(negromante.canonicalize().alive)
+        
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, ExileEvent)]
+        self.assertEqual(set([e.player for e in events]), set([negromante, ipnotista]))
+        
+        self.assertEqual(contadino.canonicalize().hypnotist, None)
+        
+        # Advance to second night
+        test_advance_turn(self.game)
+        self.assertFalse(ipnotista.canonicalize().can_use_power())
+        
+        # Advance to second day
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Vote
+        dynamics.inject_event(CommandEvent(type=VOTE, player=contadino, target=lupo, timestamp=get_now()))
+        self.assertFalse(ipnotista.canonicalize().can_vote())
+        
+        # Advance to sunset
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        
+        # Check result
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, VoteAnnouncedEvent)]
+        self.assertEqual(event.voter, contadino)
+        self.assertEqual(event.voted, lupo)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, TallyAnnouncedEvent)]
+        self.assertEqual(event.voted, lupo)
+        self.assertEqual(event.vote_num, 1)
+    
     @record_name
     def test_fantasma(self):
         for i in xrange(20):
