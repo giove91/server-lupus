@@ -38,3 +38,8 @@ MYSTERIOUS:
  * Ipnotista being revived as Ghost without power
 
  * Messia superposition
+
+TO DECIDE:
+
+ * Power usages and votes of player that are going to be disqualified
+   are to be dropped?
