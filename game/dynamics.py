@@ -87,6 +87,7 @@ class Dynamics:
         self.upcoming_deaths = []
         self.mayor_dying = False
         self.appointed_mayor_dying = False
+        self.pending_disqualifications = []
         for player in self.players:
             self.players_dict[player.pk] = player
             player.team = None
@@ -589,6 +590,7 @@ class Dynamics:
             player.just_ghostified = False
 
         self._check_deaths()
+        self._perform_disqualifications()
         self._check_team_exile()
 
     def _compute_entering_day(self):
@@ -632,6 +634,7 @@ class Dynamics:
             player.recorded_elect = None
 
         self._check_deaths()
+        self._perform_disqualifications()
         self._check_team_exile()
 
     def _compute_elected_mayor(self):
@@ -781,6 +784,23 @@ class Dynamics:
                 pass
 
         self.death_ghost_just_created = False
+
+    def _perform_disqualifications(self):
+        # We randomize, just to avoid revealing random information to
+        # the other players
+        self.random.shuffle(self.pending_disqualifications)
+
+        if DEBUG_DYNAMICS:
+            print >> sys.stderr, "Computing disqualifications"
+
+        for disqualification in self.pending_disqualifications:
+            event = ExileEvent(player=disqualification.player, cause=DISQUALIFICATION, disqualification=disqualification)
+            self.generate_event(event)
+
+        while self._update_step(advancing_turn=True):
+            pass
+
+        self.pending_disqualifications = []
 
     def _count_alive_teams(self):
         teams = []

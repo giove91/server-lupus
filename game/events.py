@@ -979,10 +979,11 @@ class DisqualificationEvent(Event):
         self.public_message = data['public_message']
 
     def apply(self, dynamics):
-        assert self.player.canonicalize().active
+        player = self.player.canonicalize()
 
-        # TODO
-        raise NotImplementedError()
+        assert player.active
+
+        dynamics.pending_disqualifications.append(self)
 
     def to_player_string(self, player):
         oa = self.player.oa
