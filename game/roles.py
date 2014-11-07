@@ -93,6 +93,13 @@ class Role(object):
     def pre_apply_dawn(self, dynamics):
         return True
 
+    def pre_disappearance(self, dynamics):
+        """To be called just before this role disappear (either because the
+        player is disqualified or because they change role).
+
+        """
+        pass
+
     def apply_dawn(self, dynamics):
         raise NotImplementedError("Please extend this method in subclasses")
 
@@ -639,6 +646,13 @@ class Ipnotista(Role):
             return False
 
         return True
+
+    def pre_disappearance(self, dynamics):
+        # If the player was an Ipnotista, dishypnotize everyone
+        # depending on him
+        for player in dynamics.players:
+            if player.hypnotist is self.player:
+                player.hypnotist = None
 
     def apply_dawn(self, dynamics):
         from events import HypnotizationEvent

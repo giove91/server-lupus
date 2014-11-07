@@ -853,16 +853,12 @@ class GhostificationEvent(Event):
             dynamics.death_ghost_created = True
             dynamics.death_ghost_just_created = True
 
+        # Call pre disappearance code
+        player.role.pre_disappearance(dynamics)
+
         # Save original role for Trasformista
         assert player.role_class_before_ghost is None
         player.role_class_before_ghost = player.role.__class__
-
-        # If the player was an Ipnotista, dishypnotize everyone
-        # depending on him
-        if isinstance(player.role, Ipnotista):
-            for player2 in dynamics.players:
-                if player2.hypnotist == player:
-                    player2.hypnotist = None
 
         # Real ghostification
         player.role = Spettro(player, power=self.ghost)
@@ -1038,6 +1034,9 @@ class ExileEvent(Event):
         player = self.player.canonicalize()
 
         assert player.active
+
+        player.role.pre_disappearance(dynamics)
+
         if self.cause == DISQUALIFICATION:
             assert self.disqualification is not None
         else:

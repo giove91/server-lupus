@@ -1332,6 +1332,7 @@ class GameTests(TestCase):
         self.assertFalse(negromante.canonicalize().alive)
         
         events = [event for event in dynamics.debug_event_bin if isinstance(event, ExileEvent)]
+        self.assertEqual(len(events), 2)
         self.assertEqual(set([e.player for e in events]), set([negromante, ipnotista]))
         
         self.assertEqual(contadino.canonicalize().hypnotist, None)
