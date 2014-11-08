@@ -595,10 +595,9 @@ class ContactsView(ListView):
     model = Player
     template_name = 'contacts.html'
     
-    # TODO: forse un giorno bisognerebbe filtrare con il Game giusto
-    
     def get_queryset(self):
-        return Player.objects.all().select_related('user').order_by('user__last_name', 'user__first_name')
+        game = Game.get_running_game()
+        return Player.objects.filter(game=game).select_related('user').order_by('user__last_name', 'user__first_name')
     
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -609,9 +608,9 @@ class AnnouncementsView(ListView):
     model = Announcement
     template_name = 'announcements.html'
     
-    # TODO: filtrare per il Game giusto
     def get_queryset(self):
-        return Announcement.objects.filter(visible=True).order_by('-timestamp')
+        game = Game.get_running_game()
+        return Announcement.objects.filter(game=game).filter(visible=True).order_by('-timestamp')
 
 
 # Form for changing point of view (for GMs only)
