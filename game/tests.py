@@ -14,6 +14,7 @@ from game.roles import *
 from game.events import *
 from game.utils import get_now
 
+from datetime import timedelta
 
 def create_users(n):
     users = []
@@ -141,6 +142,82 @@ class GameTests(TestCase):
         # Destroy the leftover dynamics without showing the slightest
         # sign of mercy
         kill_all_dynamics()
+
+    @record_name
+    def test_event_before_turn(self):
+        roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Cacciatore, Ipnotista ]
+        self.game = create_test_game(2204, roles)
+        self.assertEqual(self.game.current_turn.phase, CREATION)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [cacciatore] = [x for x in players if isinstance(x.role, Cacciatore)]
+        [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
+
+        # Advance to day and cast a vote; but set the event with a
+        # timestamp earlier than the beginning of the turn
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        self.assertEqual(self.game.current_turn.phase, DAY)
+        event = CommandEvent(player=cacciatore, type=VOTE, target=ipnotista, timestamp=get_now() - timedelta(minutes=10))
+        dynamics.inject_event(event)
+
+        # Check that this produces an error
+        with self.assertRaises(AssertionError):
+            test_advance_turn(self.game)
+
+    @record_name
+    def test_event_before_turn_rebooting_dynamics(self):
+        roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Cacciatore, Ipnotista ]
+        self.game = create_test_game(2204, roles)
+        self.assertEqual(self.game.current_turn.phase, CREATION)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [cacciatore] = [x for x in players if isinstance(x.role, Cacciatore)]
+        [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
+
+        # Advance to day and cast a vote; but set the event with a
+        # timestamp earlier than the beginning of the turn
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        self.assertEqual(self.game.current_turn.phase, DAY)
+        event = CommandEvent(player=cacciatore, type=VOTE, target=ipnotista, timestamp=get_now() - timedelta(minutes=10))
+        dynamics.inject_event(event)
+
+        # Do not advance turn, but reboot dynamics and check that the
+        # assertion is violated immediately (i.e., when entering the
+        # turn with the violation, not when finishing it)
+        kill_all_dynamics()
+
+        with self.assertRaises(AssertionError):
+            dynamics = self.game.get_dynamics()
+
+    @record_name
+    def test_event_after_turn(self):
+        roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Cacciatore, Ipnotista ]
+        self.game = create_test_game(2204, roles)
+        self.assertEqual(self.game.current_turn.phase, CREATION)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [cacciatore] = [x for x in players if isinstance(x.role, Cacciatore)]
+        [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
+
+        # Advance to day and cast a vote; but set the event with a
+        # timestamp earlier than the beginning of the turn
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        self.assertEqual(self.game.current_turn.phase, DAY)
+        event = CommandEvent(player=cacciatore, type=VOTE, target=ipnotista, timestamp=get_now() + timedelta(minutes=10))
+        dynamics.inject_event(event)
+
+        # Check that this produces an error
+        with self.assertRaises(AssertionError):
+            test_advance_turn(self.game)
 
     @record_name
     def test_game_setup(self):

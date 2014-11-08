@@ -210,7 +210,15 @@ class Dynamics:
 
         return False
 
+    def _check_events_before_turn(self, turn):
+        assert Event.objects.filter(turn=turn).filter(timestamp__lt=turn.begin).count() == 0
+
     def _receive_turn(self, turn):
+        # Check that turn that is finishing did not have events before
+        # the beginning
+        if self.current_turn is not None:
+            self._check_events_before_turn(self.current_turn)
+
         # Promote the new turn (we also update the old turn from the
         # database, since we expect that end might have been set since
         # last time we obtained it)
@@ -231,6 +239,9 @@ class Dynamics:
             assert self.prev_turn.end == turn.begin
             if not RELAX_TIME_CHECKS:
                 assert self.last_timestamp_in_turn <= self.prev_turn.end
+
+        # Check for events before the beginning of the turn
+        self._check_events_before_turn(self.current_turn)
 
         # Prepare data for checking events
         if RELAX_TIME_CHECKS:
