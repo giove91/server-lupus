@@ -1476,12 +1476,21 @@ class GameTests(TestCase):
             # Check result
             self.assertFalse(fantasma.alive)
             [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
-            self.assertEqual(event.player,fantasma)
+            self.assertEqual(event.player, fantasma)
             [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
-            self.assertEqual(event.player,fantasma)
-            self.assertEqual(event.cause,PHANTOM)
+            self.assertEqual(event.player, fantasma)
+            self.assertEqual(event.cause, PHANTOM)
             self.assertTrue(isinstance(fantasma.role, Spettro))
             self.assertTrue(event.ghost in [AMNESIA, ILLUSIONE, MISTIFICAZIONE, OCCULTAMENTO, VISIONE])
+            
+            [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent) and event.cause == GHOST]
+            self.assertEqual(event.player, fantasma)
+            self.assertEqual(event.target, negromante)
+            self.assertEqual(event.role_name, 'Negromante')
+            [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent) and event.cause == PHANTOM]
+            self.assertEqual(event.player, negromante)
+            self.assertEqual(event.target, fantasma)
+            self.assertEqual(event.role_name, 'Spettro')
 
     @record_name
     def test_custode(self):
@@ -3986,6 +3995,15 @@ class GameTests(TestCase):
         self.assertEqual(event.ghost, IPNOSI)
         self.assertEqual(event.cause, HYPNOTIST_DEATH)
         self.assertTrue(isinstance(ipnotista.role, Spettro), ipnotista.role)
+        
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent) and event.cause == GHOST]
+        self.assertEqual(event.player, ipnotista)
+        self.assertEqual(event.target, negromante)
+        self.assertEqual(event.role_name, 'Negromante')
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent) and event.cause == HYPNOTIST_DEATH]
+        self.assertEqual(event.player, negromante)
+        self.assertEqual(event.target, ipnotista)
+        self.assertEqual(event.role_name, 'Spettro')
         
         # Advance to night
         test_advance_turn(self.game)

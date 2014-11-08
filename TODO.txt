@@ -13,10 +13,6 @@ GAME ENGINE AND DYNAMICS (mostly Gio):
 
 TESTS (mostly Giove):
 
- * Check that RoleKnowledgeEvents are properly created when
-   ghostifying the Ipnotista (just in case, check that the same test
-   is in place for Fantasma).
-
  * Test Ipnotista and Spettro dell'Ipnosi acting on the same player.
 
  * Test Spettro dell'Ipnosi acting on an Ipnotista (what is supposed
@@ -25,6 +21,8 @@ TESTS (mostly Giove):
 INTERFACE (mostly Giove):
 
  * Update prototypes and letters' templates.
+ 
+ * Update string representation of Events.
 
  * Two TODOs in views.py: probably it is enough to filter on game ==
    Game.get_running_game()
