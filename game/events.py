@@ -683,12 +683,22 @@ class AuraKnowledgeEvent(Event):
     def to_player_string(self, player):
         aura = AURA_IT[ self.aura ].lower()
         
-        if player == self.player:
-            return u'Scopri che %s ha aura %s.' % (self.target.full_name, aura)
-        elif player == 'admin':
-            return u'%s scopre che %s ha aura %s.' % (self.player.full_name, self.target.full_name, aura)
-        return None
-            
+        if self.cause == SEER:
+            if player == self.player:
+                return u'Scopri che %s ha aura %s.' % (self.target.full_name, aura)
+            elif player == 'admin':
+                return u'IL Veggente %s scopre che %s ha aura %s.' % (self.player.full_name, self.target.full_name, aura)
+            return None
+        
+        elif self.cause == DETECTIVE:
+            if player == self.player:
+                return u'Scopri che %s ha aura %s.' % (self.target.full_name, aura)
+            elif player == 'admin':
+                return u'IL Detective %s scopre che %s ha aura %s.' % (self.player.full_name, self.target.full_name, aura)
+            return None
+        
+        else:
+            raise Exception ('Unknown cause for AuraKnowledgeEvent')
 
 
 class MysticityKnowledgeEvent(Event):
