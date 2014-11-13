@@ -11,12 +11,14 @@ GAME ENGINE AND DYNAMICS (mostly Gio):
 
  * Fix DST TZ selection during automatic turn advancement
 
+ * TODOs in events.py
+
 TESTS (mostly Giove):
 
 INTERFACE (mostly Giove):
 
  * Update prototypes and letters' templates.
- 
+
  * Update string representation of Events.
 
  * Check that session timeout is reasonably short.
