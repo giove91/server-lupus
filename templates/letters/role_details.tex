@@ -20,6 +20,13 @@ Il Custode del Cimitero appartiene alla Fazione dei Popolani e ogni notte può s
 {% endif %}
 
 
+{% if player.role_name == "Sciamano" %}
+Gli ultimi tagli alla ricerca scientifica hanno dato il colpo di grazia agli esperimenti dello scienziato pazzo per cui lavoravi (anche la folla armata di torce e forconi non ha aiutato). E così, dopo anni di fedele servizio, ti sei trovato disoccupato e in piena crisi mistica: la condizione ideale per prenderti un anno sabbatico in India, cambiare il tuo nome da Aigor a Brahamavarta e diplomarti in pratiche sciamaniche di primo livello. Tornato al villaggio, avverti subito forti vibrazioni negative dovute allo stagionale attacco di licantropia. Anche se nessuno si fida di te, cerchi comunque di aiutare qualche anima in pena.
+
+Lo Sciamano è un mistico e appartiene alla Fazione dei Popolani, ma a causa del suo passato da Profanatore di Tombe ha aura nera. Ogni due notti, lo Sciamano può scegliere un personaggio morto e acquietarne lo spirito. Se il personaggio scelto è uno Spettro, e questi agisce, il suo potere non ha effetto.
+{% endif %}
+
+
 {% if player.role_name == "Divinatore" %}
 Hai sempre pensato di essere un tipo qualunque, il contadino medio pronto a linciare alla cieca senza farsi troppe domande. Ma da quando nel villaggio hanno cominciato a succedere fatti strani continui a sognare tuo nonno che invece dei numeri del lotto ripete le solite quattro frasi. Sei certo che due siano vere e due false. Ma quali?
 
@@ -83,11 +90,10 @@ Il Messia è un mistico e appartiene alla Fazione dei Popolani. Ha un potere att
 {% endif %}
 
 
-{% if player.role_name == "Necrofilo" %}
-Tutto il villaggio ti conosce come il fondatore del club di giardinaggio, senza sospettare che si tratti di un'abile copertura per poter girare indisturbato con una vanga in spalla. Mettiamola così: il giorno che riceverai il freddo bacio della morte, non sarà per te una novità.
+{% if player.role_name == "Trasformista" %}
+Anche il tuo numero di scarpe è un mistero. Nella vita hai cambiato più facce che cappelli e nemmeno tua madre potrebbe riconoscerti ormai, ammesso che tu ti ricordi chi è tua madre. Forse sei un agente segreto, un supereroe, o forse cerchi solo di rifarti una vita dove nessuno conosce i tuoi incresciosi trascorsi da necrofilo. La passione per i cimiteri però ti è rimasta e nel tempo libero ami passeggiare tra le tombe in cerca di una nuova identità.
 
-Il Necrofilo appartiene alla Fazione dei Popolani, nonostante i suoi gusti particolari, e ha un potere attivabile di notte, una sola 
-volta in tutta la partita. Il Necrofilo può scegliere un personaggio morto. Se si tratta di un personaggio dotato di un potere speciale attivabile ogni notte o ogni due notti, il Necrofilo lo scopre e ottiene tale potere insieme all'aura del personaggio (bianca o nera, mistica o non mistica); altrimenti, il potere del Necrofilo non ha effetto. Se si tratta di un Lupo, un Negromante o un Fantasma, il potere del Necrofilo non ha effetto. Se si tratta di uno Spettro, il Necrofilo ottiene il potere e l'aura che quel personaggio aveva prima di diventare Spettro.
+Il Trasformista appartiene alla Fazione dei Popolani e ha un potere attivabile di notte, una sola volta in tutta la partita. Il Trasformista può scegliere un personaggio morto. Se si tratta di un personaggio dotato di un potere speciale attivabile ogni notte o ogni due notti, il Trasformista lo scopre e ottiene tale potere insieme all'aura del personaggio (bianca o nera, mistica o non mistica); altrimenti, il potere del Trasformista non ha effetto. Se si tratta di un Lupo, un Negromante o un Fantasma, il potere del Trasformista non ha effetto. Se si tratta di uno Spettro, il Trasformista ottiene il potere e l'aura che quel personaggio aveva prima di diventare Spettro.
 {% endif %}
 
 
@@ -142,13 +148,6 @@ La Fattucchiera è un mistico e appartiene alla Fazione dei Lupi; conosce i Lupi
 {% endif %}
 
 
-{% if player.role_name == "Profanatore" %}
-Mentre ti aggiri nella notte, curvo sotto un mantello e armato di pala, ti si potrebbe confondere con un necrofilo. Invece il tuo interesse nei cadaveri è puramente scientifico: procuri la materia prima per gli esperimenti del tuo padrone, lo scienziato che vive nel castello sopra il villaggio. Gli sei molto affezionato, anche se insiste a non capire che il tuo nome si pronuncia Aigor, non Igor.
-
-Il Profanatore di Tombe appartiene alla Fazione dei Lupi e conosce i Rinnegati, i Sequestratori e gli eventuali altri Profanatori di Tombe. Ha un potere attivabile ogni due notti. Il Profanatore di Tombe può scegliere un personaggio morto di cui rubare temporaneamente il cadavere. Se il personaggio scelto è uno spettro, e agisce, il suo potere non ha alcun effetto.
-{% endif %}
-
-
 {% if player.role_name == "Rinnegato" %}
 Sei bello e dannato, uno sbandato senza onore e senza legge, un peccatore che vaga di luogo in luogo senza mai trovare pace. Al tuo arrivo nel villaggio sei accolto dai sospiri delle contadine, che fanno a gara per curare le ferite del tuo animo tormentato e accarezzare i tuoi zigomi cesellati. La loro fiducia è mal riposta, ma non sarai certo tu a metterle in guardia.
 
@@ -195,6 +194,10 @@ Il Medium è un mistico, appartiene alla Fazione dei Negromanti e ha aura bianca
 {% endif %}
 
 
+{% if player.role_name == "Scrutatore" %}
+Italia, elezioni parlamentari 1994: Silvio Berlusconi diventa Presidente del Consiglio, ma nessuno ha votato per lui. Stati Uniti, elezioni presidenziali 2004: George W. Bush viene riconfermato per un secondo mandato, ma nessuno ha votato per lui. Questo pensa la gente. Tu invece sai che quelle schede non si sono compilate da sole. A volte al destino serve una mano ferma e una croce nel punto giusto.
 
+Lo Scrutatore appartiene alla Fazione dei Negromanti e ha aura bianca. Ogni notte, lo Scrutatore può scegliere un personaggio vivo e aggiungere segretamente un suo voto nell’urna della votazione per il rogo del giorno seguente. Seleziona anche un personaggio vivo a cui questo voto sarà diretto. Il giorno seguente, al momento della pubblicazione dei voti, risulta che il personaggio scelto ha votato anche per il personaggio selezionato. Lo Scrutatore conosce gli Ipnotisti, i Medium e gli eventuali altri Scrutatori.
+{% endif %}
 
 
