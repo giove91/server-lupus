@@ -473,8 +473,6 @@ class PlayerDiesEvent(Event):
         # Fantasma death
         if isinstance(player.role, Fantasma):
             powers = set(Spettro.POWER_NAMES.keys())
-            # TODO: available_powers is updated only when applying the
-            # event. Is this enough?
             available_powers = powers - dynamics.used_ghost_powers - set([MORTE, IPNOSI])
             if len(available_powers) >= 1:
                 power = dynamics.random.choice(list(available_powers))
