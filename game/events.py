@@ -470,16 +470,6 @@ class PlayerDiesEvent(Event):
         assert player.alive
         assert player.just_dead
 
-        # Trigger mayor succession
-        if player.is_mayor():
-            assert not dynamics.mayor_dying
-            dynamics.mayor_dying = True
-
-        # Trigger loss of appointed mayor
-        if player.is_appointed_mayor():
-            assert not dynamics.appointed_mayor_dying
-            dynamics.appointed_mayor_dying = True
-
         # Fantasma death
         if isinstance(player.role, Fantasma):
             powers = set(Spettro.POWER_NAMES.keys())

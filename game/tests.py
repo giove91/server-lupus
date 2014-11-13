@@ -4624,9 +4624,11 @@ class GameTests(TestCase):
         # Advance to dawn and check
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
-        [exile_event] = [event for event in dynamics.debug_event_bin if isinstance(event, ExileEvent)]
-        self.assertEqual(exile_event.cause, DISQUALIFICATION)
+        [exile_event] = [event for event in dynamics.debug_event_bin if isinstance(event, ExileEvent) and event.cause == DISQUALIFICATION]
         self.assertEqual(exile_event.disqualification, disqualification_event)
+        self.assertEqual(exile_event.player, negromante)
+        [exile_event] = [event for event in dynamics.debug_event_bin if isinstance(event, ExileEvent) and event.cause == TEAM_DEFEAT]
+        self.assertEqual(exile_event.player, ipnotista)
         
         self.assertFalse(self.game.mayor == negromante)
         num = 0
@@ -4663,9 +4665,11 @@ class GameTests(TestCase):
         # Advance to dawn and check
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
-        [exile_event] = [event for event in dynamics.debug_event_bin if isinstance(event, ExileEvent)]
-        self.assertEqual(exile_event.cause, DISQUALIFICATION)
+        [exile_event] = [event for event in dynamics.debug_event_bin if isinstance(event, ExileEvent) and event.cause == DISQUALIFICATION]
         self.assertEqual(exile_event.disqualification, disqualification_event)
+        self.assertEqual(exile_event.player, negromante)
+        [exile_event] = [event for event in dynamics.debug_event_bin if isinstance(event, ExileEvent) and event.cause == TEAM_DEFEAT]
+        self.assertEqual(exile_event.player, ipnotista)
         
         self.assertFalse(self.game.mayor == negromante)
         self.assertEqual(self.game.mayor, lupo)
@@ -4701,10 +4705,10 @@ class GameTests(TestCase):
         # Advance to dawn and check
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
-        events = [event for event in dynamics.debug_event_bin if isinstance(event, ExileEvent)]
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, ExileEvent) and event.cause == DISQUALIFICATION]
         self.assertEqual(len(events), 2)
-        for e in events:
-            self.assertEqual(e.cause, DISQUALIFICATION)
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, ExileEvent) and event.cause == TEAM_DEFEAT]
+        self.assertEqual(len(events), 1)
         
         self.assertFalse(self.game.mayor == negromante)
         self.assertFalse(self.game.mayor == lupo)

@@ -85,8 +85,6 @@ class Dynamics:
         self.necromancers_target = None
         self.winners = None
         self.upcoming_deaths = []
-        self.mayor_dying = False
-        self.appointed_mayor_dying = False
         self.pending_disqualifications = []
         for player in self.players:
             self.players_dict[player.pk] = player
@@ -587,7 +585,7 @@ class Dynamics:
                         Fantasma]
         apply_roles(STUPID_ROLES)
 
-        # Unset all temporary status
+        # Unset (nearly) all temporary status
         self.wolves_target = None
         self.necromancers_target = None
         for player in self.players:
@@ -600,9 +598,7 @@ class Dynamics:
             player.protected_by_keeper = False
             player.just_ghostified = False
 
-        self._check_deaths()
-        self._perform_disqualifications()
-        self._check_team_exile()
+        self._end_of_main_phase()
 
     def _compute_entering_day(self):
         if DEBUG_DYNAMICS:
@@ -633,7 +629,7 @@ class Dynamics:
         while self._update_step(advancing_turn=True):
             pass
 
-        # Unrecord all data setting during previous dawn
+        # Unrecord all data set during previous dawn
         self.advocated_players = []
         self.hypnosis_ghost_target = None
         self.additional_ballots = []
@@ -644,9 +640,7 @@ class Dynamics:
             player.recorded_vote = None
             player.recorded_elect = None
 
-        self._check_deaths()
-        self._perform_disqualifications()
-        self._check_team_exile()
+        self._end_of_main_phase()
 
     def _compute_elected_mayor(self):
         new_mayor = None
@@ -794,8 +788,6 @@ class Dynamics:
             while self._update_step(advancing_turn=True):
                 pass
 
-        self.death_ghost_just_created = False
-
     def _perform_disqualifications(self):
         # We randomize, just to avoid revealing random information to
         # the other players
@@ -810,8 +802,6 @@ class Dynamics:
 
         while self._update_step(advancing_turn=True):
             pass
-
-        self.pending_disqualifications = []
 
     def _count_alive_teams(self):
         teams = []
@@ -845,22 +835,40 @@ class Dynamics:
             if team in [LUPI, NEGROMANTI]:
                 for player in self.players:
                     if player.team == team and player.active:
-                        if player.is_mayor():
-                            self.mayor_dying = True
-                        elif player.is_appointed_mayor():
-                            self.appointed_mayor_dying = True
                         event = ExileEvent(player=player, cause=TEAM_DEFEAT)
                         self.generate_event(event)
 
         while self._update_step(advancing_turn=True):
             pass
 
+        # Check victory condition
+        winning_teams = None
+        if len(teams) == 1:
+            winning_teams = teams
+        elif len(teams) == 0:
+            winning_teams = self.playing_teams
+
+        self.playing_teams = teams
+
+        if winning_teams is not None and self.winners is None:
+            self.generate_event(VictoryEvent(popolani_win=POPOLANI in winning_teams,
+                                             lupi_win=LUPI in winning_teams,
+                                             negromanti_win=NEGROMANTI in winning_teams,
+                                             cause=NATURAL))
+
+    def _perform_mayor_succession(self):
+        new_mayor = not(self.mayor.alive and self.mayor.active)
+        if self.appointed_mayor is not None:
+            new_appointed_mayor = not(self.appointed_mayor.alive and self.appointed_mayor.active)
+        else:
+            new_appointed_mayor = False
+
         # Loss of appointed mayor
-        if self.appointed_mayor_dying:
+        if new_appointed_mayor:
             self.appointed_mayor = None
 
         # Loss of mayor
-        if self.mayor_dying:
+        if new_mayor:
             if self.appointed_mayor is not None:
                 assert self.appointed_mayor.alive and self.appointed_mayor.active
                 self.mayor = self.appointed_mayor
@@ -878,21 +886,21 @@ class Dynamics:
         while self._update_step(advancing_turn=True):
             pass
 
-        self.mayor_dying = False
-        self.appointed_mayor_dying = False
+    def _end_of_main_phase(self):
+        assert self.mayor.alive and self.mayor.active
+        if self.appointed_mayor is not None:
+            assert self.appointed_mayor.alive and self.appointed_mayor.active
+
+        self._check_deaths()
+        self._perform_disqualifications()
+        self._check_team_exile()
+        self._perform_mayor_succession()
+
+        assert self.mayor.alive and self.mayor.active
+        if self.appointed_mayor is not None:
+            assert self.appointed_mayor.alive and self.appointed_mayor.active
+
+        # Reset leftover temporary status
+        self.death_ghost_just_created = False
+        self.pending_disqualifications = []
         self.upcoming_deaths = []
-
-        # Check victory condition
-        winning_teams = None
-        if len(teams) == 1:
-            winning_teams = teams
-        elif len(teams) == 0:
-            winning_teams = self.playing_teams
-
-        self.playing_teams = teams
-
-        if winning_teams is not None and self.winners is None:
-            self.generate_event(VictoryEvent(popolani_win=POPOLANI in winning_teams,
-                                             lupi_win=LUPI in winning_teams,
-                                             negromanti_win=NEGROMANTI in winning_teams,
-                                             cause=NATURAL))

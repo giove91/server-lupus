@@ -7,13 +7,14 @@ GAME ENGINE AND DYNAMICS (mostly Gio):
 
  * Death superposition (bug in visualization order)
 
- * Refactor end-of-turn checks
-
  * Fix DST TZ selection during automatic turn advancement
 
  * TODOs in events.py
 
 TESTS (mostly Giove):
+
+ * Make the mayor die and at the same time be disqualified; then same
+   thing with appointed mayor (and maybe even both together).
 
 INTERFACE (mostly Giove):
 
