@@ -5,12 +5,21 @@ GAME ENGINE AND DYNAMICS (mostly Gio):
 
  * Fix DST TZ selection during automatic turn advancement
 
- * TODOs in events.py
+ * Implement VoteRiggingEvent for Scrutatore
+
+ * Spettro dell'Ipnosi and Ipnotista fail when acting on an Ipnotista
+   or someone becoming an Ipnotista
+
+ * Ignore power usages and votes of player that are going to be
+   disqualified
 
 TESTS (mostly Giove):
 
  * Make the mayor die and at the same time be disqualified; then same
    thing with appointed mayor (and maybe even both together).
+
+ * Spettro dell'Ipnosi acting on a Trasformista who is becoming an
+   Ipnotista
 
 INTERFACE (mostly Giove):
 
@@ -27,8 +36,3 @@ MYSTERIOUS:
  * Ipnotista being revived as Ghost without power
 
  * Messia superposition
-
-TO DECIDE:
-
- * Power usages and votes of player that are going to be disqualified
-   are to be dropped?
