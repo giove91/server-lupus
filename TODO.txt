@@ -23,6 +23,8 @@ INTERFACE (mostly Giove):
 
  * Check that session timeout is reasonably short.
 
+ * Check permissions.
+
 MYSTERIOUS:
 
  * Ipnotista being revived as Ghost without power
