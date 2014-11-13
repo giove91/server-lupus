@@ -646,7 +646,13 @@ class RoleKnowledgeEvent(Event):
                 return u'Scopri che %s ha il ruolo di %s.' % (self.target.full_name, role)
             elif player == 'admin':
                 return u'Il Diavolo %s scopre che %s ha il ruolo di %s.' % (self.player.full_name, self.target.full_name, role)
-
+        
+        elif self.cause == MEDIUM:
+            if player == self.player:
+                return u'Scopri che %s ha il ruolo di %s.' % (self.target.full_name, role)
+            elif player == 'admin':
+                return u'Il Medium %s scopre che %s ha il ruolo di %s.' % (self.player.full_name, self.target.full_name, role)
+        
         else:
             raise Exception ('Unknown cause for RoleKnowledgeEvent')
         
@@ -777,20 +783,6 @@ class MovementKnowledgeEvent(Event):
             return u'%s scopre che stanotte %s si è recat%s da %s.' % (self.player.full_name, moving_player.full_name, moving_player.oa, destination.full_name)
         else:
             return None
-
-    
-    def to_player_string(self, player):
-        aura = AURA_IT[ self.aura ].lower()
-        if self.is_ghost:
-            ghost_res = ''
-        else:
-            ghost_res = 'non '
-        
-        if player == self.player:
-            return u'Scopri che %s ha aura %s e che %sè uno Spettro.' % (self.target.full_name, aura, ghost_res)
-        elif player == 'admin':
-            return u'%s scopre che %s ha aura %s e che %sè uno Spettro.' % (self.player.full_name, self.target.full_name, aura, ghost_res)
-        return None
 
 
 class HypnotizationEvent(Event):
