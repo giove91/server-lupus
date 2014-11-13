@@ -882,6 +882,12 @@ class GhostificationEvent(Event):
             elif player == 'admin':
                 return u'Il Fantasma %s è divenuto uno Spettro con il seguente potere soprannaturale: %s' % (self.player.full_name, power)
         
+        elif self.cause == HYPNOTIST_DEATH:
+            if player == self.player:
+                return u'Sei diventat%s uno Spettro, e possiedi ora il seguente potere soprannaturale: %s.' % (oa, power)
+            elif player == 'admin':
+                return u'L\'Ipnotista %s è divenuto uno Spettro con il seguente potere soprannaturale: %s' % (self.player.full_name, power)
+        
         else:
             raise Exception ('Unknown cause for GhostificationEvent')
         
