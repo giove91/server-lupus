@@ -299,13 +299,13 @@ class GameTests(TestCase):
         # Check the results
         mayor_after_election = None
         if expected_mayor is not None:
-            [mayor_event] = [event for event in dynamics.debug_event_bin if isinstance(event, ElectNewMayorEvent)]
+            [mayor_event] = [event for event in dynamics.debug_event_bin if isinstance(event, SetMayorEvent) and event.cause == ELECT]
             self.assertEqual(mayor_event.player.pk, players[expected_mayor].pk)
             if expect_to_die is None or expect_to_die != expected_mayor:
                 self.assertTrue(players[expected_mayor].is_mayor())
             mayor_after_election = players[expected_mayor]
         else:
-            self.assertEqual([event for event in dynamics.debug_event_bin if isinstance(event, ElectNewMayorEvent)], [])
+            self.assertEqual([event for event in dynamics.debug_event_bin if isinstance(event, SetMayorEvent) and event.cause == ELECT], [])
             mayor_after_election = initial_mayor
 
         mayor_dead = False

@@ -177,6 +177,7 @@ class AvailableRoleEvent(Event):
 
             event = SetMayorEvent()
             event.player = dynamics.players_dict[mayor]
+            event.cause = BEGINNING
             dynamics.generate_event(event)
 
             # Then compute all the knowledge classes and generate the
@@ -233,25 +234,63 @@ class SetRoleEvent(Event):
 
 
 class SetMayorEvent(Event):
-    RELEVANT_PHASES = [CREATION]
+    RELEVANT_PHASES = [CREATION, SUNSET, DAWN]
     AUTOMATIC = True
 
     player = models.ForeignKey(Player, related_name='+')
 
+    SET_MAYOR_CAUSES = (
+        (BEGINNING, 'Beginning'),
+        (ELECT, 'Elect'),
+        (SUCCESSION_RANDOM, 'SuccessionRandom'),
+        (SUCCESSION_CHOSEN, 'SuccessionChosen'),
+        )
+    cause = models.CharField(max_length=1, choices=SET_MAYOR_CAUSES, default=None)
+
+    REAL_RELEVANT_PHASES = {
+        BEGINNING: [CREATION],
+        ELECT: [SUNSET],
+        SUCCESSION_RANDOM: [DAWN, SUNSET],
+        SUCCESSION_CHOSEN: [DAWN, SUNSET],
+        }
+
     def apply(self, dynamics):
+        assert dynamics.current_turn.phase in SetMayorEvent.REAL_RELEVANT_PHASES[self.cause]
+
         player = self.player.canonicalize()
         assert player.alive
-        assert dynamics.mayor is None
-        assert dynamics.appointed_mayor is None
-        dynamics.mayor = player
-        dynamics.appointed_mayor = None
+
+        if self.cause == BEGINNING:
+            assert dynamics.mayor is None
+            assert dynamics.appointed_mayor is None
+
+        if not player.is_mayor():
+            dynamics.mayor = player
+            dynamics.appointed_mayor = None
+
+        # The mayor can be already in charge only if they are just
+        # being re-elected
+        else:
+            assert self.cause == ELECT
+
+        assert player.is_mayor()
 
     def to_player_string(self, player):
         oa = self.player.oa
-        if player == self.player:
-            return u'Sei stat%s nominat%s Sindaco del villaggio.' % (oa, oa)
+        if self.cause == BEGINNING:
+            if player == self.player:
+                return u'Sei stat%s nominat%s Sindaco del villaggio.' % (oa, oa)
+            else:
+                return u'%s è stat%s nominat%s Sindaco del villaggio.' % (self.player.full_name, oa, oa)
+        elif self.cause == ELECT:
+            if player == self.player:
+                return u'Sei stat%s elett%s Sindaco del villaggio.' % (oa, oa)
+            else:
+                return u'%s è stat%s elett%s nuovo Sindaco del villaggio.' % (self.player.full_name, oa, oa)
+        elif self.cause == SUCCESSION_RANDOM or self.cause == SUCCESSION_CHOSEN:
+            raise NotImplementedError('Please finish implementing SetMayorEvent')
         else:
-            return u'%s è stat%s nominat%s Sindaco del villaggio.' % (self.player.full_name, oa, oa)
+            raise Exception('Unknown cause for SetMayorEvent')
 
 
 class InitialPropositionEvent(Event):
@@ -315,28 +354,6 @@ class TallyAnnouncedEvent(Event):
     def to_player_string(self,player):
         # This event is processed separately
         return None
-
-
-class ElectNewMayorEvent(Event):
-    RELEVANT_PHASES = [SUNSET]
-    AUTOMATIC = True
-
-    player = models.ForeignKey(Player, related_name='+')
-
-    def apply(self, dynamics):
-        player = self.player.canonicalize()
-        assert player.alive
-        if dynamics.mayor.pk != player.pk:
-            dynamics.mayor = player
-            dynamics.appointed_mayor = None
-        assert player.is_mayor()
-    
-    def to_player_string(self, player):
-        oa = self.player.oa
-        if player == self.player:
-            return u'Sei stat%s elett%s Sindaco del villaggio.' % (oa, oa)
-        else:
-            return u'%s è stat%s elett%s nuovo Sindaco del villaggio.' % (self.player.full_name, oa, oa)
 
 
 class PlayerResurrectsEvent(Event):
@@ -449,10 +466,10 @@ class PlayerDiesEvent(Event):
     cause = models.CharField(max_length=1, choices=DEATH_CAUSE_TYPES, default=None)
 
     REAL_RELEVANT_PHASES = {
-        STAKE: SUNSET,
-        HUNTER: DAWN,
-        WOLVES: DAWN,
-        DEATH_GHOST: DAWN,
+        STAKE: [SUNSET],
+        HUNTER: [DAWN],
+        WOLVES: [DAWN],
+        DEATH_GHOST: [DAWN],
         }
 
     def apply(self, dynamics):

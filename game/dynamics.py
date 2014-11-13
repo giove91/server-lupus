@@ -9,7 +9,7 @@ from datetime import datetime
 
 from models import Event, Turn
 from events import CommandEvent, VoteAnnouncedEvent, TallyAnnouncedEvent, \
-    ElectNewMayorEvent, PlayerDiesEvent, PowerOutcomeEvent, StakeFailedEvent, \
+    SetMayorEvent, PlayerDiesEvent, PowerOutcomeEvent, StakeFailedEvent, \
     ExileEvent, VictoryEvent, AvailableRoleEvent
 from constants import *
 from roles import *
@@ -610,7 +610,7 @@ class Dynamics:
 
         new_mayor = self._compute_elected_mayor()
         if new_mayor is not None:
-            event = ElectNewMayorEvent(player=new_mayor)
+            event = SetMayorEvent(player=new_mayor, cause=ELECT)
             self.generate_event(event)
 
         while self._update_step(advancing_turn=True):
@@ -871,14 +871,11 @@ class Dynamics:
         if new_mayor:
             if self.appointed_mayor is not None:
                 assert self.appointed_mayor.alive and self.appointed_mayor.active
-                self.mayor = self.appointed_mayor
-                self.appointed_mayor = None
+                self.generate_event(SetMayorEvent(player=self.appointed_mayor, cause=SUCCESSION_CHOSEN))
 
             else:
                 candidates = self.get_alive_players()
-                self.mayor = self.random.choice(candidates)
-
-                # TODO: pass through an appropriate event?
+                self.generate_event(SetMayorEvent(player=self.random.choice(candidates), cause=SUCCESSION_RANDOM))
 
         else:
             assert self.mayor.alive and self.mayor.active

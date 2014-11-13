@@ -81,6 +81,12 @@ VOTE = 'V'
 ELECT = 'E'
 APPOINT = 'A'
 
+# Mayor set causes (ELECT clashes with above)
+BEGINNING = 'B'
+ELECT = 'E'
+SUCCESSION_RANDOM = 'R'
+SUCCESSION_CHOSEN = 'C'
+
 # Death causes
 STAKE = 'S'
 HUNTER = 'H'
