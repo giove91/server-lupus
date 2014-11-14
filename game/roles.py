@@ -765,6 +765,10 @@ class Spettro(Role):
             if isinstance(self.recorded_target.role, Lupo):
                 return False
 
+        elif self.power == IPNOSI:
+            if isinstance(self.recorded_target.role, Ipnotista):
+                return False
+
         return True
 
     def apply_dawn(self, dynamics):

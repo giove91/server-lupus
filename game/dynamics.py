@@ -514,12 +514,15 @@ class Dynamics:
         def apply_role(player):
             if player.role.recorded_target is None:
                 return
+            if DEBUG_DYNAMICS:
+                print >> sys.stderr, "> Applying role %r for %r:" % (player, player.role),
             success = powers_success[player.pk]
+            if DEBUG_DYNAMICS:
+                print >> sys.stderr, success,
             if success:
                 success = player.role.pre_apply_dawn(self)
                 if DEBUG_DYNAMICS:
-                    if not success:
-                        print >> sys.stderr, "pre_apply_dawn() failed for %r" % (player)
+                    print >> sys.stderr, success
             event = PowerOutcomeEvent(player=player, success=success, sequestrated=player.pk in sequestrated, command=player.role.recorded_command)
             self.generate_event(event)
             if success:
