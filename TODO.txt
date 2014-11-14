@@ -27,6 +27,10 @@ INTERFACE (mostly Giove):
  * Check that session timeout is reasonably short.
 
  * Check permissions.
+ 
+ * Update ruleset (PDF).
+ 
+ * Update trailer page (after opening ceremony).
 
 MYSTERIOUS:
 
