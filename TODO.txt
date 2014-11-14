@@ -37,3 +37,7 @@ MYSTERIOUS:
  * Ipnotista being revived as Ghost without power
 
  * Messia superposition
+
+OTHER:
+
+ * Deploy server and make human tests (possibly with Leonardo and Sasha).
