@@ -22,11 +22,11 @@ INTERFACE (mostly Giove):
 
  * Update prototypes and letters' templates.
 
- * Update string representation of Events.
+ * Update string representation of Events [probably done].
 
  * Check that session timeout is reasonably short.
 
- * Check permissions.
+ * Check permissions [probably done].
  
  * Update ruleset (PDF).
  
