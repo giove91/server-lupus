@@ -4953,6 +4953,163 @@ class GameTests(TestCase):
         self.assertEqual(len(events), 0)
     
     @record_name
+    def test_kill_and_disqualify_mayor(self):
+        roles = [ Contadino, Contadino, Negromante, Lupo, Lupo, Cacciatore, Ipnotista ]
+        self.game = create_test_game(2204, roles)
+        
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
+        [cacciatore] = [x for x in players if isinstance(x.role, Cacciatore)]
+        
+        self.assertEqual(self.game.mayor.user.username, 'pk3')
+        self.assertEqual(self.game.mayor, negromante)
+        self.assertTrue(negromante.canonicalize().is_mayor())
+        
+        # Advance to second night, kill and disqualify mayor
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        disqualification_event = DisqualificationEvent(player=negromante, private_message='Muhahaha', timestamp=get_now())
+        dynamics.inject_event(disqualification_event)
+        
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=cacciatore, target=negromante, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        [exile_event] = [event for event in dynamics.debug_event_bin if isinstance(event, ExileEvent) and event.cause == DISQUALIFICATION]
+        self.assertEqual(exile_event.disqualification, disqualification_event)
+        self.assertEqual(exile_event.player, negromante)
+        [exile_event] = [event for event in dynamics.debug_event_bin if isinstance(event, ExileEvent) and event.cause == TEAM_DEFEAT]
+        self.assertEqual(exile_event.player, ipnotista)
+        
+        [death_event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
+        self.assertEqual(death_event.player, negromante)
+        self.assertEqual(death_event.cause, HUNTER)
+        
+        self.assertFalse(self.game.mayor == negromante)
+        num = 0
+        for p in players:
+            if p is not negromante and p.canonicalize().is_mayor():
+                num += 1
+        self.assertEqual(num, 1)
+    
+    @record_name
+    def test_kill_and_disqualify_mayor_while_appointing(self):
+        roles = [ Contadino, Contadino, Negromante, Lupo, Lupo, Cacciatore, Ipnotista ]
+        self.game = create_test_game(2204, roles)
+        
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
+        [cacciatore] = [x for x in players if isinstance(x.role, Cacciatore)]
+        
+        self.assertEqual(self.game.mayor.user.username, 'pk3')
+        self.assertEqual(self.game.mayor, negromante)
+        self.assertTrue(negromante.canonicalize().is_mayor())
+        
+        # Advance to second night, kill and disqualify mayor, and make mayor appoint someone
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        disqualification_event = DisqualificationEvent(player=negromante, private_message='Muhahaha', timestamp=get_now())
+        dynamics.inject_event(disqualification_event)
+        
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=cacciatore, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=APPOINT, player=negromante, target=contadino, timestamp=get_now()))
+        
+        # Advance to dawn and check (APPOINT command should be ignored)
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        [exile_event] = [event for event in dynamics.debug_event_bin if isinstance(event, ExileEvent) and event.cause == DISQUALIFICATION]
+        self.assertEqual(exile_event.disqualification, disqualification_event)
+        self.assertEqual(exile_event.player, negromante)
+        [exile_event] = [event for event in dynamics.debug_event_bin if isinstance(event, ExileEvent) and event.cause == TEAM_DEFEAT]
+        self.assertEqual(exile_event.player, ipnotista)
+        
+        [death_event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
+        self.assertEqual(death_event.player, negromante)
+        self.assertEqual(death_event.cause, HUNTER)
+        
+        self.assertFalse(self.game.mayor == negromante)
+        self.assertFalse(self.game.mayor == contadino)
+        num = 0
+        for p in players:
+            if p is not negromante and p.canonicalize().is_mayor():
+                num += 1
+        self.assertEqual(num, 1)
+    
+    @record_name
+    def test_kill_and_disqualify_mayor_while_appointing2(self):
+        roles = [ Contadino, Contadino, Negromante, Lupo, Lupo, Cacciatore, Ipnotista ]
+        self.game = create_test_game(2204, roles)
+        
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
+        [cacciatore] = [x for x in players if isinstance(x.role, Cacciatore)]
+        
+        self.assertEqual(self.game.mayor.user.username, 'pk3')
+        self.assertEqual(self.game.mayor, negromante)
+        self.assertTrue(negromante.canonicalize().is_mayor())
+        
+        # Advance to second night, kill and disqualify mayor, and make mayor appoint someone that is going to be killed and exiled too.
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        disqualification_event = DisqualificationEvent(player=negromante, private_message='Muhahaha', timestamp=get_now())
+        dynamics.inject_event(disqualification_event)
+        
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=cacciatore, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=ipnotista, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=APPOINT, player=negromante, target=ipnotista, timestamp=get_now()))
+        
+        # Advance to dawn and check (APPOINT command should be ignored)
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        [exile_event] = [event for event in dynamics.debug_event_bin if isinstance(event, ExileEvent) and event.cause == DISQUALIFICATION]
+        self.assertEqual(exile_event.disqualification, disqualification_event)
+        self.assertEqual(exile_event.player, negromante)
+        [exile_event] = [event for event in dynamics.debug_event_bin if isinstance(event, ExileEvent) and event.cause == TEAM_DEFEAT]
+        self.assertEqual(exile_event.player, ipnotista)
+        
+        [death_event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent) and event.cause == HUNTER]
+        self.assertEqual(death_event.player, negromante)
+        [death_event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent) and event.cause == WOLVES]
+        self.assertEqual(death_event.player, ipnotista)
+        
+        self.assertFalse(self.game.mayor == negromante)
+        self.assertFalse(self.game.mayor == ipnotista)
+        num = 0
+        for p in players:
+            if p is not negromante and p.canonicalize().is_mayor():
+                num += 1
+        self.assertEqual(num, 1)
+    
+    
+    @record_name
     def test_load_test(self):
         self.game = self.load_game_helper('test.json')
 
