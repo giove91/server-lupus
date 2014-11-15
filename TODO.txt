@@ -21,9 +21,9 @@ INTERFACE (mostly Giove):
 
  * Update prototypes and letters' templates [waiting for Marta...].
 
- * Update string representation of Events [probably done].
+ * Update string representation of Events [waiting for Gio implementing VoteRiggingEvent...].
 
- * Check that session timeout is reasonably short [waiting for Gio implementing VoteRiggingEvent...].
+ * Check that session timeout is reasonably short.
 
  * Update ruleset (PDF).
  
