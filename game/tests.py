@@ -4638,7 +4638,7 @@ class GameTests(TestCase):
         self.assertEqual(num, 1)
     
     @record_name
-    def test_exiled_mayor_while_appointing(self):
+    def test_disqualified_mayor_while_appointing(self):
         roles = [ Contadino, Contadino, Negromante, Lupo, Lupo, Fattucchiera, Ipnotista ]
         self.game = create_test_game(2204, roles)
         
@@ -4672,8 +4672,8 @@ class GameTests(TestCase):
         self.assertEqual(exile_event.player, ipnotista)
         
         self.assertFalse(self.game.mayor == negromante)
-        self.assertEqual(self.game.mayor, lupo)
-        self.assertTrue(lupo.canonicalize().is_mayor())
+        self.assertFalse(self.game.mayor == lupo) # Mayor appointment is not considered when mayor is disqualified
+        self.assertFalse(lupo.canonicalize().is_mayor())
     
     @record_name
     def test_exile_mayor_and_appointed_mayor(self):

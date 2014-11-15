@@ -12,12 +12,7 @@ GAME ENGINE AND DYNAMICS (mostly Gio):
 
 TESTS (mostly Giove):
 
- * Ipnosi and Amnesia.
-
  * Update mayor tests checking SetMayorEvent.cause [low priority].
-
- * Fix test_exiled_mayor_while_appointing (mayor appointment is not
-   considered when mayor is disqualified).
 
 INTERFACE (mostly Giove):
 
