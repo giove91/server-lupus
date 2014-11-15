@@ -95,6 +95,7 @@ class Dynamics:
             player.is_mystic = None
             player.alive = True
             player.active = True
+            player.disqualified = False
             player.canonical = True
             player.recorded_vote = None
             player.recorded_elect = None
@@ -886,7 +887,7 @@ class Dynamics:
 
         # Loss of mayor
         if new_mayor:
-            if self.appointed_mayor is not None:
+            if self.appointed_mayor is not None and not self.mayor.disqualified:
                 assert self.appointed_mayor.alive and self.appointed_mayor.active
                 self.generate_event(SetMayorEvent(player=self.appointed_mayor, cause=SUCCESSION_CHOSEN))
 
@@ -894,11 +895,10 @@ class Dynamics:
                 candidates = self.get_alive_players()
                 self.generate_event(SetMayorEvent(player=self.random.choice(candidates), cause=SUCCESSION_RANDOM))
 
-        else:
-            assert self.mayor.alive and self.mayor.active
-
         while self._update_step(advancing_turn=True):
             pass
+
+        assert self.mayor.alive and self.mayor.active
 
     def _end_of_main_phase(self):
         assert self.mayor.alive and self.mayor.active

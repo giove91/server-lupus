@@ -5046,8 +5046,8 @@ class GameTests(TestCase):
         self.assertEqual(death_event.player, negromante)
         self.assertEqual(death_event.cause, HUNTER)
         
-        self.assertFalse(self.game.mayor == negromante)
-        self.assertFalse(self.game.mayor == contadino)
+        self.assertIsNot(self.game.mayor, negromante)
+        self.assertIsNot(self.game.mayor, contadino)
         num = 0
         for p in players:
             if p is not negromante and p.canonicalize().is_mayor():

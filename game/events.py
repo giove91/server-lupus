@@ -1059,6 +1059,8 @@ class ExileEvent(Event):
             assert self.disqualification is None
 
         player.active = False
+        if self.cause == DISQUALIFICATION:
+            player.disqualified = True
     
     def to_player_string(self, player):
         oa = self.player.oa
