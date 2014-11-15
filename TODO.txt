@@ -18,6 +18,8 @@ TESTS (mostly Giove):
  * Spettro dell'Ipnosi acting on a Trasformista who is becoming an
    Ipnotista [done] -- More general situation?
 
+ * Ipnosi and Amnesia.
+
 INTERFACE (mostly Giove):
 
  * Update prototypes and letters' templates [waiting for Marta...].
