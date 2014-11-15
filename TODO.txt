@@ -17,6 +17,8 @@ TESTS (mostly Giove):
 
  * Ipnosi and Amnesia.
 
+ * Update mayor tests checking SetMayorEvent.cause [low priority].
+
 INTERFACE (mostly Giove):
 
  * Update prototypes and letters' templates [waiting for Marta...].
@@ -38,3 +40,5 @@ MYSTERIOUS:
 OTHER:
 
  * Deploy server and make human tests (possibly with Leonardo and Sasha).
+
+ * Tool for simulating future phases.
