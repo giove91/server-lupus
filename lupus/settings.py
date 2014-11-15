@@ -46,6 +46,10 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'game.middleware.PlayerMiddleware',
+    'game.middleware.GameMiddleware',
+    'game.middleware.PageRequestMiddleware',
+    'game.middleware.SessionMiddleware',
 )
 
 ROOT_URLCONF = 'lupus.urls'
@@ -139,10 +143,6 @@ if DEBUG:
     INTERNAL_IPS = ('127.0.0.1',)
     MIDDLEWARE_CLASSES += (
         'debug_toolbar.middleware.DebugToolbarMiddleware',
-        'django.contrib.sessions.middleware.SessionMiddleware',
-        'game.middleware.PlayerMiddleware',
-        'game.middleware.GameMiddleware',
-        'game.middleware.PageRequestMiddleware',
     )
 
     INSTALLED_APPS += (

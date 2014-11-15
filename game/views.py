@@ -33,6 +33,7 @@ import xml.etree.ElementTree as ET
 
 def is_GM_check(user):
     # Checks that the user is a GM
+    # FIXME: in many cases throughout the app, user.is_staff is checked (and not is_GM_check(user)).
     if not user.is_authenticated():
         return False
     return user.is_staff

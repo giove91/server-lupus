@@ -53,6 +53,15 @@ class GameMiddleware:
         
         return None
 
+# Middleware for extending Session for Game Masters
+class SessionMiddleware:
+    def process_request(self, request):
+        user = request.user
+        if user.is_authenticated() and user.is_staff:
+            # User is a GM
+            request.session.set_expiry(1209600) # Session timeout set to 2 weeks.
+        return None
+
 
 class PageRequestMiddleware:
     def process_request(self, request):
