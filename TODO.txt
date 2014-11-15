@@ -15,9 +15,6 @@ GAME ENGINE AND DYNAMICS (mostly Gio):
 
 TESTS (mostly Giove):
 
- * Spettro dell'Ipnosi acting on a Trasformista who is becoming an
-   Ipnotista [done] -- More general situation?
-
  * Ipnosi and Amnesia.
 
 INTERFACE (mostly Giove):
