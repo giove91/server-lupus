@@ -414,17 +414,16 @@ class TransformationEvent(Event):
             assert new_role_class is not None
         assert self.role_name == new_role_class.__name__
 
-        # If the new role is Ipnotista, dishypnotize the player
-        if isinstance(target.role, Ipnotista):
-            player.hypotist = None
-
         # Instantiate new role class and copy attributes
         player.role = new_role_class(player)
         player.aura = target.aura
         player.is_mystic = target.is_mystic
         assert player.team == POPOLANI
-    
-    def to_player_string(self,player):
+
+        # Call any role-specific code
+        player.role.post_appearance(dynamics)
+
+    def to_player_string(self, player):
         role = Role.get_from_name(self.role_name).name
         
         if player == self.player:

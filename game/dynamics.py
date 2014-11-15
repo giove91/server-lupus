@@ -78,9 +78,9 @@ class Dynamics:
         self.server_is_on_fire = False  # so far...
         self.playing_teams = []
         self.advocated_players = []
-        self.hypnosis_ghost_target = None
         self.additional_ballots = []
         self.amnesia_target = None
+        self.hypnosis_ghost_target = None
         self.wolves_target = None
         self.necromancers_target = None
         self.winners = None
@@ -574,8 +574,20 @@ class Dynamics:
 
         # Powers that modify the state: Cacciatore, Messia,
         # Trasformista, Lupi, Avvocato del Diavolo, Negromante,
-        # Ipnotista, Spettro dell'Amnesia and Spettro della Morte (the
-        # order is important here!)
+        # Ipnotista, Spettro dell'Amnesia and Spettro della Morte. The
+        # order is important: in particular, these inequalities have
+        # to be satisfied ("<" means "must act before"):
+        #
+        #  * AMNESIA, IPNOSI, Ipnotista < Trasformista (if
+        #    Trasformista becomes Ipnotista, then AMNESIA, IPNOSI and
+        #    Ipnotista do not fail, but the new Ipnotista is immune
+        #    from them)
+        #
+        #  * Messia < Negromante (resurrection has precedence over
+        #    ghostification)
+        #
+        #  * anything < Cacciatore, Lupo, MORTE (deaths happen at the
+        #    and of the turn)
         MODIFY_ROLES = [Avvocato, AMNESIA, Scrutatore, IPNOSI,
                         Ipnotista, Trasformista, Messia, Negromante,
                         Cacciatore, Lupo, MORTE]
@@ -702,17 +714,19 @@ class Dynamics:
             # Count Ipnotista
             real_vote = player.recorded_vote
             if player.hypnotist is not None and player.hypnotist.alive:
+                assert not isinstance(player.role, Ipnotista)
                 assert isinstance(player.hypnotist.role, Ipnotista)
                 real_vote = player.hypnotist.recorded_vote
 
-            # Count Spettro dell'Ipnosi (TODO: maybe should happen
-            # before Ipnotista?)
+            # Count Spettro dell'Ipnosi
             if self.hypnosis_ghost_target is not None and player is self.hypnosis_ghost_target[0]:
                 if self.hypnosis_ghost_target[1].alive:
+                    assert not isinstance(player.role, Ipnotista)
                     real_vote = self.hypnosis_ghost_target[1]
 
             # Count Spettro dell'Amnesia
             if self.amnesia_target is not None and self.amnesia_target.pk == player.pk:
+                assert not isinstance(player.role, Ipnotista)
                 real_vote = None
 
             ballots[player.pk] = real_vote

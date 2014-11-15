@@ -15,7 +15,7 @@ class Role(object):
     message_ghost = 'Potere soprannaturale:'
     
     def __init__(self, player):
-        self.player = player
+        self.player = player.canonicalize()
         self.last_usage = None
         self.last_target = None
         self.recorded_target = None
@@ -94,8 +94,15 @@ class Role(object):
         return True
 
     def pre_disappearance(self, dynamics):
-        """To be called just before this role disappear (either because the
+        """To be called just before this role disappears (either because the
         player is disqualified or because they change role).
+
+        """
+        pass
+
+    def post_appearance(self, dynamics):
+        """To be called just after this role appears as a result of a
+        Trasformista assuming it.
 
         """
         pass
@@ -653,6 +660,15 @@ class Ipnotista(Role):
         for player in dynamics.players:
             if player.hypnotist is self.player:
                 player.hypnotist = None
+
+    def post_appearance(self, dynamics):
+        # If the player becomes an Ipnotista, dishypnotize him and
+        # disable the effects of Spettro dell'Amnesia and dell'Ipnosi
+        self.player.hypnotist = None
+        if dynamics.amnesia_target is self.player:
+            dynamics.amnesia_target = None
+        if dynamics.hypnosis_ghost_target is not None and dynamics.hypnosis_ghost_target[0] is self.player:
+            dynamics.hypnosis_ghost_target = None
 
     def apply_dawn(self, dynamics):
         from events import HypnotizationEvent
