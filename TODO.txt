@@ -20,15 +20,15 @@ TESTS (mostly Giove):
 
 INTERFACE (mostly Giove):
 
- * Update prototypes and letters' templates.
+ * Update prototypes and letters' templates [waiting for Marta...].
 
  * Update string representation of Events [probably done].
 
- * Check that session timeout is reasonably short.
+ * Check that session timeout is reasonably short [waiting for Gio implementing VoteRiggingEvent...].
 
  * Update ruleset (PDF).
  
- * Update trailer page (after opening ceremony).
+ * Update trailer page [after opening ceremony].
 
 MYSTERIOUS:
 
