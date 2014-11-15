@@ -5164,7 +5164,7 @@ class GameTests(TestCase):
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) if event.player == ipnotista]
-        self.assertFalse(event.success)
+        self.assertTrue(event.success)
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) if event.player == trasformista]
         self.assertTrue(event.success)
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, TransformationEvent)]
