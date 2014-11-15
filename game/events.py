@@ -288,7 +288,10 @@ class SetMayorEvent(Event):
             else:
                 return u'%s è stat%s elett%s nuovo Sindaco del villaggio.' % (self.player.full_name, oa, oa)
         elif self.cause == SUCCESSION_RANDOM or self.cause == SUCCESSION_CHOSEN:
-            raise NotImplementedError('Please finish implementing SetMayorEvent')
+            if player == self.player:
+                return u'Sei stat%s nominat%s nuovo Sindaco del villaggio.' % (oa, oa)
+            else:
+                return u'%s è stat%s nominat%s nuovo Sindaco del villaggio.' % (self.player.full_name, oa, oa)
         else:
             raise Exception('Unknown cause for SetMayorEvent')
 

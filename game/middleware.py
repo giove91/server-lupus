@@ -53,7 +53,7 @@ class GameMiddleware:
         
         return None
 
-# Middleware for extending Session for Game Masters
+# Middleware for extending Sessions of Game Masters
 class SessionMiddleware:
     def process_request(self, request):
         user = request.user
