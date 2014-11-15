@@ -169,3 +169,8 @@ if DEBUG:
 # GeoIP
 # GEOIP_PATH = os.path.join(BASE_DIR, 'geoip')
 
+
+# Session timeout
+SESSION_COOKIE_AGE = 60*5
+
+
