@@ -14,11 +14,7 @@ TESTS (mostly Giove):
 
 INTERFACE (mostly Giove):
 
- * Update ruleset (PDF).
- 
  * Update trailer page [after opening ceremony].
-
- * Make redirect work nicely.
 
 MYSTERIOUS:
 
