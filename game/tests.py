@@ -4465,6 +4465,8 @@ class GameTests(TestCase):
                 self.assertTrue(event.player in fantasmi)
                 self.assertEqual(event.cause, PHANTOM)
             self.assertEqual(set([e.ghost for e in events]), set([AMNESIA, ILLUSIONE, MISTIFICAZIONE, OCCULTAMENTO, VISIONE]))
+            
+            # TODO: assert that the right number of GhostificationFailedEvent siano generati
     
     @record_name
     def test_ipnosi_and_scrutatore_with_quorum(self):

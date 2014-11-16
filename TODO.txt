@@ -14,7 +14,7 @@ TESTS (mostly Giove):
 
 INTERFACE (mostly Giove):
 
- * Update prototypes and letters' templates [waiting for Marta...].
+ * Update prototypes and letters' templates.
 
  * Update ruleset (PDF).
  
