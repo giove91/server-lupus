@@ -313,10 +313,10 @@ class InitialPropositionEvent(Event):
     def load_from_dict(self, data, players_map):
         self.text = data['text']
 
-    def apply(self,dynamics):
+    def apply(self, dynamics):
         pass
     
-    def to_player_string(self,player):
+    def to_player_string(self, player):
         # This event is processed separately
         return None
 
@@ -543,6 +543,34 @@ class PlayerDiesEvent(Event):
             else:
                 return u'%s è stat%s ritrovat%s mort%s.' % (self.player.full_name, oa, oa, oa)
 
+
+class SoothsayerModelEvent(Event):
+    RELEVANT_PHASES = [CREATION]
+    AUTOMATIC = False
+
+    player_role = models.CharField(max_length=200, default=None)
+    advertised_role = models.CharField(max_length=200, default=None)
+    soothsayer_num = models.IntegerField()
+
+    def to_dict(self):
+        ret = Event.to_dict(self)
+        ret.update({
+            'player_role': self.player_role,
+            'advertised_role': self.advertised_role,
+            'soothsayer_num': self.soothsayer_num,
+        })
+        return ret
+
+    def load_from_dict(self, data, players_map):
+        self.player_role = data['player_role']
+        self.advertised_role = data['advertised_role']
+        self.soothsayer_num = int(data['soothdayer_num'])
+
+    def apply(self, dynamics):
+        soothsayer = [pl for pl in dynamics.players if isinstance(pl.role, Divinatore)][self.soothsayer_num]
+        target = dynamics.random.choice([pl for pl in dynamics.players if pl.role.__class__.__name__ == self.player_role])
+        event = RoleKnowledgeEvent(player=soothsayer, target=target, role_name=self.advertised_role, cause=SOOTHSAYER)
+        dynamics.generate_event(event)
 
 class RoleKnowledgeEvent(Event):
     RELEVANT_PHASES = [CREATION, DAWN, SUNSET]

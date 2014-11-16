@@ -25,6 +25,10 @@ ANCIENT_DATETIME = datetime(year=1970, month=1, day=1, tzinfo=REF_TZINFO)
 # events have to be deleted from the database
 SINGLE_MODE = False
 
+def set_debug_dynamics(value):
+    global DEBUG_DYNAMICS
+    DEBUG_DYNAMICS = value
+
 class Dynamics:
 
     def __init__(self, game):
@@ -150,6 +154,8 @@ class Dynamics:
                 raise
 
     def _pop_event_from_db(self):
+        if DEBUG_DYNAMICS:
+            print >> sys.stderr, "current_turn: %r; last_timestamp_in_turn: %r; last_pk_in_turn: %r" % (self.current_turn, self.last_timestamp_in_turn, self.last_pk_in_turn)
         try:
             event = Event.objects.filter(turn=self.current_turn). \
                 filter(Q(timestamp__gt=self.last_timestamp_in_turn) |
@@ -171,6 +177,8 @@ class Dynamics:
         if self.current_turn is not None:
             queued_event = self._pop_event_from_queue()
             if queued_event is not None:
+                if DEBUG_DYNAMICS:
+                    print >> sys.stderr, "Receiving event from queue"
                 if self.debug_event_bin is not None:
                     self.debug_event_bin.append(queued_event)
                 if SINGLE_MODE:
@@ -186,6 +194,8 @@ class Dynamics:
                     return False
                 event = self._pop_event_from_db()
                 if event is not None:
+                    if DEBUG_DYNAMICS:
+                        print >> sys.stderr, "Receiving event from database"
                     self._receive_event(event)
                     return True
 

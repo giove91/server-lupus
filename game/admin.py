@@ -54,6 +54,9 @@ class FreeTextEventAdmin(admin.ModelAdmin):
 class InitialPropositionEventAdmin(admin.ModelAdmin):
     list_display = ('event_name', 'turn', 'timestamp', 'text')
 
+class SoothsayerModelEventAdmin(admin.ModelAdmin):
+    list_display = ('event_name', 'turn', 'timestamp', 'player_role', 'advertised_role', 'soothsayer_num')
+
 class RoleKnowledgeEventAdmin(admin.ModelAdmin):
     list_filter = ['cause', 'turn']
     list_display = ('event_name', 'turn', 'timestamp', 'player', 'target', 'role_name', 'cause')
@@ -81,6 +84,7 @@ admin.site.register(Comment, CommentAdmin)
 
 admin.site.register(CommandEvent, CommandEventAdmin)
 admin.site.register(InitialPropositionEvent, InitialPropositionEventAdmin)
+admin.site.register(SoothsayerModelEvent, SoothsayerModelEventAdmin)
 admin.site.register(FreeTextEvent, FreeTextEventAdmin)
 admin.site.register(RoleKnowledgeEvent, RoleKnowledgeEventAdmin)
 admin.site.register(PowerOutcomeEvent, PowerOutcomeEventAdmin)
