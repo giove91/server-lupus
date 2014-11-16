@@ -610,6 +610,10 @@ class RoleKnowledgeEvent(Event):
             assert isinstance(self.player.canonicalize().role, Medium)
             assert not self.target.canonicalize().alive
 
+        elif self.cause == HYPNOTIST_DEATH:
+            # TODO: implement
+            pass
+
         if self.cause != SOOTHSAYER:
             role_class = roles_map[self.role_name]
             assert isinstance(self.target.canonicalize().role, role_class)
@@ -659,6 +663,12 @@ class RoleKnowledgeEvent(Event):
                 return u'Scopri che %s ha il ruolo di %s.' % (self.target.full_name, role)
             elif player == 'admin':
                 return u'Il Medium %s scopre che %s ha il ruolo di %s.' % (self.player.full_name, self.target.full_name, role)
+        
+        elif self.cause == HYPNOTIST_DEATH:
+            if player == self.player:
+                return u'Percepisci che %s era un Ipnotista: dopo la morte è diventat%s uno Spettro.' % (self.target.full_name, toa)
+            elif player == 'admin':
+                return u'Il Negromante %s viene a sapere che l\'Ipnotista %s è diventato uno Spettro.' % (self.player.full_name, self.target.full_name)
         
         else:
             raise Exception ('Unknown cause for RoleKnowledgeEvent')

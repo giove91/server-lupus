@@ -5,8 +5,6 @@ GAME ENGINE AND DYNAMICS (mostly Gio):
 
  * Fix DST TZ selection during automatic turn advancement
 
- * Implement VoteRiggingEvent for Scrutatore
-
  * Ignore power usages and votes of player that are going to be
    disqualified
 
@@ -18,11 +16,11 @@ INTERFACE (mostly Giove):
 
  * Update prototypes and letters' templates [waiting for Marta...].
 
- * Update string representation of Events [waiting for Gio implementing VoteRiggingEvent...].
-
  * Update ruleset (PDF).
  
  * Update trailer page [after opening ceremony].
+
+ * Make redirect work nicely.
 
 MYSTERIOUS:
 
