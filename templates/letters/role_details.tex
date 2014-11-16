@@ -90,17 +90,18 @@ Il Messia è un mistico e appartiene alla Fazione dei Popolani. Ha un potere att
 {% endif %}
 
 
-{% if player.role_name == "Trasformista" %}
-Anche il tuo numero di scarpe è un mistero. Nella vita hai cambiato più facce che cappelli e nemmeno tua madre potrebbe riconoscerti ormai, ammesso che tu ti ricordi chi è tua madre. Forse sei un agente segreto, un supereroe, o forse cerchi solo di rifarti una vita dove nessuno conosce i tuoi incresciosi trascorsi da necrofilo. La passione per i cimiteri però ti è rimasta e nel tempo libero ami passeggiare tra le tombe in cerca di una nuova identità.
-
-Il Trasformista appartiene alla Fazione dei Popolani e ha un potere attivabile di notte, una sola volta in tutta la partita. Il Trasformista può scegliere un personaggio morto. Se si tratta di un personaggio dotato di un potere speciale attivabile ogni notte o ogni due notti, il Trasformista lo scopre e ottiene tale potere insieme all'aura del personaggio (bianca o nera, mistica o non mistica); altrimenti, il potere del Trasformista non ha effetto. Se si tratta di un Lupo, un Negromante o un Fantasma, il potere del Trasformista non ha effetto. Se si tratta di uno Spettro, il Trasformista ottiene il potere e l'aura che quel personaggio aveva prima di diventare Spettro.
-{% endif %}
-
 
 {% if player.role_name == "Stalker" %}
 Più appiccicoso della melassa, più insistente di una canzone degli One Direction, più fastidioso di una colonia di formiche rosse insediata nelle mutande. Una volta puntata una vittima la segui ovunque, e questo include anche il gabinetto, le atroci riunioni del club del libro e i ricevimenti del professor Beltram.
 
 Lo Stalker appartiene (stranamente) alla Fazione dei Popolani ed ha un potere attivabile ogni due giorni. Lo Stalker sceglie un personaggio vivo da pedinare e scopre se ha agito durante la notte e, nel caso, su chi; non scopre però cosa ha fatto. Se il personaggio usa il proprio potere su se stesso, lo Stalker riceve informazioni come se esso non avesse agito.
+{% endif %}
+
+
+{% if player.role_name == "Trasformista" %}
+Anche il tuo numero di scarpe è un mistero. Nella vita hai cambiato più facce che cappelli e nemmeno tua madre potrebbe riconoscerti ormai, ammesso che tu ti ricordi chi è tua madre. Forse sei un agente segreto, un supereroe, o forse cerchi solo di rifarti una vita dove nessuno conosce i tuoi incresciosi trascorsi da necrofilo. La passione per i cimiteri però ti è rimasta e nel tempo libero ami passeggiare tra le tombe in cerca di una nuova identità.
+
+Il Trasformista appartiene alla Fazione dei Popolani e ha un potere attivabile di notte, una sola volta in tutta la partita. Il Trasformista può scegliere un personaggio morto. Se si tratta di un personaggio dotato di un potere speciale attivabile ogni notte o ogni due notti, il Trasformista lo scopre e ottiene tale potere insieme all'aura del personaggio (bianca o nera, mistica o non mistica); altrimenti, il potere del Trasformista non ha effetto. Se si tratta di un Lupo, un Negromante o un Fantasma, il potere del Trasformista non ha effetto. Se si tratta di uno Spettro, il Trasformista ottiene il potere e l'aura che quel personaggio aveva prima di diventare Spettro.
 {% endif %}
 
 
