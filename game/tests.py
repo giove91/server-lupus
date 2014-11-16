@@ -34,6 +34,12 @@ def delete_auto_users():
             user.delete()
 
 
+def delete_non_staff_users():
+    for user in User.objects.all():
+        if not user.is_staff:
+            user.delete()
+
+
 def delete_games():
     for game in Game.objects.all():
         game.delete()
