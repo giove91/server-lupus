@@ -25,8 +25,9 @@ def main():
 
     if 'set_end' in sys.argv[1:]:
         turn = game.current_turn
-        turn.end = get_now()
-        turn.save()
+        if turn.end is None:
+            turn.end = get_now()
+            turn.save()
 
     game.advance_turn()
 
