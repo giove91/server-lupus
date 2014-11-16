@@ -14,8 +14,6 @@ TESTS (mostly Giove):
 
 INTERFACE (mostly Giove):
 
- * Update prototypes and letters' templates.
-
  * Update ruleset (PDF).
  
  * Update trailer page [after opening ceremony].
