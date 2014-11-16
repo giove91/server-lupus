@@ -18,6 +18,16 @@ from game.constants import *
 
 def main():
     game = Game.get_running_game()
+
+    # Fail without creating the turn if there are errors in the
+    # dynamics
+    game.get_dynamics()
+
+    if 'set_end' in sys.argv[1:]:
+        turn = game.current_turn
+        turn.end = get_now()
+        turn.save()
+
     game.advance_turn()
 
 if __name__ == '__main__':
