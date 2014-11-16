@@ -43,7 +43,7 @@ class LetterRenderer:
             if message is not None:
                 self.initial_knowledge.append(message)
         
-        soothsayer_events = RoleKnowledgeEvent.objects.filter(player=player).filter(cause=SOOTHSAYER)
+        soothsayer_events = [ev for ev in self.game.get_dynamics().events if isinstance(ev, RoleKnowledgeEvent) and ev.player == player and ev.cause == SOOTHSAYER]
         self.soothsayer_knowledge = []
         for event in soothsayer_events:
             message = event.to_soothsayer_proposition()

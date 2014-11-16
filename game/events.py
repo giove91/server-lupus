@@ -564,7 +564,7 @@ class SoothsayerModelEvent(Event):
     def load_from_dict(self, data, players_map):
         self.player_role = data['player_role']
         self.advertised_role = data['advertised_role']
-        self.soothsayer_num = int(data['soothdayer_num'])
+        self.soothsayer_num = int(data['soothsayer_num'])
 
     def apply(self, dynamics):
         soothsayer = [pl for pl in dynamics.players if isinstance(pl.role, Divinatore)][self.soothsayer_num]

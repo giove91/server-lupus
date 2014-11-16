@@ -33,11 +33,11 @@ Hai sempre pensato di essere un tipo qualunque, il contadino medio pronto a linc
 Il Divinatore è un mistico, appartiene alla Fazione dei Popolani e non ha alcun potere speciale. All'inizio della partita il Divinatore è a conoscenza di quattro proposizioni, di cui esattamente due sono vere ed esattamente due sono false.
 
 Le quattro proposizioni sono le seguenti.
-\begin{quote}
+\begin{itemize}
 {% for message in soothsayer_knowledge %}
-    {{ message }} \\
+    \item {{ message }}
 {% endfor %}
-\end{quote}
+\end{itemize}
 {% endif %}
 
 
