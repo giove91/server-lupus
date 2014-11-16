@@ -5557,6 +5557,8 @@ class GameTests(TestCase):
         self.assertTrue((cacciatore, Veggente.name) in info)
         self.assertTrue((divinatore, Contadino.name) in info)
         self.assertTrue((contadino, Contadino.name) in info)
+
+        test_advance_turn(self.game)
     
     @record_name
     def test_load_test(self):

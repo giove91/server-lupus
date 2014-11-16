@@ -10,7 +10,7 @@ from datetime import datetime
 from models import Event, Turn
 from events import CommandEvent, VoteAnnouncedEvent, TallyAnnouncedEvent, \
     SetMayorEvent, PlayerDiesEvent, PowerOutcomeEvent, StakeFailedEvent, \
-    ExileEvent, VictoryEvent, AvailableRoleEvent
+    ExileEvent, VictoryEvent, AvailableRoleEvent, RoleKnowledgeEvent
 from constants import *
 from roles import *
 
@@ -325,14 +325,18 @@ class Dynamics:
             print >> sys.stderr, "Computing creation"
 
     def _checks_after_creation(self):
-        # You must generate no events here!
+        # You shall generate no events here!
 
         # Check that all teams are represented
         self.playing_teams = self._count_alive_teams()
         assert sorted(self.playing_teams) == sorted([POPOLANI, LUPI, NEGROMANTI])
 
-        # TODO: check that the soothsayer received revelations
-        # according to the rules
+        # Check that the soothsayer received revelations according to
+        # the rules
+        for soothsayer in [pl for pl in self.players if isinstance(pl.role, Divinatore)]:
+            events = [ev for ev in self.events if isinstance(ev, RoleKnowledgeEvent) and ev.player.pk == soothsayer.pk]
+            assert len(events) == 4, len(events)
+            assert sorted([isinstance(ev.target.canonicalize().role, roles_map[ev.role_name]) for ev in events]) == sorted([False, False, True, True])
 
     def _compute_entering_night(self):
         if DEBUG_DYNAMICS:
