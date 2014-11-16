@@ -35,3 +35,6 @@ OTHER:
  * Deploy server and make human tests (possibly with Leonardo and Sasha).
 
  * Tool for simulating future phases.
+
+ * Write initial mayor letter.
+
