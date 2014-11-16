@@ -30,3 +30,7 @@ OTHER:
 
  * Write initial mayor letter.
 
+FOR THE FUTURE:
+
+ * Make Marta write the weather descriptions.
+

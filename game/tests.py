@@ -5525,6 +5525,39 @@ class GameTests(TestCase):
         self.assertEqual(events, [])
     
     @record_name
+    def test_divinatore(self):
+        roles = [ Cacciatore, Negromante, Negromante, Lupo, Lupo, Contadino, Divinatore ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [cacciatore] = [x for x in players if isinstance(x.role, Cacciatore)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [negromante1, negromante2] = [x for x in players if isinstance(x.role, Negromante)]
+        [divinatore] = [x for x in players if isinstance(x.role, Divinatore)]
+        [contadino] = [x for x in players if isinstance(x.role, Divinatore)]
+        
+        dynamics.debug_event_bin = []
+        
+        # Inserting Soothsayer propositions
+        dynamics.inject_event(SoothsayerModelEvent(player_role=Cacciatore.name, advertised_role=Veggente.name, soothsayer_num=0, timestamp=get_now()))
+        dynamics.inject_event(SoothsayerModelEvent(player_role=Negromante.name, advertised_role=Negromante.name, soothsayer_num=0, timestamp=get_now()))
+        dynamics.inject_event(SoothsayerModelEvent(player_role=Divinatore.name, advertised_role=Contadino.name, soothsayer_num=0, timestamp=get_now()))
+        dynamics.inject_event(SoothsayerModelEvent(player_role=Contadino.name, advertised_role=Contadino.name, soothsayer_num=0, timestamp=get_now()))
+        
+        # Check
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
+        self.assertEqual(len(events), 4)
+        for e in events:
+            self.assertEqual(e.player, divinatore)
+        
+        info = [(e.target, e.role_name) for e in events]
+        self.assertTrue((negromante1, Negromante.name) in info or (negromante2, Negromante.name) in info)
+        self.assertTrue((cacciatore, Veggente.name) in info)
+        self.assertTrue((divinatore, Contadino.name) in info)
+        self.assertTrue((contadino, Contadino.name) in info)
+    
+    @record_name
     def test_load_test(self):
         self.game = self.load_game_helper('test.json')
 
