@@ -97,7 +97,7 @@ class LetterRenderer:
         os.system('pdflatex -output-directory ' + self.directory + ' ' + self.directory + filename)
         
         # Cleaning
-        os.system('rm ' + self.directory + basename + '.tex')
+        #os.system('rm ' + self.directory + basename + '.tex')
         os.system('rm ' + self.directory + basename + '.aux')
         os.system('rm ' + self.directory + basename + '.log')
     
