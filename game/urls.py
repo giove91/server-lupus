@@ -30,7 +30,6 @@ urlpatterns = patterns('',
     url(r'^adminstatus/$', AdminStatusView.as_view(), name='adminstatus'),
     url(r'^setup/$', setup, name='setup'),
     url(r'^advanceturn/$', advance_turn, name='advanceturn'),
-    url(r'^createletters/$', create_letters, name='createletters'),
     url(r'^pointofview/$', PointOfView.as_view(), name='pointofview'),
 )
 

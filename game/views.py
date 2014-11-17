@@ -107,16 +107,6 @@ def setup(request):
 
 
 @user_passes_test(is_GM_check)
-def create_letters(request):
-    game = request.game
-    players = game.get_players()
-    for player in players:
-        lr = LetterRenderer(player)
-        lr.render_all()
-    return render(request, 'index.html')
-
-
-@user_passes_test(is_GM_check)
 def advance_turn(request):
     game = request.game
     turn = game.current_turn

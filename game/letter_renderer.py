@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import os, codecs, random, string
+import os, codecs, string
 from django.template.loader import render_to_string
 
 from models import *
@@ -11,7 +11,7 @@ from constants import *
 def render_to_file(template, filename, context):
     codecs.open(filename, 'w', 'utf-8').write(render_to_string(template, context))
 
-def generate_password(length):
+def generate_password(random, length):
     chars = string.ascii_letters
     return ''.join(random.choice(chars) for i in range(length))
 
@@ -24,15 +24,17 @@ class LetterRenderer:
     
     password_length = 8
     
-    def __init__(self, player):
+    def __init__(self, player, random):
         self.player = player
+        self.random = random
+
         self.game = player.game
         self.players = self.game.get_players()
         self.numplayers = len(self.players)
         self.column_height = (self.numplayers+1)/2
         self.mayor = self.game.mayor
         
-        self.password = generate_password(self.password_length)
+        self.password = generate_password(self.random, self.password_length)
         
         self.initial_propositions = InitialPropositionEvent.objects.filter(turn__game=self.game)
         
