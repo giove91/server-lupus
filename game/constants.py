@@ -5,7 +5,8 @@
 import datetime as _datetime
 import pytz as _pytz
 
-REF_TZINFO = _pytz.timezone('Europe/Rome')
+# TODO: fix problems with TZ handling
+REF_TZINFO = _pytz.timezone('CET')
 
 # Turn phases (we used to have letters here, but we need something
 # that preserves the order in the database; FIXME: find a better
