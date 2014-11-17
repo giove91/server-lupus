@@ -1,32 +1,35 @@
 body {
-	background-color: #d5d9e0;
-	background-image: url('bg-gradient.png');
-	color: #272a2e;
+	background-color: #f2f2f2;
+	/*background-image: url('bg-gradient.png');*/
+	background-image: -webkit-radial-gradient(ellipse at center, #fafafa 0%,#f2f2f2 100%);
+	background-image: -moz-radial-gradient(ellipse at center, #fafafa 0%,#f2f2f2 100%);
+	background-image: -o-radial-gradient(ellipse at center, #fafafa 0%,#f2f2f2 100%);
+	background-image: radial-gradient(ellipse at center, #fafafa 0%,#f2f2f2 100%);
+	background-repeat: no-repeat;
+	color: #090909;
+	font-family: 'Ubuntu', sans-serif;
 }
 
 h1 {
 	font-size: 17px;
-	font-family: sans-serif;
 	font-weight: bold;
 	text-transform:uppercase;
-	color: #272a2e;
+	color: #090909;
 	margin-bottom: 7px;
 }
 
 h2 {
-	font-size: 12px;
-	font-family: sans-serif;
+	font-size: 13px;
 	font-weight: bold;
 	text-transform:uppercase;
-	color: #272a2e;
+	color: #090909;
 	margin-bottom: 7px;
 }
 
 h3 {
-	font-size: 12px;
-	font-family: sans-serif;
+	font-size: 13px;
 	font-weight: bold;
-	color: #272a2e;
+	color: #090909;
 	margin-top: 5px;
 	margin-bottom: 5px;
 }
@@ -45,7 +48,7 @@ p {
 
 .info-block {
 	background-color: #fff;
-	box-shadow: -1px 2px 1px 0px rgba(50, 50, 50, 0.33);
+	box-shadow: rgba(0, 0, 0, 0.0980392) 0px 1px 2px 0px;
 	padding: 7px 9px 3px 9px;
 	margin-bottom: 25px;
 }
@@ -57,14 +60,14 @@ p {
 
 .info-block thead {
 	border-bottom: 1px;
-	border-color:  #272a2e;
+	color: #090909;
 	border-style: solid;
-	background-color: #f1f1f1;
+	background-color: #f7f7f7;
 }
 
 .info-block td {
 	border-left: 1px;
-	border-color: #272a2e;
+	color: #090909;
 	border-style: solid;
 	
 	padding: 2px 6px 2px 6px;
@@ -104,7 +107,7 @@ p {
 
 .separator {
 	height: 1px;
-	background-color: #bbb;
+	background-color: #eee;
 	width: 100%;
 	margin: 5px 0px 12px 0;
 }
@@ -121,21 +124,20 @@ p {
 .players-status {
 	text-align: right;
 	/*padding: 7px 7px 3px 2px;*/
-	background-color: #fcfcfc;
+	background-color: #ffffff;
 	/*margin-left: 10px;*/
-	font-size: 12px;
+
+	font-size: 13px;
 }
 
 .players-status h2 {
 	display: block;
 	padding: 0 7px 0 7px;
 	font-size: 14px;
-	font-family: sans-serif;
 	font-weight: bold;
 	text-transform:uppercase;
-	/*color: #272a2e;*/
-	color: #F7F8FC;
-	background-color: #383c42;
+	color: #F9F9F9;
+	background-color: #090909;
 	margin-bottom: 4px;
 }
 
@@ -162,12 +164,12 @@ p {
 
 
 #header-background-upper {
-	background-color: #191a12;
+	background-color: #090909;
 	height: 90px;
 }
 
 #header-background-lower {
-	background-color: #eaebef;
+	background-color: #f0f0f0;
 	/*text-align: right;*/
 	height: 1.5em;
 }
@@ -180,7 +182,7 @@ p {
 #header-upper {
 	position: relative;
 
-	background-color: #191a12;
+	background-color: #090909;
 	height: 90px;
 
 }
@@ -207,8 +209,8 @@ p {
 }
 
 #header-upper ul li:last-child {
-	background: #eaebef; 
-	color: #383c42;
+	background: #f0f0f0; 
+	color: #090909;
 }
 
 #header-upper a:link, #header-upper a:visited, #header-upper a:hover, #header-upper a:active {
@@ -218,7 +220,7 @@ p {
 
 
 #header-lower {
-	background-color: #eaebef;
+	background: #f0f0f0; 
 	text-align: right;
 	/*padding-left: 113px;*/
 	height: 1.5em;
@@ -237,13 +239,13 @@ p {
 }
 
 .username {
-	font-size: 12px;
+	font-size: 13px;
 	text-transform: none;
 	font-weight: normal;
 }
 
 .point-of-view {
-	font-size: 12px;
+	font-size: 13px;
 	text-transform: none;
 	font-weight: bold;
 	color: #ff0000;
@@ -251,19 +253,18 @@ p {
 
 .nav-menu {
 	width: 155px;
-	/*background-color: #eaebef;*/
+	/*background-color: #f0f0f0;*/
 }
 
 .nav-menu h1 {
 	display: block;
 	padding: 0 7px 0 7px;
 	font-size: 14px;
-	font-family: sans-serif;
 	font-weight: bold;
 	text-transform:uppercase;
 	/*color: #272a2e;*/
-	color: #f7f8fc;
-	background-color: #383c42;
+	color: #fefefe;
+	background-color: #090909;
 	margin-bottom: 4px;
 }
 
@@ -271,8 +272,8 @@ p {
 	list-style-type: none;
 	margin-bottom: 7px;
 	font-weight: bold;
-	font-size: 12px;
-	color: #383c42;
+	font-size: 13px;
+	color: #090909;
 }
 
 .nav-menu ul li {
@@ -281,7 +282,7 @@ p {
 }
 
 .nav-menu ul li:hover {
-	background-color: #eaebef; 
+	background-color: #f0f0f0; 
 }
 
 .nav-menu a:link, .nav-menu a:visited, .nav-menu a:hover, .nav-menu a:active {
@@ -293,12 +294,12 @@ p {
 }
 
 .security-banner {
-	background-color: #fdf5f5;
+	background-color: #ffffff;
 	margin-bottom: 10px;
 	padding: 5px 10px 5px 10px;
 	font-weight: bold;
-	color: #383C42;
-	font-size: 14px;
+	color: #090909;
+	font-size: 13px;
 }
 
 .vertical-space {
