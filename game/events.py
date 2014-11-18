@@ -732,14 +732,14 @@ class AuraKnowledgeEvent(Event):
             if player == self.player:
                 return u'Scopri che %s ha aura %s.' % (self.target.full_name, aura)
             elif player == 'admin':
-                return u'IL Veggente %s scopre che %s ha aura %s.' % (self.player.full_name, self.target.full_name, aura)
+                return u'Il Veggente %s scopre che %s ha aura %s.' % (self.player.full_name, self.target.full_name, aura)
             return None
         
         elif self.cause == DETECTIVE:
             if player == self.player:
                 return u'Scopri che %s ha aura %s.' % (self.target.full_name, aura)
             elif player == 'admin':
-                return u'IL Detective %s scopre che %s ha aura %s.' % (self.player.full_name, self.target.full_name, aura)
+                return u'Il Detective %s scopre che %s ha aura %s.' % (self.player.full_name, self.target.full_name, aura)
             return None
         
         else:
