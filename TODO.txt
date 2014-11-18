@@ -34,3 +34,7 @@ FOR THE FUTURE:
 
  * Make Marta write the weather descriptions.
 
+ * Il link alla pagina "Designa successore" (per il Sindaco) non deve comparire durante il prologo.
+
+ * Correggere la parte delle ambientazioni che descrive le conoscenze iniziali tra i ruoli (Ipnotista conosce Scrutatori, etc., Rinnegati e Sequestratori non conoscono i Profanatori di Tombe [che non esistono più])
+
