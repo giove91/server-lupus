@@ -1,3 +1,8 @@
+/* Always show the vertical scrollbar */
+html {
+    overflow-y:scroll;
+}
+
 body {
 	background-color: #e9eaeb;
 	background-image: -webkit-radial-gradient(ellipse at center, #fafafa 0%,#e9eaeb 100%);
