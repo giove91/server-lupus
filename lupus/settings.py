@@ -171,6 +171,6 @@ if DEBUG:
 
 
 # Session timeout
-SESSION_COOKIE_AGE = 60*5
+# SESSION_COOKIE_AGE = 60*5
 
 
