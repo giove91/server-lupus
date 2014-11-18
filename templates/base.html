@@ -6,6 +6,7 @@
 <link rel="icon" type="image/png" href="{% static "favicon.png" %}">
 
 <head>
+    <meta charset="utf-8">
     <title>Realtime Lupus 5</title>
     <link rel="stylesheet" href="{% static "reset.css" %}" />
     <link rel="stylesheet" href="{% static "text.css" %}" />
@@ -14,6 +15,10 @@
     <link rel="stylesheet" href="{% static "fish.css" %}" />
     
     <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+    
+    <!--[if lt IE 9]>
+    <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
     
     <script src="{% static "script.js" %}"></script>
     <script src="{% static "jquery-1.11.0.min.js" %}"></script>
@@ -28,7 +33,7 @@
     </div>
     
     <div class="container_16">	
-	    <div id="header" class="grid_16">
+	    <header id="header" class="grid_16">
 		    <img id="logo" src="{% static "logo.png" %}"/>
 		    <div id="header-upper">
 			    <span id="login">
@@ -61,7 +66,7 @@
 		            <strong>{{ latest_announcement.timestamp|date:"d/m/Y H:i" }}</strong> {{ latest_announcement.text|truncatechars:125 }}
 		        {% endif %}
 		    </div>
-	    </div>
+	    </header>
         
 	    <div class="clear"></div>
         
@@ -76,7 +81,7 @@
         
         <div class="clear vertical-space"></div>
         
-        <div class="grid_3">
+        <aside class="grid_3">
 	        <div class="nav-menu">
 	            <h1>Area riservata</h1>
 	            <ul>
@@ -112,27 +117,29 @@
 	        {% endcomment %}
 	        
 	        {% if user.is_staff %}
-            <div class="nav-menu">
-	            <h1>GM</h1>
-                <ul>
-                    <li><a href="{% url 'adminstatus' %}">Tutte le informazioni</a></li>
-                    <li><a href="{% url 'advanceturn' %}" onclick="return confirm('Vuoi davvero avanzare al turno successivo?');">Turno successivo</a></li>
-                    <li><a href="{% url 'pointofview' %}">Punto di vista</a></li>
-                    <li><a href="{% url 'admin:index' %}">Admin: Index</a></li>
-                    <li><a href="{% url 'admin:game_player_changelist' %}">Admin: Players</a></li>
-                    <li><a href="{% url 'admin:game_commandevent_changelist' %}">Admin: CommandEvents</a></li>
-                    <li><a href="{% url 'admin:game_comment_changelist' %}">Admin: Comments</a></li>
-                    <li><a href="{% url 'admin:game_pagerequest_changelist' %}">Admin: PageRequests</a></li>
-                </ul>
-            </div>
-            {% endif %}
+		<div class="nav-menu">
+			<h1>GM</h1>
+		    <ul>
+			<li><a href="{% url 'adminstatus' %}">Tutte le informazioni</a></li>
+			<li><a href="{% url 'advanceturn' %}" onclick="return confirm('Vuoi davvero avanzare al turno successivo?');">Turno successivo</a></li>
+			<li><a href="{% url 'pointofview' %}">Punto di vista</a></li>
+			<li><a href="{% url 'admin:index' %}">Admin: Index</a></li>
+			<li><a href="{% url 'admin:game_player_changelist' %}">Admin: Players</a></li>
+			<li><a href="{% url 'admin:game_commandevent_changelist' %}">Admin: CommandEvents</a></li>
+			<li><a href="{% url 'admin:game_comment_changelist' %}">Admin: Comments</a></li>
+			<li><a href="{% url 'admin:game_pagerequest_changelist' %}">Admin: PageRequests</a></li>
+		    </ul>
+		</div>
+		{% endif %}
 	        
-	    </div>
+	    </aside>
 	    
 	    {% block content %}{% endblock %}
 
 	    <div class="clear"></div>
     </div>
+    
+    
     
     <script>
       fish_images = [
