@@ -10,7 +10,7 @@ body {
 	background-image: -o-radial-gradient(ellipse at center, #fafafa 0%,#e9eaed 50%,#e9eaed 100%);
 	background-image: radial-gradient(ellipse at center, #fafafa 0%,#e9eaed 50%,#e9eaed 100%);
 	background-repeat: no-repeat;
-	color: #141823;
+	color: #181818;
 }
 
 label {
@@ -30,6 +30,7 @@ label {
 	box-shadow: rgba(0, 0, 0, 0.0980392) 0px 1px 2px 0px;
 	padding: 10px 13px 7px 13px;
 	margin-bottom: 25px;
+	border-radius: 2px;
 }
 
 .info-block table {
@@ -136,14 +137,15 @@ label {
 
 
 #header-background-upper {
-	background-color: #090909;
+	background-color: #181818;
 	height: 90px;
 }
 
 #header-background-lower {
-	background-color: #e8e8e8;
+	background-color: #E4E5E8;
 	/*text-align: right;*/
 	height: 1.5em;
+	border-bottom: 1px solid #dadbde;
 }
 
 #header {
@@ -153,8 +155,7 @@ label {
 
 #header-upper {
 	position: relative;
-
-	background-color: #090909;
+	background-color: #181818;
 	height: 90px;
 
 }
@@ -181,8 +182,8 @@ label {
 }
 
 #header-upper ul li:last-child {
-	background: #e8e8e8; 
-	color: #090909;
+	background: #E4E5E8; 
+	color: #181818;
 }
 
 #header-upper a:link, #header-upper a:visited, #header-upper a:hover, #header-upper a:active {
@@ -192,9 +193,10 @@ label {
 
 
 #header-lower {
-	background: #e8e8e8; 
+	background: #E4E5E8; 
 	text-align: right;
 	/*padding-left: 113px;*/
+	border-bottom: 1px solid #dadbde;
 	height: 1.5em;
 }
 
