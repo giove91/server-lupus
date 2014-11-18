@@ -7,35 +7,10 @@ body {
 	background-image: radial-gradient(ellipse at center, #fafafa 0%,#f2f2f2 100%);
 	background-repeat: no-repeat;
 	color: #090909;
-	font-family: 'Ubuntu', sans-serif;
 }
 
-h1 {
-	font-size: 17px;
-	font-weight: bold;
-	text-transform:uppercase;
-	color: #090909;
-	margin-bottom: 7px;
-}
-
-h2 {
-	font-size: 13px;
-	font-weight: bold;
-	text-transform:uppercase;
-	color: #090909;
-	margin-bottom: 7px;
-}
-
-h3 {
-	font-size: 13px;
-	font-weight: bold;
-	color: #090909;
-	margin-top: 5px;
-	margin-bottom: 5px;
-}
-
-p {
-	margin-bottom: 3px;
+label {
+	margin-right: 5px;
 }
 
 .name-container {
@@ -49,7 +24,7 @@ p {
 .info-block {
 	background-color: #fff;
 	box-shadow: rgba(0, 0, 0, 0.0980392) 0px 1px 2px 0px;
-	padding: 7px 9px 3px 9px;
+	padding: 10px 13px 7px 13px;
 	margin-bottom: 25px;
 }
 
@@ -60,16 +35,13 @@ p {
 
 .info-block thead {
 	border-bottom: 1px;
-	color: #090909;
 	border-style: solid;
 	background-color: #f7f7f7;
 }
 
 .info-block td {
 	border-left: 1px;
-	color: #090909;
 	border-style: solid;
-	
 	padding: 2px 6px 2px 6px;
 }
 
@@ -123,11 +95,7 @@ p {
 
 .players-status {
 	text-align: right;
-	/*padding: 7px 7px 3px 2px;*/
 	background-color: #ffffff;
-	/*margin-left: 10px;*/
-
-	font-size: 13px;
 }
 
 .players-status h2 {
@@ -136,7 +104,7 @@ p {
 	font-size: 14px;
 	font-weight: bold;
 	text-transform:uppercase;
-	color: #F9F9F9;
+	color: #f9f9f9;
 	background-color: #090909;
 	margin-bottom: 4px;
 }
@@ -169,7 +137,7 @@ p {
 }
 
 #header-background-lower {
-	background-color: #f0f0f0;
+	background-color: #ececec;
 	/*text-align: right;*/
 	height: 1.5em;
 }
@@ -209,7 +177,7 @@ p {
 }
 
 #header-upper ul li:last-child {
-	background: #f0f0f0; 
+	background: #ececec; 
 	color: #090909;
 }
 
@@ -220,7 +188,7 @@ p {
 
 
 #header-lower {
-	background: #f0f0f0; 
+	background: #ececec; 
 	text-align: right;
 	/*padding-left: 113px;*/
 	height: 1.5em;
@@ -248,12 +216,11 @@ p {
 	font-size: 13px;
 	text-transform: none;
 	font-weight: bold;
-	color: #ff0000;
+	color: #e90000;
 }
 
 .nav-menu {
-	width: 155px;
-	/*background-color: #f0f0f0;*/
+	;
 }
 
 .nav-menu h1 {
@@ -262,8 +229,7 @@ p {
 	font-size: 14px;
 	font-weight: bold;
 	text-transform:uppercase;
-	/*color: #272a2e;*/
-	color: #fefefe;
+	color: #fff;
 	background-color: #090909;
 	margin-bottom: 4px;
 }
@@ -282,7 +248,7 @@ p {
 }
 
 .nav-menu ul li:hover {
-	background-color: #f0f0f0; 
+	background-color: #e9e9e9; 
 }
 
 .nav-menu a:link, .nav-menu a:visited, .nav-menu a:hover, .nav-menu a:active {
@@ -298,7 +264,6 @@ p {
 	margin-bottom: 10px;
 	padding: 5px 10px 5px 10px;
 	font-weight: bold;
-	color: #090909;
 	font-size: 13px;
 }
 
@@ -311,7 +276,6 @@ p {
 	width: 140px;
 	height: auto;
 	margin-right: 30px;
-	/*float: left;*/
 }
 
 #logo {
