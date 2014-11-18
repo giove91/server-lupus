@@ -34,7 +34,8 @@
     
     <div class="container_16">	
 	    <header id="header" class="grid_16">
-		    <img id="logo" src="{% static "logo.png" %}"/>
+		    <!--<img id="logo" src="{% static "logo.png" %}"/>-->
+		    <img id="logo" src="{% static "logo.svg" %}" onerror="this.src='{% static "logo.png" %}'; this.onerror=null;">
 		    <div id="header-upper">
 			    <span id="login">
 			        <div>
