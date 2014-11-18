@@ -1,12 +1,11 @@
 body {
-	background-color: #f2f2f2;
-	/*background-image: url('bg-gradient.png');*/
-	background-image: -webkit-radial-gradient(ellipse at center, #fafafa 0%,#f2f2f2 100%);
-	background-image: -moz-radial-gradient(ellipse at center, #fafafa 0%,#f2f2f2 100%);
-	background-image: -o-radial-gradient(ellipse at center, #fafafa 0%,#f2f2f2 100%);
-	background-image: radial-gradient(ellipse at center, #fafafa 0%,#f2f2f2 100%);
+	background-color: #e9eaeb;
+	background-image: -webkit-radial-gradient(ellipse at center, #fafafa 0%,#e9eaeb 100%);
+	background-image: -moz-radial-gradient(ellipse at center, #fafafa 0%,#e9eaeb 100%);
+	background-image: -o-radial-gradient(ellipse at center, #fafafa 0%,#e9eaeb 100%);
+	background-image: radial-gradient(ellipse at center, #fafafa 0%,#e9eaeb 100%);
 	background-repeat: no-repeat;
-	color: #090909;
+	color: #141823;
 }
 
 label {
@@ -79,7 +78,7 @@ label {
 
 .separator {
 	height: 1px;
-	background-color: #eee;
+	background-color: #ddd;
 	width: 100%;
 	margin: 5px 0px 12px 0;
 }
@@ -105,7 +104,7 @@ label {
 	font-weight: bold;
 	text-transform:uppercase;
 	color: #f9f9f9;
-	background-color: #090909;
+	background-color: #333;
 	margin-bottom: 4px;
 }
 
@@ -137,7 +136,7 @@ label {
 }
 
 #header-background-lower {
-	background-color: #ececec;
+	background-color: #e8e8e8;
 	/*text-align: right;*/
 	height: 1.5em;
 }
@@ -177,7 +176,7 @@ label {
 }
 
 #header-upper ul li:last-child {
-	background: #ececec; 
+	background: #e8e8e8; 
 	color: #090909;
 }
 
@@ -188,7 +187,7 @@ label {
 
 
 #header-lower {
-	background: #ececec; 
+	background: #e8e8e8; 
 	text-align: right;
 	/*padding-left: 113px;*/
 	height: 1.5em;
@@ -220,7 +219,7 @@ label {
 }
 
 .nav-menu {
-	;
+	color: #333;
 }
 
 .nav-menu h1 {
@@ -230,7 +229,7 @@ label {
 	font-weight: bold;
 	text-transform:uppercase;
 	color: #fff;
-	background-color: #090909;
+	background-color: #333;
 	margin-bottom: 4px;
 }
 
@@ -239,7 +238,6 @@ label {
 	margin-bottom: 7px;
 	font-weight: bold;
 	font-size: 13px;
-	color: #090909;
 }
 
 .nav-menu ul li {
