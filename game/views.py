@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# coding=utf8
+
 from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse
@@ -388,7 +391,7 @@ class CommandView(View):
             if self.save_command(request, form.cleaned_data):
                 return self.submitted(request)
             else:
-                return render(request, 'command_not_allowed.html', {'message': 'La scelta effettuata non &egrave; valida.', 'classified': True})
+                return render(request, 'command_not_allowed.html', {'message': 'La scelta effettuata non è valida.', 'classified': True})
         else:
             return render(request, self.template_name, {'form': form, 'classified': True})
     
@@ -503,6 +506,9 @@ class VoteView(CommandView):
         player = request.player
         game = player.game
         target = cleaned_data['target']
+        
+        if target == '':
+            target = None
         
         if target is not None and target not in game.get_alive_players():
             return False
