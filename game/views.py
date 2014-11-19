@@ -541,6 +541,9 @@ class ElectView(CommandView):
         game = player.game
         target = cleaned_data['target']
         
+        if target == '':
+            target = None
+        
         if target is not None and target not in game.get_alive_players():
             return False
         
