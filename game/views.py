@@ -463,16 +463,28 @@ class UsePowerView(CommandView):
         target2 = None
         target_ghost = None
         
+        if target == '':
+            target = None
+        
         if target is not None and not target in targets:
             return False
         
         if targets2 is not None:
             target2 = cleaned_data['target2']
-            if not target2 in targets2:
+            if target2 == '':
+                target2 = None
+            if not target2 in targets2 and target is not None:
+                # If target2 is not valid (or None), make the command not valid
+                # unless target is None (which means that the power will not be used)
                 return False
+        
         if targets_ghost is not None:
             target_ghost = cleaned_data['target_ghost']
-            if not target_ghost in targets_ghost:
+            if target_ghost == '':
+                target_ghost = None
+            if not target_ghost in targets_ghost and target is not None:
+                # If target_ghost is not valid (or None), make the command not valid
+                # unless target is None (which means that the power will not be used)
                 return False
         
         # If target is None, then the other fields are set to None
