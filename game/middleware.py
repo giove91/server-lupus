@@ -37,19 +37,29 @@ class PlayerMiddleware:
         return None
 
 
-# Middleware for finding the Game and the Dynamics
+# Middleware for finding Game, Dynamics and current turn.
 # TODO: forse e' il caso di unificarla alla precedente, assicurando che player.game==game quando esistono entrambi
 class GameMiddleware:
     def process_request(self, request):
         
         game = Game.get_running_game()
         dynamics = None
+        current_turn = None
         
         if game is not None:
             dynamics = game.get_dynamics()
         
+        if game is not None:
+            current_turn = dynamics.current_turn
+            
+            # If the current turn has actually finished, automatically assume
+            # that we are in the following one
+            if current_turn.end is not None and get_now() >= current_turn.end:
+                current_turn = current_turn.next_turn()
+        
         request.game = game
         request.dynamics = dynamics
+        request.current_turn = current_turn
         
         return None
 

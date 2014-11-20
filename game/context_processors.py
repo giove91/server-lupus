@@ -10,16 +10,9 @@ def context_player_and_game(request):
     }
 
 def context_current_turn(request):
-    dynamics = request.dynamics
-    if dynamics is None:
+    current_turn = request.current_turn
+    if current_turn is None:
         return {}
-
-    current_turn = dynamics.current_turn
-
-    # If the current turn has actually finished, automatically assume
-    # that we are in the following one
-    if current_turn.end is not None and get_now() >= current_turn.end:
-        current_turn = current_turn.next_turn()
 
     current_date = current_turn.date
     current_phase = current_turn.phase_as_italian_string()
