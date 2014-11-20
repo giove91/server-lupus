@@ -719,8 +719,15 @@ class Spettro(Role):
     team = NEGROMANTI
     aura = None
     is_mystic = None
-    
-    message2 = 'Genera l\'illusione di:'
+
+    @property
+    def message2(self):
+        if self.power == ILLUSIONE:
+            return 'Genera l\'illusione di:'
+        elif self.power == IPNOSI:
+            return 'Sposta il voto su:'
+        else:
+            raise ValueError('Invalid ghost type')
     
     POWER_NAMES = {
         AMNESIA: 'Amnesia',

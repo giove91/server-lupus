@@ -16,6 +16,9 @@ INTERFACE (mostly Giove):
 
  * Interface: fix labels of target selections when using power.
 
+ * Factor of the snippets "if target == '': target = None" in
+   CommandForm.clean().
+
 MYSTERIOUS:
 
  * Ipnotista being revived as Ghost without power
