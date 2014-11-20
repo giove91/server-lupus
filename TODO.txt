@@ -38,3 +38,5 @@ FOR THE FUTURE:
 
  * Correggere la parte delle ambientazioni che descrive le conoscenze iniziali tra i ruoli (Ipnotista conosce Scrutatori, etc., Rinnegati e Sequestratori non conoscono i Profanatori di Tombe [che non esistono più])
 
+ * Add NoMovementKnowledgeEvent (or something similar) for Stalker and Voyeur, in case they do not see anyone (so that, in the interface, a string is displayed). Reason: every year, a Voyeur or a Stalker ask me if it is correct that they don't obtain any feedback.
+
