@@ -491,6 +491,8 @@ class UsePowerView(CommandView):
             target_ghost = None
         
         command = CommandEvent(player=player, type=USEPOWER, target=target, target2=target2, target_ghost=target_ghost, turn=player.game.current_turn, timestamp=get_now())
+        if not command.check_phase(turn=request.context['current_turn']):
+            return False
         dynamics = request.player.game.get_dynamics()
         dynamics.inject_event(command)
         return True
@@ -525,6 +527,8 @@ class VoteView(CommandView):
             return False
         
         command = CommandEvent(player=player, type=VOTE, target=target, turn=game.current_turn, timestamp=get_now())
+        if not command.check_phase(turn=request.context['current_turn']):
+            return False
         dynamics = request.player.game.get_dynamics()
         dynamics.inject_event(command)
         return True
@@ -559,6 +563,8 @@ class ElectView(CommandView):
             return False
         
         command = CommandEvent(player=player, type=ELECT, target=target, turn=game.current_turn, timestamp=get_now())
+        if not command.check_phase(turn=request.context['current_turn']):
+            return False
         dynamics = request.player.game.get_dynamics()
         dynamics.inject_event(command)
         return True
@@ -597,6 +603,8 @@ class AppointView(CommandView):
             return False
         
         command = CommandEvent(player=player, type=APPOINT, target=target, turn=game.current_turn, timestamp=get_now())
+        if not command.check_phase(turn=request.context['current_turn']):
+            return False
         dynamics = request.player.game.get_dynamics()
         dynamics.inject_event(command)
         return True

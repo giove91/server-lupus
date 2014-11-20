@@ -72,8 +72,14 @@ class CommandEvent(Event):
         self.target_ghost = rev_dict(Spettro.POWERS_LIST)[data['target_ghost']]
         self.type = rev_dict(CommandEvent.ACTION_TYPES)[data['type']]
 
+    def check_phase(self, dynamics=None, turn=None):
+        if turn is None:
+            turn = dynamics.current_turn
+        return turn.phase in CommandEvent.REAL_RELEVANT_PHASES[self.type]
+
     def apply(self, dynamics):
-        assert dynamics.current_turn.phase in CommandEvent.REAL_RELEVANT_PHASES[self.type]
+        assert self.check_phase(dynamics=dynamics)
+
         assert self.player is not None
 
         # Canonicalize players

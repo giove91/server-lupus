@@ -251,6 +251,10 @@ class Turn(models.Model):
         return turn
 
     def next_turn(self, must_exist=False):
+        """Return next turn. If it does not exist, then it is NOT created in
+        the database.
+
+        """
         phase = PHASE_CYCLE[self.phase]
         date = self.date
         if phase == DATE_CHANGE_PHASE:
