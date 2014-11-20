@@ -312,31 +312,29 @@ class CommandForm(forms.Form):
         fields = kwargs.pop('fields', None)
         super(CommandForm, self).__init__(*args, **kwargs)
         
-        for key, field in fields.iteritems():
-            if key == 'target' or key == 'target2':
-                choices = [ (None, '(Nessuno)') ]
-                choices.extend( [ (player.pk, player.full_name) for player in field['choices'] ] )
-            elif key == 'target_ghost':
-                choices = [ (None, '(Nessuno)') ]
-                choices.extend( [ (power, Spettro.POWER_NAMES[power]) for power in field['choices'] ] )
-            else:
-                raise Exception ('Unknown form field.')
-            
-            self.fields[key] = forms.ChoiceField(choices=choices, required=False, label=field['label'])
-            
-            if key == 'target' or key == 'target2':
-                if field['initial'] is not None:
-                    self.fields[key].initial = field['initial'].pk
-                else:
-                    self.fields[key].initial = None
-            elif key == 'target_ghost':
-                self.fields[key].initial = field['initial']
-        
-        keyorder = []
+        # Create form fields in the following order.
         for key in ['target', 'target2', 'target_ghost']:
             if key in fields.keys():
-                keyorder.append(key)
-        self.fields.keyOrder = keyorder
+                field = fields[key]
+                
+                if key == 'target' or key == 'target2':
+                    choices = [ (None, '(Nessuno)') ]
+                    choices.extend( [ (player.pk, player.full_name) for player in field['choices'] ] )
+                elif key == 'target_ghost':
+                    choices = [ (None, '(Nessuno)') ]
+                    choices.extend( [ (power, Spettro.POWER_NAMES[power]) for power in field['choices'] ] )
+                else:
+                    raise Exception ('Unknown form field.')
+                
+                self.fields[key] = forms.ChoiceField(choices=choices, required=False, label=field['label'])
+                
+                if key == 'target' or key == 'target2':
+                    if field['initial'] is not None:
+                        self.fields[key].initial = field['initial'].pk
+                    else:
+                        self.fields[key].initial = None
+                elif key == 'target_ghost':
+                    self.fields[key].initial = field['initial']
     
     def clean(self):
         cleaned_data = super(CommandForm, self).clean()
