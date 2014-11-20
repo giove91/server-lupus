@@ -699,6 +699,8 @@ class Scrutatore(Role):
     aura = WHITE
     knowledge_class = 5
 
+    message2 = 'Aggiungi un voto per:'
+
     def can_use_power(self):
         return self.player.alive
 

@@ -14,7 +14,7 @@ TESTS (mostly Giove):
 
 INTERFACE (mostly Giove):
 
- * Update trailer page [after opening ceremony].
+ * Interface: fix labels of target selections when using power.
 
 MYSTERIOUS:
 
