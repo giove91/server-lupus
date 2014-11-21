@@ -705,7 +705,7 @@ class Scrutatore(Role):
         return self.player.alive
 
     def get_targets(self):
-        return self.player.game.get_alive_players()
+        return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
     def get_targets2(self):
         return self.player.game.get_alive_players()
