@@ -955,7 +955,42 @@ class GameTests(TestCase):
         self.assertFalse(cacciatore.alive)
 
         dynamics.debug_event_bin = None
+    
+    @record_name
+    def test_sequestrated_espansivo(self):
+        roles = [ Cacciatore, Negromante, Negromante, Lupo, Lupo, Contadino, Contadino, Sequestratore, Espansivo ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
 
+        [cacciatore] = [x for x in players if isinstance(x.role, Cacciatore)]
+        [lupo, lupo2] = [x for x in players if isinstance(x.role, Lupo)]
+        [sequestratore] = [x for x in players if isinstance(x.role, Sequestratore)]
+        [espansivo] = [x for x in players if isinstance(x.role, Espansivo)]
+
+        # Advance to night and use powers
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=espansivo, target=cacciatore, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=sequestratore, target=espansivo, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == espansivo]
+        self.assertFalse(event.success)
+        
+        # Advance to night and try to use Espansivo power
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        self.assertFalse(espansivo.can_use_power())
+        self.assertTrue(sequestratore.can_use_power())
+        with self.assertRaises(AssertionError):
+            dynamics.inject_event(CommandEvent(type=USEPOWER, player=espansivo, target=lupo, timestamp=get_now()))
+    
     @record_name
     def test_lupi(self):
         roles = [ Cacciatore, Negromante, Negromante, Lupo, Lupo, Contadino, Contadino ]
