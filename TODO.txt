@@ -19,6 +19,10 @@ INTERFACE (mostly Giove):
  * Factor of the snippets "if target == '': target = None" in
    CommandForm.clean().
 
+ * Double comments: when refreshing after having posted a comment, the
+   comment is posted again. The server should detect the double
+   posting and avoid getting confused by it.
+
 MYSTERIOUS:
 
  * Ipnotista being revived as Ghost without power
