@@ -49,3 +49,5 @@ FOR THE FUTURE:
 
  * Add NoMovementKnowledgeEvent (or something similar) for Stalker and Voyeur, in case they do not see anyone (so that, in the interface, a string is displayed). Reason: every year, a Voyeur or a Stalker ask me if it is correct that they don't obtain any feedback.
 
+ * When last Negromante is dying, they cannot ghostify anyone.
+ 
