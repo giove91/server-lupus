@@ -299,7 +299,8 @@ class AdminStatusView(View):
     
     # After game is over:
     # @method_decorator(login_required)
-    @method_decorator(user_passes_test(is_GM_check))
+    # During game:
+    # @method_decorator(user_passes_test(is_GM_check))
     def dispatch(self, *args, **kwargs):
         return super(AdminStatusView, self).dispatch(*args, **kwargs)
 
