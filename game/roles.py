@@ -341,7 +341,7 @@ class Stalker(Role):
 class Trasformista(Role):
     name = 'Trasformista'
     team = POPOLANI
-    aura = WHITE
+    aura = BLACK
     
     def can_use_power(self):
         return self.player.alive and self.last_usage is None
@@ -633,7 +633,7 @@ class Negromante(Role):
 class Fantasma(Role):
     name = 'Fantasma'
     team = NEGROMANTI
-    aura = WHITE
+    aura = BLACK
 
 
 class Ipnotista(Role):

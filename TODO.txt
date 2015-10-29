@@ -10,6 +10,26 @@ GAME ENGINE AND DYNAMICS (mostly Gio):
  * Ignore power usages and votes of player that are going to be
    disqualified
 
+GAME RULES OF 6TH EDITION:
+
+ * Assassino
+ 
+ * Change knowledge components
+ 
+ * No "not twice on the same character" rule
+ 
+ * No action on self
+ 
+ * Modifications to Ipnotista and Ipnosi
+ 
+ * Messia fails on Spettri
+ 
+ * Spettro della Confusione
+ 
+ * Fazione dei lupi non spettrificabile
+ 
+ * Stregone
+
 TESTS (mostly Giove):
 
  * Update mayor tests checking SetMayorEvent.cause [low priority].
@@ -36,21 +56,20 @@ MYSTERIOUS:
 
 OTHER:
 
- * Deploy server and make human tests (possibly with Leonardo and Sasha).
-
  * Tool for simulating future phases.
-
- * Write initial mayor letter.
 
 FOR THE FUTURE:
 
- * Make Marta write the weather descriptions.
-
  * Il link alla pagina "Designa successore" (per il Sindaco) non deve comparire durante il prologo.
+
+ * Aggiornare le ambientazioni con i ruoli dell'edizione 6
 
  * Correggere la parte delle ambientazioni che descrive le conoscenze iniziali tra i ruoli (Ipnotista conosce Scrutatori, etc., Rinnegati e Sequestratori non conoscono i Profanatori di Tombe [che non esistono più])
 
  * Add NoMovementKnowledgeEvent (or something similar) for Stalker and Voyeur, in case they do not see anyone (so that, in the interface, a string is displayed). Reason: every year, a Voyeur or a Stalker ask me if it is correct that they don't obtain any feedback.
 
  * When last Negromante is dying, they cannot ghostify anyone.
+
+ * Make Marta write the weather descriptions.
+
 
