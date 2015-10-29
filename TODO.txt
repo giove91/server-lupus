@@ -33,6 +33,24 @@ GAME RULES OF 6TH EDITION:
 TESTS (mostly Giove):
 
  * Update mayor tests checking SetMayorEvent.cause [low priority].
+ 
+ * Assassino
+ 
+ * Change knowledge components
+ 
+ * No "not twice on the same character" rule
+ 
+ * No action on self
+ 
+ * Modifications to Ipnotista and Ipnosi
+ 
+ * Messia fails on Spettri
+ 
+ * Spettro della Confusione
+ 
+ * Fazione dei lupi non spettrificabile
+ 
+ * Stregone
 
 INTERFACE (mostly Giove):
 
