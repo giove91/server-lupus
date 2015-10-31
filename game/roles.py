@@ -177,7 +177,7 @@ class Esorcista(Role):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
     
     def get_targets(self):
-        return self.player.game.get_active_players()
+        return [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
 
     def get_blocked(self, players):
         if self.recorded_target is None:
@@ -528,7 +528,7 @@ class Fattucchiera(Role):
         return self.player.alive
     
     def get_targets(self):
-        return self.player.game.get_active_players()
+        return [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
         target = self.recorded_target.canonicalize()
@@ -553,10 +553,7 @@ class Sequestratore(Role):
         return self.player.alive
     
     def get_targets(self):
-        excluded = [self.player.pk]
-        if self.last_usage is not None and self.days_from_last_usage() <= 1:
-            excluded.append(self.last_target.pk)
-        return [player for player in self.player.game.get_alive_players() if player.pk not in excluded]
+        return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
     def get_blocked(self, players):
         if self.recorded_target is not None:
@@ -786,12 +783,7 @@ class Spettro(Role):
             raise ValueError('Invalid ghost type')
     
     def get_targets(self):
-        if self.power == AMNESIA:
-            excluded = [self.player.pk]
-            if self.last_usage is not None and self.days_from_last_usage() <= 1:
-                excluded.append(self.last_target.pk)
-            targets = [player for player in self.player.game.get_alive_players() if player.pk not in excluded]
-        elif self.power == MORTE or self.power == VISIONE or self.power == IPNOSI:
+        elif self.power == AMNESIA or self.power == MORTE or self.power == VISIONE or self.power == IPNOSI:
             targets = [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
         elif self.power == MISTIFICAZIONE or self.power == OCCULTAMENTO or self.power == ILLUSIONE:
             targets = [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
