@@ -40,8 +40,6 @@ TESTS (mostly Giove):
 
 INTERFACE (mostly Giove):
 
- * Interface: fix labels of target selections when using power.
-
  * Factor of the snippets "if target == '': target = None" in
    CommandForm.clean().
 
@@ -57,6 +55,8 @@ MYSTERIOUS:
  * Ipnotista being revived as Ghost without power
 
  * Messia superposition
+
+ * Interface: fix labels of target selections when using power.
 
 OTHER:
 

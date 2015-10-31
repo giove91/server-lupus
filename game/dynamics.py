@@ -80,6 +80,7 @@ class Dynamics:
         self.used_ghost_powers = set()
         self.giove_is_happy = False
         self.server_is_on_fire = False  # so far...
+        self.sasha_is_sleeping = False  # usually...
         self.playing_teams = []
         self.advocated_players = []
         self.additional_ballots = []
