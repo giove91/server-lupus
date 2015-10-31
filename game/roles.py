@@ -283,6 +283,12 @@ class Messia(Role):
     def get_targets(self):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
 
+    def pre_apply_dawn(self, dynamics):
+        # Power fails on Spettri
+        if isinstance(self.recorded_target.role, (Spettro)):
+            return False
+        return True
+
     def apply_dawn(self, dynamics):
         if not self.recorded_target.alive:
             from events import PlayerResurrectsEvent
@@ -589,7 +595,7 @@ class Negromante(Role):
     def get_targets_ghost(self):
         dynamics = self.player.game.get_dynamics()
         powers = set(Spettro.POWER_NAMES.keys())
-        available_powers = powers - dynamics.used_ghost_powers - set([IPNOSI])
+        available_powers = powers - dynamics.used_ghost_powers
         return list(available_powers)
 
     def pre_apply_dawn(self, dynamics):

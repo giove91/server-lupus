@@ -518,9 +518,8 @@ class PlayerDiesEvent(Event):
 
         # Ipnotista death
         if isinstance(player.role, Ipnotista) and player.team == NEGROMANTI:
-            remaining = [player2 for player2 in dynamics.get_alive_players() if isinstance(player2.role, Ipnotista) and player2.team == NEGROMANTI]
-            assert player in remaining, (player, remaining)
-            if remaining == [player] and (IPNOSI not in dynamics.used_ghost_powers) and (not dynamics.death_ghost_created or dynamics.death_ghost_just_created):
+            # Note: the condition "player.team == NEGROMANTI" is not explicitly written in the ruleset, but it is implied by it
+            if IPNOSI not in dynamics.used_ghost_powers:
                 dynamics.generate_event(GhostificationEvent(player=player, cause=HYPNOTIST_DEATH, ghost=IPNOSI))
                 for negromante in dynamics.players:
                     if isinstance(negromante.role, Negromante):
