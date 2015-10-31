@@ -12,10 +12,6 @@ GAME ENGINE AND DYNAMICS (mostly Gio):
 
 GAME RULES OF 6TH EDITION:
 
- * Assassino
- 
- * Change knowledge components
- 
  * No "not twice on the same character" rule
  
  * No action on self

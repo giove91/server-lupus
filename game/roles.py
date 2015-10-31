@@ -462,7 +462,7 @@ class Assassino(Role):
     name = 'Assassino'
     team = LUPI
     aura = BLACK
-    knowledge_class = 2 # FIXME
+    knowledge_class = 2
     
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
@@ -486,7 +486,7 @@ class Avvocato(Role):
     name = 'Avvocato del diavolo'
     team = LUPI
     aura = BLACK
-    knowledge_class = 2
+    knowledge_class = 3
     
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
@@ -504,7 +504,7 @@ class Diavolo(Role):
     team = LUPI
     aura = BLACK
     is_mystic = True
-    knowledge_class = 2
+    knowledge_class = 3
     
     def can_use_power(self):
         return self.player.alive
@@ -522,7 +522,7 @@ class Fattucchiera(Role):
     team = LUPI
     aura = BLACK
     is_mystic = True
-    knowledge_class = 1
+    knowledge_class = 3
     
     def can_use_power(self):
         return self.player.alive
@@ -540,14 +540,14 @@ class Rinnegato(Role):
     name = 'Rinnegato'
     team = LUPI
     aura = WHITE
-    knowledge_class = 3
+    knowledge_class = 2
 
 
 class Sequestratore(Role):
     name = 'Sequestratore'
     team = LUPI
     aura = BLACK
-    knowledge_class = 3
+    knowledge_class = 2
     
     def can_use_power(self):
         return self.player.alive
