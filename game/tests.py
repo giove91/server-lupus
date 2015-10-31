@@ -5455,3 +5455,46 @@ class GameTests(TestCase):
         self.game = self.load_game_helper('mayor_appointing.json')
         players = self.game.get_players()
         self.assertEqual(self.game.get_dynamics().appointed_mayor.user.username, "")
+        
+        
+    @record_name
+    def test_ipnotista_dies_while_negromanti_create_ipnosi(self): # New
+        roles = [ Ipnotista, Negromante, Lupo, Lupo, Contadino, Contadino ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
+
+        # Advance to second night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Kill Contadino
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=contadino, timestamp=get_now()))
+        
+        # Advance to next night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Kill Ipnotista and make Spettro dell'Ipnosi
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=ipnotista, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=IPNOSI, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
+        self.assertEqual(event.player, contadino)
+        self.assertEqual(event.ghost, IPNOSI)
+        self.assertEqual(event.cause, NECROMANCER)
+        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertFalse(isinstance(ipnotista.role, Spettro))
