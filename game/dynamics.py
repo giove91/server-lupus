@@ -588,7 +588,7 @@ class Dynamics:
         assert self.upcoming_deaths == []
 
         # Powers that modify the state: Cacciatore, Messia,
-        # Trasformista, Lupi, Avvocato del Diavolo, Negromante,
+        # Trasformista, Lupi, Assassino, Avvocato del Diavolo, Negromante,
         # Ipnotista, Spettro dell'Amnesia and Spettro della Morte. The
         # order is important: in particular, these inequalities have
         # to be satisfied ("<" means "must act before"):
@@ -601,11 +601,11 @@ class Dynamics:
         #  * Messia < Negromante (resurrection has precedence over
         #    ghostification)
         #
-        #  * anything < Cacciatore, Lupo, MORTE (deaths happen at the
+        #  * anything < Cacciatore, Lupo, Assassino, MORTE (deaths happen at the
         #    and of the turn)
         MODIFY_ROLES = [Avvocato, AMNESIA, Scrutatore, IPNOSI,
                         Ipnotista, Trasformista, Messia, Negromante,
-                        Cacciatore, Lupo, MORTE]
+                        Cacciatore, Lupo, Assassino, MORTE]
         apply_roles(MODIFY_ROLES)
 
         # Roles with no power: Contadino, Divinatore, Massone,

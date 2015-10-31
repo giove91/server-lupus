@@ -458,6 +458,30 @@ class Lupo(Role):
             assert self.recorded_target is None
 
 
+class Assassino(Role):
+    name = 'Assassino'
+    team = LUPI
+    aura = BLACK
+    knowledge_class = 2 # FIXME
+    
+    def can_use_power(self):
+        return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
+    
+    def get_targets(self):
+        return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
+    
+    def apply_dawn(self, dynamics):
+        from events import PlayerDiesEvent
+        assert self.recorded_target is not None
+        visitors = self.recorded_target.visitors
+        if len(visitors) > 0:
+            victim = dynamics.random.choice(visitors)
+            if not victim.just_dead:
+                assert victim.alive
+                dynamics.generate_event(PlayerDiesEvent(player=victim, cause=ASSASSIN))
+        
+
+
 class Avvocato(Role):
     name = 'Avvocato del diavolo'
     team = LUPI

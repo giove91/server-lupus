@@ -469,6 +469,7 @@ class PlayerDiesEvent(Event):
         (STAKE, 'Stake'),
         (HUNTER, 'Hunter'),
         (WOLVES, 'Wolves'),
+        (ASSASSIN, 'Assassin'),
         (DEATH_GHOST, 'DeathGhost'),
         )
     cause = models.CharField(max_length=1, choices=DEATH_CAUSE_TYPES, default=None)

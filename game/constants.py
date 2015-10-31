@@ -92,6 +92,7 @@ SUCCESSION_CHOSEN = 'C'
 STAKE = 'S'
 HUNTER = 'H'
 WOLVES = 'W'
+ASSASSIN = 'A'
 DEATH_GHOST = 'D'
 
 # Stake failure causes
