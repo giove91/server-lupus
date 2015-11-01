@@ -112,6 +112,7 @@ class Dynamics:
             player.just_dead = False
             player.just_ghostified = False
             player.hypnotist = None
+            player.has_confusion = False
 
     def get_active_players(self):
         """Players are guaranteed to be sorted in a canonical order,
@@ -139,7 +140,33 @@ class Dynamics:
 
     def get_canonical_player(self, player):
         return self.players_dict[player.pk]
-
+    
+    
+    def get_apparent_aura(self, player):
+        if player.has_confusion:
+            return self.random.choice([WHITE, BLACK])
+        else:
+            return player.apparent_aura
+    
+    def get_apparent_mystic(self, player):
+        if player.has_confusion:
+            return self.random.choice([True, False])
+        else:
+            return player.apparent_mystic
+    
+    def get_apparent_role(self, player):
+        if player.has_confusion:
+            return self.random.choice(VALID_ROLES)
+        else:
+            return player.role.__class__
+    
+    def get_apparent_team(self, player):
+        if player.has_confusion:
+            return self.random.choice([POPOLANI, LUPI, NEGROMANTI])
+        else:
+            return player.team
+    
+    
     def update(self):
         with self.update_lock:
             try:
@@ -570,8 +597,8 @@ class Dynamics:
         apply_roles(MODIFY_INFLUENCE_ROLES)
 
         # Powers that influence querying powers: Fattucchiera, Spettro
-        # dell'Illusione and Spettro della Mistificazione
-        QUERY_INFLUENCE_ROLES = [Fattucchiera, ILLUSIONE, MISTIFICAZIONE]
+        # della Confusione, Spettro dell'Illusione and Spettro della Mistificazione
+        QUERY_INFLUENCE_ROLES = [Fattucchiera, ILLUSIONE, MISTIFICAZIONE, CONFUSIONE]
         apply_roles(QUERY_INFLUENCE_ROLES)
 
         # Powers that query the state: Espansivo, Investigatore, Mago,
@@ -627,6 +654,7 @@ class Dynamics:
             player.protected_by_guard = False
             player.protected_by_keeper = False
             player.just_ghostified = False
+            player.has_confusion = False
 
         self._end_of_main_phase()
 

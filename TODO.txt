@@ -12,11 +12,13 @@ GAME ENGINE AND DYNAMICS (mostly Gio):
 
 GAME RULES OF 6TH EDITION:
  
- * Spettro della Confusione
- 
  * Fazione dei lupi non spettrificabile
  
  * Stregone
+ 
+ * Rimuovere ruoli (?)
+ 
+ * Catastrofe del party con il Voyeur! I Lupi agiscono la prima notte? Come si evita il party?
 
 TESTS (mostly Giove):
 

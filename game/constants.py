@@ -69,6 +69,7 @@ AURA_IT = {
 
 # Supernatural powers
 AMNESIA = 'A'
+CONFUSIONE = 'C'
 ILLUSIONE = 'I'
 MISTIFICAZIONE = 'M'
 MORTE = 'R'

@@ -244,7 +244,7 @@ class Investigatore(Role):
 
     def apply_dawn(self, dynamics):
         from events import AuraKnowledgeEvent
-        dynamics.generate_event(AuraKnowledgeEvent(player=self.player, target=self.recorded_target, aura=self.recorded_target.apparent_aura, cause=DETECTIVE))
+        dynamics.generate_event(AuraKnowledgeEvent(player=self.player, target=self.recorded_target, aura=dynamics.get_apparent_aura(self.recorded_target), cause=DETECTIVE))
 
 
 class Mago(Role):
@@ -261,7 +261,7 @@ class Mago(Role):
 
     def apply_dawn(self, dynamics):
         from events import MysticityKnowledgeEvent
-        dynamics.generate_event(MysticityKnowledgeEvent(player=self.player, target=self.recorded_target, is_mystic=self.recorded_target.apparent_mystic, cause=MAGE))
+        dynamics.generate_event(MysticityKnowledgeEvent(player=self.player, target=self.recorded_target, is_mystic=dynamics.get_apparent_mystic(self.recorded_target), cause=MAGE))
 
 
 class Massone(Role):
@@ -388,7 +388,7 @@ class Veggente(Role):
 
     def apply_dawn(self, dynamics):
         from events import AuraKnowledgeEvent
-        dynamics.generate_event(AuraKnowledgeEvent(player=self.player, target=self.recorded_target, aura=self.recorded_target.apparent_aura, cause=SEER))
+        dynamics.generate_event(AuraKnowledgeEvent(player=self.player, target=self.recorded_target, aura=dynamics.get_apparent_aura(self.recorded_target), cause=SEER))
 
 
 class Voyeur(Role):
@@ -520,7 +520,7 @@ class Diavolo(Role):
 
     def apply_dawn(self, dynamics):
         from events import RoleKnowledgeEvent
-        dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, role_name=self.recorded_target.role.__class__.__name__, cause=DEVIL))
+        dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, role_name=dynamics.get_apparent_role(self.recorded_target).__name__, cause=DEVIL))
 
 
 class Fattucchiera(Role):
@@ -717,7 +717,7 @@ class Medium(Role):
 
     def apply_dawn(self, dynamics):
         from events import RoleKnowledgeEvent
-        dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, role_name=self.recorded_target.role.__class__.__name__, cause=MEDIUM))
+        dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, role_name=dynamics.get_apparent_role(self.recorded_target).__name__, cause=MEDIUM))
 
 
 class Scrutatore(Role):
@@ -758,6 +758,7 @@ class Spettro(Role):
     
     POWER_NAMES = {
         AMNESIA: 'Amnesia',
+        CONFUSIONE: 'Confusione',
         ILLUSIONE: 'Illusione',
         IPNOSI: 'Ipnosi',
         MISTIFICAZIONE: 'Mistificazione',
@@ -781,7 +782,7 @@ class Spettro(Role):
         if self.player.alive or not self.has_power:
             return False
         
-        if self.power == AMNESIA or self.power == IPNOSI or self.power == MISTIFICAZIONE or self.power == OCCULTAMENTO or self.power == VISIONE:
+        if self.power == AMNESIA or self.power == CONFUSIONE or self.power == IPNOSI or self.power == MISTIFICAZIONE or self.power == OCCULTAMENTO or self.power == VISIONE:
             return True
         elif self.power == ILLUSIONE or self.power == MORTE:
             return self.last_usage is None or self.days_from_last_usage() >= 2
@@ -789,9 +790,9 @@ class Spettro(Role):
             raise ValueError('Invalid ghost type')
     
     def get_targets(self):
-        elif self.power == AMNESIA or self.power == MORTE or self.power == VISIONE or self.power == IPNOSI:
+        if self.power == AMNESIA or self.power == MORTE or self.power == VISIONE or self.power == IPNOSI:
             targets = [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
-        elif self.power == MISTIFICAZIONE or self.power == OCCULTAMENTO or self.power == ILLUSIONE:
+        elif self.power == CONFUSIONE or self.power == MISTIFICAZIONE or self.power == OCCULTAMENTO or self.power == ILLUSIONE:
             targets = [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
         else:
             raise ValueError('Invalid ghost type')
@@ -828,13 +829,17 @@ class Spettro(Role):
 
         elif self.power == VISIONE:
             from events import TeamKnowledgeEvent
-            dynamics.generate_event(TeamKnowledgeEvent(player=self.player, target=self.recorded_target, team=self.recorded_target.team, cause=VISION_GHOST))
+            dynamics.generate_event(TeamKnowledgeEvent(player=self.player, target=self.recorded_target, team=dynamics.get_apparent_team(self.recorded_target), cause=VISION_GHOST))
 
         elif self.power == AMNESIA:
             assert dynamics.amnesia_target is None
             assert not isinstance(self.recorded_target.role, Ipnotista)
             dynamics.amnesia_target = self.recorded_target.canonicalize()
-
+        
+        elif self.power == CONFUSIONE:
+            target = self.recorded_target.canonicalize()
+            target.has_confusion = True
+        
         elif self.power == OCCULTAMENTO:
             # Nothing to do here...
             pass
@@ -886,3 +891,5 @@ roles_map = dict([(x.__name__, x) for x in Role.__subclasses__()])
 
 UNA_TANTUM_ROLES = [Cacciatore, Messia, Trasformista]
 POWERLESS_ROLES = [Contadino, Divinatore, Massone, Rinnegato, Fantasma]
+VALID_ROLES = [Contadino, Divinatore, Esorcista, Espansivo, Guardia, Investigatore, Mago, Massone, Messia, Sciamano, Stalker, Trasformista, Veggente, Voyeur, Lupo, Assassino, Avvocato, Diavolo, Fattucchiera, Rinnegato, Sequestratore, Negromante, Fantasma, Ipnotista, Medium, Scrutatore, Spettro] # TODO: aggiungere Stregone
+
