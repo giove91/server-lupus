@@ -2184,30 +2184,6 @@ class GameTests(TestCase):
             dynamics.inject_event(CommandEvent(type=USEPOWER, player=stalker, target=lupo, timestamp=get_now()))
 
     @record_name
-    def test_stalker_with_reflexive_player(self):
-        roles = [ Stalker, Fattucchiera, Investigatore, Negromante, Lupo, Lupo, Contadino ]
-        self.game = create_test_game(1, roles)
-        dynamics = self.game.get_dynamics()
-        players = self.game.get_players()
-        
-        [stalker] = [x for x in players if isinstance(x.role, Stalker)]
-        [fattucchiera] = [x for x in players if isinstance(x.role, Fattucchiera)]
-        [investigatore] = [x for x in players if isinstance(x.role, Investigatore)]
-        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
-        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
-        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
-        
-        # Advance to night and use powers
-        test_advance_turn(self.game)
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=stalker, target=fattucchiera, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=fattucchiera, target=fattucchiera, timestamp=get_now()))
-        
-        # Advance to dawn and check
-        dynamics.debug_event_bin = []
-        test_advance_turn(self.game)
-        self.assertEqual([event for event in dynamics.debug_event_bin if isinstance(event, MovementKnowledgeEvent)], [])
-
-    @record_name
     def test_stalker_with_fixed_player(self):
         roles = [ Stalker, Fattucchiera, Investigatore, Negromante, Lupo, Lupo, Contadino ]
         self.game = create_test_game(1, roles)
@@ -4082,7 +4058,7 @@ class GameTests(TestCase):
         self.assertEqual(events, [])
     
     @record_name
-    def test_ipnosi_not_created_by_negromanti(self):
+    def test_ipnosi_created_by_negromanti(self):
         roles = [ Ipnotista, Negromante, Lupo, Lupo, Contadino, Contadino ]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
@@ -4115,8 +4091,16 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         
         # Try to create Spettro dell'Ipnosi
-        with self.assertRaises(AssertionError):
-            dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=IPNOSI, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=IPNOSI, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
+        self.assertEqual(event.player, contadino)
+        self.assertEqual(event.ghost, IPNOSI)
+        self.assertEqual(event.cause, NECROMANCER)
     
     @record_name
     def test_ipnosi_created_after_morte(self): # Updated
@@ -5145,9 +5129,10 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
         self.assertEqual(event.player, ipnotista1)
-        events = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
-        self.assertEqual(events, [])
-        self.assertTrue(isinstance(ipnotista1.role, Ipnotista))
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
+        self.assertEqual(event.ghost, IPNOSI)
+        self.assertEqual(event.cause, HYPNOTIST_DEATH)
+        self.assertTrue(isinstance(ipnotista.role, Spettro), ipnotista.role)
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) if event.player == ipnotista2]
         self.assertTrue(event.success)
         
