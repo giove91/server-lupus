@@ -1347,7 +1347,11 @@ class GameTests(TestCase):
         [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
         [messia] = [x for x in players if isinstance(x.role, Messia)]
 
-        # Advance to night
+        # Advance to second night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
         test_advance_turn(self.game)
         
         # Use ipnotista2 power, kill ipnotista1
@@ -5499,7 +5503,7 @@ class GameTests(TestCase):
         self.assertTrue(isinstance(contadino.role, Spettro))
         self.assertFalse(isinstance(ipnotista.role, Spettro))
         
-    def test_messia_fails_on_spettri(self): # New - Forse vanno messi più controlli.
+    def test_messia_fails_on_spettri(self): # New
         roles = [ Ipnotista, Negromante, Lupo, Lupo, Contadino, Contadino, Messia, Messia ]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
@@ -5511,20 +5515,28 @@ class GameTests(TestCase):
         [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
         [messia1, messia2] = [x for x in players if isinstance(x.role, Messia)]
 
-        # Advance to night
+        # Advance to second night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
         test_advance_turn(self.game)
         
         # Kill Contadino
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=contadino, timestamp=get_now()))
         
-        # Advance to second night, kill Ipnotista and ghostify Contadino
+        # Advance to third night, kill Ipnotista and ghostify Contadino
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=ipnotista, target_ghost=AMNESIA, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=ipnotista, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=AMNESIA, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
         
         [event1, event2] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
         self.assertEqual(event1.player, contadino)
@@ -5536,10 +5548,9 @@ class GameTests(TestCase):
         self.assertEqual(event2.cause, HYPNOTIST_DEATH)
         self.assertTrue(isinstance(ipnotista.role, Spettro))
                 
-        # Advance to third night and try resurrection
+        # Advance to fourth night and try resurrection
         dynamics.debug_event_bin = []
         
-        test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -5547,5 +5558,9 @@ class GameTests(TestCase):
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=messia1, target=ipnotista, timestamp=get_now()))        
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=messia2, target=contadino, timestamp=get_now()))
         
+        # Advance to dawn and check
+        test_advance_turn(self.game)
+        
         self.assertFalse(ipnotista.alive)
         self.assertFalse(contadino.alive)
+        self.assertTrue([event for event in dynamics.debug_event_bin if isinstance(event, PlayerResurrectsEvent)] == [])
