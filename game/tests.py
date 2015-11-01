@@ -5498,3 +5498,54 @@ class GameTests(TestCase):
         self.assertEqual(event.cause, NECROMANCER)
         self.assertTrue(isinstance(contadino.role, Spettro))
         self.assertFalse(isinstance(ipnotista.role, Spettro))
+        
+    def test_messia_fails_on_spettri(self): # New - Forse vanno messi più controlli.
+        roles = [ Ipnotista, Negromante, Lupo, Lupo, Contadino, Contadino, Messia, Messia ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
+        [messia1, messia2] = [x for x in players if isinstance(x.role, Messia)]
+
+        # Advance to night
+        test_advance_turn(self.game)
+        
+        # Kill Contadino
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=contadino, timestamp=get_now()))
+        
+        # Advance to second night, kill Ipnotista and ghostify Contadino
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=ipnotista, target_ghost=AMNESIA, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, timestamp=get_now()))
+        
+        [event1, event2] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
+        self.assertEqual(event1.player, contadino)
+        self.assertEqual(event1.ghost, AMNESIA)
+        self.assertEqual(event1.cause, NECROMANCER)
+        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertEqual(event2.player, ipnotista)
+        self.assertEqual(event2.ghost, IPNOSI)
+        self.assertEqual(event2.cause, HYPNOTIST_DEATH)
+        self.assertTrue(isinstance(ipnotista.role, Spettro))
+                
+        # Advance to third night and try resurrection
+        dynamics.debug_event_bin = []
+        
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=messia1, target=ipnotista, timestamp=get_now()))        
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=messia2, target=contadino, timestamp=get_now()))
+        
+        self.assertFalse(ipnotista.alive)
+        self.assertFalse(contadino.alive)
