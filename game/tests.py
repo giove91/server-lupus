@@ -5341,7 +5341,7 @@ class GameTests(TestCase):
 
             [negromante] = [x for x in players if isinstance(x.role, Negromante)]
             [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
-            [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
+            [contadino] = [x for x in players if isinstance(x.role, Contadino)]
             [assassino] = [x for x in players if isinstance(x.role, Assassino)]
             [guardia] = [x for x in players if isinstance(x.role, Guardia)]
             [espansivo] = [x for x in players if isinstance(x.role, Espansivo)]
@@ -5379,7 +5379,7 @@ class GameTests(TestCase):
 
         [negromante] = [x for x in players if isinstance(x.role, Negromante)]
         [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
-        [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
+        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
         [assassino] = [x for x in players if isinstance(x.role, Assassino)]
         
         # Advance to night
