@@ -461,7 +461,7 @@ class Assassino(Role):
     def apply_dawn(self, dynamics):
         from events import PlayerDiesEvent
         assert self.recorded_target is not None
-        visitors = self.recorded_target.visitors
+        visitors = [x for x in self.recorded_target.visitors if x.pk != self.player.pk]
         if len(visitors) > 0:
             victim = dynamics.random.choice(visitors)
             if not victim.just_dead:
