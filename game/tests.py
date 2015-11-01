@@ -1542,7 +1542,7 @@ class GameTests(TestCase):
         
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, AuraKnowledgeEvent)]
         self.assertEqual(event.player, veggente)
-        self.assertEqual(event.target, fattucchiera)
+        self.assertEqual(event.target, lupo)
         self.assertEqual(event.aura, WHITE)
         self.assertEqual(event.cause, SEER)
 
@@ -2131,11 +2131,11 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         events = [event for event in dynamics.debug_event_bin if isinstance(event, MovementKnowledgeEvent)]
         # Only guardia and esorcista are discovered
-        self.assertEqual(len(events), 2)
+        self.assertEqual(len(events), 3)
         for event in events:
             self.assertEqual(event.player, voyeur)
-            self.assertTrue(event.target2 == guardia or event.target2 == esorcista)
-            self.assertEqual(event.target, fattucchiera)
+            self.assertTrue(event.target2 == guardia or event.target2 == esorcista or event.target2 == fattucchiera)
+            self.assertEqual(event.target, contadino)
             self.assertEqual(event.cause, VOYEUR)
         
         # Advance to second night and check that power cannot be used

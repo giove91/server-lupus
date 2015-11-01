@@ -24,14 +24,6 @@ TESTS (mostly Giove):
  
  * Change knowledge components
  
- * No "not twice on the same character" rule
- 
- * No action on self
- 
- * Modifications to Ipnotista and Ipnosi
- 
- * Messia fails on Spettri
- 
  * Spettro della Confusione
  
  * Fazione dei lupi non spettrificabile
@@ -51,8 +43,6 @@ INTERFACE (mostly Giove):
    the end of the match, instead of doing that manually).
 
 MYSTERIOUS:
-
- * Ipnotista being revived as Ghost without power
 
  * Messia superposition
 
