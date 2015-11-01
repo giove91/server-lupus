@@ -798,7 +798,7 @@ class Spettro(Role):
     def apply_dawn(self, dynamics):
         assert self.has_power
 
-        elif self.power == VISIONE:
+        if self.power == VISIONE:
             from events import TeamKnowledgeEvent
             dynamics.generate_event(TeamKnowledgeEvent(player=self.player, target=self.recorded_target, team=dynamics.get_apparent_team(self.recorded_target), cause=VISION_GHOST))
 

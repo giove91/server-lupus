@@ -14,8 +14,6 @@ GAME RULES OF 6TH EDITION:
  
  * Stregone
  
- * Rimuovere ruoli (?)
- 
  * Catastrofe del party con il Voyeur! I Lupi agiscono la prima notte? Come si evita il party?
 
 TESTS (mostly Giove):
@@ -77,5 +75,7 @@ FOR THE FUTURE:
  * When last Negromante is dying, they cannot ghostify anyone.
 
  * Make Marta write the weather descriptions.
+ 
+ * Remove Cacciatore?
 
 
