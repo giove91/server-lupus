@@ -890,13 +890,13 @@ class GhostificationEvent(Event):
         assert not player.alive
         assert self.ghost not in dynamics.used_ghost_powers
         assert not(dynamics.death_ghost_created and self.cause == NECROMANCER)
-        assert not(dynamics.death_ghost_created and self.cause == HYPNOTIST_DEATH and not dynamics.death_ghost_just_created), (dynamics.death_ghost_created, dynamics.death_ghost_just_created, self.cause)
+        #assert not(dynamics.death_ghost_created and self.cause == HYPNOTIST_DEATH and not dynamics.death_ghost_just_created), (dynamics.death_ghost_created, dynamics.death_ghost_just_created, self.cause)
         assert not(dynamics.ghosts_created_last_night and self.cause == NECROMANCER)
         assert not(self.cause == HYPNOTIST_DEATH and not isinstance(player.role, Ipnotista))
         assert not(self.cause == HYPNOTIST_DEATH and player.team != NEGROMANTI)
-        assert not(self.cause == HYPNOTIST_DEATH and self.ghost != IPNOSI)
-        assert not(self.cause != HYPNOTIST_DEATH and self.ghost == IPNOSI)
-        assert not(self.ghost == IPNOSI and [player2 for player2 in dynamics.get_alive_players() if isinstance(player2.role, Ipnotista) and player2.team == NEGROMANTI] != [])
+        #assert not(self.cause == HYPNOTIST_DEATH and self.ghost != IPNOSI)
+        #assert not(self.cause != HYPNOTIST_DEATH and self.ghost == IPNOSI)
+        #assert not(self.ghost == IPNOSI and [player2 for player2 in dynamics.get_alive_players() if isinstance(player2.role, Ipnotista) and player2.team == NEGROMANTI] != [])
 
         # Update global status
         if self.cause == NECROMANCER:
