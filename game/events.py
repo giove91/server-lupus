@@ -479,6 +479,7 @@ class PlayerDiesEvent(Event):
         HUNTER: [DAWN],
         WOLVES: [DAWN],
         DEATH_GHOST: [DAWN],
+        ASSASSIN: [DAWN],
         }
 
     def apply(self, dynamics):

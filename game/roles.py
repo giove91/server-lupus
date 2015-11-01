@@ -554,6 +554,24 @@ class Sequestratore(Role):
         pass
 
 
+class Stregone(Role):
+    name = 'Stregone'
+    team = LUPI
+    aura = BLACK
+    knowledge_class = 3
+    
+    def can_use_power(self):
+        return self.player.alive and self.last_usage is None
+    
+    def get_targets(self):
+        return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
+    
+    def apply_dawn(self, dynamics):
+        # TODO
+        pass
+
+
+
 # Fazione dei Negromanti
 
 class Negromante(Role):
