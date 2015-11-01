@@ -5395,4 +5395,72 @@ class GameTests(TestCase):
         self.assertTrue(event.success)
         self.assertTrue(assassino.alive)            
         
+    @record_name        
+    def test_assassino_can_kill_other_assassino(self): # New
+        
+        roles = [ Assassino, Assassino, Negromante, Lupo, Lupo, Contadino]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+        [assassino1, assassino2] = [x for x in players if isinstance(x.role, Assassino)]
+        
+        # Advance to night
+        test_advance_turn(self.game)
+            
+        # Both Assassini act
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=assassino1, target=contadino, timestamp=get_now()))        
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=assassino2, target=contadino, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        
+        [event1, event2] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
+        self.assertFalse(assassino1.alive)
+        self.assertFalse(assassino2.alive)
+
+    @record_name
+    def test_assassini_act_independently(self): # New
+        killedplayers = set()
+        for i in xrange(20):
+            # Since this test is repeasted many times, we have to
+            # destroy it and delete all users before testing again
+            if 'game' in self.__dict__ and self.game is not None:
+                self.game.delete()
+                self.game = None
+            delete_auto_users()
+            
+            roles = [ Assassino, Assassino, Negromante, Lupo, Lupo, Contadino, Espansivo]
+            self.game = create_test_game(i, roles)
+            dynamics = self.game.get_dynamics()
+            players = self.game.get_players()
+
+            [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+            [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+            [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+            [assassino1, assassino2] = [x for x in players if isinstance(x.role, Assassino)]
+            [espansivo] = [x for x in players if isinstance(x.role, Espansivo)]
+
+            # Advance to night
+            test_advance_turn(self.game)
+                
+            # Assassini kill someone
+            dynamics.inject_event(CommandEvent(type=USEPOWER, player=assassino1, target=contadino, timestamp=get_now()))
+            dynamics.inject_event(CommandEvent(type=USEPOWER, player=assassino2, target=contadino, timestamp=get_now()))
+            dynamics.inject_event(CommandEvent(type=USEPOWER, player=espansivo, target=contadino, timestamp=get_now()))
+            
+            dynamics.debug_event_bin = []
+            test_advance_turn(self.game)
+            
+            dead = tuple(set([x.get_role_name() for x in players if not x.alive]))
+            killedplayers.add(dead)
+        
+        # Check that all possible couples died at least once
+        self.assertEqual(len(killedplayers), 3)
+        
+        
             
