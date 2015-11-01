@@ -4,6 +4,7 @@ import datetime
 import json
 import os
 import collections
+from functools import wraps
 
 from django.utils import timezone
 
@@ -127,6 +128,7 @@ def test_advance_turn(game):
 
 
 def record_name(f):
+    @wraps(f)
     def g(self):
         self._name = f.__name__
         return f(self)
