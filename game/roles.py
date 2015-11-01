@@ -604,8 +604,8 @@ class Negromante(Role):
             assert self.recorded_target.pk == necromancers_target_player.pk
             assert self.recorded_target_ghost == necromancers_target_ghost
 
-            # Negromanti cannot ghostify Lupi and Fattucchiere
-            if isinstance(self.recorded_target.role, (Lupo, Fattucchiera)):
+            # Negromanti cannot ghostify people in Lupi team
+            if self.recorded_target.team == LUPI:
                 return False
 
             # Negromanti cannot ghostify people in their team
