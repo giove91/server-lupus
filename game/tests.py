@@ -5218,9 +5218,10 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
         self.assertEqual(event.player, ipnotista1)
-        events = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
-        self.assertEqual(events, [])
-        self.assertTrue(isinstance(ipnotista1.role, Ipnotista))
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
+        self.assertEqual(event.ghost, IPNOSI)
+        self.assertEqual(event.cause, HYPNOTIST_DEATH)
+        self.assertTrue(isinstance(ipnotista1.role, Spettro), ipnotista.role)
         
         # Advance to night
         test_advance_turn(self.game)
