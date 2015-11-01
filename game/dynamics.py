@@ -108,7 +108,6 @@ class Dynamics:
             player.visiting = None
             player.visitors = None
             player.protected_by_guard = False
-            player.protected_by_keeper = False
             player.just_dead = False
             player.just_ghostified = False
             player.hypnotist = None
@@ -587,18 +586,16 @@ class Dynamics:
 
         # Apply roles of blockers computed above, so that
         # PowerOutcomeEvent's are properly generated
-        BLOCK_ROLES = [Sequestratore, Sciamano, Esorcista,
-                       OCCULTAMENTO]
+        BLOCK_ROLES = [Sequestratore, Sciamano, Esorcista, OCCULTAMENTO]
         apply_roles(BLOCK_ROLES)
 
-        # Then powers that influence modifying powers: Guardia del
-        # Corpo and Custode del Cimitero
-        MODIFY_INFLUENCE_ROLES = [Guardia, Custode]
+        # Then powers that influence modifying powers: Guardia del Corpo
+        MODIFY_INFLUENCE_ROLES = [Guardia]
         apply_roles(MODIFY_INFLUENCE_ROLES)
 
         # Powers that influence querying powers: Fattucchiera, Spettro
-        # della Confusione, Spettro dell'Illusione and Spettro della Mistificazione
-        QUERY_INFLUENCE_ROLES = [Fattucchiera, ILLUSIONE, MISTIFICAZIONE, CONFUSIONE]
+        # della Confusione, Spettro dell'Illusione
+        QUERY_INFLUENCE_ROLES = [Fattucchiera, ILLUSIONE, CONFUSIONE]
         apply_roles(QUERY_INFLUENCE_ROLES)
 
         # Powers that query the state: Espansivo, Investigatore, Mago,
@@ -652,7 +649,6 @@ class Dynamics:
             player.visiting = None
             player.visitors = None
             player.protected_by_guard = False
-            player.protected_by_keeper = False
             player.just_ghostified = False
             player.has_confusion = False
 

@@ -140,24 +140,6 @@ class Cacciatore(Role):
             dynamics.generate_event(PlayerDiesEvent(player=self.recorded_target, cause=HUNTER))
 
 
-class Custode(Role):
-    name = 'Custode del cimitero'
-    team = POPOLANI
-    aura = WHITE
-    
-    def can_use_power(self):
-        return self.player.alive
-    
-    def get_targets(self):
-        excluded = [self.player.pk]
-        if self.last_usage is not None and self.days_from_last_usage() <= 1:
-            excluded.append(self.last_target.pk)
-        return [player for player in self.player.game.get_dead_players() if player.pk not in excluded]
-
-    def apply_dawn(self, dynamics):
-        self.recorded_target.protected_by_keeper = True
-
-
 class Divinatore(Role):
     name = 'Divinatore'
     team = POPOLANI
@@ -612,10 +594,6 @@ class Negromante(Role):
             if self.recorded_target.team == NEGROMANTI and not self.recorded_target.just_ghostified:
                 return False
 
-            # Check protection by Custode
-            if self.recorded_target.protected_by_keeper:
-                return False
-
             # Check that target has not just been resurrected by
             # Messia
             if self.recorded_target.alive:
@@ -638,7 +616,6 @@ class Negromante(Role):
             # Assert checks in pre_dawn_apply(), just to be sure
             assert not isinstance(self.recorded_target.role, (Lupo, Fattucchiera))
             assert self.recorded_target.team != NEGROMANTI or self.recorded_target.just_ghostified
-            assert not self.recorded_target.protected_by_keeper
 
             assert not self.recorded_target.alive
             from events import GhostificationEvent, RoleKnowledgeEvent
@@ -761,7 +738,6 @@ class Spettro(Role):
         CONFUSIONE: 'Confusione',
         ILLUSIONE: 'Illusione',
         IPNOSI: 'Ipnosi',
-        MISTIFICAZIONE: 'Mistificazione',
         MORTE: 'Morte',
         OCCULTAMENTO: 'Occultamento',
         VISIONE: 'Visione',
@@ -782,7 +758,7 @@ class Spettro(Role):
         if self.player.alive or not self.has_power:
             return False
         
-        if self.power == AMNESIA or self.power == CONFUSIONE or self.power == IPNOSI or self.power == MISTIFICAZIONE or self.power == OCCULTAMENTO or self.power == VISIONE:
+        if self.power == AMNESIA or self.power == CONFUSIONE or self.power == IPNOSI or self.power == OCCULTAMENTO or self.power == VISIONE:
             return True
         elif self.power == ILLUSIONE or self.power == MORTE:
             return self.last_usage is None or self.days_from_last_usage() >= 2
@@ -792,7 +768,7 @@ class Spettro(Role):
     def get_targets(self):
         if self.power == AMNESIA or self.power == MORTE or self.power == VISIONE or self.power == IPNOSI:
             targets = [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
-        elif self.power == CONFUSIONE or self.power == MISTIFICAZIONE or self.power == OCCULTAMENTO or self.power == ILLUSIONE:
+        elif self.power == CONFUSIONE or self.power == OCCULTAMENTO or self.power == ILLUSIONE:
             targets = [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
         else:
             raise ValueError('Invalid ghost type')
@@ -821,11 +797,6 @@ class Spettro(Role):
 
     def apply_dawn(self, dynamics):
         assert self.has_power
-
-        if self.power == MISTIFICAZIONE:
-            target = self.recorded_target.canonicalize()
-            assert target.apparent_mystic is not None
-            target.apparent_mystic = True
 
         elif self.power == VISIONE:
             from events import TeamKnowledgeEvent
