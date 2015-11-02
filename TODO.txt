@@ -12,9 +12,9 @@ GAME ENGINE AND DYNAMICS (mostly Gio):
 
 GAME RULES OF 6TH EDITION:
  
- * Stregone
+ * Stregone (nuova versione)
  
- * Catastrofe del party con il Voyeur! I Lupi agiscono la prima notte? Come si evita il party?
+ * Assassino agisce la prima notte?
 
 TESTS (mostly Giove):
 
@@ -28,7 +28,9 @@ TESTS (mostly Giove):
  
  * Fazione dei lupi non spettrificabile
  
- * Stregone
+ * Stregone (nuova versione)
+ 
+ * Assassino agisce la prima notte?
 
 INTERFACE (mostly Giove):
 
