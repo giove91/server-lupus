@@ -5462,5 +5462,77 @@ class GameTests(TestCase):
         # Check that all possible couples died at least once
         self.assertEqual(len(killedplayers), 3)
         
+    @record_name
+    def test_confusione(self): # New
+        roles = [ Negromante, Lupo, Lupo, Contadino, Contadino, Diavolo, Diavolo, Veggente, Veggente, Veggente, Veggente, Mago, Mago, Mago, Mago ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
+        [diavolo1, diavolo2] = [x for x in players if isinstance(x.role, Diavolo)]
+        [veggente1, veggente2, veggente3, veggente4] = [x for x in players if isinstance(x.role, Veggente)]
+        [mago1, mago2, mago3, mago4] = [x for x in players if isinstance(x.role, Contadino)]
         
-            
+        # Advance to second night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Kill Contadino
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=contadino, timestamp=get_now()))
+        
+        # Advance to next night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Make Spettro della Confusione
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=CONFUSIONE, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
+        self.assertEqual(event.player, contadino)
+        self.assertEqual(event.ghost, CONFUSIONE)
+        self.assertEqual(event.cause, NECROMANCER)
+        self.assertTrue(isinstance(contadino.role, Spettro))
+        
+        # Advance to next night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Test everything
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=veggente1, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=veggente2, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=veggente3, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=veggente4, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=diavolo1, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=diavolo2, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=mago1, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=mago2, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=mago3, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=mago4, target=negromante, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        test_advance_turn(self.game)
+        
+        dynamics.debug_event_bin = []
+        auras = [event.aura for event in dynamics.debug_event_bin if isinstance(event, AuraKnowledgeEvent)]
+        self.AssertEqual(auras, set([BLACK, WHITE]))
+        
+        dynamics.debug_event_bin = []
+        mysticities = [event.is_mystic for event in dynamics.debug_event_bin if isinstance(event, MisticityKnowledgeEvent)]
+        self.AssertEqual(mysticities, set([True, False]))
+        
+        dynamics.debug_event_bin = []
+        roles = [event.role_name for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
+        self.AssertEqual(len(set(roles)), 2)
