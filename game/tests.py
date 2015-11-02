@@ -5534,3 +5534,90 @@ class GameTests(TestCase):
 
         roles = [event.role_name for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
         self.AssertEqual(len(set(roles)), 2)
+        
+    @record_name
+    def test_lupi_not_ghostified(self): # New
+        roles = [ Negromante, Lupo, Lupo, Contadino, Contadino, Diavolo, Assassino, Medium ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, lupo2] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
+        [diavolo] = [x for x in players if isinstance(x.role, Diavolo)]
+        [assassino] = [x for x in players if isinstance(x.role, Assassino)]        
+        [medium] = [x for x in players if isinstance(x.role, Medium)]
+        
+        # Advance to second night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Kill Diavolo
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=diavolo, timestamp=get_now()))
+        
+        # Advance to next night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Try ghostification, kill Assassino
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=assassino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=diavolo, target_ghost=AMNESIA, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        
+        self.assertTrue(isinstance(diavolo.role, Diavolo))
+        self.assertFalse(assassino.alive)
+        
+        # Advance to next night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Try ghostification, kill Lupo2
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=lupo2, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=assassino, target_ghost=AMNESIA, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        
+        self.assertTrue(isinstance(assassino.role, Assassino))
+        self.assertFalse(lupo2.alive)
+        
+        # Advance to next night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Try ghostification, kill Medium
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=medium, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=lupo2, target_ghost=AMNESIA, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        
+        self.assertTrue(isinstance(lupo2.role, Lupo))
+        self.assertFalse(lupo2.alive)
+        
+        # Advance to next night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Try ghostification
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=medium, target_ghost=AMNESIA, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        
+        self.assertTrue(isinstance(medium.role, Medium))
