@@ -5474,7 +5474,7 @@ class GameTests(TestCase):
         [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
         [diavolo1, diavolo2] = [x for x in players if isinstance(x.role, Diavolo)]
         [veggente1, veggente2, veggente3, veggente4] = [x for x in players if isinstance(x.role, Veggente)]
-        [mago1, mago2, mago3, mago4] = [x for x in players if isinstance(x.role, Contadino)]
+        [mago1, mago2, mago3, mago4] = [x for x in players if isinstance(x.role, Mago)]
         
         # Advance to second night
         test_advance_turn(self.game)
@@ -5523,16 +5523,14 @@ class GameTests(TestCase):
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=mago4, target=negromante, timestamp=get_now()))
         
         # Advance to dawn and check
+        dynamics.debug_event_bin = []
         test_advance_turn(self.game)
         
-        dynamics.debug_event_bin = []
         auras = [event.aura for event in dynamics.debug_event_bin if isinstance(event, AuraKnowledgeEvent)]
         self.AssertEqual(auras, set([BLACK, WHITE]))
         
-        dynamics.debug_event_bin = []
         mysticities = [event.is_mystic for event in dynamics.debug_event_bin if isinstance(event, MisticityKnowledgeEvent)]
         self.AssertEqual(mysticities, set([True, False]))
-        
-        dynamics.debug_event_bin = []
+
         roles = [event.role_name for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
         self.AssertEqual(len(set(roles)), 2)
