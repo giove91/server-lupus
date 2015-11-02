@@ -566,10 +566,22 @@ class Stregone(Role):
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
     
-    def apply_dawn(self, dynamics):
-        # TODO
-        pass
+    def get_blocked(self, players):
+        if self.recorded_target is None:
+            return []
+        ret = []
+        for blocked in players:
+            if blocked.pk == self.player.pk:
+                continue
+            if blocked.alive or blocked.just_dead:
+                continue
+            if blocked.role.recorded_target is not None and blocked.role.recorded_target.pk == self.recorded_target.pk:
+                ret.append(blocked.pk)
+        return ret
 
+    def apply_dawn(self, dynamics):
+        # Nothing to do here...
+        pass
 
 
 # Fazione dei Negromanti
@@ -880,5 +892,5 @@ roles_map = dict([(x.__name__, x) for x in Role.__subclasses__()])
 
 UNA_TANTUM_ROLES = [Cacciatore, Messia, Trasformista]
 POWERLESS_ROLES = [Contadino, Divinatore, Massone, Rinnegato, Fantasma]
-VALID_ROLES = [Contadino, Divinatore, Esorcista, Espansivo, Guardia, Investigatore, Mago, Massone, Messia, Sciamano, Stalker, Trasformista, Veggente, Voyeur, Lupo, Assassino, Avvocato, Diavolo, Fattucchiera, Rinnegato, Sequestratore, Negromante, Fantasma, Ipnotista, Medium, Scrutatore, Spettro] # TODO: aggiungere Stregone
+VALID_ROLES = [Contadino, Divinatore, Esorcista, Espansivo, Guardia, Investigatore, Mago, Massone, Messia, Sciamano, Stalker, Trasformista, Veggente, Voyeur, Lupo, Assassino, Avvocato, Diavolo, Fattucchiera, Rinnegato, Sequestratore, Stregone, Negromante, Fantasma, Ipnotista, Medium, Scrutatore, Spettro]
 

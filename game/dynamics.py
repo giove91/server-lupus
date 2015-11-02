@@ -506,7 +506,8 @@ class Dynamics:
         # Build the list of blockers
         critical_blockers = players_by_role[Sequestratore.__name__] + \
             players_by_role[Sciamano.__name__] + \
-            players_by_role[Esorcista.__name__]
+            players_by_role[Esorcista.__name__] + \
+            players_by_role[Stregone.__name__]
         if OCCULTAMENTO in ghosts_by_power:
             critical_blockers.append(ghosts_by_power[OCCULTAMENTO])
         critical_blockers = [x for x in critical_blockers if x.role.recorded_target is not None]
