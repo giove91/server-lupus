@@ -5536,7 +5536,7 @@ class GameTests(TestCase):
         self.AssertEqual(len(set(roles)), 2)
         
     @record_name
-    def test_lupi_not_ghostified(self): # New
+    def test_lupi_and_negromanti_not_ghostified(self): # New
         roles = [ Negromante, Lupo, Lupo, Contadino, Contadino, Diavolo, Assassino, Medium ]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
