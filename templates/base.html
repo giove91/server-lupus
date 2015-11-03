@@ -7,7 +7,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Realtime Lupus 5</title>
+    <title>Realtime Lupus 6</title>
     <link rel="stylesheet" href="{% static "reset.css" %}" />
     <link rel="stylesheet" href="{% static "text.css" %}" />
     <link rel="stylesheet" href="{% static "960.css" %}" />
@@ -108,14 +108,16 @@
                 </ul>
 	        </div>
 	        
+	        {% comment %}
 	        <div class="nav-menu">
 	            <h1>Dopo-partita</h1>
 	            <ul>
 	                <li><a href="{% url 'adminstatus' %}">Tutte le informazioni</a></li>
 	            </ul>
 	        </div>
+	        {% endcomment %}
 	        
-	        {% if user.is_staff %}
+        {% if user.is_staff %}
 		<div class="nav-menu">
 			<h1>GM</h1>
 		    <ul>
