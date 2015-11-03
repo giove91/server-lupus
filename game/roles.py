@@ -453,7 +453,7 @@ class Assassino(Role):
     knowledge_class = 2
     
     def can_use_power(self):
-        return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
+        return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 ) and self.player.game.current_turn.date > 1
     
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]

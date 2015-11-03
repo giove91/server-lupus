@@ -11,10 +11,7 @@ GAME ENGINE AND DYNAMICS (mostly Gio):
    disqualified
 
 GAME RULES OF 6TH EDITION:
- 
- * Stregone (nuova versione)
- 
- * Assassino agisce la prima notte?
+
 
 TESTS (mostly Giove):
 
@@ -30,7 +27,7 @@ TESTS (mostly Giove):
  
  * Stregone (nuova versione)
  
- * Assassino agisce la prima notte?
+ * Assassino e Lupi non agiscono la prima notte
 
 INTERFACE (mostly Giove):
 
