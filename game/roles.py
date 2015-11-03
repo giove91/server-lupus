@@ -474,7 +474,7 @@ class Avvocato(Role):
     name = 'Avvocato del diavolo'
     team = LUPI
     aura = BLACK
-    knowledge_class = 3
+    knowledge_class = 2
     
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
