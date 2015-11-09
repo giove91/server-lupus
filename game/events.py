@@ -649,7 +649,7 @@ class RoleKnowledgeEvent(Event):
             # TODO: implement
             pass
 
-        if self.cause != SOOTHSAYER:
+        if self.cause in [EXPANSIVE, GHOST, PHANTOM, HYPNOTIST_DEATH, KNOWLEDGE_CLASS]:
             role_class = roles_map[self.role_name]
             assert isinstance(self.target.canonicalize().role, role_class)
     

@@ -573,7 +573,7 @@ class Stregone(Role):
         for blocked in players:
             if blocked.pk == self.player.pk:
                 continue
-            if blocked.alive or blocked.just_dead:
+            if isinstance(blocked.role, Spettro):
                 continue
             if blocked.role.recorded_target is not None and blocked.role.recorded_target.pk == self.recorded_target.pk:
                 ret.append(blocked.pk)
