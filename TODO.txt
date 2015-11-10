@@ -10,9 +10,6 @@ GAME ENGINE AND DYNAMICS (mostly Gio):
  * Ignore power usages and votes of player that are going to be
    disqualified.
 
- * Fix database usage so we can use PostgreSQL (in particular,
-   properly use big integers for the random seed).
-
 GAME RULES OF 6TH EDITION:
 
 TESTS (mostly Giove):
