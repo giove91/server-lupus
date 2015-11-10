@@ -1,14 +1,17 @@
 
 GAME ENGINE AND DYNAMICS (mostly Gio):
 
- * Death superposition (bug in visualization order)
+ * Death superposition (bug in visualization order).
 
  * Fix DST TZ selection during automatic turn advancement.
 
  * Fix long day selection during weekend.
 
  * Ignore power usages and votes of player that are going to be
-   disqualified
+   disqualified.
+
+ * Fix database usage so we can use PostgreSQL (in particular,
+   properly use big integers for the random seed).
 
 GAME RULES OF 6TH EDITION:
 
