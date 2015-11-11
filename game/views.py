@@ -715,12 +715,18 @@ class CommentView(View):
         form = CommentForm(request.POST)
         user = request.user
         game = request.game
+        current_turn = game.current_turn
         
         if form.is_valid() and self.can_comment(request):
                 text = form.cleaned_data['text']
-                comment = Comment(turn=game.current_turn, user=user, text=text)
-                comment.save()
-                form = CommentForm()
+                
+                # Check that the same comment has not been already posted as last comment
+                comments = Comment.objects.filter(user=user).filter(turn__game=game).filter(turn=current_turn).order_by('-timestamp')
+                if len(comments) == 0 or comments[0].text != text:
+                    # Save comment
+                    comment = Comment(turn=game.current_turn, user=user, text=text)
+                    comment.save()
+        form = CommentForm()
        
         old_comments = Comment.objects.filter(user=user).filter(turn__game=game).filter(visible=True).order_by('-timestamp')
         can_comment = self.can_comment(request)
