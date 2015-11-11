@@ -539,8 +539,8 @@ class Dynamics:
                     if self.players_dict[src].role.__class__ == Sequestratore:
                         sequestrated[dst] = True
         if DEBUG_DYNAMICS:
-            print >> sys.stderr, powers_success
-            print >> sys.stderr, sequestrated
+            print >> sys.stderr, "powers_success: " + repr(powers_success)
+            print >> sys.stderr, "sequestrated: " + repr(sequestrated)
 
         # Then compute the visit graph
         for player in self.get_active_players():
@@ -550,8 +550,8 @@ class Dynamics:
                 player.visiting.append(player.role.recorded_target)
                 player.role.recorded_target.visitors.append(player)
         if DEBUG_DYNAMICS:
-            print >> sys.stderr, dict([(x, x.visiting) for x in self.get_active_players()])
-            print >> sys.stderr, dict([(x, x.visitors) for x in self.get_active_players()])
+            print >> sys.stderr, "visiting: " + repr(dict([(x, x.visiting) for x in self.get_active_players()]))
+            print >> sys.stderr, "visitors: " + repr(dict([(x, x.visitors) for x in self.get_active_players()]))
 
         # Utility methods for later
         def apply_role(player):
@@ -566,6 +566,9 @@ class Dynamics:
                 success = player.role.pre_apply_dawn(self)
                 if DEBUG_DYNAMICS:
                     print >> sys.stderr, success
+            else:
+                if DEBUG_DYNAMICS:
+                    print >> sys.stderr
             event = PowerOutcomeEvent(player=player, success=success, sequestrated=player.pk in sequestrated, command=player.role.recorded_command)
             self.generate_event(event)
             if success:
