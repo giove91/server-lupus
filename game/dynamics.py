@@ -591,7 +591,7 @@ class Dynamics:
 
         # Apply roles of blockers computed above, so that
         # PowerOutcomeEvent's are properly generated
-        BLOCK_ROLES = [Sequestratore, Sciamano, Esorcista, OCCULTAMENTO]
+        BLOCK_ROLES = [Sequestratore, Stregone, Sciamano, Esorcista, OCCULTAMENTO]
         apply_roles(BLOCK_ROLES)
 
         # Then powers that influence modifying powers: Guardia del Corpo
