@@ -5,8 +5,8 @@
 import datetime as _datetime
 import pytz as _pytz
 
-# TODO: fix problems with TZ handling
-REF_TZINFO = _pytz.timezone('CET')
+# The game is based in Italy!
+REF_TZINFO = _pytz.timezone('Europe/Rome')
 
 # Turn phases (we used to have letters here, but we need something
 # that preserves the order in the database; FIXME: find a better
@@ -33,14 +33,14 @@ DATE_CHANGE_PHASE = NIGHT
 
 FIRST_PHASE = CREATION
 FIRST_DATE = 0
-FIRST_PHASE_BEGIN_TIME = _datetime.time(hour=22, tzinfo=REF_TZINFO)
+FIRST_PHASE_BEGIN_TIME = _datetime.time(hour=22)
 
 HALF_PHASES = [SUNSET, DAWN, CREATION]
 FULL_PHASES = [DAY, NIGHT]
 
 FULL_PHASE_END_TIMES = {
-    NIGHT: _datetime.time(hour=8, tzinfo=REF_TZINFO),
-    DAY: _datetime.time(hour=22, tzinfo=REF_TZINFO),
+    NIGHT: _datetime.time(hour=8),
+    DAY: _datetime.time(hour=22),
     }
 
 # User genders
