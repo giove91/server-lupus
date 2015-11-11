@@ -6,23 +6,11 @@ GAME ENGINE AND DYNAMICS (mostly Gio):
  * Ignore power usages and votes of player that are going to be
    disqualified.
 
-GAME RULES OF 6TH EDITION:
-
 TESTS (mostly Giove):
 
  * Update mayor tests checking SetMayorEvent.cause [low priority].
  
- * Assassino
- 
- * Change knowledge components
- 
- * Spettro della Confusione
- 
  * Fazione dei lupi non spettrificabile
- 
- * Stregone (nuova versione)
- 
- * Assassino e Lupi non agiscono la prima notte
 
 INTERFACE (mostly Giove):
 
