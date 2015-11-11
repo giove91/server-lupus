@@ -43,6 +43,11 @@ FULL_PHASE_END_TIMES = {
     DAY: _datetime.time(hour=22),
     }
 
+# 0 is Monday, 6 is Sunday: here we say that DAY cannot finish on
+# Friday or Saturday; moreover it cannot finish on some dates
+DAY_END_SKIP_WEEKDAYS = [ 4, 5 ]
+DAY_END_SKIP_DATES = [ _datetime.date(2015, 12, 6), _datetime.date(2015, 12, 7) ]
+
 # User genders
 MALE = 'M'
 FEMALE = 'F'
