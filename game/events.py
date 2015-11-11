@@ -847,6 +847,46 @@ class MovementKnowledgeEvent(Event):
             return None
 
 
+class NoMovementKnowledgeEvent(Event):
+    RELEVANT_PHASES = [DAWN]
+    AUTOMATIC = True
+
+    # Target is to be understood as how it is in CommandEvent;
+    # that is, target is the player that was watched.
+    player = models.ForeignKey(Player, related_name='+')
+    target = models.ForeignKey(Player, related_name='+')
+    
+    KNOWLEDGE_CAUSE_TYPES = (
+        (STALKER, 'Stalker'),
+        (VOYEUR, 'Voyeur'),
+        )
+    cause = models.CharField(max_length=1, choices=KNOWLEDGE_CAUSE_TYPES, default=None)
+
+    def apply(self, dynamics):
+        assert self.player.pk != self.target.pk
+    
+    def to_player_string(self, player):
+        if player == self.player:
+            if self.cause == STALKER:
+                return u'Scopri che stanotte %s non si è recat%s da nessuna parte.' % (self.target.full_name, self.target.oa)
+            elif self.cause == VOYEUR:
+                return u'Scopri che stanotte nessun personaggio si è recato da %s.' % (self.target.full_name)
+            else:
+                raise Exception ('Unknown cause')
+        
+        elif player == 'admin':
+            if self.cause == STALKER:
+                return u'%s scopre che stanotte %s non si è recat%s da nessuna parte.' % (self.player.full_name, self.target.full_name, self.target.oa)
+            elif self.cause == VOYEUR:
+                return u'%s scopre che stanotte nessun personaggio si è recato da %s.' % (self.player.full_name, self.target.full_name)
+            else:
+                raise Exception ('Unknown cause')
+        
+        else:
+            return None
+
+
+
 class HypnotizationEvent(Event):
     RELEVANT_PHASES = [DAWN]
     AUTOMATIC = True

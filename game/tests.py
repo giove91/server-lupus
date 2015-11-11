@@ -5822,3 +5822,84 @@ class GameTests(TestCase):
         self.assertEqual(len(events), 1)
         events = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and not event.success]
         self.assertEqual(len(events), 2)
+    
+    @record_name
+    def test_no_movement_knowledge_event(self):
+        roles = [ Voyeur, Stalker, Guardia, Fattucchiera, Investigatore, Negromante, Lupo, Lupo, Contadino, Esorcista ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+        
+        [voyeur] = [x for x in players if isinstance(x.role, Voyeur)]
+        [stalker] = [x for x in players if isinstance(x.role, Stalker)]
+        [guardia] = [x for x in players if isinstance(x.role, Guardia)]
+        [fattucchiera] = [x for x in players if isinstance(x.role, Fattucchiera)]
+        [investigatore] = [x for x in players if isinstance(x.role, Investigatore)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+        [esorcista] = [x for x in players if isinstance(x.role, Esorcista)]
+        
+        # Advance to night and use powers
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=voyeur, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=guardia, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=fattucchiera, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=esorcista, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=stalker, target=voyeur, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, MovementKnowledgeEvent) and event.cause == VOYEUR]
+        
+        self.assertEqual(len(events), 3)
+        for event in events:
+            self.assertEqual(event.player, voyeur)
+            self.assertTrue(event.target2 == guardia or event.target2 == esorcista or event.target2 == fattucchiera)
+            self.assertEqual(event.target, contadino)
+            self.assertEqual(event.cause, VOYEUR)
+        
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, MovementKnowledgeEvent) and event.cause == STALKER]
+        self.assertEqual(event.player, stalker)
+        self.assertEqual(event.target, voyeur)
+        self.assertEqual(event.target2, contadino)
+        
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, NoMovementKnowledgeEvent)]
+        self.assertEqual(len(events), 0)
+        
+        # Advance to second night and check that power cannot be used
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        self.assertFalse(voyeur.can_use_power())
+        self.assertFalse(stalker.can_use_power())
+        
+        # Advance to third night and use powers
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=voyeur, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=stalker, target=fattucchiera, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, MovementKnowledgeEvent)]
+        self.assertEqual(len(events), 0)
+        
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, NoMovementKnowledgeEvent) and event.cause == VOYEUR]
+        self.assertEqual(event.player, voyeur)
+        self.assertEqual(event.target, contadino)
+        self.assertEqual(event.cause, VOYEUR)
+        
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, NoMovementKnowledgeEvent) and event.cause == STALKER]
+        self.assertEqual(event.player, stalker)
+        self.assertEqual(event.target, fattucchiera)
+        self.assertEqual(event.cause, STALKER)
+
+
