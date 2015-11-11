@@ -29,12 +29,6 @@ INTERFACE (mostly Giove):
  * Factor of the snippets "if target == '': target = None" in
    CommandForm.clean().
 
- * Double comments: when refreshing after having posted a comment, the
-   comment is posted again. The server should detect the double
-   posting and avoid getting confused by it.
-   This issued is solved, but should be solved in a better way (insert
-   a hidden field in the form, and check that it is new).
-
  * Create a variable that shows all the information (to be used after
    the end of the match, instead of doing that manually).
 
