@@ -4,6 +4,7 @@ import datetime
 import json
 import os
 import collections
+import pytz
 from functools import wraps
 
 from django.utils import timezone
@@ -13,9 +14,44 @@ from django.test import TestCase
 from game.models import *
 from game.roles import *
 from game.events import *
-from game.utils import get_now
+from game.constants import *
+from game.utils import get_now, advance_to_time
 
-from datetime import timedelta
+from datetime import timedelta, datetime, time
+
+
+class AdvanceTimeTests(TestCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+    def test_simple_advance(self):
+        now = datetime(2015, 11, 11, 16, 0, 0, tzinfo=REF_TZINFO)
+        when = time(18, 0, 0)
+        later = advance_to_time(now, when)
+        self.assertEqual(later, REF_TZINFO.localize(datetime(2015, 11, 11, 18, 0, 0), is_dst=None))
+
+    def test_wrapped_advance(self):
+        now = datetime(2015, 11, 11, 20, 0, 0, tzinfo=REF_TZINFO)
+        when = time(18, 0, 0)
+        later = advance_to_time(now, when)
+        self.assertEqual(later, REF_TZINFO.localize(datetime(2015, 11, 12, 18, 0, 0), is_dst=None))
+
+    def test_enter_dst_advance(self):
+        now = datetime(2015, 3, 28, 20, 0, 0, tzinfo=REF_TZINFO)
+        when = time(18, 0, 0)
+        later = advance_to_time(now, when)
+        self.assertEqual(later, REF_TZINFO.localize(datetime(2015, 3, 29, 18, 0, 0), is_dst=None))
+
+    def test_exit_dst_advance(self):
+        now = datetime(2015, 10, 24, 20, 0, 0, tzinfo=REF_TZINFO)
+        when = time(18, 0, 0)
+        later = advance_to_time(now, when)
+        self.assertEqual(later, REF_TZINFO.localize(datetime(2015, 10, 25, 18, 0, 0), is_dst=None))
+
 
 def create_users(n):
     users = []

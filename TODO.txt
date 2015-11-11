@@ -3,8 +3,6 @@ GAME ENGINE AND DYNAMICS (mostly Gio):
 
  * Death superposition (bug in visualization order).
 
- * Fix DST TZ selection during automatic turn advancement.
-
  * Fix long day selection during weekend.
 
  * Ignore power usages and votes of player that are going to be
