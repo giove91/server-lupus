@@ -6,8 +6,6 @@ from roles import *
 
 test_roles = [
     Contadino, Contadino, Contadino,
-    Cacciatore, Cacciatore,
-    Custode, Custode,
     Divinatore, Divinatore,
     Esorcista, Esorcista,
     Espansivo, Espansivo,
@@ -23,11 +21,13 @@ test_roles = [
     Voyeur, Voyeur,
 
     Lupo, Lupo, Lupo,
+    Assassino, Assassino,
     Avvocato, Avvocato,
     Diavolo, Diavolo,
     Fattucchiera, Fattucchiera,
     Rinnegato, Rinnegato,
     Sequestratore, Sequestratore,
+    Stregone, Stregone,
 
     Negromante, Negromante, Negromante,
     Fantasma, Fantasma,
@@ -35,4 +35,3 @@ test_roles = [
     Medium, Medium,
     Scrutatore, Scrutatore,
     ]
-
