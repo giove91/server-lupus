@@ -316,7 +316,7 @@ class Dynamics:
             self.last_timestamp_in_turn = event.timestamp
             self.last_pk_in_turn = event.pk
         else:
-            assert event.timestamp >= self.last_timestamp_in_turn
+            assert event.timestamp >= self.last_timestamp_in_turn, (event.timestamp, self.last_timestamp_in_turn)
             self.last_timestamp_in_turn = event.timestamp
         assert self.current_turn.phase in event.RELEVANT_PHASES
 
