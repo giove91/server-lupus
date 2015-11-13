@@ -274,7 +274,8 @@ class Turn(models.Model):
 
     def set_end(self):
         if self.phase in FULL_PHASES:
-            self.end = advance_to_time(self.begin, FULL_PHASE_END_TIMES[self.phase])
+            day_end_skip = self.phase == DAY
+            self.end = advance_to_time(self.begin, FULL_PHASE_END_TIMES[self.phase], day_end_skip=day_end_skip)
         else:
             self.end = None
 
