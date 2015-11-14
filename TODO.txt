@@ -3,14 +3,12 @@ GAME ENGINE AND DYNAMICS (mostly Gio):
 
  * Death superposition (bug in visualization order).
 
- * Ignore power usages and votes of player that are going to be
+ * Ignore power usages and votes of players that are going to be
    disqualified.
 
 TESTS (mostly Giove):
 
  * Update mayor tests checking SetMayorEvent.cause [low priority].
- 
- * Fazione dei lupi non spettrificabile
 
 INTERFACE (mostly Giove):
 
@@ -34,14 +32,8 @@ FOR THE FUTURE:
 
  * Il link alla pagina "Designa successore" (per il Sindaco) non deve comparire durante il prologo.
 
- * Aggiornare le ambientazioni con i ruoli dell'edizione 6
-
- * Correggere la parte delle ambientazioni che descrive le conoscenze iniziali tra i ruoli (Ipnotista conosce Scrutatori, etc., Rinnegati e Sequestratori non conoscono i Profanatori di Tombe [che non esistono più])
-
  * When last Negromante is dying, they cannot ghostify anyone.
 
  * Make Marta write the weather descriptions.
- 
- * Remove Cacciatore?
 
 
