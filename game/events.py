@@ -575,7 +575,7 @@ class SoothsayerModelEvent(Event):
 
     def apply(self, dynamics):
         soothsayer = [pl for pl in dynamics.players if isinstance(pl.role, Divinatore)][self.soothsayer_num]
-        target = dynamics.random.choice([pl for pl in dynamics.players if pl.role.__class__.__name__ == self.player_role])
+        target = dynamics.random.choice([pl for pl in dynamics.players if pl.role.__class__.__name__ == self.player_role and pl is not soothsayer])
         event = RoleKnowledgeEvent(player=soothsayer, target=target, role_name=self.advertised_role, cause=SOOTHSAYER)
         dynamics.generate_event(event)
 
