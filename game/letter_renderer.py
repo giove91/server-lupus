@@ -66,8 +66,9 @@ class LetterRenderer:
         }
     
     def escape_name(self, name):
-        # TODO: fare l'escape in un modo più elegante
-        return name.replace(u' ', u'').replace(u'à', u'a').replace(u'ò', u'o')
+        # TODO: fare l'escape in un modo più elegante (e possibilmente
+        # che funzioni anche)
+        return name.replace(u' ', u'').replace(u'à', u'a').replace(u'ò', u'o').replace(u"'", u'')
     
     def render_setting(self):
         template = self.template_setting
