@@ -564,6 +564,7 @@ class Stregone(Role):
     name = 'Stregone'
     team = LUPI
     aura = BLACK
+    is_mystic = True
     knowledge_class = 3
     
     def can_use_power(self):
