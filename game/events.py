@@ -234,7 +234,7 @@ class SetRoleEvent(Event):
         if player == self.player:
             return u'Ti è stato assegnato il ruolo di %s.' % role
         elif player == 'admin':
-            return u'A%s %s è stato assegnato il ruolo di %s.' % ('d' if self.player.full_name[0] in ['a','e','i','o','u'] else '', self.player.full_name, role)
+            return u'A%s %s è stato assegnato il ruolo di %s.' % ('d' if self.player.full_name[0] in ['A','E','I','O','U', 'a', 'e', 'i', 'o', 'u'] else '', self.player.full_name, role)
         else:
             return None
 
