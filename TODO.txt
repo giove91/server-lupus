@@ -12,9 +12,6 @@ TESTS (mostly Giove):
 
 INTERFACE (mostly Giove):
 
- * Factor of the snippets "if target == '': target = None" in
-   CommandForm.clean().
-
  * Create a variable that shows all the information (to be used after
    the end of the match, instead of doing that manually).
 
