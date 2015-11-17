@@ -25,6 +25,8 @@ MYSTERIOUS:
 
 OTHER:
 
+ * In prototypes and letter templates: Fantasma should have black aura.
+
  * Tool for simulating future phases.
 
 FOR THE FUTURE:
