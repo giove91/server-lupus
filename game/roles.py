@@ -568,7 +568,7 @@ class Stregone(Role):
     knowledge_class = 3
     
     def can_use_power(self):
-        return self.player.alive and self.last_usage is None
+        return self.player.alive
     
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
