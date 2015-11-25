@@ -34,6 +34,7 @@ class KnowsChild(models.Model):
 
 
 def dump_game(game, fout):
+    assert game is not None
     import json
     data = {'players': [],
             'turns': []}
