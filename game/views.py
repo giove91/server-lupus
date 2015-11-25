@@ -731,3 +731,19 @@ class CommentView(View):
     def dispatch(self, *args, **kwargs):
         return super(CommentView, self).dispatch(*args, **kwargs)
 
+
+# Dump view (for GM only)
+class DumpView(View):
+    def get(self, request):
+        game = request.game
+        response = HttpResponse(content_type='application/json; charset=utf-8')
+        response['Content-Disposition'] = 'attachment: filename="dump.json"'
+        dump_game(game, response)
+        return response
+    
+    @method_decorator(user_passes_test(is_GM_check))
+    def dispatch(self, *args, **kwargs):
+        return super(DumpView, self).dispatch(*args, **kwargs)
+
+
+

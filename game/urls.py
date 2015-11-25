@@ -31,5 +31,6 @@ urlpatterns = patterns('',
     url(r'^setup/$', setup, name='setup'),
     url(r'^advanceturn/$', advance_turn, name='advanceturn'),
     url(r'^pointofview/$', PointOfView.as_view(), name='pointofview'),
+    url(r'^dump/$', DumpView.as_view(), name='dump'),
 )
 
