@@ -746,7 +746,7 @@ class AuraKnowledgeEvent(Event):
             if player == self.player:
                 return u'Scopri che %s ha aura %s.' % (self.target.full_name, aura)
             elif player == 'admin':
-                return u'Il Detective %s scopre che %s ha aura %s.' % (self.player.full_name, self.target.full_name, aura)
+                return u"L'Investigatore %s scopre che %s ha aura %s." % (self.player.full_name, self.target.full_name, aura)
             return None
         
         else:
@@ -1032,10 +1032,16 @@ class PowerOutcomeEvent(Event):
         target2 = self.command.target2
         target_ghost = self.command.target_ghost
         oa = self.player.oa
-        
-        player_role = self.player.role.name
-        target_role = target.role.name
-        
+
+        def role_description(role, rcbf):
+            desc = role.name
+            if isinstance(role, Spettro):
+                desc += ' %s, ex %s' % (Spettro.POWER_NAMES[role.power], rcbf.name)
+            return desc
+
+        player_role = role_description(self.player.role, self.player.role_class_before_ghost)
+        target_role = role_description(target.role, target.role_class_before_ghost)
+
         if self.success:
             if player == self.player:
                 return u'Hai utilizzato con successo il tuo potere su %s.' % target.full_name
