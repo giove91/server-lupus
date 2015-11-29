@@ -5904,7 +5904,7 @@ class GameTests(TestCase):
 
     @record_name
     def test_second_ipnotista_dies(self): # New
-        roles = [ Ipnotista, Ipnotista Negromante, Lupo, Lupo, Contadino, Contadino ]
+        roles = [ Ipnotista, Ipnotista, Negromante, Lupo, Lupo, Contadino, Contadino ]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
         players = self.game.get_players()
