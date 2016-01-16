@@ -5902,4 +5902,49 @@ class GameTests(TestCase):
         self.assertEqual(event.target, fattucchiera)
         self.assertEqual(event.cause, STALKER)
 
+    @record_name
+    def test_second_ipnotista_dies(self): # New
+        roles = [ Ipnotista, Ipnotista, Negromante, Lupo, Lupo, Contadino, Contadino ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
 
+        [ipnotista1, ipnotista2] = [x for x in players if isinstance(x.role, Ipnotista)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
+
+        # Advance to second night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+             
+        # Kill Ipnotista1
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=ipnotista1, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
+        self.assertEqual(event.player, ipnotista1)
+        self.assertEqual(event.ghost, IPNOSI)
+        self.assertEqual(event.cause, HYPNOTIST_DEATH)
+        self.assertTrue(isinstance(ipnotista1.role, Spettro))
+        
+        # Advance to next night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)        
+
+        # Kill Ipnotista2
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=ipnotista2, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
+        self.assertFalse(isinstance(ipnotista2.role, Spettro))
+        self.assertTrue(isinstance(ipnotista2.role, Ipnotista))
+        self.assertEqual(events, [])

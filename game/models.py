@@ -34,6 +34,7 @@ class KnowsChild(models.Model):
 
 
 def dump_game(game, fout):
+    assert game is not None
     import json
     data = {'players': [],
             'turns': []}
@@ -47,11 +48,13 @@ def dump_game(game, fout):
                                 })
 
     for turn in Turn.objects.filter(game=game).order_by('date', 'phase'):
-        turn_data = {'events': []}
+        turn_data = {'events': [], 'comments': []}
         for event in Event.objects.filter(turn=turn).order_by('timestamp', 'pk'):
             event = event.as_child()
             if not event.AUTOMATIC:
                 turn_data['events'].append(event.to_dict())
+        for comment in Comment.objects.filter(turn=turn).order_by('timestamp'):
+            turn_data['comments'].append(comment.to_dict())
         data['turns'].append(turn_data)
 
     json.dump(data, fout, indent=4)
@@ -504,7 +507,7 @@ class Event(KnowsChild):
         raise NotImplementedError("Calling Events.load_from_dict() instead of a subclass")
 
     def to_dict(self):
-        return {'subclass': self.subclass}
+        return {'subclass': self.subclass, 'timestamp': self.timestamp.isoformat()}
 
     @staticmethod
     def from_dict(data, players_map):
@@ -550,6 +553,14 @@ class Comment(models.Model):
     def __unicode__(self):
         return u"Comment %d" % self.pk
     comment_name = property(__unicode__)
+
+    def to_dict(self):
+        return {
+            'timestamp': self.timestamp.isoformat(),
+            'user': self.user.username,
+            'text': self.text,
+            'visible': self.visible,
+        }
 
 
 class PageRequest(models.Model):
