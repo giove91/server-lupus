@@ -41,6 +41,11 @@ def is_GM_check(user):
         return False
     return user.is_staff
 
+def is_game_over(user):
+    # Checks if the game is over
+    if not user.is_authenticated():
+        return False
+    return user.is_staff or (user.is_authenticated and Game.get_running_game().over)
 
 def get_events(request, player):
     # player can be a Player, 'admin' or 'public' (depending on the view)
@@ -59,7 +64,8 @@ def get_events(request, player):
         comments = []
 
     result = dict([(turn, { 'standard': [], VOTE: {}, ELECT: {}, 'initial_propositions': [], 'soothsayer_propositions': [], 'comments': [] }) for turn in turns ])
-    
+    # Force Death Events On Top
+    events = sorted(events, key=lambda event:event.subclass!='PlayerDiesEvent')
     for event in events:
         message = event.to_player_string(player)
         if message is not None:
@@ -300,7 +306,7 @@ class AdminStatusView(View):
     # After game is over:
     # @method_decorator(login_required)
     # During game:
-    @method_decorator(user_passes_test(is_GM_check))
+    @method_decorator(user_passes_test(is_game_over))
     def dispatch(self, *args, **kwargs):
         return super(AdminStatusView, self).dispatch(*args, **kwargs)
 

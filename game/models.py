@@ -69,7 +69,7 @@ def kill_all_dynamics():
 
 class Game(models.Model):
     running = models.BooleanField(default=False)
-
+    over = True
     def __unicode__(self):
         return u"Game %d" % self.pk
     game_name = property(__unicode__)

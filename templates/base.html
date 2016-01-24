@@ -108,14 +108,14 @@
                 </ul>
 	        </div>
 	        
-	        {% comment %}
+	        {% if game.over %}
 	        <div class="nav-menu">
 	            <h1>Dopo-partita</h1>
 	            <ul>
 	                <li><a href="{% url 'adminstatus' %}">Tutte le informazioni</a></li>
 	            </ul>
 	        </div>
-	        {% endcomment %}
+	        {% endif %}
 	        
         {% if user.is_staff %}
 		<div class="nav-menu">
