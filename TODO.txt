@@ -8,6 +8,8 @@ GAME ENGINE AND DYNAMICS (mostly Gio):
 
  * Profile dynamics creation and destruction.
 
+ * Profile query and memory usage in the dynamics.
+
 TESTS (mostly Giove):
 
  * Update mayor tests checking SetMayorEvent.cause [low priority].
@@ -24,6 +26,8 @@ MYSTERIOUS:
  * Interface: fix labels of target selections when using power.
 
 OTHER:
+
+ * In prototypes and letter templates: Fantasma should have black aura.
 
  * Tool for simulating future phases.
 
