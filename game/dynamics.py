@@ -633,8 +633,10 @@ class Dynamics:
         #  * anything < Cacciatore, Lupo, Assassino, MORTE (deaths happen at the
         #    and of the turn)
         MODIFY_ROLES = [Avvocato, AMNESIA, Scrutatore, IPNOSI,
-                        Ipnotista, Trasformista, Messia, Negromante,
-                        Cacciatore, Lupo, Assassino, MORTE]
+                        Ipnotista, Trasformista, Messia, Negromante]
+        KILLER_ROLES = [Cacciatore, Lupo, Assassino, MORTE]
+        # self.random.shuffle(KILLER_ROLES)
+        MODIFY_ROLES = MODIFY_ROLES + KILLER_ROLES
         apply_roles(MODIFY_ROLES)
 
         # Roles with no power: Contadino, Divinatore, Massone,
@@ -662,6 +664,33 @@ class Dynamics:
     def _compute_entering_day(self):
         if DEBUG_DYNAMICS:
             print >> sys.stderr, "Computing day"
+
+    # Prova di funzione per simulare il turno successivo, ma per ora fallimentare
+    def simulate_entering_sunset(self):
+        if DEBUG_DYNAMICS:
+            print >> sys.stderr, "Simulating sunset"
+        new_mayor = self._compute_elected_mayor()
+        sim_events=[]
+        if new_mayor is not None:
+            event = SetMayorEvent(player=new_mayor, cause=ELECT)
+            sim_events.append(event)
+
+        while self._update_step(advancing_turn=True):
+            pass
+
+        assert self.upcoming_deaths == []
+
+        winner, cause = self._compute_vote_winner()
+        if winner is not None:
+            event = PlayerDiesEvent(player=winner, cause=STAKE)
+            sim_events.append(event)
+        else:
+            event = StakeFailedEvent(cause=cause)
+            sim_events.append(event)
+
+        return sim_events
+        #while self._update_step(advancing_turn=True):
+        #    pass
 
     def _compute_entering_sunset(self):
         if DEBUG_DYNAMICS:

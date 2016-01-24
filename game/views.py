@@ -64,8 +64,6 @@ def get_events(request, player):
         comments = []
 
     result = dict([(turn, { 'standard': [], VOTE: {}, ELECT: {}, 'initial_propositions': [], 'soothsayer_propositions': [], 'comments': [] }) for turn in turns ])
-    # Force Death Events On Top
-    events = sorted(events, key=lambda event:event.subclass!='PlayerDiesEvent')
     for event in events:
         message = event.to_player_string(player)
         if message is not None:
