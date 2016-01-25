@@ -5948,3 +5948,45 @@ class GameTests(TestCase):
         self.assertFalse(isinstance(ipnotista2.role, Spettro))
         self.assertTrue(isinstance(ipnotista2.role, Ipnotista))
         self.assertEqual(events, [])
+    
+    def test_everybody_dies(self): 
+        roles=[Contadino,Cacciatore,Lupo,Assassino,Negromante]
+        self.game = create_test_game(1,roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo] = [x for x in players if isinstance(x.role, Lupo)]
+        [assassino] = [x for x in players if isinstance(x.role, Assassino)]
+        [cacciatore] = [x for x in players if isinstance(x.role, Cacciatore)]
+        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+
+        #Advance to day
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=assassino, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=cacciatore, target=contadino, timestamp=get_now()))
+        
+        #Advance to night and create MORTE
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=MORTE, timestamp=get_now()))
+        
+        #Advance to second night and kill everybody
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=cacciatore, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=cacciatore, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=assassino, target=cacciatore, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=assassino, timestamp=get_now()))
+        
+        test_advance_turn(self.game)
+
+        self.assertEqual(len(self.game.get_alive_players()),0)
+        
