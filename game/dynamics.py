@@ -501,7 +501,7 @@ class Dynamics:
         # So, here comes the big little male house ("gran casino");
         # first of all we consider powers that can block powers that
         # can block powers: Spettro dell'Occultamento, Sequestratore,
-        # Sciamano, Esorcista
+        # Sciamano, Esorcista, Stregone
 
         # Build the list of blockers
         critical_blockers = players_by_role[Sequestratore.__name__] + \
@@ -962,15 +962,20 @@ class Dynamics:
             if self.appointed_mayor is not None and not self.mayor.disqualified:
                 assert self.appointed_mayor.alive and self.appointed_mayor.active
                 self.generate_event(SetMayorEvent(player=self.appointed_mayor, cause=SUCCESSION_CHOSEN))
-
             else:
-                candidates = self.get_alive_players()
-                self.generate_event(SetMayorEvent(player=self.random.choice(candidates), cause=SUCCESSION_RANDOM))
+                candidates = self.get_alive_players()        
+                if len(candidates)>0:
+                    self.generate_event(SetMayorEvent(player=self.random.choice(candidates), cause=SUCCESSION_RANDOM))
+                else:
+                    self.generate_event(SetMayorEvent(player=None, cause=SUCCESSION_RANDOM))
+
 
         while self._update_step(advancing_turn=True):
             pass
-
-        assert self.mayor.alive and self.mayor.active
+        if len(self.get_alive_players())==0:
+            assert self.mayor is None
+        else:
+            assert self.mayor.alive and self.mayor.active
 
     def _end_of_main_phase(self):
         assert self.mayor.alive and self.mayor.active
@@ -982,7 +987,10 @@ class Dynamics:
         self._check_team_exile()
         self._perform_mayor_succession()
 
-        assert self.mayor.alive and self.mayor.active
+        if len(self.get_alive_players())==0:
+            assert self.mayor is None
+        else:
+            assert self.mayor.alive and self.mayor.active
         if self.appointed_mayor is not None:
             assert self.appointed_mayor.alive and self.appointed_mayor.active
 

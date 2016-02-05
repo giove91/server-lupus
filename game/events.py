@@ -243,7 +243,7 @@ class SetMayorEvent(Event):
     RELEVANT_PHASES = [CREATION, SUNSET, DAWN]
     AUTOMATIC = True
 
-    player = models.ForeignKey(Player, related_name='+')
+    player = models.ForeignKey(Player, null=True, related_name='+')
 
     SET_MAYOR_CAUSES = (
         (BEGINNING, 'Beginning'),
@@ -262,26 +262,33 @@ class SetMayorEvent(Event):
 
     def apply(self, dynamics):
         assert dynamics.current_turn.phase in SetMayorEvent.REAL_RELEVANT_PHASES[self.cause]
+        if self.player is not None:
+            player = self.player.canonicalize()
+            assert player.alive
 
-        player = self.player.canonicalize()
-        assert player.alive
+            if self.cause == BEGINNING:
+                assert dynamics.mayor is None
+                assert dynamics.appointed_mayor is None
 
-        if self.cause == BEGINNING:
-            assert dynamics.mayor is None
-            assert dynamics.appointed_mayor is None
+            if not player.is_mayor():
+                dynamics.mayor = player
+                dynamics.appointed_mayor = None
 
-        if not player.is_mayor():
-            dynamics.mayor = player
+            # The mayor can be already in charge only if they are just
+            # being re-elected
+            else:
+                assert self.cause == ELECT
+
+            assert player.is_mayor()
+        else:
+            assert self.cause == SUCCESSION_RANDOM
+            assert len(dynamics.get_alive_players())==0
+            dynamics.mayor = None
             dynamics.appointed_mayor = None
 
-        # The mayor can be already in charge only if they are just
-        # being re-elected
-        else:
-            assert self.cause == ELECT
-
-        assert player.is_mayor()
-
     def to_player_string(self, player):
+        if self.player is None:
+            return None
         oa = self.player.oa
         if self.cause == BEGINNING:
             if player == self.player:
