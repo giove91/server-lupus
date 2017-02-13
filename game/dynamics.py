@@ -89,6 +89,7 @@ class Dynamics:
         self.wolves_target = None
         self.necromancers_target = None
         self.winners = None
+        self.over = False
         self.upcoming_deaths = []
         self.pending_disqualifications = []
         for player in self.players:

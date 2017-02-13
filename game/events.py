@@ -1240,6 +1240,7 @@ class VictoryEvent(Event):
     def apply(self, dynamics):
         winners = self.get_winners(dynamics)
         dynamics.winners = winners
+        dynamics.over = True
         dynamics.giove_is_happy = True
         dynamics.server_is_on_fire = True
     

@@ -69,7 +69,6 @@ def kill_all_dynamics():
 
 class Game(models.Model):
     running = models.BooleanField(default=False)
-    over = True
     def __unicode__(self):
         return u"Game %d" % self.pk
     game_name = property(__unicode__)
@@ -97,6 +96,10 @@ class Game(models.Model):
     def mayor(self):
         return self.get_dynamics().mayor
     mayor = property(mayor)
+    
+    def over(self):
+        return self.get_dynamics().over
+    over = property(over)
 
     def get_dynamics(self):
         """Obtain or create the Dynamics object globally assigned to
