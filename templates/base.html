@@ -109,14 +109,16 @@
                     <li><a href="{% url 'trailer' %}">Trailer</a></li>
                 </ul>
 	        </div>
-	        
 	        {% if game.over %}
-	        <div class="nav-menu">
-	            <h1>Dopo-partita</h1>
-	            <ul>
-	                <li><a href="{% url 'adminstatus' %}">Tutte le informazioni</a></li>
-	            </ul>
-	        </div>
+				{% if current_turn.phase == DAY or current_turn.phase == NIGHT or user.is_staff %}
+				{# This menu is shown when game is over. When the game finishes, only staff can see it until DAY or NIGHT #}
+				<div class="nav-menu">
+					<h1>Dopo-partita</h1>
+					<ul>
+						<li><a href="{% url 'adminstatus' %}">Tutte le informazioni</a></li>
+					</ul>
+				</div>
+				{% endif %}
 	        {% endif %}
 	        
         {% if user.is_staff %}

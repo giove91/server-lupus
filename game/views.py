@@ -41,7 +41,7 @@ def is_GM_check(user):
         return False
     return user.is_staff
 
-def is_game_over(user):
+def can_access_admin_view(user):
     # Checks if the game is over
     if not user.is_authenticated():
         return False
@@ -304,7 +304,7 @@ class AdminStatusView(View):
     # After game is over:
     # @method_decorator(login_required)
     # During game:
-    @method_decorator(user_passes_test(is_game_over))
+    @method_decorator(user_passes_test(can_access_admin_view))
     def dispatch(self, *args, **kwargs):
         return super(AdminStatusView, self).dispatch(*args, **kwargs)
 
