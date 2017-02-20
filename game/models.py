@@ -216,6 +216,9 @@ class Turn(models.Model):
         ordering = ['date', 'phase']
         unique_together = (('game', 'date', 'phase'),)
     
+    def __hash__(self):
+        return hash(('game','date','phase'))
+
     def __unicode__(self):
         return "%s %d" % (Turn.TURN_PHASES[self.phase], self.date)
     as_string = property(__unicode__)

@@ -6,6 +6,7 @@ from django.db.models import Q
 
 from threading import RLock
 from datetime import datetime
+from copy import copy
 
 from models import Event, Turn
 from events import CommandEvent, VoteAnnouncedEvent, TallyAnnouncedEvent, \
@@ -43,6 +44,8 @@ class Dynamics:
         self.auto_event_queue = []
         self.events = []
         self.turns = []
+        self.preview_dynamics = None
+        self.is_a_preview = False
         self.failed = False
 
         self.initialize_augmented_structure()
@@ -235,7 +238,12 @@ class Dynamics:
         # If no events were found, check for new turns
         try:
             if self.current_turn is not None:
-                turn = self.current_turn.next_turn(must_exist=True)
+                if self.is_a_preview and (self.current_turn.phase in [DAY, NIGHT]):
+                    # Try to display preview only after day or night, in order to prevent infinite loop
+                    turn = self.current_turn.next_turn(must_exist=False)
+                    turn.set_begin_end(self.current_turn)
+                else:
+                    turn = self.current_turn.next_turn(must_exist=True)
             else:
                 turn = Turn.first_turn(self.game, must_exist=True)
         except Turn.DoesNotExist:
@@ -999,3 +1007,17 @@ class Dynamics:
         self.death_ghost_just_created = False
         self.pending_disqualifications = []
         self.upcoming_deaths = []
+
+    # Trying to implement next turn preview
+
+    def get_preview_dynamics(self):
+        if self.preview_dynamics is None or self.preview_dynamics.events != self.events:
+            self._respawn_preview()
+        assert(self.preview_dynamics is not None)
+        return self.preview_dynamics
+        
+    def _respawn_preview(self):
+        self.preview_dynamics = None
+        self.preview_dynamics = copy(self) # Makes shallow copy
+        self.preview_dynamics.is_a_preview = True
+        self.preview_dynamics.update()
