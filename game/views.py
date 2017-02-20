@@ -292,7 +292,7 @@ class PersonalInfoView(View):
 # View of all info (for GM only)
 class AdminStatusView(View):
     def get(self, request):
-        events = get_events(request, 'admin', preview=True)
+        events = get_events(request, 'admin', preview=request.user.is_staff)
         weather = get_weather(request)
         game = request.game
         

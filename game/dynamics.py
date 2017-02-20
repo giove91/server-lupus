@@ -41,6 +41,7 @@ class Dynamics:
         self._updating = False
         self.debug_event_bin = None
         self.auto_event_queue = []
+        self.db_event_queue = []
         self.events = []
         self.turns = []
         self.preview_dynamics = None
@@ -186,15 +187,20 @@ class Dynamics:
     def _pop_event_from_db(self):
         if DEBUG_DYNAMICS:
             print >> sys.stderr, "current_turn: %r; last_timestamp_in_turn: %r; last_pk_in_turn: %r" % (self.current_turn, self.last_timestamp_in_turn, self.last_pk_in_turn)
-        try:
-            event = Event.objects.filter(turn=self.current_turn). \
-                filter(Q(timestamp__gt=self.last_timestamp_in_turn) |
-                       (Q(timestamp__gte=self.last_timestamp_in_turn) & Q(pk__gt=self.last_pk_in_turn))). \
-                       order_by('timestamp', 'pk')[0]
-        except IndexError:
-            return None
+        if len(self.db_event_queue) > 0:
+            return self.db_event_queue.pop(0).as_child()
         else:
-            return event.as_child()
+            try:
+                result = Event.objects.filter(turn=self.current_turn). \
+                    filter(Q(timestamp__gt=self.last_timestamp_in_turn) |
+                           (Q(timestamp__gte=self.last_timestamp_in_turn) & Q(pk__gt=self.last_pk_in_turn))). \
+                           order_by('timestamp', 'pk')
+                self.db_event_queue += result
+                event = self.db_event_queue.pop(0)
+            except IndexError:
+                return None
+            else:
+                return event.as_child()
 
     def _pop_event_from_queue(self):
         if len(self.auto_event_queue) > 0:
@@ -229,7 +235,7 @@ class Dynamics:
                     self._receive_event(event)
                     return True
 
-        # If we are advancing the turn right now, do now attempt to do
+        # If we are advancing the turn right now, do not attempt to do
         # it twice
         if advancing_turn:
             return False
@@ -237,16 +243,19 @@ class Dynamics:
         # If no events were found, check for new turns
         try:
             if self.current_turn is not None:
-                if self.is_a_preview and (self.current_turn.phase in [DAY, NIGHT]):
-                    # Try to display preview only after day or night, in order to prevent infinite loop
-                    turn = self.current_turn.next_turn(must_exist=False)
-                    turn.set_begin_end(self.current_turn)
-                else:
-                    turn = self.current_turn.next_turn(must_exist=True)
+                turn = self.current_turn.next_turn(must_exist=True)
             else:
                 turn = Turn.first_turn(self.game, must_exist=True)
+
         except Turn.DoesNotExist:
-            pass
+            if self.is_a_preview and (self.current_turn.phase in [DAY, NIGHT]):
+                # Continue updating a last turn
+                turn = self.current_turn.next_turn(must_exist=False)
+                turn.set_begin_end(self.current_turn)
+                self.turns.append(turn)
+                self._receive_turn(turn)
+                return True
+
         else:
             self.turns.append(turn)
             self._receive_turn(turn)
@@ -1016,6 +1025,7 @@ class Dynamics:
         if self.preview_dynamics is None or filter(lambda event: not event.AUTOMATIC, self.preview_dynamics.events) != filter(lambda event: not event.AUTOMATIC, self.events):
             self._respawn_preview()
         assert(self.preview_dynamics is not None)
+        self.preview_dynamics.update()
         return self.preview_dynamics
         
     def _respawn_preview(self):
@@ -1023,4 +1033,3 @@ class Dynamics:
             print 'Spawining preview'
         self.preview_dynamics = Dynamics(self.game)
         self.preview_dynamics.is_a_preview = True
-        self.preview_dynamics.update()
