@@ -6,9 +6,8 @@ from django.db.models import Q
 
 from threading import RLock
 from datetime import datetime
-from copy import copy
 
-from models import Event, Turn
+from models import Event, Turn, Player
 from events import CommandEvent, VoteAnnouncedEvent, TallyAnnouncedEvent, \
     SetMayorEvent, PlayerDiesEvent, PowerOutcomeEvent, StakeFailedEvent, \
     ExileEvent, VictoryEvent, AvailableRoleEvent, RoleKnowledgeEvent
@@ -335,6 +334,9 @@ class Dynamics:
         self.event_num += 1
 
     def _process_event(self, event):
+        for field in ['player','target','target2','voter','voted']:
+            if hasattr(event,field) and getattr(event,field) is not None:
+                setattr(event,field,getattr(event,field).canonicalize(self))
         event.apply(self)
 
     def inject_event(self, event):
@@ -812,7 +814,7 @@ class Dynamics:
                 real_vote = None
 
             ballots[player.pk] = real_vote
-            if player.is_mayor():
+            if player.is_mayor(self):
                 mayor_ballot = real_vote
 
         # Fill the tally sheet
@@ -1008,16 +1010,17 @@ class Dynamics:
         self.pending_disqualifications = []
         self.upcoming_deaths = []
 
-    # Trying to implement next turn preview
+    # Trying next turn preview
 
     def get_preview_dynamics(self):
-        if self.preview_dynamics is None or self.preview_dynamics.events != self.events:
+        if self.preview_dynamics is None or filter(lambda event: not event.AUTOMATIC, self.preview_dynamics.events) != filter(lambda event: not event.AUTOMATIC, self.events):
             self._respawn_preview()
         assert(self.preview_dynamics is not None)
         return self.preview_dynamics
         
     def _respawn_preview(self):
-        self.preview_dynamics = None
-        self.preview_dynamics = copy(self) # Makes shallow copy
+        if DEBUG_DYNAMICS:
+            print 'Spawining preview'
+        self.preview_dynamics = Dynamics(self.game)
         self.preview_dynamics.is_a_preview = True
         self.preview_dynamics.update()

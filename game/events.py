@@ -90,7 +90,7 @@ class CommandEvent(Event):
             self.target2 = self.target2.canonicalize()
 
         if self.type == APPOINT:
-            assert self.player.is_mayor()
+            assert self.player.is_mayor(dynamics)
             assert self.target2 is None
             assert self.target_ghost is None
             if self.target is not None:
@@ -263,6 +263,7 @@ class SetMayorEvent(Event):
     def apply(self, dynamics):
         assert dynamics.current_turn.phase in SetMayorEvent.REAL_RELEVANT_PHASES[self.cause]
         if self.player is not None:
+            assert self.player.canonical
             player = self.player.canonicalize()
             assert player.alive
 
@@ -270,7 +271,7 @@ class SetMayorEvent(Event):
                 assert dynamics.mayor is None
                 assert dynamics.appointed_mayor is None
 
-            if not player.is_mayor():
+            if not player.is_mayor(dynamics):
                 dynamics.mayor = player
                 dynamics.appointed_mayor = None
 
@@ -279,7 +280,7 @@ class SetMayorEvent(Event):
             else:
                 assert self.cause == ELECT
 
-            assert player.is_mayor()
+            assert player.is_mayor(dynamics)
         else:
             assert self.cause == SUCCESSION_RANDOM
             assert len(dynamics.get_alive_players())==0
