@@ -5990,3 +5990,40 @@ class GameTests(TestCase):
 
         self.assertEqual(len(self.game.get_alive_players()),0)
         
+    def test_game_over_flag(self):
+        roles=[Contadino,Lupo,Negromante]
+        self.game = create_test_game(1,roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+
+        self.assertEqual(self.game.over, False)
+
+        #Advance to day and kill negromante
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=contadino, target=negromante, timestamp=get_now()))
+
+        test_advance_turn(self.game) # To sunset
+
+        self.assertEqual(self.game.over, False) #Game should not be over yet
+
+        test_advance_turn(self.game) # To night
+
+        self.assertEqual(self.game.over, False) #Not yet...
+
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=contadino, timestamp=get_now()))
+
+        test_advance_turn(self.game) # To dawn
+
+        self.assertEqual(self.game.over, True) #Now!
+
+        test_advance_turn(self.game)
+
+        self.assertEqual(self.game.over, True) #Still over!
