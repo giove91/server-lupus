@@ -185,6 +185,9 @@ class Dynamics:
             except Exception:
                 self.failed = True
                 raise
+        if not self.simulated and not self.simulating:
+            self._simulate_next_turn()
+
 
     def _pop_event_from_db(self):
         if DEBUG_DYNAMICS:
@@ -248,10 +251,6 @@ class Dynamics:
         else:
             self.turns.append(turn)
             self._receive_turn(turn)
-            return True
-            
-        if not self.simulated:
-            self._simulate_next_turn()
             return True
 
         return False
