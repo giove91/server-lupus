@@ -319,15 +319,15 @@ class Dynamics:
         self.simulating = True
         self.simulated_events = []
         # Copy random status
-        self.random_state = self.random.getstate()
+        random_state = self.random.getstate()
         
         # Save last processed event
-        self.real_last_timestamp_in_turn = self.last_timestamp_in_turn
-        self.real_last_pk_in_turn = self.last_pk_in_turn
+        real_last_timestamp_in_turn = self.last_timestamp_in_turn
+        real_last_pk_in_turn = self.last_pk_in_turn
         
         # Save mayor
-        self.pre_simulation_mayor = self.mayor
-        self.pre_simulation_appointed_mayor = self.appointed_mayor
+        pre_simulation_mayor = self.mayor
+        pre_simulation_appointed_mayor = self.appointed_mayor
 
         # Temporarily promote
         real_current_turn = self.current_turn
@@ -345,18 +345,18 @@ class Dynamics:
         self.prev_turn = real_prev_turn
 
         # Get back timestamp and pk
-        self.last_timestamp_in_turn = self.real_last_timestamp_in_turn
-        self.last_pk_in_turn = self.real_last_pk_in_turn
+        self.last_timestamp_in_turn = real_last_timestamp_in_turn
+        self.last_pk_in_turn = real_last_pk_in_turn
 
 
         # Rollback mayor changes
-        self.mayor = self.pre_simulation_mayor
-        self.appointed_mayor = self.pre_simulation_appointed_mayor
+        self.mayor = pre_simulation_mayor
+        self.appointed_mayor = pre_simulation_appointed_mayor
         self.pre_simulation_mayor = None
         self.pre_simulation_appointed_mayor = None
         
         # Rollback random object
-        self.random.setstate(self.random_state)
+        self.random.setstate(random_state)
         
         self.simulating = False
         self.simulated = True
