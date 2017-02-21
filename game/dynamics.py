@@ -272,8 +272,7 @@ class Dynamics:
             self.prev_turn = Turn.objects.get(pk=self.current_turn.pk)
         self.current_turn = turn
 
-        if self.current_turn.phase in [DAY, NIGHT]:
-            assert self.current_turn.end is not None
+        if self.current_turn.phase in [DAY, NIGHT] and self.current_turn.end is not None:
             self.simulated_turn = self.current_turn.next_turn()
             self.simulated_turn.set_begin_end(self.current_turn)
         else:

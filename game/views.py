@@ -53,7 +53,9 @@ def get_events(request, player):
     dynamics = game.get_dynamics()
     assert not dynamics.simulating
     if player == 'admin':
-        turns = dynamics.turns + [dynamics.simulated_turn]
+        turns = dynamics.turns
+        if dynamics.simulated_turn is not None:
+            turns = turns + [dynamics.simulated_turn]
     else:
         turns = [turn for turn in dynamics.turns if turn.phase in [CREATION, DAWN, SUNSET]]
     
