@@ -804,7 +804,7 @@ class TeamKnowledgeEvent(Event):
     cause = models.CharField(max_length=1, choices=KNOWLEDGE_CAUSE_TYPES, default=None)
 
     def apply(self, dynamics):
-        assert self.target.canonicalize().team == self.team
+        assert self.target.canonicalize().team == self.team or self.target.canonicalize().has_confusion
     
     def to_player_string(self, player):
         team = TEAM_IT[ self.team ]
