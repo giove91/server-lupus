@@ -61,29 +61,28 @@ class Role(object):
     def apply_usepower(self, dynamics, event):
         # First checks
         assert event.player.pk == self.player.pk
-        
-        if not dynamics.is_a_preview:
-            assert self.can_use_power(), (event, event.player, event.player.role)
-            # Check target validity
-            targets = self.get_targets()
-            if targets is None:
-                assert event.target is None
-            else:
-                assert event.target is None or event.target in targets, (event.target, targets, event, event.player, event.player.role)
+        assert self.can_use_power(), (event, event.player, event.player.role)
 
-            # Check target2 validity
-            targets2 = self.get_targets2()
-            if targets2 is None:
-                assert event.target2 is None
-            else:
-                assert event.target2 is None or event.target2 in targets2
+        # Check target validity
+        targets = self.get_targets()
+        if targets is None:
+            assert event.target is None
+        else:
+            assert event.target is None or event.target in targets, (event.target, targets, event, event.player, event.player.role)
 
-            # Check target_ghost validity
-            targets_ghost = self.get_targets_ghost()
-            if targets_ghost is None:
-                assert event.target_ghost is None
-            else:
-                assert event.target_ghost is None or event.target_ghost in targets_ghost
+        # Check target2 validity
+        targets2 = self.get_targets2()
+        if targets2 is None:
+            assert event.target2 is None
+        else:
+            assert event.target2 is None or event.target2 in targets2
+
+        # Check target_ghost validity
+        targets_ghost = self.get_targets_ghost()
+        if targets_ghost is None:
+            assert event.target_ghost is None
+        else:
+            assert event.target_ghost is None or event.target_ghost in targets_ghost
 
         # Record targets and command
         self.recorded_target = event.target

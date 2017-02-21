@@ -216,14 +216,6 @@ class Turn(models.Model):
         ordering = ['date', 'phase']
         unique_together = (('game', 'date', 'phase'),)
     
-    def __hash__(self):
-        # Custom hash function, working for non-saved objects
-        return hash(('game','date','phase'))
-        
-    def __gt__(self, turn):
-        assert (self.game == turn.game)
-        return 5*int(self.date)+int(self.phase) > 5*int(turn.date) + int(turn.phase)
-
     def __unicode__(self):
         return "%s %d" % (Turn.TURN_PHASES[self.phase], self.date)
     as_string = property(__unicode__)
@@ -366,10 +358,8 @@ class Player(models.Model):
     oa = property(get_oa)
     
     
-    def canonicalize(self, dynamics=None):
+    def canonicalize(self):
         # We save on queries when we can
-        if dynamics:
-            return dynamics.get_canonical_player(self)
         if 'canonical' in self.__dict__ and self.canonical:
             return self
         else:
@@ -413,6 +403,7 @@ class Player(models.Model):
         if self.game.current_turn is None:
             # The current turn has not been set -- this shouldn't happen if Game is running
             return False
+
         canonical = self.canonicalize()
 
         if canonical.role is None:
@@ -476,20 +467,16 @@ class Player(models.Model):
         return True
     can_vote.boolean = True
     
-    def is_mayor(self, dynamics=None):
-        if dynamics is None:
-            dynamics = self.game.get_dynamics()
+    def is_mayor(self):
         # True if this player is the Mayor
-        mayor = dynamics.mayor
+        mayor = self.game.get_dynamics().mayor
         if mayor is None:
             return False
         return self.pk == mayor.pk
     is_mayor.boolean = True
 
-    def is_appointed_mayor(self, dynamics=None):
-        if dynamics is None:
-            dynamics = self.game.get_dynamics()
-        appointed_mayor = dynamics.appointed_mayor
+    def is_appointed_mayor(self):
+        appointed_mayor = self.game.get_dynamics().appointed_mayor
         if appointed_mayor is None:
             return False
         return self.pk == appointed_mayor.pk

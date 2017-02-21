@@ -7,7 +7,7 @@ from django.db.models import Q
 from threading import RLock
 from datetime import datetime
 
-from models import Event, Turn, Player
+from models import Event, Turn
 from events import CommandEvent, VoteAnnouncedEvent, TallyAnnouncedEvent, \
     SetMayorEvent, PlayerDiesEvent, PowerOutcomeEvent, StakeFailedEvent, \
     ExileEvent, VictoryEvent, AvailableRoleEvent, RoleKnowledgeEvent
@@ -41,11 +41,8 @@ class Dynamics:
         self._updating = False
         self.debug_event_bin = None
         self.auto_event_queue = []
-        self.db_event_queue = []
         self.events = []
         self.turns = []
-        self.preview_dynamics = None
-        self.is_a_preview = False
         self.failed = False
 
         self.initialize_augmented_structure()
@@ -187,20 +184,15 @@ class Dynamics:
     def _pop_event_from_db(self):
         if DEBUG_DYNAMICS:
             print >> sys.stderr, "current_turn: %r; last_timestamp_in_turn: %r; last_pk_in_turn: %r" % (self.current_turn, self.last_timestamp_in_turn, self.last_pk_in_turn)
-        if len(self.db_event_queue) > 0:
-            return self.db_event_queue.pop(0).as_child()
+        try:
+            event = Event.objects.filter(turn=self.current_turn). \
+                filter(Q(timestamp__gt=self.last_timestamp_in_turn) |
+                       (Q(timestamp__gte=self.last_timestamp_in_turn) & Q(pk__gt=self.last_pk_in_turn))). \
+                       order_by('timestamp', 'pk')[0]
+        except IndexError:
+            return None
         else:
-            try:
-                result = Event.objects.filter(turn=self.current_turn). \
-                    filter(Q(timestamp__gt=self.last_timestamp_in_turn) |
-                           (Q(timestamp__gte=self.last_timestamp_in_turn) & Q(pk__gt=self.last_pk_in_turn))). \
-                           order_by('timestamp', 'pk')
-                self.db_event_queue += result
-                event = self.db_event_queue.pop(0)
-            except IndexError:
-                return None
-            else:
-                return event.as_child()
+            return event.as_child()
 
     def _pop_event_from_queue(self):
         if len(self.auto_event_queue) > 0:
@@ -235,7 +227,7 @@ class Dynamics:
                     self._receive_event(event)
                     return True
 
-        # If we are advancing the turn right now, do not attempt to do
+        # If we are advancing the turn right now, do now attempt to do
         # it twice
         if advancing_turn:
             return False
@@ -246,16 +238,8 @@ class Dynamics:
                 turn = self.current_turn.next_turn(must_exist=True)
             else:
                 turn = Turn.first_turn(self.game, must_exist=True)
-
         except Turn.DoesNotExist:
-            if self.is_a_preview and (self.current_turn.phase in [DAY, NIGHT]):
-                # Continue updating a last turn
-                turn = self.current_turn.next_turn(must_exist=False)
-                turn.set_begin_end(self.current_turn)
-                self.turns.append(turn)
-                self._receive_turn(turn)
-                return True
-
+            pass
         else:
             self.turns.append(turn)
             self._receive_turn(turn)
@@ -343,9 +327,6 @@ class Dynamics:
         self.event_num += 1
 
     def _process_event(self, event):
-        for field in ['player','target','target2','voter','voted']:
-            if hasattr(event,field) and getattr(event,field) is not None:
-                setattr(event,field,getattr(event,field).canonicalize(self))
         event.apply(self)
 
     def inject_event(self, event):
@@ -823,7 +804,7 @@ class Dynamics:
                 real_vote = None
 
             ballots[player.pk] = real_vote
-            if player.is_mayor(self):
+            if player.is_mayor():
                 mayor_ballot = real_vote
 
         # Fill the tally sheet
@@ -1018,18 +999,3 @@ class Dynamics:
         self.death_ghost_just_created = False
         self.pending_disqualifications = []
         self.upcoming_deaths = []
-
-    # Trying next turn preview
-
-    def get_preview_dynamics(self):
-        if self.preview_dynamics is None or filter(lambda event: not event.AUTOMATIC, self.preview_dynamics.events) != filter(lambda event: not event.AUTOMATIC, self.events):
-            self._respawn_preview()
-        assert(self.preview_dynamics is not None)
-        self.preview_dynamics.update()
-        return self.preview_dynamics
-        
-    def _respawn_preview(self):
-        if DEBUG_DYNAMICS:
-            print 'Spawining preview'
-        self.preview_dynamics = Dynamics(self.game)
-        self.preview_dynamics.is_a_preview = True

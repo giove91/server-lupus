@@ -47,14 +47,11 @@ def can_access_admin_view(user):
         return False
     return user.is_staff or (user.is_authenticated and Game.get_running_game().over)
 
-def get_events(request, player, preview = False):
+def get_events(request, player):
     # player can be a Player, 'admin' or 'public' (depending on the view)
     game = request.game
     dynamics = game.get_dynamics()
     
-    if preview:
-        dynamics = dynamics.get_preview_dynamics()
-
     if player == 'admin':
         turns = dynamics.turns
     else:
@@ -292,7 +289,7 @@ class PersonalInfoView(View):
 # View of all info (for GM only)
 class AdminStatusView(View):
     def get(self, request):
-        events = get_events(request, 'admin', preview=request.user.is_staff)
+        events = get_events(request, 'admin')
         weather = get_weather(request)
         game = request.game
         
