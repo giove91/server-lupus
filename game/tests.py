@@ -5640,6 +5640,59 @@ class GameTests(TestCase):
         self.assertEqual(len(set(roles)), 2)
         
     @record_name
+    def test_confusione_visione(self): # New
+        roles = [ Negromante, Lupo, Contadino, Contadino, Veggente]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino1, contadino2] = [x for x in players if isinstance(x.role, Contadino)]
+        [veggente] = [x for x in players if isinstance(x.role, Veggente)]
+        
+        # Advance to second night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Kill Contadino1
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=contadino1, timestamp=get_now()))
+        
+        # Advance to next night
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Make Spettro VISIONE
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=contadino2, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino1, target_ghost=VISIONE, timestamp=get_now()))
+
+        # Advance 2 nights
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino2, target_ghost=CONFUSIONE, timestamp=get_now()))
+
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino1, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino2, target=negromante, timestamp=get_now()))
+
+        test_advance_turn(self.game)
+    @record_name
     def test_lupi_and_negromanti_not_ghostified(self): # New
         roles = [ Negromante, Lupo, Lupo, Contadino, Contadino, Diavolo, Assassino, Medium ]
         self.game = create_test_game(1, roles)
