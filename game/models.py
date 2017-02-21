@@ -489,6 +489,7 @@ class Player(models.Model):
 
 class Event(KnowsChild):
     """Event base class."""
+    CAN_BE_SIMULATED = False
 
     timestamp = models.DateTimeField()
     turn = models.ForeignKey(Turn)

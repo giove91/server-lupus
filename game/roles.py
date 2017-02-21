@@ -663,7 +663,9 @@ class Negromante(Role):
                 self.recorded_target.just_ghostified = True
 
             else:
-                assert isinstance(self.recorded_target.role, Spettro)
+                # Since GhostificationEvent is not applied during simulation,
+                # we must not check the following during simulation
+                assert isinstance(self.recorded_target.role, Spettro) or dynamics.simulating
 
             dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=Negromante.__name__, cause=GHOST))
 

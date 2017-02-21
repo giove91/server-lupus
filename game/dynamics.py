@@ -321,6 +321,10 @@ class Dynamics:
         # Copy random status
         self.random_state = self.random.getstate()
         
+        # Save last processed event
+        self.real_last_timestamp_in_turn = self.last_timestamp_in_turn
+        self.real_last_pk_in_turn = self.last_pk_in_turn
+        
         # Save mayor
         self.pre_simulation_mayor = self.mayor
         self.pre_simulation_appointed_mayor = self.appointed_mayor
@@ -339,6 +343,12 @@ class Dynamics:
         # Rollback turn
         self.current_turn = real_current_turn
         self.prev_turn = real_prev_turn
+
+        # Get back timestamp and pk
+        self.last_timestamp_in_turn = self.real_last_timestamp_in_turn
+        self.last_pk_in_turn = self.real_last_pk_in_turn
+
+
         # Rollback mayor changes
         self.mayor = self.pre_simulation_mayor
         self.appointed_mayor = self.pre_simulation_appointed_mayor
@@ -413,8 +423,8 @@ class Dynamics:
 
         if self.simulating:
             self.simulated_events.append(event)
-        else:
-            self.auto_event_queue.append(event)
+        
+        self.auto_event_queue.append(event)
 
     def _compute_entering_creation(self):
         if DEBUG_DYNAMICS:
@@ -640,7 +650,7 @@ class Dynamics:
                     print >> sys.stderr
             event = PowerOutcomeEvent(player=player, success=success, sequestrated=player.pk in sequestrated, command=player.role.recorded_command)
             self.generate_event(event)
-            if success and not self.simulating:
+            if success:
                 player.role.apply_dawn(self)
 
         def apply_roles(roles):
@@ -729,8 +739,14 @@ class Dynamics:
             player.just_ghostified = False
             player.has_confusion = False
         
-        if not self.simulating:
-            self._end_of_main_phase()
+        self._end_of_main_phase()
+
+        if self.simulating:
+            # Remove useless state for following day
+            self.advocated_players = []
+            self.additional_ballots = []
+            self.hypnosis_ghost_target = None
+            self.amnesia_target = None
 
     def _compute_entering_day(self):
         if DEBUG_DYNAMICS:
@@ -1054,9 +1070,11 @@ class Dynamics:
         if self.appointed_mayor is not None:
             assert self.appointed_mayor.alive and self.appointed_mayor.active
 
-        self._check_deaths()
-        self._perform_disqualifications()
-        self._check_team_exile()
+        if not self.simulating:
+            self._check_deaths()
+            self._perform_disqualifications()
+            self._check_team_exile()
+            
         self._perform_mayor_succession()
 
         if len(self.get_alive_players())==0:
@@ -1068,5 +1086,6 @@ class Dynamics:
 
         # Reset leftover temporary status
         self.death_ghost_just_created = False
-        self.pending_disqualifications = []
         self.upcoming_deaths = []
+        if not self.simulating:
+            self.pending_disqualifications = []
