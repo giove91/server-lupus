@@ -242,6 +242,7 @@ class SetRoleEvent(Event):
 class SetMayorEvent(Event):
     RELEVANT_PHASES = [CREATION, SUNSET, DAWN]
     AUTOMATIC = True
+    CAN_BE_SIMULATED = False
 
     player = models.ForeignKey(Player, null=True, related_name='+')
 
@@ -285,6 +286,7 @@ class SetMayorEvent(Event):
             assert len(dynamics.get_alive_players())==0
             dynamics.mayor = None
             dynamics.appointed_mayor = None
+        
 
     def to_player_string(self, player):
         if self.player is None:
@@ -337,6 +339,7 @@ class InitialPropositionEvent(Event):
 class VoteAnnouncedEvent(Event):
     RELEVANT_PHASES = [SUNSET]
     AUTOMATIC = True
+    CAN_BE_SIMULATED = True
 
     voter = models.ForeignKey(Player, related_name='+')
     voted = models.ForeignKey(Player, related_name='+')
@@ -356,6 +359,7 @@ class VoteAnnouncedEvent(Event):
 class TallyAnnouncedEvent(Event):
     RELEVANT_PHASES = [SUNSET]
     AUTOMATIC = True
+    CAN_BE_SIMULATED = True
 
     voted = models.ForeignKey(Player, related_name='+')
     vote_num = models.IntegerField()

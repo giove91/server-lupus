@@ -389,7 +389,6 @@ class GameTests(TestCase):
                 else:
                     event = CommandEvent(player=player, type=ELECT, target=None, timestamp=get_now())
                 dynamics.inject_event(event)
-
         # Trigger the vote counting
         dynamics.debug_event_bin = []
         test_advance_turn(game)

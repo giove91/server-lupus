@@ -41,6 +41,9 @@ class Dynamics:
         self._updating = False
         self.debug_event_bin = None
         self.auto_event_queue = []
+        self.simulating = False
+        self.simulated = False
+        self.simulated_events = []
         self.events = []
         self.turns = []
         self.failed = False
@@ -73,6 +76,8 @@ class Dynamics:
         self.last_pk_in_turn = None
         self.mayor = None
         self.appointed_mayor = None
+        self.pre_simulation_mayor = None
+        self.pre_simulation_appointed_mayor = None
         self.available_roles = []
         self.death_ghost_created = False
         self.death_ghost_just_created = False
@@ -244,6 +249,10 @@ class Dynamics:
             self.turns.append(turn)
             self._receive_turn(turn)
             return True
+            
+        if not self.simulated:
+            self._simulate_next_turn()
+            return True
 
         return False
 
@@ -262,6 +271,13 @@ class Dynamics:
         if self.current_turn is not None:
             self.prev_turn = Turn.objects.get(pk=self.current_turn.pk)
         self.current_turn = turn
+
+        if self.current_turn.phase in [DAY, NIGHT]:
+            assert self.current_turn.end is not None
+            self.simulated_turn = self.current_turn.next_turn()
+            self.simulated_turn.set_begin_end(self.current_turn)
+        else:
+            self.simulated_turn = None
 
         # Debug print
         if DEBUG_DYNAMICS:
@@ -295,7 +311,47 @@ class Dynamics:
             DAWN: self._compute_entering_dawn,
             CREATION: self._compute_entering_creation,
             }[self.current_turn.phase]()
+    
+    def _simulate_next_turn(self):
+        if self.simulated_turn is None:
+            self.simulated = True
+            return
+        self.simulating = True
+        self.simulated_events = []
+        # Copy random status
+        self.random_state = self.random.getstate()
+        
+        # Save mayor
+        self.pre_simulation_mayor = self.mayor
+        self.pre_simulation_appointed_mayor = self.appointed_mayor
 
+        # Temporarily promote
+        real_current_turn = self.current_turn
+        real_prev_turn = self.prev_turn
+        self.current_turn = self.simulated_turn
+        self.prev_turn = real_current_turn
+        assert self.simulated_turn.phase in [DAWN,SUNSET], self.simulated_turn
+        {
+            SUNSET: self._compute_entering_sunset,
+            DAWN: self._compute_entering_dawn,
+            }[self.simulated_turn.phase]()
+            
+        # Rollback turn
+        self.current_turn = real_current_turn
+        self.prev_turn = real_prev_turn
+        # Rollback mayor changes
+        self.mayor = self.pre_simulation_mayor
+        self.appointed_mayor = self.pre_simulation_appointed_mayor
+        self.pre_simulation_mayor = None
+        self.pre_simulation_appointed_mayor = None
+        
+        # Rollback random object
+        self.random.setstate(self.random_state)
+        
+        self.simulating = False
+        self.simulated = True
+        
+    
     def _receive_event(self, event):
         # Preliminary checks on the context
         assert self.current_turn is not None
@@ -322,12 +378,20 @@ class Dynamics:
         assert self.current_turn.phase in event.RELEVANT_PHASES
 
         # Process the event
-        self._process_event(event)
-        self.events.append(event)
-        self.event_num += 1
+        if not self.simulating:
+            self._process_event(event)
+            self.events.append(event)
+            self.event_num += 1
+        else:
+            self._simulate_event(event)
 
     def _process_event(self, event):
+        self.simulated = False
         event.apply(self)
+        
+    def _simulate_event(self, event):
+        if event.CAN_BE_SIMULATED:
+            event.apply(self)
 
     def inject_event(self, event):
         """This is for non automatic events."""
@@ -346,7 +410,11 @@ class Dynamics:
         event.turn = self.current_turn
         if event.timestamp is None:
             event.timestamp = self.current_turn.begin
-        self.auto_event_queue.append(event)
+
+        if self.simulating:
+            self.simulated_events.append(event)
+        else:
+            self.auto_event_queue.append(event)
 
     def _compute_entering_creation(self):
         if DEBUG_DYNAMICS:
@@ -572,7 +640,7 @@ class Dynamics:
                     print >> sys.stderr
             event = PowerOutcomeEvent(player=player, success=success, sequestrated=player.pk in sequestrated, command=player.role.recorded_command)
             self.generate_event(event)
-            if success:
+            if success and not self.simulating:
                 player.role.apply_dawn(self)
 
         def apply_roles(roles):
@@ -651,7 +719,8 @@ class Dynamics:
         self.wolves_target = None
         self.necromancers_target = None
         for player in self.players:
-            player.role.unrecord_targets()
+            if not self.simulating:
+                player.role.unrecord_targets()
             player.apparent_aura = None
             player.apparent_mystic = None
             player.visiting = None
@@ -659,8 +728,9 @@ class Dynamics:
             player.protected_by_guard = False
             player.just_ghostified = False
             player.has_confusion = False
-
-        self._end_of_main_phase()
+        
+        if not self.simulating:
+            self._end_of_main_phase()
 
     def _compute_entering_day(self):
         if DEBUG_DYNAMICS:
@@ -718,18 +788,19 @@ class Dynamics:
         while self._update_step(advancing_turn=True):
             pass
 
-        # Unrecord all data set during previous dawn
-        self.advocated_players = []
-        self.hypnosis_ghost_target = None
-        self.additional_ballots = []
-        self.amnesia_target = None
+        if not self.simulating:
+            # Unrecord all data set during previous dawn
+            self.advocated_players = []
+            self.hypnosis_ghost_target = None
+            self.additional_ballots = []
+            self.amnesia_target = None
 
-        # Unrecord all elect and vote events
-        for player in self.players:
-            player.recorded_vote = None
-            player.recorded_elect = None
+            # Unrecord all elect and vote events
+            for player in self.players:
+                player.recorded_vote = None
+                player.recorded_elect = None
 
-        self._end_of_main_phase()
+            self._end_of_main_phase()
 
     def _compute_elected_mayor(self):
         new_mayor = None

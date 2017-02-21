@@ -51,13 +51,17 @@ def get_events(request, player):
     # player can be a Player, 'admin' or 'public' (depending on the view)
     game = request.game
     dynamics = game.get_dynamics()
-    
+    assert not dynamics.simulating
     if player == 'admin':
-        turns = dynamics.turns
+        turns = dynamics.turns + [dynamics.simulated_turn]
     else:
         turns = [turn for turn in dynamics.turns if turn.phase in [CREATION, DAWN, SUNSET]]
     
-    events = dynamics.events
+    if player == 'admin':
+        events = dynamics.events + dynamics.simulated_events
+    else:
+        events = dynamics.events
+
     if player == 'admin':
         comments = Comment.objects.filter(turn__game=game).filter(visible=True).order_by('timestamp')
     else:
@@ -67,7 +71,7 @@ def get_events(request, player):
     for event in events:
         message = event.to_player_string(player)
         if message is not None:
-            assert event.turn in result.keys()
+            assert event.turn in result.keys(), event.turn
             result[event.turn]['standard'].append(message)
         
         if event.subclass == 'VoteAnnouncedEvent':

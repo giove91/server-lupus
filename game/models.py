@@ -220,6 +220,10 @@ class Turn(models.Model):
         return "%s %d" % (Turn.TURN_PHASES[self.phase], self.date)
     as_string = property(__unicode__)
     
+    def __hash__(self):
+        # Custom hash function, working for non-saved objects
+        return hash(('game','date','phase'))
+
     def phase_as_italian_string(self):
         return {
             DAY: 'Giorno',
