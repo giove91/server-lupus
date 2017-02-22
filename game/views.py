@@ -589,7 +589,7 @@ class AppointView(CommandView):
     url_name = 'appoint'
     
     def check(self, request):
-        return request.player is not None and request.player.is_mayor and request.game is not None and (request.game.current_turn.phase == DAY or request.game.current_turn.phase == NIGHT)
+        return request.player is not None and request.player.is_mayor() and request.game is not None and (request.game.current_turn.phase == DAY or request.game.current_turn.phase == NIGHT)
     
     def get_fields(self, request):
         player = request.player

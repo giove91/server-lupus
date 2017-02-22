@@ -29,11 +29,7 @@ OTHER:
 
  * In prototypes and letter templates: Fantasma should have black aura.
 
- * Tool for simulating future phases.
-
 FOR THE FUTURE:
-
- * Il link alla pagina "Designa successore" (per il Sindaco) non deve comparire durante il prologo.
 
  * When last Negromante is dying, they cannot ghostify anyone.
 
