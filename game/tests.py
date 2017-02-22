@@ -5589,6 +5589,7 @@ class GameTests(TestCase):
         # Advance to second night
         test_advance_turn(self.game)
         test_advance_turn(self.game)
+        print dynamics.random.getstate()
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -5644,6 +5645,9 @@ class GameTests(TestCase):
 
         roles = [event.role_name for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
         self.assertEqual(len(set(roles)), 2)
+        
+        # Check if random has been triggered 64 times (starting with seed 1)
+        assert dynamics.random.getstate()==(1, (15601, 7759, 9670), None)
         
     @record_name
     def test_confusione_visione(self): # New
@@ -6070,18 +6074,18 @@ class GameTests(TestCase):
 
         test_advance_turn(self.game) # To sunset
 
-        self.assertEqual(self.game.over, False) #Game should not be over yet
+        self.assertEqual(dynamics.over, False) #Game should not be over yet
 
         test_advance_turn(self.game) # To night
 
-        self.assertEqual(self.game.over, False) #Not yet...
+        self.assertEqual(dynamics.over, False) #Not yet...
 
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=contadino, timestamp=get_now()))
 
         test_advance_turn(self.game) # To dawn
 
-        self.assertEqual(self.game.over, True) #Now!
+        self.assertEqual(dynamics.over, True) #Now!
 
         test_advance_turn(self.game)
 
-        self.assertEqual(self.game.over, True) #Still over!
+        self.assertEqual(dynamics.over, True) #Still over!
