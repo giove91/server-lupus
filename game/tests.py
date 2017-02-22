@@ -5589,7 +5589,6 @@ class GameTests(TestCase):
         # Advance to second night
         test_advance_turn(self.game)
         test_advance_turn(self.game)
-        print dynamics.random.getstate()
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
