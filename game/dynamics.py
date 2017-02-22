@@ -6,6 +6,7 @@ from django.db.models import Q
 
 from threading import RLock
 from datetime import datetime
+import time
 
 from models import Event, Turn
 from events import CommandEvent, VoteAnnouncedEvent, TallyAnnouncedEvent, \
@@ -15,6 +16,7 @@ from constants import *
 from roles import *
 
 DEBUG_DYNAMICS = False
+SIMULATE_NEXT_TURN = True
 RELAX_TIME_CHECKS = False
 ANCIENT_DATETIME = datetime(year=1970, month=1, day=1, tzinfo=REF_TZINFO)
 
@@ -34,6 +36,7 @@ class Dynamics:
     def __init__(self, game):
         if DEBUG_DYNAMICS:
             print >> sys.stderr, "New dynamics spawned: %r" % (self)
+            self.spawned_at = time.time()
         self.game = game
         self.check_mode = False  # Not supported at the moment
         self.update_lock = RLock()
@@ -41,6 +44,7 @@ class Dynamics:
         self._updating = False
         self.debug_event_bin = None
         self.auto_event_queue = []
+        self.db_event_queue = []
         self.simulating = False
         self.simulated = False
         self.simulated_events = []
@@ -172,7 +176,6 @@ class Dynamics:
         else:
             return player.team
     
-    
     def update(self):
         with self.update_lock:
             try:
@@ -185,15 +188,24 @@ class Dynamics:
             except Exception:
                 self.failed = True
                 raise
+        if DEBUG_DYNAMICS and self.spawned_at:
+            print 'First updating finished. Elapsed time: %r' % (time.time() - self.spawned_at)     
+            self.spawned_at = None   
+        
 
     def _pop_event_from_db(self):
         if DEBUG_DYNAMICS:
             print >> sys.stderr, "current_turn: %r; last_timestamp_in_turn: %r; last_pk_in_turn: %r" % (self.current_turn, self.last_timestamp_in_turn, self.last_pk_in_turn)
+        if len(self.db_event_queue) > 0:
+            return self.db_event_queue.pop(0).as_child()
+            
         try:
-            event = Event.objects.filter(turn=self.current_turn). \
+            result = Event.objects.filter(turn=self.current_turn). \
                 filter(Q(timestamp__gt=self.last_timestamp_in_turn) |
                        (Q(timestamp__gte=self.last_timestamp_in_turn) & Q(pk__gt=self.last_pk_in_turn))). \
-                       order_by('timestamp', 'pk')[0]
+                       order_by('timestamp', 'pk')
+            self.db_event_queue += result
+            event = self.db_event_queue.pop(0)
         except IndexError:
             return None
         else:
@@ -250,7 +262,7 @@ class Dynamics:
             self._receive_turn(turn)
             return True
             
-        if not self.simulated:
+        if not self.simulated and SIMULATE_NEXT_TURN:
             self._simulate_next_turn()
             return True
 
