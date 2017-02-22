@@ -222,7 +222,7 @@ class Turn(models.Model):
     
     def __hash__(self):
         # Custom hash function, working for non-saved objects
-        return hash(('game','date','phase'))
+        return hash((self.game, self.date,self.phase))
 
     def phase_as_italian_string(self):
         return {

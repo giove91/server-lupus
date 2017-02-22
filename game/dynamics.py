@@ -261,10 +261,6 @@ class Dynamics:
             self.turns.append(turn)
             self._receive_turn(turn)
             return True
-            
-        if not self.simulated and SIMULATE_NEXT_TURN:
-            self._simulate_next_turn()
-            return True
 
         return False
 
@@ -323,7 +319,9 @@ class Dynamics:
             CREATION: self._compute_entering_creation,
             }[self.current_turn.phase]()
     
-    def _simulate_next_turn(self):
+    def simulate_next_turn(self):
+        if not SIMULATE_NEXT_TURN or self.simulated:
+            return
         if self.simulated_turn is None:
             self.simulated = True
             return

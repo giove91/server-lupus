@@ -54,7 +54,8 @@ def get_events(request, player):
     assert not dynamics.simulating
     if player == 'admin':
         turns = dynamics.turns
-        if dynamics.simulated_turn is not None:
+        dynamics.simulate_next_turn()
+        if dynamics.simulated_turn is not None and dynamics.simulated:
             turns = turns + [dynamics.simulated_turn]
     else:
         turns = [turn for turn in dynamics.turns if turn.phase in [CREATION, DAWN, SUNSET]]
