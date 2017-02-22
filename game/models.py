@@ -97,9 +97,7 @@ class Game(models.Model):
         return self.get_dynamics().mayor
     mayor = property(mayor)
     
-    def over(self):
-        return self.get_dynamics().over
-    over = property(over)
+    over = False
 
     def get_dynamics(self):
         """Obtain or create the Dynamics object globally assigned to
