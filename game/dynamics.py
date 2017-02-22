@@ -320,6 +320,19 @@ class Dynamics:
             }[self.current_turn.phase]()
     
     def simulate_next_turn(self):
+        """
+        Simulate following turn.
+        This will work only if simulated turn is in the dynamics, which means that:
+        * Current turn must be DAY or NIGHT
+        * Current turn must have end.
+        During simulation, only events with flag CAN_BE_SIMULATED are applied.
+        Events are not saved in self.events, but in self.simulated_events instead.
+        All changes to dynamics are (or at least they should be) reverted after simulation is complete.
+        This includes the pseudorandom number generator, which is set back to its previous state,
+        to guarantee that dynamics is deterministic.
+
+        In case of problems, set SIMULATE_NEXT_TURN to False to disable simulation.
+        """
         if not SIMULATE_NEXT_TURN or self.simulated:
             return
         if self.simulated_turn is None:
