@@ -48,8 +48,6 @@
                     {% if user.is_authenticated %}
                         <div class="username">
                             Sei loggato come {{ user.username }} ({{ user.first_name }} {{ user.last_name }})
-                            {# TODO: Bisogna aggiungere il link del cambio password da qualche parte #}
-							{# <a href="{% url 'password_change' %}">Cambia password</a> #}
                         </div>
                     {% endif %}
                     {% if user.is_staff and player %}
@@ -120,7 +118,15 @@
 				</div>
 				{% endif %}
 	        {% endif %}
-	        
+
+	    {% if user.is_authenticated %}
+			<div class="nav-menu">
+				<h1>Utente</h1>
+				<ul>
+					<li><a href="{% url 'password_change' %}">Cambia password</a></li>
+				</ul>
+		{% endif %}
+			
         {% if user.is_staff %}
 		<div class="nav-menu">
 			<h1>GM</h1>
