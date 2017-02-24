@@ -176,7 +176,7 @@ class Dynamics:
         else:
             return player.team
     
-    def update(self):
+    def update(self, simulation=False):
         with self.update_lock:
             try:
                 if self._updating:
@@ -184,7 +184,8 @@ class Dynamics:
                 self._updating = True
                 while self._update_step():
                     pass
-                self._simulate_next_turn()
+                if simulation:
+                    self._simulate_next_turn()
                 self._updating = False
             except Exception:
                 self.failed = True

@@ -54,6 +54,7 @@ def get_events(request, player):
     assert not dynamics.simulating
     if player == 'admin':
         turns = dynamics.turns
+        dynamics.update(simulation=True)
         if dynamics.simulated_turn is not None and dynamics.simulated:
             turns = turns + [dynamics.simulated_turn]
     else:
