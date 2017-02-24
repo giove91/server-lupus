@@ -184,6 +184,7 @@ class Dynamics:
                 self._updating = True
                 while self._update_step():
                     pass
+                self._simulate_next_turn()
                 self._updating = False
             except Exception:
                 self.failed = True
@@ -319,7 +320,7 @@ class Dynamics:
             CREATION: self._compute_entering_creation,
             }[self.current_turn.phase]()
     
-    def simulate_next_turn(self):
+    def _simulate_next_turn(self):
         """
         Simulate following turn.
         This will work only if simulated turn is in the dynamics, which means that:
