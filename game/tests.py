@@ -3258,6 +3258,49 @@ class GameTests(TestCase):
             self.assertTrue(event.player == negromante or event.player == ipnotista)
             self.assertEqual(event.cause, TEAM_DEFEAT)
 
+    def test_ghostify_before_exile(self):
+        roles = [ Negromante, Lupo, Cacciatore, Contadino, Contadino ]
+
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo] = [x for x in players if isinstance(x.role, Lupo)]
+        [cacciatore] = [x for x in players if isinstance(x.role, Cacciatore)]
+        [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
+
+         # Advance to day and kill contadino
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=cacciatore, target=negromante, timestamp=get_now()))
+
+        test_advance_turn(self.game)
+
+        self.assertFalse(contadino.alive) # He's dead
+
+        test_advance_turn(self.game)
+
+        # Now kill negromante who is ghostifying contadino
+
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=OCCULTAMENTO, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=cacciatore, target=lupo, timestamp=get_now()))
+
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        # Negromante should fail
+        self.assertEqual(self.game.current_turn.phase, DAWN)
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player==negromante]
+        self.assertEqual(len(events), 1)
+        self.assertFalse(events[0].success)
+        self.assertTrue(isinstance(contadino.role, Contadino))
+        self.assertEqual(contadino.team, POPOLANI)
+
     @record_name
     def test_victory_lupi(self):
         roles = [ Negromante, Lupo, Cacciatore, Ipnotista, Contadino, Rinnegato ]
