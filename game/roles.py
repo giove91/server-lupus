@@ -470,7 +470,7 @@ class Assassino(Role):
         visitors = [x for x in self.recorded_target.visitors if x.pk != self.player.pk]
         if len(visitors) > 0:
             victim = dynamics.random.choice(visitors)
-            if not victim.just_dead:
+            if not victim.just_dead and victim.role.recorded_target == self.recorded_target:
                 assert victim.alive
                 dynamics.generate_event(PlayerDiesEvent(player=victim, cause=ASSASSIN))
         
