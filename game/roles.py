@@ -832,10 +832,6 @@ class Spettro(Role):
             if isinstance(self.recorded_target.role, Ipnotista):
                 return False
 
-        elif self.power == CONFUSIONE:
-            target = self.recorded_target.canonicalize()
-            target.has_confusion = True
-
         return True
 
     def apply_dawn(self, dynamics):
@@ -856,8 +852,8 @@ class Spettro(Role):
             pass
             
         elif self.power == CONFUSIONE:
-            # Nothing to do here...
-            pass
+            target = self.recorded_target.canonicalize()
+            target.has_confusion = True
 
         elif self.power == ILLUSIONE:
             assert self.recorded_target2.alive
