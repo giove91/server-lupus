@@ -763,14 +763,14 @@ class Dynamics:
             player.just_ghostified = False
             player.has_confusion = False
         
-        self._end_of_main_phase()
-
         if self.simulating:
             # Remove useless state for following day
             self.advocated_players = []
             self.additional_ballots = []
             self.hypnosis_ghost_target = None
             self.amnesia_target = None
+        else:
+            self._end_of_main_phase()
 
     def _compute_entering_day(self):
         if DEBUG_DYNAMICS:
@@ -1094,11 +1094,9 @@ class Dynamics:
         if self.appointed_mayor is not None:
             assert self.appointed_mayor.alive and self.appointed_mayor.active
 
-        if not self.simulating:
-            self._check_deaths()
-            self._perform_disqualifications()
-            self._check_team_exile()
-            
+        self._check_deaths()
+        self._perform_disqualifications()
+        self._check_team_exile()
         self._perform_mayor_succession()
 
         if len(self.get_alive_players())==0:
@@ -1111,5 +1109,4 @@ class Dynamics:
         # Reset leftover temporary status
         self.death_ghost_just_created = False
         self.upcoming_deaths = []
-        if not self.simulating:
-            self.pending_disqualifications = []
+        self.pending_disqualifications = []
