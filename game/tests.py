@@ -5312,10 +5312,10 @@ class GameTests(TestCase):
         players = self.game.get_players()
 
         [cacciatore] = [x for x in players if isinstance(x.role, Cacciatore)]
-        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [lupo1, lupo2] = [x for x in players if isinstance(x.role, Lupo)]
         [negromante1, negromante2] = [x for x in players if isinstance(x.role, Negromante)]
         [divinatore] = [x for x in players if isinstance(x.role, Divinatore)]
-        [contadino] = [x for x in players if isinstance(x.role, Divinatore)]
+        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
         
         dynamics.debug_event_bin = []
         
@@ -5323,7 +5323,7 @@ class GameTests(TestCase):
         ref_timestamp = self.game.current_turn.begin
         dynamics.inject_event(SoothsayerModelEvent(player_role=Cacciatore.name, advertised_role=Veggente.name, soothsayer_num=0, timestamp=ref_timestamp))
         dynamics.inject_event(SoothsayerModelEvent(player_role=Negromante.name, advertised_role=Negromante.name, soothsayer_num=0, timestamp=ref_timestamp))
-        dynamics.inject_event(SoothsayerModelEvent(player_role=Divinatore.name, advertised_role=Contadino.name, soothsayer_num=0, timestamp=ref_timestamp))
+        dynamics.inject_event(SoothsayerModelEvent(player_role=Lupo.name, advertised_role=Contadino.name, soothsayer_num=0, timestamp=ref_timestamp))
         dynamics.inject_event(SoothsayerModelEvent(player_role=Contadino.name, advertised_role=Contadino.name, soothsayer_num=0, timestamp=ref_timestamp))
         
         # Check
@@ -5335,11 +5335,51 @@ class GameTests(TestCase):
         info = [(e.target, e.role_name) for e in events]
         self.assertTrue((negromante1, Negromante.name) in info or (negromante2, Negromante.name) in info)
         self.assertTrue((cacciatore, Veggente.name) in info)
-        self.assertTrue((divinatore, Contadino.name) in info)
+        self.assertTrue((lupo1, Contadino.name) in info or (lupo2, Contadino.name) in info)
         self.assertTrue((contadino, Contadino.name) in info)
 
         test_advance_turn(self.game)
     
+    @record_name
+    def test_divinatore_knowing_about_himself(self):
+        roles = [ Contadino, Negromante, Lupo, Divinatore ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+        
+        # Inserting Soothsayer proposition about himself
+        ref_timestamp = self.game.current_turn.begin
+        with self.assertRaises(IndexError):
+            dynamics.inject_event(SoothsayerModelEvent(player_role=Divinatore.name, advertised_role=Divinatore.name, soothsayer_num=0, timestamp=ref_timestamp))
+    
+    @record_name
+    def test_divinatore_knowing_about_another_divinatore(self):
+        roles = [ Contadino, Negromante, Lupo, Divinatore, Divinatore ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+        
+        [divinatore1, divinatore2] = [x for x in players if isinstance(x.role, Divinatore)]
+        
+        dynamics.debug_event_bin = []
+        
+        # Inserting Soothsayer proposition about a Soothsayer
+        ref_timestamp = self.game.current_turn.begin
+        dynamics.inject_event(SoothsayerModelEvent(player_role=Divinatore.name, advertised_role=Divinatore.name, soothsayer_num=0, timestamp=ref_timestamp))
+        
+        # Check
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
+        self.assertEqual(len(events), 1)
+        event = events[0]
+        self.assertTrue(event.player in [divinatore1, divinatore2])
+        if event.player == divinatore1:
+            divinatore_target = divinatore2
+        else:
+            divinatore_target = divinatore1
+        
+        info = (event.target, event.role_name)
+        self.assertTrue((divinatore_target, Divinatore.name) == info)
+            
     @record_name
     def test_load_test(self):
         self.game = self.load_game_helper('test.json')
