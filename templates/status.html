@@ -55,7 +55,13 @@
 
 {% if display_mayor %}
     {% if game.mayor != None %}
-        <p>Il Sindaco del villaggio è {{ game.mayor.full_name }}.</p>
+        {% with rnd="12345678900234567890"|make_list|random %}
+        {% if user.is_authenticated and rnd == "1" %}
+            <p>Il Cusumano del villaggio è {{ game.mayor.full_name }}.</p>
+        {% else %}
+            <p>Il Sindaco del villaggio è {{ game.mayor.full_name }}.</p>
+        {% endif %}
+        {% endwith %}
     {% else %}
         <p>Nessuno è il Sindaco del villaggio. Non che serva un Sindaco, dato che tutti gli abitanti sono morti...
     {% endif %}
