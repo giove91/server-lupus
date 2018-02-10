@@ -73,7 +73,7 @@ class LetterRenderer:
     def render_setting(self):
         template = self.template_setting
         
-        basename = self.escape_name(self.player.user.last_name) + '1'
+        basename = self.escape_name(self.player.user.last_name) + '_' + self.escape_name(self.player.user.first_name) + '1'
         filename = basename + '.tex'
         
         # Rendering .tex
@@ -90,7 +90,7 @@ class LetterRenderer:
     def render_role(self):
         template = self.template_role
         
-        basename = self.escape_name(self.player.user.last_name) + '2'
+        basename = self.escape_name(self.player.user.last_name) + '_' + self.escape_name(self.player.user.first_name) + '2'
         filename = basename + '.tex'
         
         # Rendering .tex
