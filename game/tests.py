@@ -1604,7 +1604,45 @@ class GameTests(TestCase):
         self.assertEqual(event.target, lupo)
         self.assertEqual(event.role_name, lupo.role.__class__.__name__)
         self.assertEqual(event.cause, MEDIUM)
+    
+    @record_name
+    def test_diavolo_with_negromante(self):
+        roles = [ Contadino, Lupo, Diavolo, Diavolo, Diavolo, Negromante, Fantasma ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+        
+        [d1, d2, d3] = [x for x in players if isinstance(x.role, Diavolo)]
+        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [fantasma] = [x for x in players if isinstance(x.role, Fantasma)]
+        
+        # Advance to night and use powers
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=d1, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=d2, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=d3, target=fantasma, timestamp=get_now()))
 
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
+        self.assertEqual(len(events),1)
+        self.assertEqual(events[0].player, d1)
+        self.assertEqual(events[0].target, contadino)
+        self.assertEqual(events[0].role_name, Contadino.__name__)
+        self.assertEqual(events[0].cause, DEVIL)
+        
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == d1]
+        self.assertTrue(event.success)
+        
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent) and event.player == d2]
+        self.assertFalse(event.success)
+        
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent) and event.player == d3]
+        self.assertFalse(event.success)
+        
     @record_name
     def test_fattucchiera_with_veggente(self):
         roles = [ Veggente, Medium, Investigatore, Negromante, Lupo, Lupo, Contadino, Fattucchiera ]
