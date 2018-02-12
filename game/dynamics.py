@@ -287,6 +287,8 @@ class Dynamics:
             self.simulated_turn.set_begin_end(self.current_turn)
         else:
             self.simulated_turn = None
+        
+        self.simulated_events = []
 
         # Debug print
         if DEBUG_DYNAMICS:
