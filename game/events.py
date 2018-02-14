@@ -415,6 +415,7 @@ class TransformationEvent(Event):
         target = self.target.canonicalize()
 
         assert player.alive
+        assert isinstance(player.role, Trasformista) 
         assert not target.alive
 
         # Check for forbidden roles

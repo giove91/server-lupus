@@ -17,6 +17,7 @@ from roles import *
 
 DEBUG_DYNAMICS = False
 SIMULATE_NEXT_TURN = True
+FORCE_SIMULATION = True # Enable only while running tests
 RELAX_TIME_CHECKS = False
 ANCIENT_DATETIME = datetime(year=1970, month=1, day=1, tzinfo=REF_TZINFO)
 
@@ -184,7 +185,7 @@ class Dynamics:
                 self._updating = True
                 while self._update_step():
                     pass
-                if simulation:
+                if simulation or FORCE_SIMULATION:
                     self._simulate_next_turn()
                 self._updating = False
             except Exception:
@@ -337,7 +338,7 @@ class Dynamics:
 
         In case of problems, set SIMULATE_NEXT_TURN to False to disable simulation.
         """
-        if not SIMULATE_NEXT_TURN or self.simulated:
+        if not FORCE_SIMULATION and (not SIMULATE_NEXT_TURN or self.simulated):
             return
         if self.simulated_turn is None:
             self.simulated = True
@@ -777,33 +778,6 @@ class Dynamics:
     def _compute_entering_day(self):
         if DEBUG_DYNAMICS:
             print >> sys.stderr, "Computing day"
-
-    # Prova di funzione per simulare il turno successivo, ma per ora fallimentare
-    def simulate_entering_sunset(self):
-        if DEBUG_DYNAMICS:
-            print >> sys.stderr, "Simulating sunset"
-        new_mayor = self._compute_elected_mayor()
-        sim_events=[]
-        if new_mayor is not None:
-            event = SetMayorEvent(player=new_mayor, cause=ELECT)
-            sim_events.append(event)
-
-        while self._update_step(advancing_turn=True):
-            pass
-
-        assert self.upcoming_deaths == []
-
-        winner, cause = self._compute_vote_winner()
-        if winner is not None:
-            event = PlayerDiesEvent(player=winner, cause=STAKE)
-            sim_events.append(event)
-        else:
-            event = StakeFailedEvent(cause=cause)
-            sim_events.append(event)
-
-        return sim_events
-        #while self._update_step(advancing_turn=True):
-        #    pass
 
     def _compute_entering_sunset(self):
         if DEBUG_DYNAMICS:
