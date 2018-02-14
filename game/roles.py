@@ -506,6 +506,12 @@ class Diavolo(Role):
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
+    def pre_apply_dawn(self, dynamics):
+        if self.recorded_target.team == NEGROMANTI:
+			return False
+		
+        return True
+
     def apply_dawn(self, dynamics):
         from events import RoleKnowledgeEvent
         dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, role_name=dynamics.get_apparent_role(self.recorded_target).__name__, cause=DEVIL))
