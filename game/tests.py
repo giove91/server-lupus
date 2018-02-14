@@ -5977,7 +5977,7 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         
         # Test everything
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=negromante, target2=lupo, timestamp=get_now()))
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=veggente1, target=negromante, timestamp=get_now()))
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=veggente2, target=negromante, timestamp=get_now()))
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=veggente3, target=negromante, timestamp=get_now()))
@@ -5994,16 +5994,14 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         
         auras = set([event.aura for event in dynamics.debug_event_bin if isinstance(event, AuraKnowledgeEvent)])
-        self.assertEqual(auras, set([BLACK, WHITE]))
+        self.assertEqual(auras, set([BLACK]))
         
         mysticities = set([event.is_mystic for event in dynamics.debug_event_bin if isinstance(event, MysticityKnowledgeEvent)])
-        self.assertEqual(mysticities, set([True, False]))
+        self.assertEqual(mysticities, set([False]))
 
         roles = [event.role_name for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
-        self.assertEqual(len(set(roles)), 2)
-        
-        # Check if random has been triggered 64 times (starting with seed 1)
-        assert dynamics.random.getstate()==(1, (15601, 7759, 9670), None)
+        self.assertEqual(len(set(roles)), 1)
+        self.assertEqual(roles[0],Lupo.__name__)
         
     @record_name
     def test_confusione_visione(self): # New
@@ -6055,9 +6053,19 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino1, target=negromante, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino2, target=negromante, timestamp=get_now()))
-
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino2, target=negromante, target2=veggente, timestamp=get_now()))
+        
+        #Check
+        
+        dynamics.debug_event_bin = []
         test_advance_turn(self.game)
+        
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, TeamKnowledgeEvent)]
+        self.assertEqual(event.player, contadino1)
+        self.assertEqual(event.target, negromante)
+        self.assertEqual(event.team, POPOLANI)
+        self.assertEqual(event.cause, VISION_GHOST)
+        
     @record_name
     def test_lupi_and_negromanti_not_ghostified(self): # New
         roles = [ Negromante, Lupo, Lupo, Contadino, Contadino, Diavolo, Assassino, Medium ]
