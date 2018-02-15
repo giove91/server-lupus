@@ -449,6 +449,30 @@ class TransformationEvent(Event):
         elif player == 'admin':
             return u'%s ha utilizzato il proprio potere di Trasformista su %s assumendo il ruolo di %s.' % (self.player.full_name, self.target.full_name, role)
 
+class CorruptionEvent(Event):
+    RELEVANT_PHASES = [DAWN]
+    AUTOMATIC = True
+
+    player = models.ForeignKey(Player, related_name='+')
+
+    def apply(self, dynamics):
+        player = self.player.canonicalize()
+
+        assert player.alive
+        assert player.is_mystic and player.aura == WHITE
+
+        # Change role in Negromante
+        player.role = Negromante(player)
+        player.team = NEGROMANTI
+
+    def to_player_string(self, player):
+        role = Role.get_from_name(self.role_name).name
+
+        if player == self.player:
+            return u'Sei diventato un Negromante.'
+        elif player == 'admin':
+            return u'%s ha assunto il ruolo di Negromante per l\'effetto dello Spettro della Corruzione.' % (self.player.full_name)
+
 
 class StakeFailedEvent(Event):
     RELEVANT_PHASES = [SUNSET]

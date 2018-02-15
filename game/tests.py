@@ -3111,10 +3111,10 @@ class GameTests(TestCase):
         
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, CorruptionEvent)]
         self.assertTrue(isinstance(medium.role, Negromante))
-        self.assertEqual(messia.team, NEGROMANTI)
+        self.assertEqual(medium.team, NEGROMANTI)
 
     def test_corruzione_on_guardia(self):
-        roles = [ Negromante, Lupo, Lupo, Guardia, Ipnotista, Contadino ]
+        roles = [ Negromante, Lupo, Lupo, Guardia, Veggente, Ipnotista, Contadino ]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
         players = self.game.get_players()
@@ -3124,6 +3124,7 @@ class GameTests(TestCase):
         [guardia] = [x for x in players if isinstance(x.role, Guardia)]
         [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
         [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+        [veggente] = [x for x in players if isinstance(x.role, Veggente)]
         
         # Advance to day and kill contadino
         test_advance_turn(self.game)
@@ -3159,6 +3160,14 @@ class GameTests(TestCase):
         events = [event for event in dynamics.debug_event_bin if isinstance(event, CorruptionEvent)]
         self.assertEqual(len(events),0)
         self.assertEqual(guardia.team, POPOLANI)
+
+        # Retry on Veggente
+        
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        with self.assertRaises(AssertionError):
+            dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=veggente, timestamp=get_now()))
 
     def test_corruzione_on_stregone(self):
         roles = [ Negromante, Lupo, Lupo, Stregone, Contadino, Contadino ]
@@ -4516,7 +4525,7 @@ class GameTests(TestCase):
             for event in events:
                 self.assertTrue(event.player in fantasmi)
                 self.assertEqual(event.cause, PHANTOM)
-            self.assertEqual(set([e.ghost for e in events]), set([AMNESIA, CONFUSIONE, ILLUSIONE, OCCULTAMENTO, VISIONE]))
+            self.assertEqual(set([e.ghost for e in events]), set([AMNESIA, CONFUSIONE, CORRUZIONE, ILLUSIONE, OCCULTAMENTO, VISIONE]))
             
             # TODO: assert that the right number of GhostificationFailedEvent siano generati
     

@@ -508,8 +508,8 @@ class Diavolo(Role):
 
     def pre_apply_dawn(self, dynamics):
         if self.recorded_target.team == NEGROMANTI:
-			return False
-		
+            return False
+
         return True
 
     def apply_dawn(self, dynamics):
@@ -781,6 +781,7 @@ class Spettro(Role):
     POWER_NAMES = {
         AMNESIA: 'Amnesia',
         CONFUSIONE: 'Confusione',
+        CORRUZIONE: 'Corruzione',
         ILLUSIONE: 'Illusione',
         IPNOSI: 'Ipnosi',
         MORTE: 'Morte',
@@ -802,16 +803,18 @@ class Spettro(Role):
     def can_use_power(self):
         if self.player.alive or not self.has_power:
             return False
-        
+
         if self.power == AMNESIA or self.power == CONFUSIONE or self.power == IPNOSI or self.power == OCCULTAMENTO or self.power == VISIONE:
             return True
         elif self.power == ILLUSIONE or self.power == MORTE:
             return self.last_usage is None or self.days_from_last_usage() >= 2
+        elif self.power == CORRUZIONE:
+            return self.last_usage is None
         else:
             raise ValueError('Invalid ghost type')
-    
+
     def get_targets(self):
-        if self.power == AMNESIA or self.power == MORTE or self.power == VISIONE or self.power == IPNOSI:
+        if self.power == AMNESIA or self.power == MORTE or self.power == VISIONE or self.power == IPNOSI or self.power == CORRUZIONE:
             targets = [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
         elif self.power == CONFUSIONE or self.power == OCCULTAMENTO or self.power == ILLUSIONE:
             targets = [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
@@ -836,6 +839,10 @@ class Spettro(Role):
 
         elif self.power == IPNOSI:
             if isinstance(self.recorded_target.role, Ipnotista):
+                return False
+
+        elif self.power == CORRUZIONE:
+            if self.recorded_target.aura == BLACK or not self.recorded_target.is_mystic:
                 return False
 
         return True
@@ -883,6 +890,10 @@ class Spettro(Role):
         elif self.power == IPNOSI:
             assert dynamics.hypnosis_ghost_target is None
             dynamics.hypnosis_ghost_target = (self.recorded_target, self.recorded_target2)
+
+        elif self.power == CORRUZIONE:
+            from events import CorruptionEvent
+            dynamics.generate_event(CorruptionEvent(player=self.recorded_target))
 
         else:
             raise ValueError("Invalid ghost type")

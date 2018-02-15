@@ -80,6 +80,7 @@ MORTE = 'R'
 OCCULTAMENTO = 'O'
 VISIONE = 'V'
 IPNOSI = 'P'
+CORRUZIONE = 'U'
 
 # Commands
 USEPOWER = 'P'

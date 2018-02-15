@@ -739,7 +739,7 @@ class Dynamics:
         #  * anything < Cacciatore, Lupo, Assassino, MORTE (deaths happen at the
         #    and of the turn)
         MODIFY_ROLES = [Avvocato, AMNESIA, Scrutatore, IPNOSI,
-                        Ipnotista, Trasformista, Messia, Negromante]
+                        Ipnotista, Trasformista, Messia, Negromante, CORRUZIONE]
         KILLER_ROLES = [Cacciatore, Lupo, Assassino, MORTE]
         # self.random.shuffle(KILLER_ROLES)
         MODIFY_ROLES = MODIFY_ROLES + KILLER_ROLES
