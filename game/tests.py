@@ -1471,7 +1471,7 @@ class GameTests(TestCase):
         self.assertEqual(event.vote_num, 1)
     
     @record_name 
-    def test_fantasma(self): # Updated
+    def test_fantasma(self): # Lupus7 update
         for i in xrange(20):
             # Since this test is repeasted many times, we have to
             # destroy it and delete all users before testing again
@@ -1606,7 +1606,7 @@ class GameTests(TestCase):
         self.assertEqual(event.cause, MEDIUM)
     
     @record_name
-    def test_diavolo_with_negromante(self):
+    def test_diavolo_with_negromante(self): # Lupus7 new
         roles = [ Contadino, Lupo, Diavolo, Diavolo, Diavolo, Negromante, Fantasma ]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
@@ -1710,7 +1710,7 @@ class GameTests(TestCase):
         self.assertEqual(event.cause, SEER)
 
     @record_name
-    def test_veggente_with_confusione_and_fattucchiera(self):
+    def test_veggente_with_confusione_and_fattucchiera(self): # Lupus7 new
         roles = [ Negromante, Lupo, Fattucchiera, Contadino, Veggente]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
@@ -3020,7 +3020,7 @@ class GameTests(TestCase):
         self.assertEqual(event.target2, lupo)
         self.assertEqual(event.cause, VOYEUR)
 
-    def test_corruzione_on_messia(self):
+    def test_corruzione_on_messia(self): # Lupus7 new
         roles = [ Negromante, Lupo, Lupo, Messia, Ipnotista, Contadino ]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
@@ -3067,7 +3067,7 @@ class GameTests(TestCase):
         self.assertTrue(isinstance(messia.role, Negromante))
         self.assertEqual(messia.team, NEGROMANTI)
 
-    def test_corruzione_on_medium(self):
+    def test_corruzione_on_medium(self): # Lupus7 new
         roles = [ Negromante, Lupo, Lupo, Medium, Contadino, Contadino ]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
@@ -3113,7 +3113,7 @@ class GameTests(TestCase):
         self.assertTrue(isinstance(medium.role, Negromante))
         self.assertEqual(medium.team, NEGROMANTI)
 
-    def test_corruzione_on_guardia(self):
+    def test_corruzione_on_guardia(self): # Lupus7 new
         roles = [ Negromante, Lupo, Lupo, Guardia, Veggente, Ipnotista, Contadino ]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
@@ -3169,7 +3169,7 @@ class GameTests(TestCase):
         with self.assertRaises(AssertionError):
             dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=veggente, timestamp=get_now()))
 
-    def test_corruzione_on_stregone(self):
+    def test_corruzione_on_stregone(self): # Lupus7 new
         roles = [ Negromante, Lupo, Lupo, Stregone, Contadino, Contadino ]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
@@ -3418,7 +3418,7 @@ class GameTests(TestCase):
         self.assertFalse(ipnotista.alive)
 
     @record_name
-    def test_visione(self):
+    def test_visione(self): # Lupus7 update
         roles = [ Negromante, Lupo, Lupo, Stalker, Ipnotista, Contadino, Guardia ]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
@@ -4483,7 +4483,7 @@ class GameTests(TestCase):
         self.assertEqual(event.cause, NECROMANCER)
     
     @record_name
-    def test_many_fantasmi(self): # Updated
+    def test_many_fantasmi(self): # Lupus7 update
         for i in xrange(4):
             # Since this test is repeasted many times, we have to
             # destroy it and delete all users before testing again
@@ -6078,7 +6078,7 @@ class GameTests(TestCase):
         self.assertEqual(roles[0],Negromante.__name__)
         
     @record_name
-    def test_confusione_visione(self): # New
+    def test_confusione_visione(self): # Lupus7 update
         roles = [ Negromante, Lupo, Contadino, Contadino, Veggente]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
@@ -6231,7 +6231,7 @@ class GameTests(TestCase):
         
         
     @record_name
-    def test_stregone(self): #New
+    def test_stregone(self): # Lupus7 update
         roles = [ Negromante, Lupo, Lupo, Trasformista, Stregone, Contadino ]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
