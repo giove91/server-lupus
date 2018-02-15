@@ -117,6 +117,8 @@ class Dynamics:
             player.recorded_elect = None
             player.apparent_mystic = None
             player.apparent_aura = None
+            player.apparent_role = None
+            player.apparent_team = None
             player.visiting = None
             player.visitors = None
             player.protected_by_guard = False
@@ -154,28 +156,16 @@ class Dynamics:
     
     
     def get_apparent_aura(self, player):
-        if player.has_confusion:
-            return self.random.choice([WHITE, BLACK])
-        else:
-            return player.apparent_aura
-    
+        return player.apparent_aura
+
     def get_apparent_mystic(self, player):
-        if player.has_confusion:
-            return self.random.choice([True, False])
-        else:
-            return player.apparent_mystic
+        return player.apparent_mystic
     
     def get_apparent_role(self, player):
-        if player.has_confusion:
-            return self.random.choice(VALID_ROLES)
-        else:
-            return player.role.__class__
+        return player.apparent_role
     
     def get_apparent_team(self, player):
-        if player.has_confusion:
-            return self.random.choice([POPOLANI, LUPI, NEGROMANTI])
-        else:
-            return player.team
+        return player.apparent_team
     
     def update(self, simulation=False):
         with self.update_lock:
@@ -601,6 +591,8 @@ class Dynamics:
         for player in self.get_active_players():
             player.apparent_aura = player.aura
             player.apparent_mystic = player.is_mystic
+            player.apparent_role = player.role.__class__
+            player.apparent_team = player.team
             player.visiting = []
             player.visitors = []
 
@@ -760,6 +752,8 @@ class Dynamics:
                 player.role.unrecord_targets()
             player.apparent_aura = None
             player.apparent_mystic = None
+            player.apparent_role = None
+            player.apparent_team = None
             player.visiting = None
             player.visitors = None
             player.protected_by_guard = False

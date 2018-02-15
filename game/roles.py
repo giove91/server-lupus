@@ -823,7 +823,7 @@ class Spettro(Role):
         return targets
     
     def get_targets2(self):
-        if self.power == ILLUSIONE or self.power == IPNOSI:
+        if self.power == ILLUSIONE or self.power == IPNOSI or self.power == CONFUSIONE:
             return self.player.game.get_alive_players()
         else:
             return None
@@ -866,7 +866,14 @@ class Spettro(Role):
             
         elif self.power == CONFUSIONE:
             target = self.recorded_target.canonicalize()
+            target2 = self.recorded_target2.canonicalize()
+
             target.has_confusion = True
+            # Apply to target target2's apparent status
+            target.apparent_aura = target2.apparent_aura
+            target.apparent_mystic = target2.apparent_mystic
+            target.apparent_role = target2.apparent_role
+            target.apparent_team = target2.apparent_team
 
         elif self.power == ILLUSIONE:
             assert self.recorded_target2.alive
