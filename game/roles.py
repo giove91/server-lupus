@@ -845,14 +845,18 @@ class Spettro(Role):
             if self.recorded_target.aura == BLACK or not self.recorded_target.is_mystic:
                 return False
 
+        elif self.power == VISIONE:
+            if self.recorded_target.team == LUPI:
+                return False
+
         return True
 
     def apply_dawn(self, dynamics):
         assert self.has_power
 
         if self.power == VISIONE:
-            from events import TeamKnowledgeEvent
-            dynamics.generate_event(TeamKnowledgeEvent(player=self.player, target=self.recorded_target, team=dynamics.get_apparent_team(self.recorded_target), cause=VISION_GHOST))
+            from events import RoleKnowledgeEvent
+            dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, role_name=dynamics.get_apparent_role(self.recorded_target).__name__, cause=VISION_GHOST))
 
         elif self.power == AMNESIA:
             assert dynamics.amnesia_target is None

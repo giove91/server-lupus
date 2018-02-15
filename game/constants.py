@@ -119,6 +119,7 @@ KNOWLEDGE_CLASS = 'C'
 GHOST = 'G'
 PHANTOM = 'P'
 DEVIL = 'D'
+VISION_GHOST = 'V'
 HYPNOTIST_DEATH = 'H'
 MEDIUM = 'M'
 
@@ -130,7 +131,7 @@ DETECTIVE = 'D'
 MAGE = 'M'
 
 # Team knowledge causes
-VISION_GHOST = 'V'
+# None!
 
 # Movement knowledge causes
 STALKER = 'S'

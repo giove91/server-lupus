@@ -636,6 +636,7 @@ class RoleKnowledgeEvent(Event):
         # just transformed to Spettro dell'Ipnosi
         (HYPNOTIST_DEATH, 'HypnotistDeath'),
         (DEVIL, 'Devil'),
+        (VISION_GHOST, 'Vision'),
         (MEDIUM, 'Medium'),
         )
     cause = models.CharField(max_length=1, choices=KNOWLEDGE_CAUSE_TYPES, default=None)
@@ -649,6 +650,7 @@ class RoleKnowledgeEvent(Event):
         HYPNOTIST_DEATH: [DAWN, SUNSET],
         DEVIL: [DAWN],
         MEDIUM: [DAWN],
+        VISION_GHOST: [DAWN]
         }
 
     def apply(self, dynamics):
