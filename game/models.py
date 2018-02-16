@@ -345,11 +345,12 @@ class Player(models.Model):
     )
     TEAMS_DICT = dict(TEAMS)
     
-    user = models.OneToOneField(User, primary_key=True, on_delete=models.CASCADE)
-    game = models.ForeignKey(Game, on_delete=models.CASCADE)
+    user = models.ForeignKey(User)
+    game = models.ForeignKey(Game)
     
     class Meta:
         ordering = ['user__last_name', 'user__first_name']
+        unique_together = ['user','game']
     
     def get_full_name(self):
         return "%s %s" % (self.user.first_name, self.user.last_name)
@@ -497,6 +498,24 @@ class Player(models.Model):
             return False
         return self.pk == appointed_mayor.pk
     is_appointed_mayor.boolean = True
+
+class GameMaster(models.Model):
+    user = models.OneToOneField(User, primary_key=True)
+    game = models.ForeignKey(Game)
+    
+    def get_gender(self):
+        try:
+            return self.user.profile.gender
+        except Profile.DoesNotExist:
+            return MALE
+    gender = property(get_gender)
+    # Returns 'o' or 'a' depending on the master's gender
+    def get_oa(self):
+        try:
+            return self.user.profile.oa
+        except Profile.DoesNotExist:
+            return 'o'
+    oa = property(get_oa)
 
 class Event(KnowsChild):
     """Event base class."""
