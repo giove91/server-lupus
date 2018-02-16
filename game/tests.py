@@ -3586,12 +3586,13 @@ class GameTests(TestCase):
         # Now kill negromante who is ghostifying contadino
 
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=OCCULTAMENTO, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=cacciatore, target=lupo, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=cacciatore, target=negromante, timestamp=get_now()))
 
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
 
         # Negromante should fail
+        self.assertFalse(negromante.active)
         self.assertEqual(self.game.current_turn.phase, DAWN)
         events = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player==negromante]
         self.assertEqual(len(events), 1)
