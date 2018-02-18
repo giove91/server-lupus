@@ -2,7 +2,7 @@
 
 import datetime
 
-from constants import *
+from .constants import *
 
 def advance_to_time(current_datetime, target_time, day_end_skip=False):
     """Return the smallest datetime object that is strictly greater than

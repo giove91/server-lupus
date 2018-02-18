@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from django.db import models
-from models import Event, Player
-from roles import *
-from constants import *
-from utils import dir_dict, rev_dict
+from .models import Event, Player
+from .roles import *
+from .constants import *
+from .utils import dir_dict, rev_dict
 
 class CommandEvent(Event):
     # A command submitted by a player
@@ -12,7 +12,7 @@ class CommandEvent(Event):
     RELEVANT_PHASES = [DAY, NIGHT]
     AUTOMATIC = False
     
-    player = models.ForeignKey(Player, related_name='action_set')
+    player = models.ForeignKey(Player, related_name='action_set',on_delete=models.CASCADE)
     
     ACTION_TYPES = (
         (USEPOWER, 'UsePower'),
@@ -29,8 +29,8 @@ class CommandEvent(Event):
         APPOINT: [DAY, NIGHT],
         }
     
-    target = models.ForeignKey(Player, null=True, blank=True, related_name='+')
-    target2 = models.ForeignKey(Player, null=True, blank=True, related_name='+')
+    target = models.ForeignKey(Player, null=True, blank=True, related_name='+',on_delete=models.CASCADE)
+    target2 = models.ForeignKey(Player, null=True, blank=True, related_name='+',on_delete=models.CASCADE)
     target_ghost = models.CharField(max_length=1, choices=Spettro.POWERS_LIST, null=True, blank=True)
     
     def __unicode__(self):
@@ -212,7 +212,7 @@ class SetRoleEvent(Event):
     RELEVANT_PHASES = [CREATION]
     AUTOMATIC = True
 
-    player = models.ForeignKey(Player, related_name='+')
+    player = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
     role_name = models.CharField(max_length=200)
 
     def apply(self, dynamics):
@@ -244,7 +244,7 @@ class SetMayorEvent(Event):
     AUTOMATIC = True
     CAN_BE_SIMULATED = False
 
-    player = models.ForeignKey(Player, null=True, related_name='+')
+    player = models.ForeignKey(Player, null=True, related_name='+',on_delete=models.CASCADE)
 
     SET_MAYOR_CAUSES = (
         (BEGINNING, 'Beginning'),
@@ -341,8 +341,8 @@ class VoteAnnouncedEvent(Event):
     AUTOMATIC = True
     CAN_BE_SIMULATED = True
 
-    voter = models.ForeignKey(Player, related_name='+')
-    voted = models.ForeignKey(Player, related_name='+')
+    voter = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
+    voted = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
     # Allow ELECT and VOTE here
     type = models.CharField(max_length=1, choices=CommandEvent.ACTION_TYPES)
 
@@ -361,7 +361,7 @@ class TallyAnnouncedEvent(Event):
     AUTOMATIC = True
     CAN_BE_SIMULATED = True
 
-    voted = models.ForeignKey(Player, related_name='+')
+    voted = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
     vote_num = models.IntegerField()
     # Allow ELECT and VOTE here
     type = models.CharField(max_length=1, choices=CommandEvent.ACTION_TYPES)
@@ -380,7 +380,7 @@ class PlayerResurrectsEvent(Event):
     RELEVANT_PHASES = [DAWN]
     AUTOMATIC = True
 
-    player = models.ForeignKey(Player, related_name='+')
+    player = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
 
     def apply(self, dynamics):
         player = self.player.canonicalize()
@@ -406,8 +406,8 @@ class TransformationEvent(Event):
     RELEVANT_PHASES = [DAWN]
     AUTOMATIC = True
 
-    player = models.ForeignKey(Player, related_name='+')
-    target = models.ForeignKey(Player, related_name='+')
+    player = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
+    target = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
     role_name = models.CharField(max_length=200, default=None)
 
     TRANSFORMATION_CAUSES = (
@@ -471,7 +471,7 @@ class CorruptionEvent(Event):
     RELEVANT_PHASES = [DAWN]
     AUTOMATIC = True
 
-    player = models.ForeignKey(Player, related_name='+')
+    player = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
 
     def apply(self, dynamics):
         player = self.player.canonicalize()
@@ -516,7 +516,7 @@ class PlayerDiesEvent(Event):
     RELEVANT_PHASES = [SUNSET, DAWN]
     AUTOMATIC = True
 
-    player = models.ForeignKey(Player, related_name='+')
+    player = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
     DEATH_CAUSE_TYPES = (
         (STAKE, 'Stake'),
         (HUNTER, 'Hunter'),
@@ -619,8 +619,8 @@ class RoleKnowledgeEvent(Event):
     RELEVANT_PHASES = [CREATION, DAWN, SUNSET]
     AUTOMATIC = True
 
-    player = models.ForeignKey(Player, related_name='+')
-    target = models.ForeignKey(Player, related_name='+')
+    player = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
+    target = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
     role_name = models.CharField(max_length=200, default=None)
     KNOWLEDGE_CAUSE_TYPES = (
         (SOOTHSAYER, 'Soothsayer'),
@@ -783,8 +783,8 @@ class AuraKnowledgeEvent(Event):
     RELEVANT_PHASES = [DAWN]
     AUTOMATIC = True
 
-    player = models.ForeignKey(Player, related_name='+')
-    target = models.ForeignKey(Player, related_name='+')
+    player = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
+    target = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
     aura = models.CharField(max_length=1, default=None, choices=Player.AURA_COLORS)
     KNOWLEDGE_CAUSE_TYPES = (
         (SEER, 'Seer'),
@@ -820,8 +820,8 @@ class MysticityKnowledgeEvent(Event):
     RELEVANT_PHASES = [DAWN]
     AUTOMATIC = True
 
-    player = models.ForeignKey(Player, related_name='+')
-    target = models.ForeignKey(Player, related_name='+')
+    player = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
+    target = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
     is_mystic = models.BooleanField(default=None)
     # There is only one choice, but I like to have this for
     # homogeneity
@@ -849,8 +849,8 @@ class TeamKnowledgeEvent(Event):
     RELEVANT_PHASES = [DAWN]
     AUTOMATIC = True
 
-    player = models.ForeignKey(Player, related_name='+')
-    target = models.ForeignKey(Player, related_name='+')
+    player = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
+    target = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
     team = models.CharField(max_length=1, default=None, choices=Player.TEAMS)
     # There is only one choice, but I like to have this for
     # homogeneity
@@ -880,9 +880,9 @@ class MovementKnowledgeEvent(Event):
     # CommandEvent; that is, target is the player that was watched and
     # target2 is where he went (for the Stalker) or who went by him
     # (for the Voyeur)
-    player = models.ForeignKey(Player, related_name='+')
-    target = models.ForeignKey(Player, related_name='+')
-    target2 = models.ForeignKey(Player, related_name='+')
+    player = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
+    target = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
+    target2 = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
     KNOWLEDGE_CAUSE_TYPES = (
         (STALKER, 'Stalker'),
         (VOYEUR, 'Voyeur'),
@@ -916,8 +916,8 @@ class NoMovementKnowledgeEvent(Event):
 
     # Target is to be understood as how it is in CommandEvent;
     # that is, target is the player that was watched.
-    player = models.ForeignKey(Player, related_name='+')
-    target = models.ForeignKey(Player, related_name='+')
+    player = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
+    target = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
     
     KNOWLEDGE_CAUSE_TYPES = (
         (STALKER, 'Stalker'),
@@ -991,8 +991,8 @@ class HypnotizationEvent(Event):
     RELEVANT_PHASES = [DAWN]
     AUTOMATIC = True
 
-    player = models.ForeignKey(Player, related_name='+')
-    hypnotist = models.ForeignKey(Player, related_name='+')
+    player = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
+    hypnotist = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
 
     def apply(self, dynamics):
         player = self.player.canonicalize()
@@ -1015,7 +1015,7 @@ class GhostificationEvent(Event):
     RELEVANT_PHASES = [DAWN, SUNSET]
     AUTOMATIC = True
 
-    player = models.ForeignKey(Player, related_name='+')
+    player = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
     ghost = models.CharField(max_length=1, choices=Spettro.POWERS_LIST, default=None)
     GHOSTIFICATION_CAUSES = (
         (NECROMANCER, 'Necromancer'),
@@ -1083,7 +1083,7 @@ class GhostificationFailedEvent(Event):
     RELEVANT_PHASES = [DAWN, SUNSET]
     AUTOMATIC = True
 
-    player = models.ForeignKey(Player, related_name='+')
+    player = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
 
     def apply(self, dynamics):
         player = self.player.canonicalize()
@@ -1106,8 +1106,8 @@ class PowerOutcomeEvent(Event):
     RELEVANT_PHASES = [DAWN]
     AUTOMATIC = True
 
-    player = models.ForeignKey(Player, related_name='+')
-    command = models.OneToOneField(CommandEvent)
+    player = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
+    command = models.OneToOneField(CommandEvent, on_delete=models.CASCADE)
     success = models.BooleanField(default=False)
     sequestrated = models.BooleanField(default=False)
 
@@ -1159,7 +1159,7 @@ class DisqualificationEvent(Event):
     RELEVANT_PHASES = [DAY, NIGHT]
     AUTOMATIC = False
 
-    player = models.ForeignKey(Player, related_name='+')
+    player = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
     private_message = models.TextField()
     public_message = models.TextField(null=True, blank=True, default=None)
 
@@ -1222,13 +1222,13 @@ class ExileEvent(Event):
     RELEVANT_PHASES = [DAWN, SUNSET]
     AUTOMATIC = True
 
-    player = models.ForeignKey(Player, related_name='+')
+    player = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
     EXILE_CAUSES = (
         (DISQUALIFICATION, 'Disqualification'),
         (TEAM_DEFEAT, 'TeamDefeat'),
         )
     cause = models.CharField(max_length=1, choices=EXILE_CAUSES, default=None)
-    disqualification = models.OneToOneField(DisqualificationEvent, null=True, blank=True, default=None)
+    disqualification = models.OneToOneField(DisqualificationEvent, null=True, blank=True, default=None, on_delete=models.CASCADE)
 
     def apply(self, dynamics):
         player = self.player.canonicalize()

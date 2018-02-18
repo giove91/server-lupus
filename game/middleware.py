@@ -1,15 +1,16 @@
 from django.contrib.auth.models import Permission, User
+from django.utils.deprecation import MiddlewareMixin
 
 from game.models import *
 from game.utils import get_now
 
 # Middleware for assigning a Player to the (possibly) logged User
-class PlayerMiddleware:
+class PlayerMiddleware(MiddlewareMixin):
     def process_request(self, request):
         
         user = request.user
-        
-        if user.is_authenticated():
+
+        if user.is_authenticated:
             # Authenticated
             try:
                 player = user.player.canonicalize()
@@ -39,7 +40,7 @@ class PlayerMiddleware:
 
 # Middleware for finding Game, Dynamics and current turn.
 # TODO: forse e' il caso di unificarla alla precedente, assicurando che player.game==game quando esistono entrambi
-class GameMiddleware:
+class GameMiddleware(MiddlewareMixin):
     def process_request(self, request):
         
         game = Game.get_running_game()
@@ -64,19 +65,19 @@ class GameMiddleware:
         return None
 
 # Middleware for extending Sessions of Game Masters
-class SessionMiddleware:
+class SessionMiddleware(MiddlewareMixin):
     def process_request(self, request):
         user = request.user
-        if user.is_authenticated() and user.is_staff:
+        if user.is_authenticated and user.is_staff:
             # User is a GM
             request.session.set_expiry(1209600) # Session timeout set to 2 weeks.
         return None
 
 
-class PageRequestMiddleware:
+class PageRequestMiddleware(MiddlewareMixin):
     def process_request(self, request):
         user = request.user
-        if user.is_authenticated():
+        if user.is_authenticated:
             ip_address = request.META['REMOTE_ADDR'] if 'REMOTE_ADDR' in request.META else ''
             hostname = request.META['REMOTE_HOST'] if 'REMOTE_HOST' in request.META else ''
             PageRequest.objects.create(user=user, timestamp=get_now(), path=request.path, ip_address=ip_address, hostname=hostname)

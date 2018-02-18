@@ -3,9 +3,9 @@
 import os, codecs, string
 from django.template.loader import render_to_string
 
-from models import *
-from events import *
-from constants import *
+from .models import *
+from .events import *
+from .constants import *
 
 
 def render_to_file(template, filename, context):

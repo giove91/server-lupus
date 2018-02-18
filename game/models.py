@@ -9,9 +9,9 @@ from django.contrib.auth.models import User
 from django.db.models.signals import pre_delete
 from django.conf import settings
 
-from constants import *
+from .constants import *
 
-from utils import advance_to_time
+from .utils import advance_to_time
 
 
 class KnowsChild(models.Model):
@@ -189,7 +189,7 @@ def game_pre_delete_callback(sender, instance, **kwargs):
 pre_delete.connect(game_pre_delete_callback, sender=Game)
 
 class Turn(models.Model):
-    game = models.ForeignKey(Game)
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)
 
     # Date is counted starting from FIRST_DATE
     date = models.IntegerField()
@@ -319,7 +319,7 @@ class Profile(models.Model):
         (FEMALE, 'Female'),
     )
     
-    user = models.OneToOneField(User)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     gender = models.CharField(max_length=1, choices=GENDERS)
     
     # Returns 'o' or 'a' depending on the gender
@@ -345,8 +345,8 @@ class Player(models.Model):
     )
     TEAMS_DICT = dict(TEAMS)
     
-    user = models.OneToOneField(User, primary_key=True)
-    game = models.ForeignKey(Game)
+    user = models.OneToOneField(User, primary_key=True, on_delete=models.CASCADE)
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)
     
     class Meta:
         ordering = ['user__last_name', 'user__first_name']
@@ -498,13 +498,12 @@ class Player(models.Model):
         return self.pk == appointed_mayor.pk
     is_appointed_mayor.boolean = True
 
-
 class Event(KnowsChild):
     """Event base class."""
     CAN_BE_SIMULATED = False
 
     timestamp = models.DateTimeField()
-    turn = models.ForeignKey(Turn)
+    turn = models.ForeignKey(Turn,on_delete=models.CASCADE)
 
     class Meta:
         ordering = ['turn', 'timestamp', 'pk']
@@ -546,7 +545,7 @@ class Event(KnowsChild):
 
 class Announcement(models.Model):
     
-    game = models.ForeignKey(Game, null=True, blank=True, default=None)
+    game = models.ForeignKey(Game, null=True, blank=True, default=None, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(default=datetime.now)
     text = models.TextField()
     visible = models.BooleanField(default=True)
@@ -562,8 +561,8 @@ class Announcement(models.Model):
 class Comment(models.Model):
     
     timestamp = models.DateTimeField(default=datetime.now)
-    turn = models.ForeignKey(Turn, null=True, blank=True)
-    user = models.ForeignKey(User)
+    turn = models.ForeignKey(Turn, null=True, blank=True,on_delete=models.CASCADE)
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
     text = models.TextField()
     visible = models.BooleanField(default=True)
     
@@ -585,7 +584,7 @@ class Comment(models.Model):
 
 class PageRequest(models.Model):
     
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User,models.CASCADE)
     timestamp = models.DateTimeField()
     path = models.TextField()
     ip_address = models.TextField()

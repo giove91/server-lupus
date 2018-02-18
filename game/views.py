@@ -3,7 +3,7 @@
 
 from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
-from django.core.urlresolvers import reverse
+#from django.core.urlresolvers import reverse
 
 from django.db.models import Q
 
@@ -30,20 +30,20 @@ from game.letter_renderer import LetterRenderer
 
 from datetime import datetime, timedelta
 
-import urllib, urllib2
+from urllib.request import urlopen
 import xml.etree.ElementTree as ET
 
 
 def is_GM_check(user):
     # Checks that the user is a GM
     # FIXME: in many cases throughout the app, user.is_staff is checked (and not is_GM_check(user)).
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         return False
     return user.is_staff
 
 def can_access_admin_view(user):
     # Checks if the game is over
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         return False
     return user.is_staff or (user.is_authenticated and Game.get_running_game().over)
 

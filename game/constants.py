@@ -24,7 +24,7 @@ PHASE_CYCLE = {
     DAWN: DAY,
 }
 REV_PHASE_CYCLE = {}
-for key, value in PHASE_CYCLE.iteritems():
+for key, value in iter(PHASE_CYCLE.items()):
     REV_PHASE_CYCLE[value] = key
 PHASE_CYCLE[CREATION] = NIGHT
 

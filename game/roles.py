@@ -1,5 +1,5 @@
-from models import KnowsChild, Player
-from constants import *
+from .models import KnowsChild, Player
+from .constants import *
 
 import sys
 
