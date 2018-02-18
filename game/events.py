@@ -142,7 +142,8 @@ class SeedEvent(Event):
         # We use Wichmann-Hill because it is a pure Python
         # implementation; its reduced randomness properties shouldn't
         # be a problem for us
-        from my_random import WichmannHill
+        from .my_random import WichmannHill
+ 
         dynamics.random = WichmannHill()
         dynamics.random.seed(int(self.seed))
 
@@ -170,8 +171,7 @@ class AvailableRoleEvent(Event):
         # If this is the last role, assign randomly the roles to the
         # players and then choose a random mayor
         if len(dynamics.available_roles) == len(dynamics.players):
-            players_pks = dynamics.players_dict.keys()
-            players_pks.sort()
+            players_pks = sorted(dynamics.players_dict.keys())
             mayor = dynamics.random.choice(players_pks)
             dynamics.random.shuffle(players_pks)
 
@@ -554,7 +554,7 @@ class PlayerDiesEvent(Event):
             powers = set(Spettro.POWER_NAMES.keys())
             available_powers = powers - dynamics.used_ghost_powers - set([MORTE, CORRUZIONE])
             if len(available_powers) >= 1:
-                power = dynamics.random.choice(list(available_powers))
+                power = dynamics.random.choice(sorted(list(available_powers)))
                 dynamics.generate_event(GhostificationEvent(player=player, cause=PHANTOM, ghost=power))
                 for negromante in dynamics.players:
                     if isinstance(negromante.role, Negromante):

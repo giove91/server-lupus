@@ -111,7 +111,7 @@ class Game(models.Model):
                 # nevertheless, because it heavily limits the numer of
                 # times the lock has to be acquired
                 if self.pk not in _dynamics_map:
-                    from dynamics import Dynamics
+                    from .dynamics import Dynamics
                     _dynamics_map[self.pk] = Dynamics(self)
         dynamics = _dynamics_map[self.pk]
         dynamics.update()
@@ -126,7 +126,7 @@ class Game(models.Model):
         global _dynamics_map_lock
         with _dynamics_map_lock:
             if self.pk in _dynamics_map:
-                from dynamics import Dynamics
+                from .dynamics import Dynamics
                 del _dynamics_map[self.pk]
             for event in Event.objects.filter(turn__game=self):
                 if event.as_child().AUTOMATIC:

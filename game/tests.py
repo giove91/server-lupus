@@ -109,7 +109,7 @@ class AdvanceTimeTests(TestCase):
 
 def create_users(n):
     users = []
-    for i in xrange(n):
+    for i in range(n):
         user = User.objects.create(username='pk%d' % (i), first_name='Paperinik', last_name='%d' % (i), email='paperinik.%d@sns.it' % (i), password='ciaociao')
         profile = Profile.objects.create(user=user, gender=MALE)
         profile.save()
@@ -154,7 +154,7 @@ def create_test_game(seed, roles):
     event.timestamp = first_turn.begin
     game.get_dynamics().inject_event(event)
 
-    for i in xrange(len(game.get_dynamics().players)):
+    for i in range(len(game.get_dynamics().players)):
         event = AvailableRoleEvent(role_name=roles[i%len(roles)].__name__)
         event.timestamp = first_turn.begin
         game.get_dynamics().inject_event(event)
@@ -1554,7 +1554,7 @@ class GameTests(TestCase):
     
     @record_name 
     def test_fantasma(self): # Lupus7 update
-        for i in xrange(20):
+        for i in range(20):
             # Since this test is repeasted many times, we have to
             # destroy it and delete all users before testing again
             if 'game' in self.__dict__ and self.game is not None:
@@ -1777,7 +1777,7 @@ class GameTests(TestCase):
         self.assertEqual(event.target, contadino)
         self.assertEqual(event.role_name, Contadino.__name__)
         self.assertEqual(event.cause, DEVIL)
-        
+
     @record_name
     def test_fattucchiera_with_veggente(self):
         roles = [ Veggente, Medium, Investigatore, Negromante, Lupo, Lupo, Contadino, Fattucchiera ]
@@ -7125,7 +7125,7 @@ class GameTests(TestCase):
     @record_name
     def test_assassino(self): # New
         killedroles = []
-        for i in xrange(20):
+        for i in range(20):
             # Since this test is repeasted many times, we have to
             # destroy it and delete all users before testing again
             if 'game' in self.__dict__ and self.game is not None:
@@ -7287,7 +7287,7 @@ class GameTests(TestCase):
     @record_name
     def test_assassini_act_independently(self): # New
         killedplayers = set()
-        for i in xrange(20):
+        for i in range(20):
             # Since this test is repeasted many times, we have to
             # destroy it and delete all users before testing again
             if 'game' in self.__dict__ and self.game is not None:

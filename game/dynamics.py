@@ -8,12 +8,12 @@ from threading import RLock
 from datetime import datetime
 import time
 
-from models import Event, Turn
-from events import CommandEvent, VoteAnnouncedEvent, TallyAnnouncedEvent, \
+from .models import Event, Turn
+from .events import CommandEvent, VoteAnnouncedEvent, TallyAnnouncedEvent, \
     SetMayorEvent, PlayerDiesEvent, PowerOutcomeEvent, StakeFailedEvent, \
     ExileEvent, VictoryEvent, AvailableRoleEvent, RoleKnowledgeEvent
-from constants import *
-from roles import *
+from .constants import *
+from .roles import *
 
 DEBUG_DYNAMICS = False
 SIMULATE_NEXT_TURN = True
@@ -187,13 +187,13 @@ class Dynamics:
                 self.failed = True
                 raise
         if DEBUG_DYNAMICS and self.spawned_at:
-            print 'First updating finished. Elapsed time: %r' % (time.time() - self.spawned_at)     
+            print('First updating finished. Elapsed time: {0!r}'.format(time.time() - self.spawned_at))    
             self.spawned_at = None   
         
 
     def _pop_event_from_db(self):
         if DEBUG_DYNAMICS:
-            print >> sys.stderr, "current_turn: %r; last_timestamp_in_turn: %r; last_pk_in_turn: %r" % (self.current_turn, self.last_timestamp_in_turn, self.last_pk_in_turn)
+            print("current_turn: {0!r}; last_timestamp_in_turn: %r; last_pk_in_turn: {1!r}".format(self.current_turn, self.last_timestamp_in_turn, self.last_pk_in_turn), file=sys.stderr)
         if len(self.db_event_queue) > 0:
             return self.db_event_queue.pop(0).as_child()
             
@@ -482,7 +482,7 @@ class Dynamics:
     def _solve_blockers(self, critical_blockers, block_graph, rev_block_graph):
         # First some checks and build the reverse graph
         critical_pks = [x.pk for x in critical_blockers]
-        for src, dsts in block_graph.iteritems():
+        for src, dsts in iter(block_graph.items()):
             for dst in dsts:
                 assert dst != src
                 assert src in rev_block_graph[dst]
@@ -506,7 +506,7 @@ class Dynamics:
                 print >> sys.stderr, "  competitor: " + repr(competitor)
             score = 0
             skip = False
-            for src, success in competitor.iteritems():
+            for src, success in iter(competitor.items()):
                 # If this player succeeds, we have to check that its
                 # blocks are successful
                 if success:
@@ -593,7 +593,7 @@ class Dynamics:
                 ghosts_by_power[ghost_power] = player
 
         # Shuffle players in each role
-        for role_players in players_by_role.itervalues():
+        for role_players in iter(players_by_role.values()):
             self.random.shuffle(role_players)
 
         # Prepare temporary status
@@ -624,7 +624,7 @@ class Dynamics:
         # Build the block graph and compute blocking success
         block_graph = dict([(x.pk, x.role.get_blocked(self.players)) for x in self.players])
         rev_block_graph = dict([(x.pk, []) for x in self.players])
-        for x, ys in block_graph.iteritems():
+        for x, ys in iter(block_graph.items()):
             for y in ys:
                 rev_block_graph[y].append(x)
         blockers_success = self._solve_blockers(critical_blockers, block_graph, rev_block_graph)
@@ -638,7 +638,7 @@ class Dynamics:
         powers_success = dict([(x.pk, True) for x in self.players])
         powers_success.update(blockers_success)
         sequestrated = {}
-        for src, success in blockers_success.iteritems():
+        for src, success in iter(blockers_success.items()):
             if success:
                 for dst in block_graph[src]:
                     if dst in blockers_success:
@@ -839,7 +839,7 @@ class Dynamics:
         tally_sheet = {}
         for player in self.get_alive_players():
             tally_sheet[player.pk] = 0
-        for ballot in ballots.itervalues():
+        for ballot in iter(ballots.values()):
             if ballot is None:
                 continue
             tally_sheet[ballot.pk] += 1
@@ -855,8 +855,7 @@ class Dynamics:
                 self.generate_event(event)
 
         # Compute winners (or maybe loosers...)
-        tally_sheet = tally_sheet.items()
-        tally_sheet.sort(key=lambda x: x[1], reverse=True)
+        tally_sheet = sorted(tally_sheet.items(),key=lambda x: x[1], reverse=True)
         winner = tally_sheet[0][0]
         max_votes = tally_sheet[0][1]
         if max_votes * 2 > len(self.get_alive_players()):
@@ -915,7 +914,7 @@ class Dynamics:
         for player in self.get_alive_players():
             tally_sheet[player.pk] = 0
         votes_num = 0
-        for ballot in ballots.itervalues():
+        for ballot in iter(ballots.values()):
             if ballot is None:
                 continue
             tally_sheet[ballot.pk] += 1
@@ -942,8 +941,7 @@ class Dynamics:
             return None, MISSING_QUORUM
 
         # Compute winners (or maybe loosers...)
-        tally_sheet = tally_sheet.items()
-        tally_sheet.sort(key=lambda x: x[1], reverse=True)
+        tally_sheet = sorted(tally_sheet.items(),key=lambda x: x[1], reverse=True)
         max_votes = tally_sheet[0][1]
         winners = [x[0] for x in tally_sheet if x[1] == max_votes]
         assert len(winners) > 0

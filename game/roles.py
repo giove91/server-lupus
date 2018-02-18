@@ -73,7 +73,7 @@ class Role(object):
         # Check target2 validity
         targets2 = self.get_targets2()
         if targets2 is None:
-            assert event.target2 is None
+            assert event.target2 is None, event.player.role.power
         else:
             assert event.target2 is None or event.target2 in targets2
 
@@ -136,7 +136,7 @@ class Cacciatore(Role):
     def apply_dawn(self, dynamics):
         if not self.recorded_target.just_dead:
             assert self.recorded_target.alive
-            from events import PlayerDiesEvent
+            from .events import PlayerDiesEvent
             dynamics.generate_event(PlayerDiesEvent(player=self.recorded_target, cause=HUNTER))
 
 
@@ -209,7 +209,7 @@ class Espansivo(Role):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        from events import RoleKnowledgeEvent
+        from .events import RoleKnowledgeEvent
         dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=self.__class__.__name__, cause=EXPANSIVE))
 
 
@@ -245,7 +245,7 @@ class Investigatore(Role):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        from events import AuraKnowledgeEvent
+        from .events import AuraKnowledgeEvent
         dynamics.generate_event(AuraKnowledgeEvent(player=self.player, target=self.recorded_target, aura=dynamics.get_apparent_aura(self.recorded_target), cause=DETECTIVE))
 
 
@@ -262,7 +262,7 @@ class Mago(Role):
         return [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        from events import MysticityKnowledgeEvent
+        from .events import MysticityKnowledgeEvent
         dynamics.generate_event(MysticityKnowledgeEvent(player=self.player, target=self.recorded_target, is_mystic=dynamics.get_apparent_mystic(self.recorded_target), cause=MAGE))
 
 
@@ -294,7 +294,7 @@ class Messia(Role):
     def apply_dawn(self, dynamics):
         if not self.recorded_target.just_resurrected:
             self.recorded_target.just_resurrected = True
-            from events import PlayerResurrectsEvent
+            from .events import PlayerResurrectsEvent
             dynamics.generate_event(PlayerResurrectsEvent(player=self.recorded_target))
 
 
@@ -335,7 +335,7 @@ class Stalker(Role):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        from events import MovementKnowledgeEvent, NoMovementKnowledgeEvent
+        from .events import MovementKnowledgeEvent, NoMovementKnowledgeEvent
         gen_set = set()
         gen_num = 0
         for visiting in self.recorded_target.visiting:
@@ -373,7 +373,7 @@ class Trasformista(Role):
         return True
 
     def apply_dawn(self, dynamics):
-        from events import TransformationEvent
+        from .events import TransformationEvent
         new_role_class = self.recorded_target.role.__class__
         if isinstance(self.recorded_target.role, Spettro):
             new_role_class = self.recorded_target.role_class_before_ghost
@@ -395,7 +395,7 @@ class Veggente(Role):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        from events import AuraKnowledgeEvent
+        from .events import AuraKnowledgeEvent
         dynamics.generate_event(AuraKnowledgeEvent(player=self.player, target=self.recorded_target, aura=dynamics.get_apparent_aura(self.recorded_target), cause=SEER))
 
 
@@ -411,7 +411,7 @@ class Voyeur(Role):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        from events import MovementKnowledgeEvent, NoMovementKnowledgeEvent
+        from .events import MovementKnowledgeEvent, NoMovementKnowledgeEvent
         gen_set = set()
         gen_num = 0
         for visitor in self.recorded_target.visitors:
@@ -468,7 +468,7 @@ class Lupo(Role):
 
             if not self.recorded_target.just_dead:
                 assert self.recorded_target.alive
-                from events import PlayerDiesEvent
+                from .events import PlayerDiesEvent
                 dynamics.generate_event(PlayerDiesEvent(player=self.recorded_target, cause=WOLVES))
 
         else:
@@ -488,7 +488,7 @@ class Assassino(Role):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
     
     def apply_dawn(self, dynamics):
-        from events import PlayerDiesEvent
+        from .events import PlayerDiesEvent
         assert self.recorded_target is not None
         visitors = [x for x in self.recorded_target.visitors if x.pk != self.player.pk and x.role.recorded_target == self.recorded_target and not x.sequestrated]
         if len(visitors) > 0:
@@ -536,7 +536,7 @@ class Diavolo(Role):
         return True
 
     def apply_dawn(self, dynamics):
-        from events import RoleKnowledgeEvent
+        from .events import RoleKnowledgeEvent
         dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, role_name=dynamics.get_apparent_role(self.recorded_target).__name__, cause=DEVIL))
 
 
@@ -713,7 +713,7 @@ class Negromante(Role):
             assert not self.recorded_target.protected_by_keeper
 
             assert not self.recorded_target.alive
-            from events import GhostificationEvent, RoleKnowledgeEvent
+            from .events import GhostificationEvent, RoleKnowledgeEvent
 
             if not self.recorded_target.just_ghostified:
                 assert not isinstance(self.recorded_target.role, Spettro)
@@ -757,7 +757,7 @@ class Ipnotista(Role):
                 player.hypnotist = None
 
     def apply_dawn(self, dynamics):
-        from events import HypnotizationEvent
+        from .events import HypnotizationEvent
         dynamics.generate_event(HypnotizationEvent(player=self.recorded_target, hypnotist=self.player))
 
 
@@ -775,7 +775,7 @@ class Medium(Role):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        from events import RoleKnowledgeEvent
+        from .events import RoleKnowledgeEvent
         dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, role_name=dynamics.get_apparent_role(self.recorded_target).__name__, cause=MEDIUM))
 
 
@@ -886,7 +886,7 @@ class Spettro(Role):
         assert self.has_power
 
         if self.power == VISIONE:
-            from events import RoleKnowledgeEvent
+            from .events import RoleKnowledgeEvent
             dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, role_name=dynamics.get_apparent_role(self.recorded_target).__name__, cause=VISION_GHOST))
 
         elif self.power == AMNESIA:
@@ -927,7 +927,7 @@ class Spettro(Role):
             assert not isinstance(self.recorded_target.role, Lupo)
             if not self.recorded_target.just_dead:
                 assert self.recorded_target.alive
-                from events import PlayerDiesEvent
+                from .events import PlayerDiesEvent
                 dynamics.generate_event(PlayerDiesEvent(player=self.recorded_target, cause=DEATH_GHOST))
 
         elif self.power == IPNOSI:
@@ -935,7 +935,7 @@ class Spettro(Role):
             dynamics.hypnosis_ghost_target = (self.recorded_target, self.recorded_target2)
 
         elif self.power == CORRUZIONE:
-            from events import CorruptionEvent, RoleKnowledgeEvent
+            from .events import CorruptionEvent, RoleKnowledgeEvent
             dynamics.generate_event(CorruptionEvent(player=self.recorded_target))
             dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=self.__class__.__name__, cause=CORRUPTION))
 

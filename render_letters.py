@@ -12,16 +12,16 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lupus.settings")
 import django
 django.setup()
 
-from game.models import *
-from game.tests import *
-from game.utils import *
-from game.constants import *
-from game.letter_renderer import *
+from .game.models import *
+from .game.tests import *
+from .game.utils import *
+from .game.constants import *
+from .game.letter_renderer import *
 
 def main():
     game = Game.get_running_game()
     players = game.get_players()
-    from game.my_random import WichmannHill
+    from .game.my_random import WichmannHill
     random = WichmannHill()
     random.seed(int(sys.argv[1]))
     for player in players:
