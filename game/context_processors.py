@@ -1,6 +1,6 @@
-from models import Game, Announcement
-from constants import *
-from utils import get_now
+from .models import Game, Announcement
+from .constants import *
+from .utils import get_now
 
 
 def context_player_and_game(request):
@@ -58,7 +58,7 @@ def context_lupus(request):
     ]
     result = dict()
     for f in context_functions:
-        result = dict( result.items() + f(request).items() )
+        result = dict( result.items() | f(request).items() )
     return result
 
 
