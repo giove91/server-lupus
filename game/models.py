@@ -71,7 +71,7 @@ class Game(models.Model):
     running = models.BooleanField(default=False)
     def __unicode__(self):
         return u"Game %d" % self.pk
-    game_name = property(__unicode__)
+    game_name = models.CharField(max_length=32)
 
     def current_turn(self):
         try:

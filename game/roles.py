@@ -820,7 +820,7 @@ class Spettro(Role):
         IPNOSI: 'Ipnosi',
         MORTE: 'Morte',
         OCCULTAMENTO: 'Occultamento',
-        VISIONE: 'Visione',
+        VISIONE: 'Visione'
     }
     
     POWERS_LIST = POWER_NAMES.items()

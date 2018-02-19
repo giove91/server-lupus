@@ -1,49 +1,24 @@
 from django.contrib.auth.models import Permission, User
 from django.utils.deprecation import MiddlewareMixin
-
+from django.shortcuts import get_object_or_404
 from game.models import *
 from game.utils import get_now
-
-# Middleware for assigning a Player to the (possibly) logged User
-class PlayerMiddleware(MiddlewareMixin):
-    def process_request(self, request):
-        
-        user = request.user
-
-        if user.is_authenticated:
-            # Authenticated
-            try:
-                player = user.player.canonicalize()
-            except Player.DoesNotExist:
-                if user.is_staff:
-                    # The User is a Game Master, so she can become any Player
-                    player_id = request.session.get('player_id', None)
-                    if player_id is not None:
-                        # A Player was already saved
-                        try:
-                            player = Player.objects.get(pk=player_id).canonicalize()
-                        except Player.DoesNotExist:
-                            player = None
-                    else:
-                        # No Player was saved
-                        player = None
-                else:
-                    player = None
-        else:
-            # Not authenticated
-            player = None
-        
-        request.player = player
-        
-        return None
-
 
 # Middleware for finding Game, Dynamics and current turn.
 # TODO: forse e' il caso di unificarla alla precedente, assicurando che player.game==game quando esistono entrambi
 class GameMiddleware(MiddlewareMixin):
-    def process_request(self, request):
-        
-        game = Game.get_running_game()
+    def process_view(self, request, view_func, view_args, view_kwargs):
+
+        try:
+            game_name = view_kwargs['game_name']
+        except KeyError:
+            request.game = None
+            request.player = None
+            request.current_turn = None
+            request.dynamics = None
+            return None
+
+        game = get_object_or_404(Game,game_name=game_name)
         dynamics = None
         current_turn = None
         
@@ -61,6 +36,34 @@ class GameMiddleware(MiddlewareMixin):
         request.game = game
         request.dynamics = dynamics
         request.current_turn = current_turn
+        
+        user = request.user
+
+        if user.is_authenticated:
+            # Authenticated
+            try:
+                player = Player.objects.get(user=user,game=game)
+            except Player.DoesNotExist:
+                try:
+                    master = GameMaster.objects.get(user=user,game=game)
+                    # The User is a Game Master, so she can become any Player
+                    player_id = request.session.get('player_id', None)
+                    if player_id is not None:
+                        # A Player was already saved
+                        try:
+                            player = Player.objects.get(pk=player_id).canonicalize()
+                        except Player.DoesNotExist:
+                            player = None
+                    else:
+                        # No Player was saved
+                        player = None
+                except GameMaster.DoesNotExist:
+                    player = None
+        else:
+            # Not authenticated
+            player = None
+        
+        request.player = player
         
         return None
 
