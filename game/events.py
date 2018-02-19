@@ -415,11 +415,11 @@ class TransformationEvent(Event):
         target = self.target.canonicalize()
 
         assert player.alive
-        assert isinstance(player.role, (Trasformista, Necrofilo)
+        assert isinstance(player.role, (Trasformista, Necrofilo))
         assert not target.alive
 
         # Check that power is not una tantum or that role is powerless
-        if isinstance(player.role, Trasformista)
+        if isinstance(player.role, Trasformista):
             assert not isinstance(target.role, tuple(UNA_TANTUM_ROLES))
             assert not isinstance(target.role, tuple(POWERLESS_ROLES))
 
