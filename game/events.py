@@ -415,15 +415,13 @@ class TransformationEvent(Event):
         target = self.target.canonicalize()
 
         assert player.alive
-        assert isinstance(player.role, Trasformista) 
+        assert isinstance(player.role, (Trasformista, Necrofilo)
         assert not target.alive
 
-        # Check for forbidden roles
-        assert not isinstance(target.role, (Lupo, Negromante, Fantasma))
-
         # Check that power is not una tantum or that role is powerless
-        assert not isinstance(target.role, tuple(UNA_TANTUM_ROLES))
-        assert not isinstance(target.role, tuple(POWERLESS_ROLES))
+        if isinstance(player.role, Trasformista)
+            assert not isinstance(target.role, tuple(UNA_TANTUM_ROLES))
+            assert not isinstance(target.role, tuple(POWERLESS_ROLES))
 
         # Take original role class if the target is a ghost
         new_role_class = target.role.__class__
@@ -431,12 +429,12 @@ class TransformationEvent(Event):
             new_role_class = target.role_class_before_ghost
             assert new_role_class is not None
         assert self.role_name == new_role_class.__name__
+        assert new_role_class.team == self.player.team
 
         # Instantiate new role class and copy attributes
         player.role = new_role_class(player)
         player.aura = target.aura
         player.is_mystic = target.is_mystic
-        assert player.team == POPOLANI
 
         # Call any role-specific code
         player.role.post_appearance(dynamics)

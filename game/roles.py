@@ -342,7 +342,7 @@ class Trasformista(Role):
 
     def pre_apply_dawn(self, dynamics):
         # There are some forbidden roles
-        if isinstance(self.recorded_target.role, (Lupo, Negromante, Fantasma)):
+        if self.recorded_target.team != POPOLANI and not isinstance(self.recorded_target.team, Spettro):
             return False
         if isinstance(self.recorded_target.role, tuple(UNA_TANTUM_ROLES)):
             return False
@@ -356,6 +356,7 @@ class Trasformista(Role):
         new_role_class = self.recorded_target.role.__class__
         if isinstance(self.recorded_target.role, Spettro):
             new_role_class = self.recorded_target.role_class_before_ghost
+        assert new_role_class.team == POPOLANI
         dynamics.generate_event(TransformationEvent(player=self.player, target=self.recorded_target, role_name=new_role_class.__name__))
 
 
@@ -420,8 +421,8 @@ class Lupo(Role):
         if dynamics.wolves_target is not None:
             assert self.recorded_target.pk == dynamics.wolves_target.pk
 
-            # Lupi cannot kill Negromanti
-            if isinstance(self.recorded_target.role, Negromante):
+            # Lupi cannot kill non-Popolani
+            if self.recorded_target.team != POPOLANI:
                 return False
 
             # Check protection by Guardia
@@ -534,6 +535,31 @@ class Fattucchiera(Role):
         target = self.recorded_target.canonicalize()
         assert target.apparent_aura in [BLACK, WHITE]
         target.apparent_aura = WHITE if target.apparent_aura is BLACK else BLACK
+
+class Necrofilo(Role):
+    name = 'Necrofilo'
+    team = LUPI
+    aura = BLACK
+    knowledge_class = 2
+    
+    def can_use_power(self):
+        return self.player.alive and self.last_usage is None
+    
+    def get_targets(self):
+        return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
+
+    def pre_apply_dawn(self, dynamics):
+        # There are some forbidden roles
+        if self.recorded_target.team != LUPI:
+            return False
+
+        return True
+
+    def apply_dawn(self, dynamics):
+        from events import TransformationEvent
+        new_role_class = self.recorded_target.role.__class__
+        assert new_role_class.team == LUPI
+        dynamics.generate_event(TransformationEvent(player=self.player, target=self.recorded_target, role_name=new_role_class.__name__))
 
 
 class Rinnegato(Role):
