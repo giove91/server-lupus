@@ -885,41 +885,67 @@ class GameTests(TestCase):
 
     @record_name
     def test_lupo_on_non_popolano(self): # Lupus7 update (old test_lupo_on_negromante)
-        roles = [ Negromante, Ipnotista, Lupo, Lupo, Lupo, Diavolo, Contadino ]
+        roles = [ Cacciatore, Negromante, Negromante, Ipnotista, Lupo, Lupo, Diavolo, Contadino, Contadino ]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
         players = self.game.get_players()
 
-        [negromante]          = [x for x in players if isinstance(x.role, Negromante)]
-        [lupo1, lupo2, lupo3] = [x for x in players if isinstance(x.role, Lupo)]
-        [ipnotista]           = [x for x in players if isinstance(x.role, Ipnotista)]
-        [diavolo]             = [x for x in players if isinstance(x.role, Diavolo)]
+        [negromante, _] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, lupo2] = [x for x in players if isinstance(x.role, Lupo)]
+        [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
+        [diavolo] = [x for x in players if isinstance(x.role, Diavolo)]
 
         # Advance to second night
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
+
         test_advance_turn(self.game)
-        
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo1, target=negromante, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo2, target=ipnotista,  timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo3, target=diavolo,    timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=negromante, timestamp=get_now()))
 
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
 
-        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == lupo1]
-        self.assertFalse(event.success)
-        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == lupo2]
-        self.assertFalse(event.success)
-        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == lupo3]
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == lupo]
         self.assertFalse(event.success)
 
         self.assertEqual([event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)], [])
         self.assertTrue(negromante.alive)
-        self.assertTrue( ipnotista.alive)
-        self.assertTrue(   diavolo.alive)
+
+        # Advance to third night and retry
+        
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=ipnotista, timestamp=get_now()))
+
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == lupo]
+        self.assertFalse(event.success)
+
+        self.assertEqual([event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)], [])
+        self.assertTrue(ipnotista.alive)
+
+        # Advance to fourth night and retry
+        
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=diavolo, timestamp=get_now()))
+
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == lupo]
+        self.assertFalse(event.success)
+
+        self.assertEqual([event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)], [])
+        self.assertTrue(diavolo.alive)
 
         dynamics.debug_event_bin = None
 
