@@ -634,10 +634,6 @@ class Negromante(Role):
     
     def can_use_power(self):
         dynamics = self.player.game.get_dynamics()
-        if dynamics.death_ghost_created:
-            return False
-        if dynamics.ghosts_created_last_night:
-            return False
         return self.player.alive
     
     def get_targets(self):
@@ -666,6 +662,10 @@ class Negromante(Role):
             # Check that target has not just been resurrected by
             # Messia
             if self.recorded_target.alive:
+                return False
+
+            # MORTE and CORRUZIONE must be applied on mystic
+            if self.recorded_target_ghost in [CORRUZIONE, MORTE] and not self.recorded_target.is_mystic:
                 return False
 
         else:
