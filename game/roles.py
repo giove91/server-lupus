@@ -521,7 +521,7 @@ class Diavolo(Role):
 class Fattucchiera(Role):
     name = 'Fattucchiera'
     team = LUPI
-    aura = BLACK
+    aura = WHITE
     is_mystic = True
     knowledge_class = 3
     
