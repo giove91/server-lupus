@@ -342,7 +342,7 @@ class Trasformista(Role):
 
     def pre_apply_dawn(self, dynamics):
         # There are some forbidden roles
-        if self.recorded_target.team != POPOLANI and not isinstance(self.recorded_target.team, Spettro):
+        if self.recorded_target.team != POPOLANI and not isinstance(self.recorded_target.role, Spettro):
             return False
         if isinstance(self.recorded_target.role, tuple(UNA_TANTUM_ROLES)):
             return False
