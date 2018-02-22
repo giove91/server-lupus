@@ -830,9 +830,9 @@ class Spettro(Role):
         if self.player.alive or not self.has_power:
             return False
 
-        if self.power == AMNESIA or self.power == CONFUSIONE or self.power == IPNOSI or self.power == OCCULTAMENTO or self.power == VISIONE:
+        if self.power == AMNESIA or self.power == CONFUSIONE or self.power == OCCULTAMENTO or self.power == VISIONE:
             return True
-        elif self.power == ILLUSIONE or self.power == MORTE:
+        elif self.power == ILLUSIONE or self.power == MORTE or self.power == IPNOSI:
             return self.last_usage is None or self.days_from_last_usage() >= 2
         elif self.power == CORRUZIONE:
             return self.last_usage is None
