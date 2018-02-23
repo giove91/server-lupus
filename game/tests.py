@@ -3073,7 +3073,7 @@ class GameTests(TestCase):
         self.assertEqual(event.cause, VOYEUR)
 
     def test_corruzione_on_messia(self): # Lupus7 new
-        roles = [ Negromante, Lupo, Lupo, Messia, Ipnotista, Contadino ]
+        roles = [ Negromante, Lupo, Lupo, Messia, Ipnotista, Veggente, Contadino ]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
         players = self.game.get_players()
@@ -3082,31 +3082,31 @@ class GameTests(TestCase):
         [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
         [messia] = [x for x in players if isinstance(x.role, Messia)]
         [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
-        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+        [veggente] = [x for x in players if isinstance(x.role, Veggente)]
         
-        # Advance to day and kill contadino
+        # Advance to day and kill veggente
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         
-        dynamics.inject_event(CommandEvent(type=VOTE, player=messia, target=contadino, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=VOTE, player=ipnotista, target=contadino, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=contadino, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=messia, target=veggente, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=ipnotista, target=veggente, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=veggente, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=veggente, timestamp=get_now()))
         
         # Advance to second night and create ghost
         test_advance_turn(self.game)
         test_advance_turn(self.game)
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=CORRUZIONE, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=veggente, target_ghost=CORRUZIONE, timestamp=get_now()))
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertTrue(isinstance(veggente.role, Spettro))
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=messia, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=veggente, target=messia, timestamp=get_now()))
         
         # Advance to dawn and check
         dynamics.debug_event_bin = []
@@ -3122,7 +3122,7 @@ class GameTests(TestCase):
         # TODO: Check RoleKnowledgeEvent
 
     def test_corruzione_on_medium(self): # Lupus7 new
-        roles = [ Negromante, Lupo, Lupo, Medium, Contadino, Contadino ]
+        roles = [ Negromante, Lupo, Lupo, Medium, Contadino, Contadino, Veggente ]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
         players = self.game.get_players()
@@ -3130,47 +3130,44 @@ class GameTests(TestCase):
         [negromante] = [x for x in players if isinstance(x.role, Negromante)]
         [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
         [medium] = [x for x in players if isinstance(x.role, Medium)]
-        [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
+        [veggente] = [x for x in players if isinstance(x.role, Veggente)]
         
-        # Advance to day and kill contadino
+        # Advance to day and kill veggente
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         
-        dynamics.inject_event(CommandEvent(type=VOTE, player=medium, target=contadino, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=VOTE, player=contadino, target=contadino, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=contadino, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=medium, target=veggente, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=veggente, target=veggente, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=veggente, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=veggente, timestamp=get_now()))
         
         # Advance to second night and create ghost
         test_advance_turn(self.game)
         test_advance_turn(self.game)
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=CORRUZIONE, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=veggente, target_ghost=CORRUZIONE, timestamp=get_now()))
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertTrue(isinstance(veggente.role, Spettro))
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=medium, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=veggente, target=medium, timestamp=get_now()))
         
         # Advance to dawn and check
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
 
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent)]
-        self.assertTrue(event.success)
-        
-        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, CorruptionEvent)]
-        self.assertTrue(isinstance(medium.role, Negromante))
-        self.assertEqual(medium.team, NEGROMANTI)
+        self.assertFalse(event.success)
+        self.assertTrue(isinstance(medium.role, Medium))
         
         # TODO: Check RoleKnowledgeEvent
 
     def test_corruzione_on_guardia(self): # Lupus7 new
-        roles = [ Negromante, Lupo, Lupo, Guardia, Veggente, Ipnotista, Contadino ]
+        roles = [ Negromante, Lupo, Lupo, Guardia, Veggente, Veggente, Ipnotista, Contadino ]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
         players = self.game.get_players()
@@ -3179,32 +3176,31 @@ class GameTests(TestCase):
         [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
         [guardia] = [x for x in players if isinstance(x.role, Guardia)]
         [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
-        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
-        [veggente] = [x for x in players if isinstance(x.role, Veggente)]
+        [veggente, veggente2] = [x for x in players if isinstance(x.role, Veggente)]
         
-        # Advance to day and kill contadino
+        # Advance to day and kill veggente
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         
-        dynamics.inject_event(CommandEvent(type=VOTE, player=guardia, target=contadino, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=VOTE, player=ipnotista, target=contadino, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=contadino, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=guardia, target=veggente, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=ipnotista, target=veggente, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=veggente, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=veggente, timestamp=get_now()))
         
         # Advance to second night and create ghost
         test_advance_turn(self.game)
         test_advance_turn(self.game)
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=CORRUZIONE, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=veggente, target_ghost=CORRUZIONE, timestamp=get_now()))
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertTrue(isinstance(veggente.role, Spettro))
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=guardia, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=veggente, target=guardia, timestamp=get_now()))
         
         # Advance to dawn and check
         dynamics.debug_event_bin = []
@@ -3223,10 +3219,10 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         with self.assertRaises(AssertionError):
-            dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=veggente, timestamp=get_now()))
+            dynamics.inject_event(CommandEvent(type=USEPOWER, player=veggente, target=veggente2, timestamp=get_now()))
 
     def test_corruzione_on_stregone(self): # Lupus7 new
-        roles = [ Negromante, Lupo, Lupo, Stregone, Contadino, Contadino ]
+        roles = [ Negromante, Lupo, Lupo, Stregone, Contadino, Contadino, Veggente ]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
         players = self.game.get_players()
@@ -3234,31 +3230,31 @@ class GameTests(TestCase):
         [negromante] = [x for x in players if isinstance(x.role, Negromante)]
         [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
         [stregone] = [x for x in players if isinstance(x.role, Stregone)]
-        [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
+        [veggente] = [x for x in players if isinstance(x.role, Veggente)]
         
         # Advance to day and kill contadino
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         
-        dynamics.inject_event(CommandEvent(type=VOTE, player=stregone, target=contadino, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=VOTE, player=contadino, target=contadino, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=contadino, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=stregone, target=veggente, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=veggente, target=veggente, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=veggente, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=veggente, timestamp=get_now()))
         
         # Advance to second night and create ghost
         test_advance_turn(self.game)
         test_advance_turn(self.game)
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=CORRUZIONE, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=veggente, target_ghost=CORRUZIONE, timestamp=get_now()))
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertTrue(isinstance(veggente.role, Spettro))
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=stregone, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=veggente, target=stregone, timestamp=get_now()))
         
         # Advance to dawn and check
         dynamics.debug_event_bin = []
