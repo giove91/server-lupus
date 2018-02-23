@@ -1846,7 +1846,7 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent)]
         self.assertEqual(event.player, trasformista)
         self.assertFalse(event.success)
-        self.assertTrue(isinstance(lupo.role, Lupo))
+        self.assertTrue(isinstance(trasformista.role, Trasformista))
         self.assertEqual([event for event in dynamics.debug_event_bin if isinstance(event, TransformationEvent)], [])
 
     @record_name
@@ -1947,6 +1947,141 @@ class GameTests(TestCase):
         self.assertEqual(trasformista.team, POPOLANI)
         self.assertEqual(trasformista.aura, WHITE)
         self.assertFalse(trasformista.is_mystic)
+        
+    @record_name
+    def test_trasformista_with_ipnotista(self): # Lupus7 new
+        roles = [ Trasformista, Ipnotista, Investigatore, Negromante, Lupo, Lupo, Contadino ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+        
+        [trasformista] = [x for x in players if isinstance(x.role, Trasformista)]
+        [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
+        [investigatore] = [x for x in players if isinstance(x.role, Investigatore)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+        
+        # Advance to day and kill lupo
+        test_advance_turn(self.game)
+        
+        self.assertTrue(trasformista.can_use_power())
+        self.assertFalse(ipnotista in trasformista.role.get_targets())
+        
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=VOTE, player=trasformista, target=ipnotista, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=ipnotista, target=ipnotista, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=ipnotista, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=contadino, target=ipnotista, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=investigatore, target=ipnotista, timestamp=get_now()))
+        
+        # Advance to night and use power
+        test_advance_turn(self.game)
+        self.assertFalse(ipnotista.alive)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=trasformista, target=ipnotista, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent)]
+        self.assertEqual(event.player, trasformista)
+        self.assertFalse(event.success)
+        self.assertTrue(isinstance(trasformista.role, Trasformista))
+        self.assertEqual([event for event in dynamics.debug_event_bin if isinstance(event, TransformationEvent)], [])
+        
+    @record_name
+    def test_trasformista_with_diavolo(self): # Lupus7 new
+        roles = [ Trasformista, Diavolo, Investigatore, Negromante, Lupo, Lupo, Contadino ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+        
+        [trasformista] = [x for x in players if isinstance(x.role, Trasformista)]
+        [diavolo] = [x for x in players if isinstance(x.role, Diavolo)]
+        [investigatore] = [x for x in players if isinstance(x.role, Investigatore)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+        
+        # Advance to day and kill lupo
+        test_advance_turn(self.game)
+        
+        self.assertTrue(trasformista.can_use_power())
+        self.assertFalse(diavolo in trasformista.role.get_targets())
+        
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=VOTE, player=trasformista, target=diavolo, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=diavolo, target=diavolo, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=diavolo, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=contadino, target=diavolo, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=investigatore, target=diavolo, timestamp=get_now()))
+        
+        # Advance to night and use power
+        test_advance_turn(self.game)
+        self.assertFalse(diavolo.alive)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=trasformista, target=diavolo, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent)]
+        self.assertEqual(event.player, trasformista)
+        self.assertFalse(event.success)
+        self.assertTrue(isinstance(trasformista.role, Trasformista))
+        self.assertEqual([event for event in dynamics.debug_event_bin if isinstance(event, TransformationEvent)], [])
+    
+    @record_name
+    def test_trasformista_with_negromante(self): # Lupus7 new
+        roles = [ Trasformista, Messia, Investigatore, Negromante, Negromante, Lupo, Contadino ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+        
+        [trasformista] = [x for x in players if isinstance(x.role, Trasformista)]
+        [messia] = [x for x in players if isinstance(x.role, Messia)]
+        [investigatore] = [x for x in players if isinstance(x.role, Investigatore)]
+        [negromante, _] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+        
+        # Advance to day and kill negromante
+        test_advance_turn(self.game)
+        
+        self.assertTrue(trasformista.can_use_power())
+        self.assertFalse(negromante in trasformista.role.get_targets())
+        
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=VOTE, player=trasformista, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=messia, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=contadino, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=investigatore, target=negromante, timestamp=get_now()))
+        
+        # Advance to night and use power
+        test_advance_turn(self.game)
+        self.assertFalse(negromante.alive)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=trasformista, target=negromante, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent)]
+        self.assertEqual(event.player, trasformista)
+        self.assertFalse(event.success)
+        self.assertTrue(isinstance(trasformista.role, Trasformista))
+        self.assertEqual([event for event in dynamics.debug_event_bin if isinstance(event, TransformationEvent)], [])
 
     # Tests not needed anymore (Trasformista cannot become Ipnotista on Lupus7)
     # ~ @record_name
