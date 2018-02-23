@@ -93,7 +93,7 @@ class Dynamics:
         self.sasha_is_sleeping = False  # usually...
         self.playing_teams = []
         self.advocated_players = []
-        self.additional_ballots = []
+        self.redirected_ballots = []
         self.amnesia_target = None
         self.hypnosis_ghost_target = None
         self.wolves_target = None
@@ -763,8 +763,8 @@ class Dynamics:
         if self.simulating:
             # Remove useless state for following day
             self.advocated_players = []
-            self.additional_ballots = []
             self.hypnosis_ghost_target = None
+            self.redirected_ballots = []
             self.amnesia_target = None
         else:
             self._end_of_main_phase()
@@ -802,7 +802,7 @@ class Dynamics:
             # Unrecord all data set during previous dawn
             self.advocated_players = []
             self.hypnosis_ghost_target = None
-            self.additional_ballots = []
+            self.redirected_ballots = []
             self.amnesia_target = None
 
             # Unrecord all elect and vote events
@@ -853,14 +853,6 @@ class Dynamics:
         winner = None
         quorum_failed = False
 
-        # Filter out from additional ballots those where one of the
-        # two players has died
-        if DEBUG_DYNAMICS:
-            print "Additional ballots: ", self.additional_ballots
-        self.additional_ballots = [(x, y) for (x, y) in self.additional_ballots if x.alive and y.alive]
-        if DEBUG_DYNAMICS:
-            print "Additional ballots (after filtering): ", self.additional_ballots
-
         # Count last ballot for each player
         ballots = {}
         mayor_ballot = None
@@ -887,22 +879,26 @@ class Dynamics:
             ballots[player.pk] = real_vote
             if player.is_mayor():
                 mayor_ballot = real_vote
+        
+        # Apply Scrutatore
+        for (target, scrutatore) in self.redirected_ballots:
+            assert target is not None
+            assert isinstance(scrutatore.role, Scrutatore)
+            for player in self.get_alive_players():
+                if ballots[player.pk] == target:
+                    ballots[player.pk] = ballots[scrutatore.pk]
+                    if player.is_mayor():
+                        mayor_ballot = ballots[scrutatore.pk]
 
         # Fill the tally sheet
         tally_sheet = {}
-        additional_ballots_breakdown = {}
         for player in self.get_alive_players():
             tally_sheet[player.pk] = 0
-            additional_ballots_breakdown[player.pk] = []
         votes_num = 0
         for ballot in ballots.itervalues():
             if ballot is None:
                 continue
             tally_sheet[ballot.pk] += 1
-            votes_num += 1
-        for player, target in self.additional_ballots:
-            additional_ballots_breakdown[player.pk].append(target)
-            tally_sheet[target.pk] += 1
             votes_num += 1
 
         # Check that at least half of the alive people voted
@@ -911,9 +907,7 @@ class Dynamics:
 
         # Send vote announcements
         for player in self.get_alive_players():
-            if DEBUG_DYNAMICS:
-                print additional_ballots_breakdown[player.pk], ballots[player.pk], [target for target in self.get_alive_players() if target == ballots[player.pk] or target in additional_ballots_breakdown[player.pk]]
-            for target in [target for target in self.get_alive_players() if target == ballots[player.pk] or target in additional_ballots_breakdown[player.pk]]:
+            for target in [target for target in self.get_alive_players() if target == ballots[player.pk]]:
                 event = VoteAnnouncedEvent(voter=player, voted=target, type=VOTE)
                 self.generate_event(event)
 

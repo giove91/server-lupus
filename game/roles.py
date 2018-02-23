@@ -777,7 +777,7 @@ class Scrutatore(Role):
     message2 = 'Aggiungi un voto per:'
 
     def can_use_power(self):
-        return self.player.alive
+        return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
 
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
@@ -786,7 +786,7 @@ class Scrutatore(Role):
         return self.player.game.get_alive_players()
 
     def apply_dawn(self, dynamics):
-        dynamics.additional_ballots.append((self.recorded_target, self.recorded_target2))
+        dynamics.redirected_ballots.append((self.recorded_target, self.player))
 
 
 class Spettro(Role):
