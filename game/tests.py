@@ -1804,6 +1804,32 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, AuraKnowledgeEvent)]
         self.assertEqual(event.aura, WHITE)
 
+   @record_name
+    def test_fattucchiera_aura(self): # Lupus7 new
+        roles = [ Negromante, Lupo, Fattucchiera, Contadino, Veggente]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+        
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo] = [x for x in players if isinstance(x.role, Lupo)]
+        [fattucchiera] = [x for x in players if isinstance(x.role, Fattucchiera)]
+        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+        [veggente] = [x for x in players if isinstance(x.role, Veggente)]
+       
+        # Advance to night and test aura
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=veggente, target=fattucchiera, timestamp=get_now()))
+
+        # Advance to dawn and check aura
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, AuraKnowledgeEvent)]
+        
+        self.assertEqual(event.target, fattucchiera)
+        self.assertEqual(event.aura, WHITE)
+        
     @record_name
     def test_trasformista_with_lupo(self):
         roles = [ Trasformista, Messia, Investigatore, Negromante, Lupo, Lupo, Contadino ]
@@ -3402,6 +3428,52 @@ class GameTests(TestCase):
         self.assertEqual(len(events),0)
         self.assertEqual(stregone.team, LUPI)
 
+    def test_corruzione_on_fattucchiera(self): # Lupus7 new
+        roles = [ Negromante, Lupo, Lupo, Fattucchiera, Contadino, Contadino ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+        
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [fattucchiera] = [x for x in players if isinstance(x.role, Fattucchiera)]
+        [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
+        
+        # Advance to day and kill contadino
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=VOTE, player=fattucchiera, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=contadino, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=contadino, timestamp=get_now()))
+        
+        # Advance to second night and create ghost
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=CORRUZIONE, timestamp=get_now()))
+        
+        # Advance to third night and use powers
+        test_advance_turn(self.game)
+        self.assertTrue(isinstance(contadino.role, Spettro))
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=fattucchiera, timestamp=get_now()))
+        
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent)]
+        self.assertFalse(event.success)
+        
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, CorruptionEvent)]
+        self.assertEqual(len(events),0)
+        self.assertEqual(fattucchiera.team, LUPI)
+        
     @record_name
     def test_morte(self):
         roles = [ Negromante, Lupo, Lupo, Messia, Ipnotista, Contadino, Guardia ]
@@ -6168,7 +6240,7 @@ class GameTests(TestCase):
         self.assertEqual(len(killedplayers), 3)
         
     @record_name
-    def test_confusione(self): # New
+    def test_confusione(self): # Update Lupus7
         roles = [ Negromante, Lupo, Lupo, Contadino, Contadino, Diavolo, Diavolo, Veggente, Veggente, Veggente, Veggente, Mago, Mago, Mago, Mago ]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
