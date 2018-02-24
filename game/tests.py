@@ -2845,6 +2845,59 @@ class GameTests(TestCase):
         self.assertTrue(sequestratore.alive)
 
     @record_name
+    def test_custode(self): #Lupus7 new
+        roles = [ Custode, Negromante, Lupo, Contadino, Contadino ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [custode] = [x for x in players if isinstance(x.role, Custode)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
+        
+        # Advance to day
+        test_advance_turn(self.game)
+        self.assertFalse(contadino in negromante.role.get_targets())
+        self.assertFalse(contadino in custode.role.get_targets())
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Kill contadino
+        dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=custode, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=contadino, target=contadino, timestamp=get_now()))
+        
+        # Advance to night
+        test_advance_turn(self.game)
+        self.assertFalse(contadino.alive)
+        test_advance_turn(self.game)
+        
+        # Negromante and custode act on contadino
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=VISIONE, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=custode, target=contadino, timestamp=get_now()))
+        
+        # Advance to sunset
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        
+        # Check result
+        self.assertFalse(contadino.alive)
+        self.assertTrue(isinstance(contadino.role, Contadino))
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == negromante]
+        self.assertFalse(event.success)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, QuantitativeMovementKnowledgeEvent)]
+        self.assertEqual(event.visitors, 1)
+        
+        # Custode cannot use her power in consecutive nights; negromante can
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        self.assertTrue(negromante.can_use_power())
+        self.assertFalse(custode.can_use_power())
+
+    @record_name
     def test_sciamano(self):
         roles = [ Negromante, Lupo, Lupo, Sciamano, Esorcista, Contadino ]
         self.game = create_test_game(1, roles)
