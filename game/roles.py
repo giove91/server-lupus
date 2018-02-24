@@ -488,10 +488,10 @@ class Assassino(Role):
     def apply_dawn(self, dynamics):
         from events import PlayerDiesEvent
         assert self.recorded_target is not None
-        visitors = [x for x in self.recorded_target.visitors if x.pk != self.player.pk]
+        visitors = [x for x in self.recorded_target.visitors if x.pk != self.player.pk and x.role.recorded_target == self.recorded_target and not x.sequestrated]
         if len(visitors) > 0:
             victim = dynamics.random.choice(visitors)
-            if not victim.just_dead and victim.role.recorded_target == self.recorded_target:
+            if not victim.just_dead:
                 assert victim.alive
                 dynamics.generate_event(PlayerDiesEvent(player=victim, cause=ASSASSIN))
         
@@ -608,7 +608,7 @@ class Sequestratore(Role):
             return []
 
     def apply_dawn(self, dynamics):
-        # Nothing to do here...
+        self.recorded_target.sequestrated = True
         pass
 
 
@@ -639,7 +639,7 @@ class Stregone(Role):
         return ret
 
     def apply_dawn(self, dynamics):
-        # Nothing to do here...
+        self.recorded_target.sequestrated = True
         pass
 
 

@@ -6229,8 +6229,8 @@ class GameTests(TestCase):
         self.assertTrue(assassino.alive)            
 
     @record_name
-    def test_assassino_with_illusione(self):
-        roles = [ Veggente, Lupo, Negromante, Assassino, Contadino]
+    def test_assassino_with_illusione(self): #Lupus7 update
+        roles = [ Veggente, Lupo, Negromante, Assassino, Contadino, Sequestratore]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
         players = self.game.get_players()
@@ -6240,6 +6240,7 @@ class GameTests(TestCase):
         [contadino] = [x for x in players if isinstance(x.role, Contadino)]
         [veggente] = [x for x in players if isinstance(x.role, Veggente)]
         [assassino] = [x for x in players if isinstance(x.role, Assassino)]
+        [sequestratore] = [x for x in players if isinstance(x.role, Sequestratore)]
 
         # Advance to day and kill contadino
         test_advance_turn(self.game)
@@ -6264,19 +6265,19 @@ class GameTests(TestCase):
 
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=negromante, target2=lupo, timestamp=get_now()))
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=assassino, target=negromante, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=veggente, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=sequestratore, target=lupo, timestamp=get_now()))
 
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
 
-        # Now, assassino should target the fake lupo (chosen random) and lupo should not die
+        # Now, assassino should not target the fake lupo and lupo should not die (because lupo is sequestrated)
 
         [assassination] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == assassino]
         deaths = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
 
         self.assertTrue(assassination.success)
         self.assertEqual(len(deaths),0)
-        self.assertTrue(veggente.alive)
 
     @record_name        
     def test_assassino_can_kill_other_assassino(self): # New

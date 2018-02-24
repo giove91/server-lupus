@@ -123,6 +123,7 @@ class Dynamics:
             player.visitors = None
             player.protected_by_guard = False
             player.protected_by_keeper = False
+            player.sequestrated = False
             player.just_dead = False
             player.just_ghostified = False
             player.hypnotist = None
@@ -542,7 +543,7 @@ class Dynamics:
         target_ghost = None
         for player in players:
             role = player.role
-            if role.recorded_target is not None:
+            if role.recorded_target is not None and not role.player.sequestrated:
                 if ghosts:
                     assert role.recorded_target_ghost is not None
                 if target is None:
@@ -550,7 +551,7 @@ class Dynamics:
                     if ghosts:
                         target_ghost = role.recorded_target_ghost
                 elif target.pk != role.recorded_target.pk:
-                    return None
+                    return None and victim.role.recorded_target == self.recorded_target
                 elif ghosts and target_ghost != role.recorded_target_ghost:
                     return None
             else:
@@ -760,6 +761,7 @@ class Dynamics:
             player.visitors = None
             player.protected_by_guard = False
             player.protected_by_keeper = False
+            player.sequestrated = False
             player.just_ghostified = False
             player.has_confusion = False
         
