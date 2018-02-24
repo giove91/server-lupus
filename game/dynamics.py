@@ -122,6 +122,7 @@ class Dynamics:
             player.visiting = None
             player.visitors = None
             player.protected_by_guard = False
+            player.protected_by_keeper = False
             player.just_dead = False
             player.just_ghostified = False
             player.hypnotist = None
@@ -692,14 +693,15 @@ class Dynamics:
         BLOCK_ROLES = [Sequestratore, Stregone, Sciamano, Esorcista, OCCULTAMENTO]
         apply_roles(BLOCK_ROLES)
 
-        # Then powers that influence modifying powers: Guardia del Corpo
-        MODIFY_INFLUENCE_ROLES = [Guardia]
-        apply_roles(MODIFY_INFLUENCE_ROLES)
-
         # Powers that influence querying powers: Fattucchiera, Spettro
         # della Confusione, Spettro dell'Illusione
         QUERY_INFLUENCE_ROLES = [Fattucchiera, ILLUSIONE, CONFUSIONE]
         apply_roles(QUERY_INFLUENCE_ROLES)
+
+        # Then powers that influence modifying powers: Guardia del
+        # Corpo and Custode del Cimitero
+        MODIFY_INFLUENCE_ROLES = [Guardia, Custode]
+        apply_roles(MODIFY_INFLUENCE_ROLES)
 
         # Powers that query the state: Espansivo, Investigatore, Mago,
         # Stalker, Veggente, Voyeur, Diavolo, Medium and Spettro della
@@ -757,6 +759,7 @@ class Dynamics:
             player.visiting = None
             player.visitors = None
             player.protected_by_guard = False
+            player.protected_by_keeper = False
             player.just_ghostified = False
             player.has_confusion = False
         

@@ -140,6 +140,26 @@ class Cacciatore(Role):
             dynamics.generate_event(PlayerDiesEvent(player=self.recorded_target, cause=HUNTER))
 
 
+class Custode(Role):
+    name = 'Custode del cimitero'
+    team = POPOLANI
+    aura = WHITE
+    
+    def can_use_power(self):
+        return self.player.alive
+    
+    def get_targets(self):
+        excluded = [self.player.pk]
+        if self.last_usage is not None and self.days_from_last_usage() <= 1:
+            excluded.append(self.last_target.pk)
+        return [player for player in self.player.game.get_dead_players() if player.pk not in excluded]
+
+    def apply_dawn(self, dynamics):
+        self.recorded_target.protected_by_keeper = True
+        visitors = [visitor for visitor in self.recorded_target.visitors if visitor.pk not in [self.player.pk, self.recorded_target.pk]]
+        from events import QuantitativeMovementKnowledgeEvent
+        dynamics.generate_event(QuantitativeMovementKnowledgeEvent(player=self.player, target=self.recorded_target, visitors=len(visitors), cause=KEEPER))
+
 class Divinatore(Role):
     name = 'Divinatore'
     team = POPOLANI
@@ -211,6 +231,9 @@ class Guardia(Role):
 
     def apply_dawn(self, dynamics):
         self.recorded_target.protected_by_guard = True
+        visitors = [visitor for visitor in self.recorded_target.visitors if visitor.pk not in [self.player.pk, self.recorded_target.pk]]
+        from events import QuantitativeMovementKnowledgeEvent
+        dynamics.generate_event(QuantitativeMovementKnowledgeEvent(player=self.player, target=self.recorded_target,visitors=len(visitors), cause=GUARD))
 
 
 class Investigatore(Role):
@@ -314,7 +337,7 @@ class Stalker(Role):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        from events import MovementKnowledgeEvent, NoMovementKnowledgeEvent
+        from events import MovementKnowledgeEvent, QuantitativeMovementKnowledgeEvent
         gen_set = set()
         gen_num = 0
         for visiting in self.recorded_target.visiting:
@@ -326,7 +349,7 @@ class Stalker(Role):
         assert len(gen_set) == gen_num
         if gen_num == 0:
             # Generate NoMovementKnowledgeEvent
-            dynamics.generate_event(NoMovementKnowledgeEvent(player=self.player, target=self.recorded_target, cause=STALKER))
+            dynamics.generate_event(QuantitativeMovementKnowledgeEvent(player=self.player, target=self.recorded_target, cause=STALKER, visitors=0))
 
 
 class Trasformista(Role):
@@ -389,7 +412,7 @@ class Voyeur(Role):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        from events import MovementKnowledgeEvent, NoMovementKnowledgeEvent
+        from events import MovementKnowledgeEvent, QuantitativeMovementKnowledgeEvent
         gen_set = set()
         gen_num = 0
         for visitor in self.recorded_target.visitors:
@@ -400,7 +423,7 @@ class Voyeur(Role):
         assert len(gen_set) == gen_num
         if gen_num == 0:
             # Generate NoMovementKnowledgeEvent
-            dynamics.generate_event(NoMovementKnowledgeEvent(player=self.player, target=self.recorded_target, cause=VOYEUR))
+            dynamics.generate_event(QuantitativeMovementKnowledgeEvent(player=self.player, target=self.recorded_target, visitors=0, cause=VOYEUR))
 
 
 # Fazione dei Lupi
@@ -659,6 +682,10 @@ class Negromante(Role):
             if self.recorded_target.team == NEGROMANTI and not self.recorded_target.just_ghostified:
                 return False
 
+            # Check protection by Custode
+            if self.recorded_target.protected_by_keeper:
+                return False
+
             # Check that target has not just been resurrected by
             # Messia
             if self.recorded_target.alive:
@@ -685,6 +712,7 @@ class Negromante(Role):
             # Assert checks in pre_dawn_apply(), just to be sure
             assert not isinstance(self.recorded_target.role, (Lupo, Fattucchiera))
             assert self.recorded_target.team != NEGROMANTI or self.recorded_target.just_ghostified
+            assert not self.recorded_target.protected_by_keeper
 
             assert not self.recorded_target.alive
             from events import GhostificationEvent, RoleKnowledgeEvent
@@ -849,7 +877,7 @@ class Spettro(Role):
         return targets
     
     def get_targets2(self):
-        if self.power == ILLUSIONE or self.power == IPNOSI or self.power == CONFUSIONE:
+        if self.power == ILLUSIONE or self.power == IPNOSI:
             return self.player.game.get_alive_players()
         else:
             return None

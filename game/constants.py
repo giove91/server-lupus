@@ -136,6 +136,8 @@ MAGE = 'M'
 # Movement knowledge causes
 STALKER = 'S'
 VOYEUR = 'V'
+KEEPER = 'K'
+GUARD = 'G'
 
 # Exile causes
 DISQUALIFICATION = 'D'
