@@ -876,6 +876,8 @@ class Spettro(Role):
     def get_targets2(self):
         if self.power == ILLUSIONE or self.power == IPNOSI:
             return self.player.game.get_alive_players()
+        elif self.power == CONFUSIONE:
+            return self.player.game.get_active_players()
         else:
             return None
 

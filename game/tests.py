@@ -4456,7 +4456,7 @@ class GameTests(TestCase):
         players = self.game.get_players()
 
         [negromante, _] = [x for x in players if isinstance(x.role, Negromante)]
-        [lupo, _] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
         [contadino1, contadino2] = [x for x in players if isinstance(x.role, Contadino)]
 
         # Advance to first day
@@ -4496,6 +4496,8 @@ class GameTests(TestCase):
         
         # Advance to night, try to ghostify contadino2
         test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino2, target_ghost=CONFUSIONE, timestamp=get_now()))
         
         # Advance to dawn and check
@@ -4520,7 +4522,7 @@ class GameTests(TestCase):
         [lupo] = [x for x in players if isinstance(x.role, Lupo)]
         [messia] = [x for x in players if isinstance(x.role, Messia)]
         [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
-        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+        [veggente] = [x for x in players if isinstance(x.role, Contadino)]
         [fantasma] = [x for x in players if isinstance(x.role, Fantasma)]
         
         # Advance to day and kill contadino
