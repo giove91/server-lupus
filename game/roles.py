@@ -956,7 +956,7 @@ class Spettro(Role):
             dynamics.hypnosis_ghost_target = (self.recorded_target, self.recorded_target2)
 
         elif self.power == CORRUZIONE:
-            from events import CorruptionEvent
+            from events import CorruptionEvent, RoleKnowledgeEvent
             dynamics.generate_event(CorruptionEvent(player=self.recorded_target))
             dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=self.__class__.__name__, cause=CORRUPTION))
 
