@@ -334,7 +334,7 @@ class Stalker(Role):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        from events import MovementKnowledgeEvent, QuantitativeMovementKnowledgeEvent
+        from events import MovementKnowledgeEvent, NoMovementKnowledgeEvent
         gen_set = set()
         gen_num = 0
         for visiting in self.recorded_target.visiting:
@@ -346,7 +346,7 @@ class Stalker(Role):
         assert len(gen_set) == gen_num
         if gen_num == 0:
             # Generate NoMovementKnowledgeEvent
-            dynamics.generate_event(QuantitativeMovementKnowledgeEvent(player=self.player, target=self.recorded_target, cause=STALKER, visitors=0))
+            dynamics.generate_event(NoMovementKnowledgeEvent(player=self.player, target=self.recorded_target, cause=STALKER))
 
 
 class Trasformista(Role):
@@ -409,7 +409,7 @@ class Voyeur(Role):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        from events import MovementKnowledgeEvent, QuantitativeMovementKnowledgeEvent
+        from events import MovementKnowledgeEvent, NoMovementKnowledgeEvent
         gen_set = set()
         gen_num = 0
         for visitor in self.recorded_target.visitors:
@@ -420,7 +420,7 @@ class Voyeur(Role):
         assert len(gen_set) == gen_num
         if gen_num == 0:
             # Generate NoMovementKnowledgeEvent
-            dynamics.generate_event(QuantitativeMovementKnowledgeEvent(player=self.player, target=self.recorded_target, visitors=0, cause=VOYEUR))
+            dynamics.generate_event(NoMovementKnowledgeEvent(player=self.player, target=self.recorded_target, cause=VOYEUR))
 
 
 # Fazione dei Lupi
