@@ -640,7 +640,6 @@ class Stregone(Role):
         return ret
 
     def apply_dawn(self, dynamics):
-        self.recorded_target.sequestrated = True
         pass
 
 

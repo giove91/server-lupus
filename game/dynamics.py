@@ -17,7 +17,7 @@ from roles import *
 
 DEBUG_DYNAMICS = False
 SIMULATE_NEXT_TURN = True
-FORCE_SIMULATION = True # Enable only while running tests
+FORCE_SIMULATION = False # Enable only while running tests
 RELAX_TIME_CHECKS = False
 ANCIENT_DATETIME = datetime(year=1970, month=1, day=1, tzinfo=REF_TZINFO)
 
