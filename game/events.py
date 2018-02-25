@@ -620,7 +620,7 @@ class RoleKnowledgeEvent(Event):
         (DEVIL, 'Devil'),
         (VISION_GHOST, 'Vision'),
         (MEDIUM, 'Medium'),
-        (NECROPHIL, 'Necrophil'),
+        (NECROPHILIAC, 'Necrophiliac'),
         )
     cause = models.CharField(max_length=1, choices=KNOWLEDGE_CAUSE_TYPES, default=None)
 
@@ -634,7 +634,7 @@ class RoleKnowledgeEvent(Event):
         DEVIL: [DAWN],
         MEDIUM: [DAWN],
         VISION_GHOST: [DAWN],
-        NECROPHIL: [DAWN],
+        NECROPHILIAC: [DAWN],
         CORRUPTION: [DAWN]
         }
 
@@ -647,7 +647,7 @@ class RoleKnowledgeEvent(Event):
         elif self.cause == EXPANSIVE:
             assert isinstance(self.target.canonicalize().role, Espansivo)
 
-        elif self.cause == NECROPHIL:
+        elif self.cause == NECROPHILIAC:
             assert isinstance(self.target.canonicalize().role, Necrofilo)
 
         elif self.cause == GHOST:
@@ -743,7 +743,7 @@ class RoleKnowledgeEvent(Event):
             elif player == 'admin':
                 return u'Lo Spettro con il potere della Visione %s scopre che %s ha il ruolo di %s.' % (self.player.full_name, self.target.full_name, role)
         
-        elif self.cause == NECROPHIL:
+        elif self.cause == NECROPHILIAC:
             if player == self.player:
                 return u'Percepisci che il Necrofilo %s ha profanato la tua tomba questa notte.' % (self.target.full_name)
             elif player == 'admin':

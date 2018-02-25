@@ -579,7 +579,7 @@ class Necrofilo(Role):
         from events import TransformationEvent, RoleKnowledgeEvent
         new_role_class = self.recorded_target.role.__class__
         assert new_role_class.team == LUPI
-        dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=self.__class__.__name__, cause=NECROPHIL))
+        dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=self.__class__.__name__, cause=NECROPHILIAC))
         dynamics.generate_event(TransformationEvent(player=self.player, target=self.recorded_target, role_name=new_role_class.__name__))
 
 

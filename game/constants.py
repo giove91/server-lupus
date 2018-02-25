@@ -122,7 +122,7 @@ DEVIL = 'D'
 VISION_GHOST = 'V'
 HYPNOTIST_DEATH = 'H'
 MEDIUM = 'M'
-NECROPHIL = 'N'
+NECROPHILIAC = 'N'
 CORRUPTION = 'O'
 
 # Aura knowledge causes
