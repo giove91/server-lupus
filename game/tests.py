@@ -2275,10 +2275,15 @@ class GameTests(TestCase):
         self.assertEqual(event.player, necrofilo)
         self.assertEqual(event.target, diavolo)
         self.assertEqual(event.role_name, Diavolo.__name__)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
+        self.assertEqual(event.player, diavolo)
+        self.assertEqual(event.target, necrofilo)
+        self.assertEqual(event.role_name, Necrofilo.__name__)
         
-        self.assertEqual(trasformista.team, LUPI)
-        self.assertEqual(trasformista.aura, BLACK)
-        self.assertTrue(trasformista.is_mystic)
+        self.assertEqual(necrofilo.team, LUPI)
+        self.assertEqual(necrofilo.aura, BLACK)
+        self.assertTrue(necrofilo.is_mystic)
         
     @record_name
     def test_necrofilo_with_lupo(self): # Lupus7 new

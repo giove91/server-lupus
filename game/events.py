@@ -620,6 +620,7 @@ class RoleKnowledgeEvent(Event):
         (DEVIL, 'Devil'),
         (VISION_GHOST, 'Vision'),
         (MEDIUM, 'Medium'),
+        (NECROPHIL, 'Necrophil'),
         )
     cause = models.CharField(max_length=1, choices=KNOWLEDGE_CAUSE_TYPES, default=None)
 
@@ -632,7 +633,9 @@ class RoleKnowledgeEvent(Event):
         HYPNOTIST_DEATH: [DAWN, SUNSET],
         DEVIL: [DAWN],
         MEDIUM: [DAWN],
-        VISION_GHOST: [DAWN]
+        VISION_GHOST: [DAWN],
+        NECROPHIL: [DAWN],
+        CORRUPTION: [DAWN]
         }
 
     def apply(self, dynamics):
@@ -644,11 +647,14 @@ class RoleKnowledgeEvent(Event):
         elif self.cause == EXPANSIVE:
             assert isinstance(self.target.canonicalize().role, Espansivo)
 
+        elif self.cause == NECROPHIL:
+            assert isinstance(self.target.canonicalize().role, Necrofilo)
+
         elif self.cause == GHOST:
             assert isinstance(self.player.canonicalize().role, Spettro)
             assert isinstance(self.target.canonicalize().role, Negromante)
 
-        elif self.cause == PHANTOM or self.cause == HYPNOTIST_DEATH:
+        elif self.cause == PHANTOM or self.cause == HYPNOTIST_DEATH or self.cause == CORRUPTION:
             assert isinstance(self.player.canonicalize().role, Negromante)
             assert isinstance(self.target.canonicalize().role, Spettro)
 
@@ -666,8 +672,7 @@ class RoleKnowledgeEvent(Event):
             assert not self.target.canonicalize().alive
 
         elif self.cause == HYPNOTIST_DEATH:
-            # TODO: implement
-            pass
+            assert False
 
         if self.cause in [EXPANSIVE, GHOST, PHANTOM, HYPNOTIST_DEATH, KNOWLEDGE_CLASS]:
             role_class = roles_map[self.role_name]
@@ -676,6 +681,7 @@ class RoleKnowledgeEvent(Event):
     
     def to_player_string(self, player):
         toa = self.target.oa
+        poa = self.player.oa
         role = Role.get_from_name(self.role_name).name
         
         if self.cause == SOOTHSAYER:
@@ -701,6 +707,12 @@ class RoleKnowledgeEvent(Event):
             elif player == 'admin':
                 return u'Il Negromante %s viene a sapere che il Fantasma %s è diventato uno Spettro.' % (self.player.full_name, self.target.full_name)
 
+        elif self.cause == CORRUZIONE:
+            if player == self.player:
+                return u'Vieni a sapere che %s è lo Spettro con il potere della Corruzione.' % (self.target.full_name)
+            elif player == 'admin':
+                return u'%s viene a sapere che lo Spettro che l\'ha corrott%s è %s.' % (self.player.full_name, poa, self.target.full_name)
+
         elif self.cause == GHOST:
             if player == self.player:
                 return u'Vieni a sapere che %s è un Negromante.' % (self.target.full_name)
@@ -724,6 +736,18 @@ class RoleKnowledgeEvent(Event):
                 return u'Percepisci che %s era un Ipnotista: dopo la morte è diventat%s uno Spettro.' % (self.target.full_name, toa)
             elif player == 'admin':
                 return u'Il Negromante %s viene a sapere che l\'Ipnotista %s è diventato uno Spettro.' % (self.player.full_name, self.target.full_name)
+        
+        elif self.cause == VISION_GHOST:
+            if player == self.player:
+                return u'Scopri che %s ha il ruolo di %s.' % (self.target.full_name, role)
+            elif player == 'admin':
+                return u'Lo Spettro con il potere della Visione %s scopre che %s ha il ruolo di %s.' % (self.player.full_name, self.target.full_name, role)
+        
+        elif self.cause == NECROPHIL:
+            if player == self.player:
+                return u'Percepisci che il Necrofilo %s ha profanato la tua tomba questa notte.' % (self.target.full_name)
+            elif player == 'admin':
+                return u'%s viene a sapere che il Necrofilo %s ha profanato la sua tomba.' % (self.player.full_name, self.target.full_name)
         
         else:
             raise Exception ('Unknown cause for RoleKnowledgeEvent')

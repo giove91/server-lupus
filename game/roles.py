@@ -576,9 +576,10 @@ class Necrofilo(Role):
         return True
 
     def apply_dawn(self, dynamics):
-        from events import TransformationEvent
+        from events import TransformationEvent, RoleKnowledgeEvent
         new_role_class = self.recorded_target.role.__class__
         assert new_role_class.team == LUPI
+        dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=self.__class__.__name__, cause=NECROPHIL))
         dynamics.generate_event(TransformationEvent(player=self.player, target=self.recorded_target, role_name=new_role_class.__name__))
 
 
@@ -653,7 +654,6 @@ class Negromante(Role):
     knowledge_class = 4
     
     def can_use_power(self):
-        dynamics = self.player.game.get_dynamics()
         return self.player.alive
     
     def get_targets(self):
@@ -887,7 +887,7 @@ class Spettro(Role):
                 return False
 
         elif self.power == MORTE:
-            if isinstance(self.recorded_target.role, Lupo):
+            if self.recorded_target.team != POPOLANI:
                 return False
 
         elif self.power == IPNOSI:
@@ -958,6 +958,7 @@ class Spettro(Role):
         elif self.power == CORRUZIONE:
             from events import CorruptionEvent
             dynamics.generate_event(CorruptionEvent(player=self.recorded_target))
+            dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=self.__class__.__name__, cause=CORRUPTION))
 
         else:
             raise ValueError("Invalid ghost type")
