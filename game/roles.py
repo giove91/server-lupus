@@ -893,7 +893,7 @@ class Spettro(Role):
                 return False
 
         elif self.power == CORRUZIONE:
-            if self.recorded_target.aura == BLACK or not self.recorded_target.is_mystic:
+            if self.recorded_target.aura == BLACK or not self.recorded_target.is_mystic or not self.recorded_target.team == POPOLANI:
                 return False
 
         elif self.power == VISIONE:
