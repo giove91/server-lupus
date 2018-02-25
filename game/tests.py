@@ -1782,11 +1782,12 @@ class GameTests(TestCase):
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=fattucchiera, target=veggente, timestamp=get_now()))
 
         # Advance to dawn and check apparent aura
+        # Aura should be the real one
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
         
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, AuraKnowledgeEvent)]
-        self.assertEqual(event.aura, BLACK)
+        self.assertEqual(event.aura, WHITE)
         
         # Advance to night and use power, with reversed fattucchiera
         test_advance_turn(self.game)
@@ -1802,7 +1803,7 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, AuraKnowledgeEvent)]
-        self.assertEqual(event.aura, WHITE)
+        self.assertEqual(event.aura, BLACK)
 
     @record_name
     def test_fattucchiera_aura(self): # Lupus7 new

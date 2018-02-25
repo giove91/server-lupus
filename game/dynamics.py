@@ -696,7 +696,9 @@ class Dynamics:
 
         # Powers that influence querying powers: Fattucchiera, Spettro
         # della Confusione, Spettro dell'Illusione
-        QUERY_INFLUENCE_ROLES = [Fattucchiera, ILLUSIONE, CONFUSIONE]
+        #
+        # Fattucchiera must act after Confusione
+        QUERY_INFLUENCE_ROLES = [CONFUSIONE, Fattucchiera, ILLUSIONE]
         apply_roles(QUERY_INFLUENCE_ROLES)
 
         # Then powers that influence modifying powers: Guardia del
