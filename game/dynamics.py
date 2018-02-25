@@ -543,9 +543,12 @@ class Dynamics:
         target_ghost = None
         for player in players:
             role = player.role
-            if role.recorded_target is not None and not role.player.sequestrated:
+            if role.recorded_target is not None:
                 if ghosts:
                     assert role.recorded_target_ghost is not None
+                # Ignore sequestrated lupi
+                if role.player.sequestrated:
+                    continue
                 if target is None:
                     target = role.recorded_target
                     if ghosts:

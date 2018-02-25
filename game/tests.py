@@ -4504,13 +4504,12 @@ class GameTests(TestCase):
 
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
         self.assertEqual(event.player, cacciatore)
-        self.assertEqual(isinstance(cacciatore.role, Spettro))
+        self.assertTrue(isinstance(cacciatore.role, Spettro))
         self.assertEqual(event.ghost, ILLUSIONE)
         
         self.assertFalse(contadino.alive)
         
         # Advance to night and kill Veggente
-        test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -4525,7 +4524,7 @@ class GameTests(TestCase):
         self.assertFalse(veggente.alive)
         
         # Try to ghostify veggente and contadino
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante1, target=veggente, target_ghost=ILLUSIONE, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante1, target=veggente, target_ghost=VISIONE, timestamp=get_now()))
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante2, target=contadino, target_ghost=CONFUSIONE, timestamp=get_now()))
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=sequestratore, target=negromante1, timestamp=get_now()))
 
@@ -4541,10 +4540,10 @@ class GameTests(TestCase):
 
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
         self.assertEqual(event.player, contadino)
-        self.assertEqual(isinstance(contadino.role, Spettro))
+        self.assertTrue(isinstance(contadino.role, Spettro))
         self.assertEqual(event.ghost, CONFUSIONE)
         
-        self.assertEqual(isinstance(veggente.role, Veggente))
+        self.assertTrue(isinstance(veggente.role, Veggente))
         
     @record_name
     def test_negromante_acts_every_turn(self): # Lupus7 new
