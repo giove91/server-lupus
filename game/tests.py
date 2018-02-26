@@ -5235,7 +5235,7 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         
-        # Kill Contadino
+        # Kill Veggente
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=veggente, timestamp=get_now()))
         
         # Advance to dawn and check
@@ -5259,7 +5259,7 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         
-        # Kill Veggente
+        # Kill Contadino
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=cacciatore, target=contadino, timestamp=get_now()))
         
         # Advance to dawn and check
@@ -5277,6 +5277,8 @@ class GameTests(TestCase):
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=AMNESIA, timestamp=get_now()))
         
         # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
         self.assertEqual(event.player, contadino)
         self.assertEqual(event.ghost, AMNESIA)
