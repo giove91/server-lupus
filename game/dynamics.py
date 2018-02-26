@@ -468,7 +468,10 @@ class Dynamics:
             print >> sys.stderr, "Computing night"
 
         # Before first night check that creation went ok
-        if self.current_turn.date == 1:
+        first_night_date = FIRST_DATE
+        if DATE_CHANGE_PHASE == NIGHT:
+            first_night_date = first_night_date + 1
+        if self.current_turn.date == first_night_date:
             self._checks_after_creation()
 
         self._check_team_exile()

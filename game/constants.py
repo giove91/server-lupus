@@ -29,7 +29,7 @@ for key, value in PHASE_CYCLE.iteritems():
 PHASE_CYCLE[CREATION] = NIGHT
 
 # This must be the phase that compares the lowest (excluding creation)
-DATE_CHANGE_PHASE = NIGHT
+DATE_CHANGE_PHASE = DAWN
 
 FIRST_PHASE = CREATION
 FIRST_DATE = 0
