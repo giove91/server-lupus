@@ -806,9 +806,6 @@ class Scrutatore(Role):
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
-    def get_targets2(self):
-        return self.player.game.get_alive_players()
-
     def apply_dawn(self, dynamics):
         dynamics.redirected_ballots.append((self.recorded_target, self.player))
 

@@ -867,38 +867,37 @@ class Dynamics:
         ballots = {}
         mayor_ballot = None
         for player in self.get_alive_players():
+            ballots[player.pk] = player.recorded_vote
 
-            # Count Ipnotista
-            real_vote = player.recorded_vote
-            if player.hypnotist is not None and player.hypnotist.alive:
+        # Apply Spettro dell'Ipnosi
+        if self.hypnosis_ghost_target is not None and self.hypnosis_ghost_target[0].alive and self.hypnosis_ghost_target[1].alive:
+            ballots[self.hypnosis_ghost_target[0].pk] = self.hypnosis_ghost_target[1]
+
+        # Apply Spettro dell'Amnesia
+        if self.amnesia_target is not None and self.amnesia_target.alive:
+            ballots[self.amnesia_target.pk] = None
+
+        # Apply Ipnotista
+        for player in self.get_alive_players():
+            if player.hypnotist is not None and player.hypnotist.alive and \
+                        (self.hypnosis_ghost_target is None or player is not self.hypnosis_ghost_target[0]) and \
+                        player is not self.amnesia_target:
                 assert not isinstance(player.role, Ipnotista)
                 assert isinstance(player.hypnotist.role, Ipnotista)
-                real_vote = player.hypnotist.recorded_vote
+                ballots[player.pk] = ballots[player.hypnotist.pk]
 
-            # Count Spettro dell'Ipnosi
-            if self.hypnosis_ghost_target is not None and player is self.hypnosis_ghost_target[0]:
-                if self.hypnosis_ghost_target[1].alive:
-                    assert not isinstance(player.role, Ipnotista)
-                    real_vote = self.hypnosis_ghost_target[1]
-
-            # Count Spettro dell'Amnesia
-            if self.amnesia_target is not None and self.amnesia_target.pk == player.pk:
-                assert not isinstance(player.role, Ipnotista)
-                real_vote = None
-
-            ballots[player.pk] = real_vote
-            if player.is_mayor():
-                mayor_ballot = real_vote
-        
         # Apply Scrutatore
         for (target, scrutatore) in self.redirected_ballots:
             assert target is not None
             assert isinstance(scrutatore.role, Scrutatore)
             for player in self.get_alive_players():
-                if ballots[player.pk] == target:
+                if ballots[player.pk] is target:
                     ballots[player.pk] = ballots[scrutatore.pk]
-                    if player.is_mayor():
-                        mayor_ballot = ballots[scrutatore.pk]
+
+        # Check mayor vote
+        for player in self.get_alive_players():
+            if player.is_mayor():
+                mayor_ballot = ballots[player.pk]
 
         # Fill the tally sheet
         tally_sheet = {}

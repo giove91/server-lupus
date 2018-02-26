@@ -620,7 +620,8 @@ class RoleKnowledgeEvent(Event):
         (DEVIL, 'Devil'),
         (VISION_GHOST, 'Vision'),
         (MEDIUM, 'Medium'),
-        (NECROPHILIAC, 'Necrophiliac'),
+        (CORRUPTION, 'Corruption'),
+        (NECROPHILIAC, 'Necrophiliac')
         )
     cause = models.CharField(max_length=1, choices=KNOWLEDGE_CAUSE_TYPES, default=None)
 
@@ -707,7 +708,7 @@ class RoleKnowledgeEvent(Event):
             elif player == 'admin':
                 return u'Il Negromante %s viene a sapere che il Fantasma %s è diventato uno Spettro.' % (self.player.full_name, self.target.full_name)
 
-        elif self.cause == CORRUZIONE:
+        elif self.cause == CORRUPTION:
             if player == self.player:
                 return u'Vieni a sapere che %s è lo Spettro con il potere della Corruzione.' % (self.target.full_name)
             elif player == 'admin':
