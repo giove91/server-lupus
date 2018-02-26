@@ -878,16 +878,9 @@ class Spettro(Role):
             return None
 
     def pre_apply_dawn(self, dynamics):
-        if self.power == AMNESIA:
-            if isinstance(self.recorded_target.role, Ipnotista):
-                return False
 
-        elif self.power == MORTE:
+        if self.power == MORTE:
             if self.recorded_target.team != POPOLANI:
-                return False
-
-        elif self.power == IPNOSI:
-            if isinstance(self.recorded_target.role, Ipnotista):
                 return False
 
         elif self.power == CORRUZIONE:

@@ -5753,53 +5753,65 @@ class GameTests(TestCase):
         [contadino] = [x for x in players if isinstance(x.role, Contadino)]
         [cacciatore] = [x for x in players if isinstance(x.role, Cacciatore)]
 
-        # Advance to second night
-        test_advance_turn(self.game)
-        test_advance_turn(self.game)
+        # Advance to first day and kill contadino
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         
-        # Kill Ipnotista
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=cacciatore, target=ipnotista1, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=contadino, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=ipnotista1, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=ipnotista2, target=contadino, timestamp=get_now()))
         
-        # Advance to dawn and check
+        # Advance to sunset and check
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
-        self.assertEqual(event.player, ipnotista1)
+        self.assertEqual(event.player, contadino)
+        
+        # Make Spettro dell'Ipnosi
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=IPNOSI, timestamp=get_now()))
+
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
-        self.assertEqual(event.player, ipnotista1)
+        self.assertEqual(event.player, contadino)
         self.assertEqual(event.ghost, IPNOSI)
-        self.assertEqual(event.cause, HYPNOTIST_DEATH)
-        self.assertTrue(isinstance(ipnotista1.role, Spettro), ipnotista1.role)
+        self.assertEqual(event.cause, NECROMANCER)
+        self.assertTrue(isinstance(contadino.role, Spettro), ipnotista1.role)
         
         # Advance to night and use power
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=ipnotista1, target=ipnotista2, target2=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=ipnotista2, target2=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=ipnotista2, target=negromante, timestamp=get_now()))
         
         # Advance to dawn
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
         
-        # Check result (Spettro fails)
-        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent)]
-        self.assertEqual(event.player, ipnotista1)
-        self.assertFalse(event.success)
+        # Check result (Spettro succeeds)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) if event.player is contadino]
+        self.assertTrue(event.success)
         self.assertFalse(event.sequestrated)
         
         # Advance to next day and (don't) vote
         test_advance_turn(self.game)
         
-        # Advance to sunset and check that Spettro power had no effect
+        # Advance to sunset and check that Spettro power had effect
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
         
         events = [event for event in dynamics.debug_event_bin if isinstance(event, VoteAnnouncedEvent)]
-        self.assertEqual(len(events), 0)
+        voters = [event.voter for event in events]
+        self.assertEqual(len([x for x in voters if x == negromante]), 1)
+        self.assertEqual(len([x for x in voters if x == ipnotista2]), 1)
+        self.assertEqual(len(voters), 2)
     
     @record_name
     def test_kill_and_disqualify_mayor(self):
