@@ -3333,7 +3333,21 @@ class GameTests(TestCase):
         self.assertEqual(self.game.current_turn.phase, DAWN)
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent)]
         self.assertEqual(event.player, contadino)
-        self.assertFalse(event.success)
+        self.assertTrue(event.success)
+
+        # Now vote
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=VOTE, player=ipnotista, target=messia, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=negromante, timestamp=get_now()))
+
+        # And all votes go into oblivion
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        self.assertEqual(self.game.current_turn.phase, SUNSET)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, StakeFailedEvent)]
+        self.assertEqual(event.cause, MISSING_QUORUM)
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, VoteAnnouncedEvent)]
+        self.assertEqual(len(events), 0)
 
     @record_name
     def test_stalker_with_illusione(self):

@@ -902,7 +902,6 @@ class Spettro(Role):
 
         elif self.power == AMNESIA:
             assert dynamics.amnesia_target is None
-            assert not isinstance(self.recorded_target.role, Ipnotista)
             dynamics.amnesia_target = self.recorded_target.canonicalize()
         
         
