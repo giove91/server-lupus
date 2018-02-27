@@ -11,10 +11,10 @@ REF_TZINFO = _pytz.timezone('Europe/Rome')
 # Turn phases (we used to have letters here, but we need something
 # that preserves the order in the database; FIXME: find a better
 # solution)
-DAY = '3'
-SUNSET = '4'
-NIGHT = '1'
-DAWN = '2'
+DAY = '2'
+SUNSET = '3'
+NIGHT = '4'
+DAWN = '1'
 CREATION = '0'
 
 PHASE_CYCLE = {

@@ -330,16 +330,20 @@ class GameTests(TestCase):
         roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
         self.game = create_test_game(2204, roles)
 
+        self.assertEqual(self.game.current_turn.phase, CREATION)
         test_advance_turn(self.game)
+        self.assertEqual(self.game.current_turn.phase, NIGHT)
+        self.assertEqual(self.game.current_turn.full_days_from_start(), 0)
         test_advance_turn(self.game)
+        self.assertEqual(self.game.current_turn.phase, DAWN)
         test_advance_turn(self.game)
-
         self.assertEqual(self.game.current_turn.phase, DAY)
-
         test_advance_turn(self.game)
+        self.assertEqual(self.game.current_turn.phase, SUNSET)
         test_advance_turn(self.game)
+        self.assertEqual(self.game.current_turn.phase, NIGHT)
+        self.assertEqual(self.game.current_turn.full_days_from_start(), 1)
         test_advance_turn(self.game)
-
         self.assertEqual(self.game.current_turn.phase, DAWN)
 
     def load_game_helper(self, filename):

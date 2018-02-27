@@ -276,6 +276,20 @@ class Turn(models.Model):
             date -= 1
         return Turn.get_or_create(self.game, date, phase, must_exist=must_exist)
 
+    def full_days_from_start(self):
+        # Returns the number of full phase cycles from beginning
+        phase = FIRST_PHASE
+        date = FIRST_DATE
+        i = 0
+        while phase != self.phase:
+            phase = PHASE_CYCLE[phase]
+            if phase == DATE_CHANGE_PHASE:
+                date += 1
+            i += 1
+            assert (i < 5)
+
+        return self.date - date
+
     @staticmethod
     def first_turn(game, must_exist=False):
         return Turn.get_or_create(game, FIRST_DATE, FIRST_PHASE, must_exist=must_exist)

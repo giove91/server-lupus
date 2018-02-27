@@ -128,7 +128,7 @@ class Cacciatore(Role):
     aura = BLACK
     
     def can_use_power(self):
-        return self.player.alive and self.player.game.current_turn.date > 1 and self.last_usage is None
+        return self.player.alive and self.player.game.current_turn.full_days_from_start() > 0 and self.last_usage is None
     
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
@@ -432,7 +432,7 @@ class Lupo(Role):
     knowledge_class = 1
     
     def can_use_power(self):
-        return self.player.alive and self.player.game.current_turn.date > 1
+        return self.player.alive and self.player.game.current_turn.full_days_from_start() > 0
     
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
@@ -480,7 +480,7 @@ class Assassino(Role):
     knowledge_class = 2
     
     def can_use_power(self):
-        return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 ) and self.player.game.current_turn.date > 1
+        return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 ) and self.player.game.current_turn.full_days_from_start() > 0
     
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
