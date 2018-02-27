@@ -4869,8 +4869,8 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=lupo, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=scrutatore, target=lupo, target2=messia, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=scrutatore, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=scrutatore, target=negromante, timestamp=get_now()))
         
         # Advance to day and vote
         test_advance_turn(self.game)
@@ -4882,95 +4882,140 @@ class GameTests(TestCase):
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
         self.assertEqual(self.game.current_turn.phase, SUNSET)
-        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, TallyAnnouncedEvent)]
-        self.assertEqual(event.voted, messia)
-        self.assertEqual(event.vote_num, 1)
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, VoteAnnouncedEvent)]
+        self.assertEqual(len(events),0)
+
+        # Now try amnesia on lupo
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=lupo, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=scrutatore, target=negromante, timestamp=get_now()))
+
+        # Advance to day and vote
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        self.assertEqual(self.game.current_turn.phase, DAY)
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=scrutatore, target=messia, timestamp=get_now()))
+
+        # Advance to sunset that lupo is not voting
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        self.assertEqual(self.game.current_turn.phase, SUNSET)
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, VoteAnnouncedEvent)]
-        self.assertEqual(event.voter, lupo)
+        self.assertEqual(event.voter, scrutatore)
+        
+    def test_scrutatore_and_ipnosi(self):
+        roles = [ Negromante, Lupo, Lupo, Messia, Ipnotista, Contadino, Scrutatore ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [messia] = [x for x in players if isinstance(x.role, Messia)]
+        [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
+        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+        [scrutatore] = [x for x in players if isinstance(x.role, Scrutatore)]
+
+        # Advance to day and kill contadino
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        dynamics.inject_event(CommandEvent(type=VOTE, player=messia, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=ipnotista, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=scrutatore, target=contadino, timestamp=get_now()))
+
+        # Advance to second night and create ghost
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=IPNOSI, timestamp=get_now()))
+
+        # Advance to third night and use powers
+        test_advance_turn(self.game)
+        self.assertTrue(isinstance(contadino.role, Spettro))
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=scrutatore, target2=messia, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=scrutatore, target=negromante, timestamp=get_now()))
+
+        # Advance to day and vote
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        self.assertEqual(self.game.current_turn.phase, DAY)
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=scrutatore, target=ipnotista, timestamp=get_now()))
+
+        # Advance to sunset and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        self.assertEqual(self.game.current_turn.phase, SUNSET)
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, VoteAnnouncedEvent)]
+        self.assertEqual(len(events),2)
+        self.assertEqual(set([e.voted for e in events]),set([messia]))
+        self.assertEqual(set([e.voter for e in events]),set([scrutatore, lupo]))
+
+        # Now try ipnosi on lupo
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=lupo, target2=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=scrutatore, target=negromante, timestamp=get_now()))
+
+        # Advance to day and vote
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        self.assertEqual(self.game.current_turn.phase, DAY)
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=ipnotista, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=scrutatore, target=messia, timestamp=get_now()))
+
+        # Advance to sunset that lupo is not voting
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        self.assertEqual(self.game.current_turn.phase, SUNSET)
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, VoteAnnouncedEvent)]
+        self.assertEqual(len(events),2)
+        self.assertEqual(set([e.voted for e in events]),set([messia]))
+        self.assertEqual(set([e.voter for e in events]),set([scrutatore, lupo]))
+
+        # Now try ipnosi on lupo, but making him vote a different target from scrutatore's
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=lupo, target2=ipnotista, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=scrutatore, target=negromante, timestamp=get_now()))
+
+        # Advance to day and vote
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        self.assertEqual(self.game.current_turn.phase, DAY)
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=scrutatore, target=messia, timestamp=get_now()))
+
+        # Advance to sunset that lupo is not voting
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        self.assertEqual(self.game.current_turn.phase, SUNSET)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, VoteAnnouncedEvent) and event.voter is scrutatore]
         self.assertEqual(event.voted, messia)
-    
-    @record_name
-    def test_scrutatore_on_dead(self):
-        roles = [ Ipnotista, Negromante, Lupo, Lupo, Contadino, Contadino, Scrutatore ]
-        self.game = create_test_game(1, roles)
-        dynamics = self.game.get_dynamics()
-        players = self.game.get_players()
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, VoteAnnouncedEvent) and event.voter is lupo]
+        self.assertEqual(event.voted, ipnotista)
 
-        [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
-        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
-        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
-        [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
-        [scrutatore] = [x for x in players if isinstance(x.role, Scrutatore)]
-
-        # Advance to night of second day
-        test_advance_turn(self.game)
-        test_advance_turn(self.game)
-        test_advance_turn(self.game)
-        test_advance_turn(self.game)
-        test_advance_turn(self.game)
-        
-        # Use power
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=scrutatore, target=contadino, target2=negromante, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=contadino, timestamp=get_now()))
-        
-        # Advance to dawn and check
-        dynamics.debug_event_bin = []
-        test_advance_turn(self.game)
-        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
-        self.assertEqual(event.player, contadino)
-        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) if event.player == scrutatore]
-        self.assertTrue(event.success)
-        
-        # Advance to sunset
-        test_advance_turn(self.game)
-        dynamics.debug_event_bin = []
-        test_advance_turn(self.game)
-        
-        # Check result
-        events = [event for event in dynamics.debug_event_bin if isinstance(event, VoteAnnouncedEvent)]
-        self.assertEqual(events, [])
-    
-    @record_name
-    def test_scrutatore_on_dead2(self):
-        roles = [ Ipnotista, Negromante, Lupo, Lupo, Contadino, Contadino, Scrutatore ]
-        self.game = create_test_game(1, roles)
-        dynamics = self.game.get_dynamics()
-        players = self.game.get_players()
-
-        [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
-        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
-        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
-        [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
-        [scrutatore] = [x for x in players if isinstance(x.role, Scrutatore)]
-
-        # Advance to night of second day
-        test_advance_turn(self.game)
-        test_advance_turn(self.game)
-        test_advance_turn(self.game)
-        test_advance_turn(self.game)
-        test_advance_turn(self.game)
-        
-        # Use power
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=scrutatore, target=negromante, target2=contadino, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=contadino, timestamp=get_now()))
-        
-        # Advance to dawn and check
-        dynamics.debug_event_bin = []
-        test_advance_turn(self.game)
-        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
-        self.assertEqual(event.player, contadino)
-        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) if event.player == scrutatore]
-        self.assertTrue(event.success)
-        
-        # Advance to sunset
-        test_advance_turn(self.game)
-        dynamics.debug_event_bin = []
-        test_advance_turn(self.game)
-        
-        # Check result
-        events = [event for event in dynamics.debug_event_bin if isinstance(event, VoteAnnouncedEvent)]
-        self.assertEqual(events, [])
-    
     @record_name
     def test_ipnosi(self): #update Lupus7
         # General Ipnosi behaviour
