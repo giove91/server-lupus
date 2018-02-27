@@ -690,7 +690,7 @@ class RoleKnowledgeEvent(Event):
 
         elif self.cause == MEDIUM:
             assert isinstance(self.player.canonicalize().role, Medium)
-            assert not self.target.canonicalize().alive
+            assert not self.target.canonicaNecrofilolize().alive
 
         elif self.cause == HYPNOTIST_DEATH:
             assert False
@@ -766,7 +766,7 @@ class RoleKnowledgeEvent(Event):
         
         elif self.cause == NECROPHILIAC:
             if player == self.player:
-                return u'Percepisci che il Necrofilo %s ha profanato la tua tomba questa notte.' % (self.target.full_name)
+                return u'Percepisci che il Necrofilo %s ha profanato la tua salma questa notte.' % (self.target.full_name)
             elif player == 'admin':
                 return u'%s viene a sapere che il Necrofilo %s ha profanato la sua tomba.' % (self.player.full_name, self.target.full_name)
         
