@@ -410,13 +410,25 @@ class TransformationEvent(Event):
     target = models.ForeignKey(Player, related_name='+')
     role_name = models.CharField(max_length=200, default=None)
 
+    TRANSFORMATION_CAUSES = (
+        (TRANSFORMIST, 'Transformist'),
+        (NECROPHILIAC, 'Necrophiliac')
+        )
+    cause = models.CharField(max_length=1, choices=TRANSFORMATION_CAUSES, default=None)
+
     def apply(self, dynamics):
         player = self.player.canonicalize()
         target = self.target.canonicalize()
 
         assert player.alive
-        assert isinstance(player.role, (Trasformista, Necrofilo))
         assert not target.alive
+
+        if self.cause == TRANSFORMIST:
+            assert isinstance(player.role, Trasformista)
+        elif self.cause == NECROPHILIAC:
+            assert isinstance(player.role, Necrofilo)
+        else:
+            raise Exception ('Unknown cause for TransformationEvent')
 
         # Check that power is not una tantum or that role is powerless
         if isinstance(player.role, Trasformista):
@@ -442,10 +454,18 @@ class TransformationEvent(Event):
     def to_player_string(self, player):
         role = Role.get_from_name(self.role_name).name
         
-        if player == self.player:
-            return u'Dopo aver utilizzato il tuo potere su %s hai assunto il ruolo di %s.' % (self.target.full_name, role)
-        elif player == 'admin':
-            return u'%s ha utilizzato il proprio potere di Trasformista su %s assumendo il ruolo di %s.' % (self.player.full_name, self.target.full_name, role)
+        if self.cause == TRANSFORMIST:
+            if player == self.player:
+                return u'Dopo aver utilizzato il tuo potere su %s hai assunto il ruolo di %s.' % (self.target.full_name, role)
+            elif player == 'admin':
+                return u'%s ha utilizzato il proprio potere di Trasformista su %s assumendo il ruolo di %s.' % (self.player.full_name, self.target.full_name, role)
+        elif self.cause == NECROPHILIAC:
+            if player == self.player:
+                return u'Dopo aver utilizzato il tuo potere su %s hai assunto il ruolo di %s.' % (self.target.full_name, role)
+            elif player == 'admin':
+                return u'%s ha utilizzato il proprio potere di Necrofilo su %s assumendo il ruolo di %s.' % (self.player.full_name, self.target.full_name, role)
+        else:
+            raise Exception ('Unknown cause for TransformationEvent')
 
 class CorruptionEvent(Event):
     RELEVANT_PHASES = [DAWN]

@@ -377,7 +377,7 @@ class Trasformista(Role):
         if isinstance(self.recorded_target.role, Spettro):
             new_role_class = self.recorded_target.role_class_before_ghost
         assert new_role_class.team == POPOLANI
-        dynamics.generate_event(TransformationEvent(player=self.player, target=self.recorded_target, role_name=new_role_class.__name__))
+        dynamics.generate_event(TransformationEvent(player=self.player, target=self.recorded_target, role_name=new_role_class.__name__, cause=TRANSFORMIST))
 
 
 class Veggente(Role):

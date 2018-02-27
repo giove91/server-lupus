@@ -141,6 +141,10 @@ VOYEUR = 'V'
 KEEPER = 'K'
 GUARD = 'G'
 
+# Transformation causes
+NECROPHILIAC = 'N'
+TRANSFORMIST = 'T'
+
 # Exile causes
 DISQUALIFICATION = 'D'
 TEAM_DEFEAT = 'T'
