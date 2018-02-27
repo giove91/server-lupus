@@ -580,7 +580,7 @@ class Necrofilo(Role):
         new_role_class = self.recorded_target.role.__class__
         assert new_role_class.team == LUPI
         dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=self.__class__.__name__, cause=NECROPHILIAC))
-        dynamics.generate_event(TransformationEvent(player=self.player, target=self.recorded_target, role_name=new_role_class.__name__))
+        dynamics.generate_event(TransformationEvent(player=self.player, target=self.recorded_target, role_name=new_role_class.__name__, cause=NECROPHILIAC))
 
 
 class Rinnegato(Role):
@@ -869,7 +869,7 @@ class Spettro(Role):
                 return False
 
         elif self.power == CORRUZIONE:
-            if self.recorded_target.aura == BLACK or not self.recorded_target.is_mystic or not self.recorded_target.team == POPOLANI:
+            if self.recorded_target.aura == BLACK or not self.recorded_target.is_mystic or not self.recorded_target.team == POPOLANI or self.recorded_target.just_dead:
                 return False
 
         elif self.power == VISIONE:

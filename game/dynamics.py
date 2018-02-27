@@ -742,10 +742,11 @@ class Dynamics:
         #  * anything < Cacciatore, Lupo, Assassino, MORTE (deaths happen at the
         #    and of the turn)
         MODIFY_ROLES = [Avvocato, AMNESIA, Scrutatore, IPNOSI,
-                        Ipnotista, Trasformista, Necrofilo, Messia, Negromante, CORRUZIONE]
+                        Ipnotista, Trasformista, Necrofilo, Messia, Negromante]
         KILLER_ROLES = [Cacciatore, Lupo, Assassino, MORTE]
+        POST_MORTEM_ROLES = [CORRUZIONE]
         # self.random.shuffle(KILLER_ROLES)
-        MODIFY_ROLES = MODIFY_ROLES + KILLER_ROLES
+        MODIFY_ROLES = MODIFY_ROLES + KILLER_ROLES + POST_MORTEM_ROLES
         apply_roles(MODIFY_ROLES)
 
         # Roles with no power: Contadino, Divinatore, Massone,
