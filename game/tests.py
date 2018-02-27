@@ -6563,12 +6563,6 @@ class GameTests(TestCase):
         self.game = self.load_game_helper('mayor_appointing.json')
         players = self.game.get_players()
         self.assertEqual(self.game.get_dynamics().appointed_mayor.user.username, "")
-
-    @record_name
-    def test_load_lupus_6(self):
-        # Loads lupus 6 dump. Sometimes random kills Davide instead of Julian, causing assertion error later.
-        self.game = self.load_game_helper('lupus6.json')
-        players = self.game.get_players()
         
     @record_name
     def test_ipnotista_dies_while_negromanti_create_ipnosi(self): # New
