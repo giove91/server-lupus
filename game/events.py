@@ -980,7 +980,6 @@ class HypnotizationEvent(Event):
         player = self.player.canonicalize()
         hypnotist = self.hypnotist.canonicalize()
 
-        assert not isinstance(player.role, Ipnotista)
         assert isinstance(hypnotist.role, Ipnotista)
 
         player.hypnotist = hypnotist

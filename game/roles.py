@@ -747,27 +747,12 @@ class Ipnotista(Role):
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
-    def pre_apply_dawn(self, dynamics):
-        if isinstance(self.recorded_target.role, Ipnotista):
-            return False
-
-        return True
-
     def pre_disappearance(self, dynamics):
         # If the player was an Ipnotista, dishypnotize everyone
         # depending on him
         for player in dynamics.players:
             if player.hypnotist is self.player:
                 player.hypnotist = None
-
-    def post_appearance(self, dynamics):
-        # If the player becomes an Ipnotista, dishypnotize him and
-        # disable the effects of Spettro dell'Amnesia and dell'Ipnosi
-        self.player.hypnotist = None
-        if dynamics.amnesia_target is self.player:
-            dynamics.amnesia_target = None
-        if dynamics.hypnosis_ghost_target is not None and dynamics.hypnosis_ghost_target[0] is self.player:
-            dynamics.hypnosis_ghost_target = None
 
     def apply_dawn(self, dynamics):
         from events import HypnotizationEvent

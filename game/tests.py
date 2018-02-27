@@ -1358,6 +1358,45 @@ class GameTests(TestCase):
         events = [event for event in dynamics.debug_event_bin if isinstance(event, VoteAnnouncedEvent) and (event.voter == contadino or event.voter == ipnotista)]
         self.assertEqual(events, [])
 
+    @record_name
+    def test_ipnotisti_chain(self):
+        roles = [ Ipnotista, Negromante, Lupo, Ipnotista, Lupo, Contadino, Contadino ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        print [x.role for x in dynamics.get_alive_players()]
+
+        [ipnotista1, ipnotista2] = [x for x in players if isinstance(x.role, Ipnotista)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
+
+        # Advance to night
+        test_advance_turn(self.game)
+
+        # Use Ipnotista power
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=ipnotista2, target=lupo, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=ipnotista1, target=ipnotista2, timestamp=get_now()))
+
+        # Advance to day
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        # Vote
+        self.assertEqual(ipnotista2.hypnotist, ipnotista1)
+        dynamics.inject_event(CommandEvent(type=VOTE, player=ipnotista1, target=lupo, timestamp=get_now()))
+
+        # Advance to sunset
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        # Check result
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, VoteAnnouncedEvent)]
+        self.assertEqual(set([e.voter for e in events]), set([lupo, ipnotista1, ipnotista2]))
+        self.assertEqual(set([e.voted for e in events]), set([lupo]))
+        self.assertEqual(len(events), 3)
+
     def test_ipnotista_resurrected(self): # Update Lupus7
         # We need two Ipnotisti, otherwise the Ipnotista
         # becomes a Spettro and nothing works anymore

@@ -885,7 +885,6 @@ class Dynamics:
             if player.hypnotist is not None and player.hypnotist.alive and \
                         (self.hypnosis_ghost_target is None or player is not self.hypnosis_ghost_target[0]) and \
                         player is not self.amnesia_target:
-                assert not isinstance(player.role, Ipnotista)
                 assert isinstance(player.hypnotist.role, Ipnotista)
                 ballots[player.pk] = ballots[player.hypnotist.pk]
 
