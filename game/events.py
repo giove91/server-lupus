@@ -467,7 +467,7 @@ class CorruptionEvent(Event):
         role = Role.get_from_name(self.role_name).name
 
         if player == self.player:
-            return u'Sei diventato un Negromante.'
+            return u'Al tuo risveglio percepisci che qualcosa è cambiato in te. Senti un nuovo potere, una travolgente affinità per le arti occulte che pervade le tue membra, ed una incontenibile voglia di cioccolata calda. Lo Spettro della Corruzione ha preso possesso di te: sei diventato un Negromante, e da adesso per te comincia una nuova vita.'
         elif player == 'admin':
             return u'%s ha assunto il ruolo di Negromante per l\'effetto dello Spettro della Corruzione.' % (self.player.full_name)
 
