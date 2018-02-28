@@ -883,12 +883,18 @@ class Dynamics:
             ballots[self.amnesia_target.pk] = None
 
         # Apply Ipnotista
-        for player in self.get_alive_players():
-            if player.hypnotist is not None and player.hypnotist.alive and \
-                        (self.hypnosis_ghost_target is None or player is not self.hypnosis_ghost_target[0]) and \
-                        player is not self.amnesia_target:
-                assert isinstance(player.hypnotist.role, Ipnotista)
-                ballots[player.pk] = ballots[player.hypnotist.pk]
+        def hypnotist_redirect(hypnotist):
+            if isinstance(hypnotist.role, Ipnotista):
+                for player in self.get_alive_players():
+                    if player.hypnotist is hypnotist and ballots[player.pk] is not ballots[hypnotist.pk] and \
+                    (self.hypnosis_ghost_target is None or player is not self.hypnosis_ghost_target[0]) and \
+                    player is not self.amnesia_target:
+                        ballots[player.pk] = ballots[hypnotist.pk]
+                        hypnotist_redirect(player)
+
+        self.random.shuffle(self.get_alive_players())
+        for player in players:
+            hypnotist_redirect(player)
 
         # Apply Scrutatore
         for (target, scrutatore) in self.redirected_ballots:
