@@ -1,0 +1,34 @@
+{% autoescape off %}
+
+\documentclass{letter}
+
+\usepackage[utf8]{inputenc}
+\usepackage[italian]{babel}
+
+
+\signature{Alessandro Iraci}
+\date{17 novembre 2015}
+\begin{document}
+
+\begin{letter}{}
+\opening{Gentili concittadini,}
+
+ma soprattutto gentilissim{{ player.oa }} {{ player.full_name }},
+
+affranto dal dolore vi comunico che la sicurezza del nostro villaggio è stata compromessa nuovamente. Gli ululati che riecheggiano nella notte non appartengono solo ai cani che normalmente riposano sotto il Carducci, ma a bestie ben più pericolose. Vecchi lupi sono fuggiti in Scozia, ma nuove fiere hanno preso il loro posto.
+
+Siamo stati capaci di sommergere il Sant'Anna con i nostri gavettoni, ottenere il miglior medagliere alle XCool ed eliminare i Generals, ma ci siamo trovati in difficoltà contro la nuova invasione di lupi mannari. Allo scopo di risolvere il problema, sono andato a richiamare dalla California Giovanni Mascellani, Sei Volte Vincitore della 24 Ore, e Giovanni Paolini, Premio Oscar al Miglior Trailer 2012, 2013, 2014 e 2015. Dopo giorni e giorni di intense riflessioni, abbiamo concluso che la migliore soluzione possibile è trasferirsi da una mia vecchia amica su un isolotto del Pacifico, e ragionare su come salvare il villaggio sorseggiando una pi\~na colada.
+
+Sono sicuro che nel frattempo voi, valorosi concittadini, sarete capaci di gestire la situazione con la solita sicurezza. Affido le chiavi della città a {{ mayor.full_name }}, scelto per il valore dimostrato nell'ultimo torneo di bocce.
+
+Un abbraccio dal vostro affettuoso ex Sindaco,
+
+\bigskip
+
+\noindent Alessandro Iraci
+
+\end{letter}
+
+\end{document}
+
+{% endautoescape %}
