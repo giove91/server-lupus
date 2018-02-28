@@ -850,6 +850,9 @@ class GameTests(TestCase):
         self.assertEqual(event.cause, WOLVES)
         self.assertFalse(cacciatore.alive)
 
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, QuantitativeMovementKnowledgeEvent)]
+        self.assertEqual(event.visitors, 0)
+
         dynamics.debug_event_bin = None
 
     @record_name
@@ -3708,8 +3711,8 @@ class GameTests(TestCase):
         self.assertEqual(veggente.team, POPOLANI)
 
     @record_name
-    def test_voyeur_with_illusione_of_self(self):
-        roles = [ Negromante, Lupo, Lupo, Messia, Ipnotista, Contadino, Voyeur ]
+    def test_voyeur_guardia_with_illusione_of_self(self):
+        roles = [ Negromante, Lupo, Lupo, Messia, Ipnotista, Contadino, Voyeur, Guardia, Custode]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
         players = self.game.get_players()
@@ -3720,6 +3723,7 @@ class GameTests(TestCase):
         [messia] = [x for x in players if isinstance(x.role, Messia)]
         [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
         [voyeur] = [x for x in players if isinstance(x.role, Voyeur)]
+        [guardia] = [x for x in players if isinstance(x.role, Guardia)]
         
         # Advance to day and kill contadino
         test_advance_turn(self.game)
@@ -3730,6 +3734,7 @@ class GameTests(TestCase):
         dynamics.inject_event(CommandEvent(type=VOTE, player=ipnotista, target=contadino, timestamp=get_now()))
         dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=contadino, timestamp=get_now()))
         dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=contadino, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=guardia, target=contadino, timestamp=get_now()))
         
         # Advance to second night and create ghost
         test_advance_turn(self.game)
@@ -3755,6 +3760,56 @@ class GameTests(TestCase):
         self.assertEqual(event.target, ipnotista)
         self.assertEqual(event.target2, voyeur)
         self.assertEqual(event.cause, VOYEUR)
+
+        # Retry with guardia
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=ipnotista, target2=guardia, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=guardia, target=ipnotista, timestamp=get_now()))
+
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        self.assertEqual(self.game.current_turn.phase, DAWN)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, QuantitativeMovementKnowledgeEvent)]
+        self.assertEqual(event.player, guardia)
+        self.assertEqual(event.visitors, 1)
+        self.assertEqual(event.cause, GUARD)
+        
+        # Retry with custode
+        test_advance_turn(self.game)
+
+        dynamics.inject_event(CommandEvent(type=VOTE, player=messia, target=lupo, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=ipnotista, target=lupo, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=lupo, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=lupo, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=guardia, target=lupo, timestamp=get_now()))
+
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=lupo, target2=custode, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=custode, target=lupo, timestamp=get_now()))
+
+        # Advance to dawn and check
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+        self.assertEqual(self.game.current_turn.phase, DAWN)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, QuantitativeMovementKnowledgeEvent)]
+        self.assertEqual(event.player, custode)
+        self.assertEqual(event.visitors, 1)
+        self.assertEqual(event.cause, KEEPER)
+        
         
     @record_name
     def test_corruzione_on_messia(self): # Lupus7 new
@@ -3911,6 +3966,59 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         with self.assertRaises(AssertionError):
             dynamics.inject_event(CommandEvent(type=USEPOWER, player=veggente, target=veggente2, timestamp=get_now()))
+
+    @record_name
+    def test_corruzione_on_trasformista(self): # Lupus7 new
+        roles = [ Negromante, Lupo, Lupo, Contadino, Contadino, Veggente, Mago, Trasformista ]
+        self.game = create_test_game(1, roles)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+        
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [veggente] = [x for x in players if isinstance(x.role, Veggente)]
+        [mago] = [x for x in players if isinstance(x.role, Mago)]
+        [trasformista] = [x for x in players if isinstance(x.role, Trasformista)]
+        
+        # Advance to day and kill veggente
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=VOTE, player=mago, target=veggente, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=veggente, target=veggente, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=veggente, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=veggente, timestamp=get_now()))
+        
+        # Advance to second night and create ghost, meanwhile kill mago
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=veggente, target_ghost=CORRUZIONE, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=mago, timestamp=get_now()))
+        
+        # Corruzione acts on trasformista which is becoming mago
+        test_advance_turn(self.game)
+        self.assertTrue(isinstance(veggente.role, Spettro))
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=veggente, target=trasformista, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=trasformista, target=mago, timestamp=get_now()))
+        
+        # Advance to dawn and check trasformista should succeed but corruzione shouldn't
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) if event.player is trasformista]
+        self.assertTrue(event.success)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) if event.player is veggente]
+        self.assertFalse(event.success)
+        
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, CorruptionEvent)]
+        self.assertEqual(len(events),0)
+        self.assertEqual(trasformista.team, POPOLANI)
+        self.assertTrue(isinstance(trasformista.role, Mago))
 
     @record_name
     def test_corruzione_on_stregone(self): # Lupus7 new

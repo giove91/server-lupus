@@ -96,6 +96,7 @@ class Dynamics:
         self.redirected_ballots = []
         self.amnesia_target = None
         self.hypnosis_ghost_target = None
+        self.illusion = None
         self.wolves_target = None
         self.necromancers_target = None
         self.winners = None
@@ -126,6 +127,8 @@ class Dynamics:
             player.sequestrated = False
             player.just_dead = False
             player.just_ghostified = False
+            player.just_transformed = False
+            player.just_resurrected = False
             player.hypnotist = None
             player.has_confusion = False
 
@@ -731,16 +734,11 @@ class Dynamics:
         # order is important: in particular, these inequalities have
         # to be satisfied ("<" means "must act before"):
         #
-        #  * AMNESIA, IPNOSI, Ipnotista < Trasformista (if
-        #    Trasformista becomes Ipnotista, then AMNESIA, IPNOSI and
-        #    Ipnotista do not fail, but the new Ipnotista is immune
-        #    from them)
-        #
         #  * Messia < Negromante (resurrection has precedence over
         #    ghostification)
         #
         #  * anything < Cacciatore, Lupo, Assassino, MORTE (deaths happen at the
-        #    and of the turn)
+        #    and of the turn) except CORRUZIONE
         MODIFY_ROLES = [Avvocato, AMNESIA, Scrutatore, IPNOSI,
                         Ipnotista, Trasformista, Necrofilo, Messia, Negromante]
         KILLER_ROLES = [Cacciatore, Lupo, Assassino, MORTE]
@@ -759,6 +757,7 @@ class Dynamics:
         # Unset (nearly) all temporary status
         self.wolves_target = None
         self.necromancers_target = None
+        self.illusion = None
         for player in self.players:
             if not self.simulating:
                 player.role.unrecord_targets()
@@ -772,6 +771,8 @@ class Dynamics:
             player.protected_by_keeper = False
             player.sequestrated = False
             player.just_ghostified = False
+            player.just_transformed = False
+            player.just_resurrected = False
             player.has_confusion = False
         
         if self.simulating:

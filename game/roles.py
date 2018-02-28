@@ -153,7 +153,7 @@ class Custode(Role):
 
     def apply_dawn(self, dynamics):
         self.recorded_target.protected_by_keeper = True
-        visitors = [visitor for visitor in self.recorded_target.visitors if visitor.pk not in [self.player.pk, self.recorded_target.pk]]
+        visitors = [visitor for visitor in self.recorded_target.visitors if visitor.pk not in [self.player.pk, self.recorded_target.pk] or dynamics.illusion == (self.player, self.recorded_target)]
         from events import QuantitativeMovementKnowledgeEvent
         dynamics.generate_event(QuantitativeMovementKnowledgeEvent(player=self.player, target=self.recorded_target, visitors=len(visitors), cause=KEEPER))
 
@@ -228,7 +228,7 @@ class Guardia(Role):
 
     def apply_dawn(self, dynamics):
         self.recorded_target.protected_by_guard = True
-        visitors = [visitor for visitor in self.recorded_target.visitors if visitor.pk not in [self.player.pk, self.recorded_target.pk]]
+        visitors = [visitor for visitor in self.recorded_target.visitors if visitor.pk not in [self.player.pk, self.recorded_target.pk] or dynamics.illusion == (self.player, self.recorded_target)]
         from events import QuantitativeMovementKnowledgeEvent
         dynamics.generate_event(QuantitativeMovementKnowledgeEvent(player=self.player, target=self.recorded_target,visitors=len(visitors), cause=GUARD))
 
@@ -292,7 +292,8 @@ class Messia(Role):
         return True
 
     def apply_dawn(self, dynamics):
-        if not self.recorded_target.alive:
+        if not self.recorded_target.just_resurrected:
+            self.recorded_target.just_resurrected = True
             from events import PlayerResurrectsEvent
             dynamics.generate_event(PlayerResurrectsEvent(player=self.recorded_target))
 
@@ -378,6 +379,7 @@ class Trasformista(Role):
             new_role_class = self.recorded_target.role_class_before_ghost
         assert new_role_class.team == POPOLANI
         dynamics.generate_event(TransformationEvent(player=self.player, target=self.recorded_target, role_name=new_role_class.__name__, cause=TRANSFORMIST))
+        self.player.just_transformed = True
 
 
 class Veggente(Role):
@@ -413,7 +415,7 @@ class Voyeur(Role):
         gen_set = set()
         gen_num = 0
         for visitor in self.recorded_target.visitors:
-            if visitor.pk != self.recorded_target.pk and visitor.pk != self.player.pk:
+            if visitor.pk != self.recorded_target.pk and (visitor.pk != self.player.pk or dynamics.illusion == (self.player, self.recorded_target)):
                 dynamics.generate_event(MovementKnowledgeEvent(player=self.player, target=self.recorded_target, target2=visitor, cause=VOYEUR))
                 gen_set.add(visitor.pk)
                 gen_num += 1
@@ -684,7 +686,7 @@ class Negromante(Role):
 
             # Check that target has not just been resurrected by
             # Messia
-            if self.recorded_target.alive:
+            if self.recorded_target.just_resurrected:
                 return False
 
             # MORTE and CORRUZIONE must be applied on mystic
@@ -869,7 +871,9 @@ class Spettro(Role):
                 return False
 
         elif self.power == CORRUZIONE:
-            if self.recorded_target.aura == BLACK or not self.recorded_target.is_mystic or not self.recorded_target.team == POPOLANI or self.recorded_target.just_dead:
+            if self.recorded_target.aura == BLACK or not self.recorded_target.is_mystic \
+                    or not self.recorded_target.team == POPOLANI or self.recorded_target.just_dead \
+                    or self.recorded_target.just_transformed:
                 return False
 
         elif self.power == VISIONE:
@@ -916,6 +920,8 @@ class Spettro(Role):
             # original list
             if self.recorded_target2 not in self.recorded_target.visitors:
                 self.recorded_target.visitors.append(self.recorded_target2)
+
+            dynamics.illusion = (self.recorded_target2, self.recorded_target)
 
         elif self.power == MORTE:
             assert not isinstance(self.recorded_target.role, Lupo)
