@@ -1,0 +1,37 @@
+{% autoescape off %}
+
+\documentclass{letter}
+
+\usepackage[utf8]{inputenc}
+\usepackage[italian]{babel}
+\usepackage{siunitx}
+
+
+\signature{Alessandro Iraci}
+\date{28 febbraio 2018}
+\begin{document}
+
+\begin{letter}{}
+\opening{Gentili concittadini,}
+
+ma soprattutto gentilissim{{ player.oa }} {{ player.full_name }},
+
+i recenti avvenimenti ci hanno sconvolto tutti. Pensavamo di essere al sicuro e che quanto temevamo non potesse accadere, ma invece è successo, e pertanto bisogna ricorrere a delle procedure drastiche che speravamo non servissero mai. L'incubo è divenuto realtà, i fisici hanno vinto la 24 ore. Ho convocato immediatamente un team di esperti per trovare una soluzione, ma recentemente i nostri appunti vengono periodicamente ritrovati ridotti in brandelli e ricoperti di saliva e pelo di animale.
+
+Un'analisi più accorta ha evidenziato che si tratta di lupi mannari. Questo spiegherebbe in effetti anche i resti delle matricole ritrovati orribilmente dilaniati nei giorni scorsi, ma converrete con me che la pratica di atti di cannibalismo causati da un peggioramento della qualità del cibo della mensa era una giustificazione altrettanto plausibile.
+
+Mi sono istantaneamente rivolto alle persone più qualificate che io conosca per risolvere il problema di questi cani affamati e troppo cresciuti (no, non quelli sotto il Carducci, parlo dei lupi mannari), ma a causa della mia ormai veneranda età avevo dimenticato che si tratta degli stessi che compongono il team di esperti di cui sopra, e pertanto nessuno di loro è risultato disponibile. L'unico modo che ho trovato per tamponare l'emergenza è stato quello di attuare un piano che tenevo in serbo da lungo tempo in caso di necessità: fondare un gruppo di ricerca in combinatoria a Tenerife [Soleggiato, \SI{25}{\celsius} nel momento in cui vi scrivo - Fonte \emph{MSN Meteo}].
+
+Ciò non di meno non nutro alcun dubbio nel fatto che voi, valorosi concittadini, sarete capaci di gestire la situazione con grande efficacia. Affido le chiavi della città a {{ mayor.full_name }}, scelt{{ mayor.oa }} per l'indubbio valore strategico dimostrato nell'ultimo torneo di Risiko.
+
+Un abbraccio dal vostro affettuoso ex Sindaco,
+
+\bigskip
+
+\noindent Alessandro Iraci
+
+\end{letter}
+
+\end{document}
+
+{% endautoescape %}
