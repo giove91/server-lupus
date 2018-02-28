@@ -3724,6 +3724,7 @@ class GameTests(TestCase):
         [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
         [voyeur] = [x for x in players if isinstance(x.role, Voyeur)]
         [guardia] = [x for x in players if isinstance(x.role, Guardia)]
+        [custode] = [x for x in players if isinstance(x.role, Custode)]
         
         # Advance to day and kill contadino
         test_advance_turn(self.game)
