@@ -892,8 +892,7 @@ class Dynamics:
                         ballots[player.pk] = ballots[hypnotist.pk]
                         hypnotist_redirect(player)
 
-        self.random.shuffle(self.get_alive_players())
-        for player in players:
+        for player in self.get_alive_players():
             hypnotist_redirect(player)
 
         # Apply Scrutatore
