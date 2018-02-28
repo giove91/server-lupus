@@ -16,7 +16,7 @@ Il Cacciatore appartiene alla Fazione dei Popolani, ma gode di una pessima reput
 {% if player.role_name == "Custode" %}
 Il tuo era un lavoro di tutto riposo, anzi, di eterno riposo: lucidare le lapidi, strappare qualche erbaccia, cambiare l'acqua ai fiori e l'olio ai lumini. Al cimitero hai fatto conoscenza con molti personaggi interessanti: investigatori, esorcisti, maghi, messia, necrofili. Poi una mattina hai trovato una tomba svuotata, con candele nere tutte intorno e sulla lapide un pentagramma rosso che non veniva via neanche col Vetril. Da allora ogni notte ti apposti con Guendalina in pugno (sì, la tua pala ha un nome), per dare ai visitatori notturni l'accoglienza che meritano.
 
-Il Custode del Cimitero appartiene alla Fazione dei Popolani e ogni notte può scegliere un giocatore morto di cui custodire la tomba. Per quella notte, se uno o più Negromanti tentano di risvegliare come Spettro il personaggio scelto dal Custode del Cimitero, il loro potere non ha alcun effetto. Il Custode del Cimitero non può usare il suo potere sullo stesso personaggio per due notti consecutive.
+Il Custode del Cimitero appartiene alla Fazione dei Popolani e ogni due notti può scegliere un giocatore morto di cui custodire la tomba. Per quella notte, se uno o più Negromanti tentano di risvegliare come Spettro il personaggio scelto dal Custode del Cimitero, il loro potere non ha alcun effetto.
 {% endif %}
 
 
@@ -130,13 +130,13 @@ Il potere dei Lupi non ha effetto sui Negromanti.
 {% if player.role_name == "Assassino" %}
 John Kennedy, Paolo Borsellino e Kenny di South Park sono solo alcuni degli omicidi con cui non hai assolutamente niente a che fare, ma a cui ti ispiri per diventare famoso. Hai deciso di appendere il fucile al chiodo e ritirarti in campagna, ma la recente striscia di omicidi ti ha spinto a riprendere il tuo vecchio hobby.
 
-L'Assassino appartiene alla Fazione dei Lupi, e conosce gli Avvocati, i Sequestratori, i Rinnegati e gli eventuali altri Assassini. Ogni due notti dopo la prima, l'Assassino può scegliere un personaggio vivo e puntare il suo fucile di precisione verso casa sua. Uccide uno degli altri personaggi che hanno usato il proprio potere sul personaggio scelto dall'Assassino, selezionato in modo casuale.
+L'Assassino appartiene alla Fazione dei Lupi, e conosce gli Avvocati, i Sequestratori, i Necrofili, i Rinnegati e gli eventuali altri Assassini. Ogni due notti dopo la prima, l'Assassino può scegliere un personaggio vivo e puntare il suo fucile di precisione verso casa sua. Uccide uno degli altri personaggi che hanno usato il proprio potere sul personaggio scelto dall'Assassino, selezionato in modo casuale.
 {% endif %}
 
 {% if player.role_name == "Avvocato" %}
 La tua specialità è parlare per tre ore senza mai riprendere fiato e senza dire assolutamente nulla. In un villaggio di contadini che non hanno mai sentito pronunciare una parola più lunga di tre sillabe, questo ti rende pressoché onnipotente.
 
-L'Avvocato non solo appartiene alla Fazione dei Lupi, ma è pure un avvocato. Ha un potere attivabile ogni due notti. L'Avvocato può scegliere un personaggio vivo e far approvare per esso una legge \emph{ad personam}. Se durante il giorno successivo l'assemblea delibera di uccidere tale personaggio, questi non muore. Grazie ai suoi agganci nella malavita, l'Avvocato conosce gli altri Avvocati, gli Assassini, i Rinnegati ed i Sequestratori.
+L'Avvocato non solo appartiene alla Fazione dei Lupi, ma è pure un avvocato. Ha un potere attivabile ogni due notti. L'Avvocato può scegliere un personaggio vivo e far approvare per esso una legge \emph{ad personam}. Se durante il giorno successivo l'assemblea delibera di uccidere tale personaggio, questi non muore. Grazie ai suoi agganci nella malavita, l'Avvocato conosce gli altri Avvocati, gli Assassini, i Necrofili, i Rinnegati ed i Sequestratori.
 {% endif %}
 
 
@@ -153,18 +153,25 @@ Passi il sabato sera insieme alle tue colleghe, a far ribollire lingue di varano
 La Fattucchiera è un mistico e appartiene alla Fazione dei Lupi; conosce i Diavoli, gli Stregoni e le eventuali altre Fattucchiere. Ogni notte la Fattucchiera può indicare un personaggio, vivo o morto, e stregarlo. Per quella notte l'aura di tale personaggio appare del colore opposto a quello effettivo.
 {% endif %}
 
+{% if player.role_name == "Necrofilo" %}
+Tutto il villaggio ti conosce come il fondatore del club di giardinaggio, senza sospettare che si tratti di un'abile copertura per poter girare indisturbato con una vanga in spalla. Mettiamola così: il giorno che riceverai il freddo bacio della morte, non sarà per te una novità.
+
+I suoi gusti particolari non piacevano agli abitanti del villaggio, e così il Necrofilo si è trasferito nella Fazione dei Lupi. Ha un potere speciale attivabile di notte: una sola volta durante l'arco della partita, il Necrofilo può scegliere un personaggio morto e fare... ehm... ecco... e prenderne il ruolo. Se il personaggio scelto appartiene alla Fazione dei Lupi, il Necrofilo lo scopre ed ottiene tale ruolo; altrimenti, il potere del Necrofilo non ha effetto. Conosce gli Assassini, gli Avvocati, i Rinnegati, i Sequestratori e gli eventuali altri Necrofili. Se il Necrofilo utilizza il suo... ehm, potere con successo, il bersaglio scopre (suo malgrado) l'identità del Necrofilo.</p>
+
+{% endif %}
+
 
 {% if player.role_name == "Rinnegato" %}
 Sei bello e dannato, uno sbandato senza onore e senza legge, un peccatore che vaga di luogo in luogo senza mai trovare pace. Al tuo arrivo nel villaggio sei accolto dai sospiri delle contadine, che fanno a gara per curare le ferite del tuo animo tormentato e accarezzare i tuoi zigomi cesellati. La loro fiducia è mal riposta, ma non sarai certo tu a metterle in guardia.
 
-Il Rinnegato appartiene alla Fazione dei Lupi, ma a causa del suo fascino irresistibile la sua aura è bianca. Non ha alcun potere speciale. Conosce gli Assassini, gli Avvocati, i Sequestratori e gli eventuali altri Rinnegati.
+Il Rinnegato appartiene alla Fazione dei Lupi, ma a causa del suo fascino irresistibile la sua aura è bianca. Non ha alcun potere speciale. Conosce gli Assassini, gli Avvocati, i Necrofili, i Sequestratori e gli eventuali altri Rinnegati.
 {% endif %}
 
 
 {% if player.role_name == "Sequestratore" %}
 Sei abitualmente domiciliato in una grotta nei pressi di Sussubbiarrutarruggiu (Sardegna), da dove riemergi per rapire facoltosi turisti in cerca di un cospicuo riscatto. Ma poi li rilasci in cambio di un biglietto del Lotto che ti è stato assicurato essere vincente, il che dimostra quanto vivere in una grotta non giovi alla salute mentale della gente.
 
-Il Sequestratore appartiene alla Fazione dei Lupi e conosce gli Assassini, gli Avvocati, i Rinnegati e gli eventuali altri Sequestratori. Ogni notte, il Sequestratore può scegliere un personaggio vivo e rapirlo. Per quella notte, se il personaggio scelto agisce, il suo potere non ha effetto. Ai fini di tutti gli effetti di gioco, è come se quel personaggio non avesse agito affatto.
+Il Sequestratore appartiene alla Fazione dei Lupi e conosce gli Assassini, gli Avvocati, i Necrofili, i Rinnegati e gli eventuali altri Sequestratori. Ogni notte, il Sequestratore può scegliere un personaggio vivo e rapirlo. Per quella notte, se il personaggio scelto agisce, il suo potere non ha effetto. Ai fini di tutti gli effetti di gioco, è come se quel personaggio non avesse agito affatto.
 {% endif %}
 
 {% if player.role_name == "Stregone" %}
