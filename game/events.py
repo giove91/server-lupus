@@ -688,7 +688,7 @@ class RoleKnowledgeEvent(Event):
 
         elif self.cause == MEDIUM:
             assert isinstance(self.player.canonicalize().role, Medium)
-            assert not self.target.canonicaNecrofilolize().alive
+            assert not self.target.canonicalize().alive
 
         elif self.cause == HYPNOTIST_DEATH:
             assert False

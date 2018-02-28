@@ -882,7 +882,7 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) and event.player == lupo2]
         self.assertFalse(event.success)
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, QuantitativeMovementKnowledgeEvent)]
-        self.assertEqual(event.visitors, 1)
+        self.assertEqual(event.visitors, 2)
 
         self.assertEqual([event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)], [])
         self.assertTrue(cacciatore.alive)
@@ -3150,6 +3150,7 @@ class GameTests(TestCase):
         players = self.game.get_players()
 
         [custode] = [x for x in players if isinstance(x.role, Custode)]
+        [guardia] = [x for x in players if isinstance(x.role, Guardia)]
         [negromante] = [x for x in players if isinstance(x.role, Negromante)]
         [lupo] = [x for x in players if isinstance(x.role, Lupo)]
         [contadino, _] = [x for x in players if isinstance(x.role, Contadino)]
@@ -3183,7 +3184,7 @@ class GameTests(TestCase):
         # Now use powers
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=guardia, target=negromante, timestamp=get_now()))
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=negromante, target2=lupo, timestamp=get_now()))
-        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target2=lupo, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=negromante, target=contadino, target_ghost=VISIONE, timestamp=get_now()))
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=custode, target=contadino, timestamp=get_now()))
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=negromante, timestamp=get_now()))
         
@@ -3601,13 +3602,16 @@ class GameTests(TestCase):
         self.assertEqual(event.cause, VOYEUR)
         
     @record_name
-
     def test_corruzione_on_dead(self): # Lupus7 new
         roles = [ Negromante, Lupo, Lupo, Messia, Ipnotista, Veggente, Contadino ]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
         players = self.game.get_players()
 
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [messia] = [x for x in players if isinstance(x.role, Messia)]
+        [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
         [veggente] = [x for x in players if isinstance(x.role, Veggente)]
 
         # Advance to day and kill veggente
@@ -3703,11 +3707,7 @@ class GameTests(TestCase):
         self.assertTrue(isinstance(veggente.role, Veggente))
         self.assertEqual(veggente.team, POPOLANI)
 
-        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
-        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
-        [messia] = [x for x in players if isinstance(x.role, Messia)]
-        [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
-
+    @record_name
     def test_voyeur_with_illusione_of_self(self):
         roles = [ Negromante, Lupo, Lupo, Messia, Ipnotista, Contadino, Voyeur ]
         self.game = create_test_game(1, roles)
@@ -3715,6 +3715,10 @@ class GameTests(TestCase):
         players = self.game.get_players()
         
         [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [messia] = [x for x in players if isinstance(x.role, Messia)]
+        [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
         [voyeur] = [x for x in players if isinstance(x.role, Voyeur)]
         
         # Advance to day and kill contadino
