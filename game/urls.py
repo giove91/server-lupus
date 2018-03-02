@@ -7,14 +7,7 @@ from game.views import *
 
 
 urlpatterns = [
-    path('', RedirectView.as_view(url='index', permanent=False)),
-    path('index/', home, name='home'),
-    
-    path('ruleset/', ruleset, name='ruleset'),
-    path('credits/', credits, name='credits'),
-    path('trailer/', trailer, name='trailer'),
-    path('prototypes/', prototypes, name='prototypes'),
-    path('error/', errorpage, name='error'),
+    path('', RedirectView.as_view(url='status', permanent=False)),
     
     path('status/', VillageStatusView.as_view(), name='status'),
     path('announcements/', AnnouncementsView.as_view(), name='announcements'),
