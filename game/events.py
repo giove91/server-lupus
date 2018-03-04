@@ -952,8 +952,8 @@ class QuantitativeMovementKnowledgeEvent(Event):
     RELEVANT_PHASES = [DAWN]
     AUTOMATIC = True
 
-    player = models.ForeignKey(Player, related_name='+')
-    target = models.ForeignKey(Player, related_name='+')
+    player = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
+    target = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
     visitors = models.IntegerField()
 
     KNOWLEDGE_CAUSE_TYPES = (

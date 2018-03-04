@@ -154,7 +154,7 @@ class Custode(Role):
     def apply_dawn(self, dynamics):
         self.recorded_target.protected_by_keeper = True
         visitors = [visitor for visitor in self.recorded_target.visitors if visitor.pk not in [self.player.pk, self.recorded_target.pk] or dynamics.illusion == (self.player, self.recorded_target)]
-        from events import QuantitativeMovementKnowledgeEvent
+        from .events import QuantitativeMovementKnowledgeEvent
         dynamics.generate_event(QuantitativeMovementKnowledgeEvent(player=self.player, target=self.recorded_target, visitors=len(visitors), cause=KEEPER))
 
 class Divinatore(Role):
@@ -229,7 +229,7 @@ class Guardia(Role):
     def apply_dawn(self, dynamics):
         self.recorded_target.protected_by_guard = True
         visitors = [visitor for visitor in self.recorded_target.visitors if visitor.pk not in [self.player.pk, self.recorded_target.pk] or dynamics.illusion == (self.player, self.recorded_target)]
-        from events import QuantitativeMovementKnowledgeEvent
+        from .events import QuantitativeMovementKnowledgeEvent
         dynamics.generate_event(QuantitativeMovementKnowledgeEvent(player=self.player, target=self.recorded_target,visitors=len(visitors), cause=GUARD))
 
 
@@ -578,7 +578,7 @@ class Necrofilo(Role):
         return True
 
     def apply_dawn(self, dynamics):
-        from events import TransformationEvent, RoleKnowledgeEvent
+        from .events import TransformationEvent, RoleKnowledgeEvent
         new_role_class = self.recorded_target.role.__class__
         assert new_role_class.team == LUPI
         dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=self.__class__.__name__, cause=NECROPHILIAC))
