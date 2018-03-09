@@ -897,6 +897,8 @@ class Dynamics:
 
         # Apply Scrutatore
         for (target, scrutatore) in self.redirected_ballots:
+            if not scrutatore.alive:
+                continue
             assert target is not None
             assert isinstance(scrutatore.role, Scrutatore)
             for player in self.get_alive_players():
