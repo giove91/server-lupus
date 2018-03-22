@@ -15,6 +15,7 @@ from django.views.generic import ListView
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.utils.text import slugify
 from django.contrib.auth.decorators import user_passes_test
 from django.core import exceptions
 
@@ -646,6 +647,42 @@ class AnnouncementsView(ListView):
         game = Game.get_running_game()
         return Announcement.objects.filter(game=game).filter(visible=True).order_by('-timestamp')
 
+# Form to create a new game
+class CreateGameForm(forms.Form):
+    game_name = forms.CharField(
+                max_length=30,
+                min_length=3,
+                required=True,
+                label='Scegli un nome per la partita.'
+            )
+
+class CreateGameView(View):
+    def get(self, request):
+        player = request.player
+        form = CreateGameForm()
+        return render(request, 'create_game.html', {'form': form, 'message': None})
+
+    def post(self, request):
+        player = request.player
+        user = request.user
+        form = CreateGameForm(request.POST)
+
+        if form.is_valid():
+            game_name = slugify(form.cleaned_data['game_name'])
+            (game, created) = Game.objects.get_or_create(game_name=game_name)
+            if created:
+                game.initialize(get_now())
+                master = GameMaster(user=user,game=game)
+                master.save
+                return redirect('status', game_name=game_name)
+            else:
+                return render(request, 'create_game.html', {'form': form, 'message': 'Nome già in uso.'})
+        else:
+            return render(request, 'create_game.html', {'form': form, 'message': 'Scelta non valida'})
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(CreateGameView, self).dispatch(*args, **kwargs)
 
 # Form for changing point of view (for GMs only)
 class ChangePointOfViewForm(forms.Form):

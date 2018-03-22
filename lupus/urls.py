@@ -12,6 +12,7 @@ admin.autodiscover()
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('accounts/logout/', views.logout_view, name='logout'),
     path('accounts/', include('django.contrib.auth.urls')),
     path('index/', home, name='home'),
     path('', RedirectView.as_view(pattern_name='home', permanent=False)),
@@ -21,6 +22,8 @@ urlpatterns = [
     path('trailer/', trailer, name='trailer'),
     path('prototypes/', prototypes, name='prototypes'),
     path('error/', errorpage, name='error'),
+
+    path('creategame/', CreateGameView.as_view(), name='creategame'),
 
     path('game/<str:game_name>/', include('game.urls'))
 ]

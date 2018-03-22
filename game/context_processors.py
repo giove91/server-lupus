@@ -4,9 +4,17 @@ from .utils import get_now
 
 
 def context_player_and_game(request):
+    player = request.player
+    game = request.game
+    if game is not None:
+        game_name = game.game_name
+    else:
+        game_name = None
+
     return {
-        'player': request.player,
-        'game': request.game,
+        'player': player,
+        'game': game,
+        'game_name': game_name
     }
 
 def context_current_turn(request):
