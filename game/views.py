@@ -139,7 +139,6 @@ def credits(request):
 def trailer(request):
     return render(request, 'trailer.html')
 
-@login_required
 def prototypes(request):
     return render(request, 'prototypes.html')
 

@@ -345,8 +345,8 @@ class Player(models.Model):
     )
     TEAMS_DICT = dict(TEAMS)
     
-    user = models.ForeignKey(User)
-    game = models.ForeignKey(Game)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)
     
     class Meta:
         ordering = ['user__last_name', 'user__first_name']
@@ -500,9 +500,13 @@ class Player(models.Model):
     is_appointed_mayor.boolean = True
 
 class GameMaster(models.Model):
-    user = models.OneToOneField(User, primary_key=True)
-    game = models.ForeignKey(Game)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)
     
+    class Meta:
+        ordering = ['user__last_name', 'user__first_name']
+        unique_together = ['user','game']
+
     def get_gender(self):
         try:
             return self.user.profile.gender

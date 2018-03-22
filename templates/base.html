@@ -28,133 +28,140 @@
 <body>
     
     <div id="header-background">
-	    <div id="header-background-upper"></div>
-	    <div id="header-background-lower"></div>
+            <div id="header-background-upper"></div>
+            <div id="header-background-lower"></div>
     </div>
     
-    <div class="container_16">	
-	    <header id="header" class="grid_16">
-		    <!--<img id="logo" src="{% static "logo.png" %}"/>-->
-		    <img id="logo" src="{% static "logo.svg" %}" onerror="this.src='{% static "logo.png" %}'; this.onerror=null;">
-		    <div id="header-upper">
-			    <span id="login">
-			        <div>
-			        {% if user.is_authenticated %}
-                        <a href="{% url 'logout' %}">Logout</a>
-                    {% else %}
-                        <a href="{% url 'login' %}">Login</a>
-                    {% endif %}
+    <div class="container_16">
+            <header id="header" class="grid_16">
+                    <!--<img id="logo" src="{% static "logo.png" %}"/>-->
+                    <img id="logo" src="{% static "logo.svg" %}" onerror="this.src='{% static "logo.png" %}'; this.onerror=null;">
+                    <div id="header-upper">
+                        <span id="login">
+                            <div>
+                            {% if user.is_authenticated %}
+                                <a href="{% url 'logout' %}">Logout</a>
+                            {% else %}
+                                <a href="{% url 'login' %}">Login</a>
+                            {% endif %}
+                            </div>
+                            {% if user.is_authenticated %}
+                                <div class="username">
+                                    Sei loggato come {{ user.username }} ({{ user.first_name }} {{ user.last_name }})
+                                </div>
+                            {% endif %}
+                            {% if user.is_master and player %}
+                                <div class="point-of-view">
+                                    Punto di vista di {{ player.full_name }}
+                                </div>
+                            {% endif %}
+                        </span>
+                        <ul>
+                            <li><a href="{% url 'home' %}">Home</a></li>
+                            {% if game and player %}
+                                <li><a href="{% url 'status' %}">Stato del villaggio</a></li>
+                                <li><a href="{% url 'announcements' %}">Annunci dei GM</a></li>
+                            {% endif %}
+                        </ul>
                     </div>
-                    {% if user.is_authenticated %}
-                        <div class="username">
-                            Sei loggato come {{ user.username }} ({{ user.first_name }} {{ user.last_name }})
-                        </div>
-                    {% endif %}
-                    {% if user.is_staff and player %}
-                        <div class="point-of-view">
-                            Punto di vista di {{ player.full_name }}
-                        </div>
-                    {% endif %}
-			    </span>
-			    {% if game and player %}
-			    <ul>
-			        <li><a href="{% url 'home' %}">Home</a></li>
-				    <li><a href="{% url 'status' %}">Stato del villaggio</a></li>
-				    <li><a href="{% url 'announcements' %}">Annunci dei GM</a></li>
-			    </ul>
-			    {% endif %}
-		    </div>
-		    <div id="header-lower">
-		        {% if latest_announcement %}
-		            <strong>{{ latest_announcement.timestamp|date:"d/m/Y H:i" }}</strong> {{ latest_announcement.text|truncatechars:125 }}
-		        {% endif %}
-		    </div>
-	    </header>
+                    <div id="header-lower">
+                        {% if latest_announcement %}
+                            <strong>{{ latest_announcement.timestamp|date:"d/m/Y H:i" }}</strong> {{ latest_announcement.text|truncatechars:125 }}
+                        {% endif %}
+                    </div>
+            </header>
         
-	    <div class="clear"></div>
+            <div class="clear"></div>
         
         {% if classified %}
             <div class="grid_16">
-			    <div class="security-banner">
-				    <img id="visibility-indicator" src="{% static "classified.png" %}" />
-				    Questa pagina contiene informazioni riservate. Accertati di essere da sol{{ user.profile.oa }}.
-			    </div>
+                <div class="security-banner">
+                        <img id="visibility-indicator" src="{% static "classified.png" %}" />
+                        Questa pagina contiene informazioni riservate. Accertati di essere da sol{{ user.profile.oa }}.
+                </div>
             </div>
         {% endif %}
         
         <div class="clear vertical-space"></div>
         
         <aside class="grid_3">
-		{% if game is not None %}
-		    <div class="nav-menu">
-			<h1>Azioni di gioco</h1>
-			<ul>
-			<li><a href="{% url 'personalinfo' %}">Informazioni personali</a></li>
-			<li><a href="{% url 'vote' %}">Votazione per il rogo</a></li>
-			<li><a href="{% url 'elect' %}">Elezione del Sindaco</a></li>
-			<li><a href="{% url 'usepower' %}">Potere notturno</a></li>
-			{% if player.is_mayor and current_turn.phase != CREATION %}
-			    <li><a href="{% url 'appoint' %}">Designa successore</a></li>
-			{% endif %}
-			<li><a href="{% url 'comment' %}">Commenti alla partita</a></li>
-		    </ul>
-		    </div>
-		{% endif %}
-	        
-	        <div class="nav-menu">
-	            <h1>Altro</h1>
-	            <ul>
-	                <li><a href="{% url 'ruleset' %}">Regolamento</a></li>
-	                <li><a href="{% url 'prototypes' %}">Prototipi</a></li>
-			{% if game and player %}
-			    <li><a href="{% url 'contacts' %}">Contatti</a></li>
-			{% endif %}
+                {% if game is not None %}
+                    <div class="nav-menu">
+                        <h1>Azioni di gioco</h1>
+                        <ul>
+                        <li><a href="{% url 'personalinfo' %}">Informazioni personali</a></li>
+                        <li><a href="{% url 'vote' %}">Votazione per il rogo</a></li>
+                        <li><a href="{% url 'elect' %}">Elezione del Sindaco</a></li>
+                        <li><a href="{% url 'usepower' %}">Potere notturno</a></li>
+                        {% if player.is_mayor and current_turn.phase != CREATION %}
+                            <li><a href="{% url 'appoint' %}">Designa successore</a></li>
+                        {% endif %}
+                        <li><a href="{% url 'comment' %}">Commenti alla partita</a></li>
+                    </ul>
+                    </div>
+                {% endif %}
+
+                <div class="nav-menu">
+                    <h1>Informazioni</h1>
+                    <ul>
+                        <li><a href="{% url 'ruleset' %}">Regolamento</a></li>
+                        <li><a href="{% url 'prototypes' %}">Prototipi</a></li>
+                        {% if game and player %}
+                            <li><a href="{% url 'contacts' %}">Contatti</a></li>
+                        {% endif %}
                     <li><a href="{% url 'credits' %}">Riconoscimenti</a></li>
                     <li><a href="{% url 'trailer' %}">Trailer</a></li>
                 </ul>
-	        </div>
-	        {% comment %}
-				{% if current_turn.phase == DAY or current_turn.phase == NIGHT or user.is_staff %}
-				{# This menu is shown when game is over. When the game finishes, only staff can see it until DAY or NIGHT #}
-				<div class="nav-menu">
-					<h1>Dopo-partita</h1>
-					<ul>
-						<li><a href="{% url 'adminstatus' %}">Tutte le informazioni</a></li>
-					</ul>
-				</div>
-				{% endif %}
-	        {% endcomment %}
+                </div>
+                {% comment %}
+                    <!--TODO: Decidere come mostrare il menù Dopo-partita.-->
+                    {% if current_turn.phase == DAY or current_turn.phase == NIGHT or user.is_staff %}
+                    {# This menu is shown when game is over. When the game finishes, only staff can see it until DAY or NIGHT #}
+                    <div class="nav-menu">
+                            <h1>Dopo-partita</h1>
+                            <ul>
+                                    <li><a href="{% url 'adminstatus' %}">Tutte le informazioni</a></li>
+                            </ul>
+                    </div>
+                    {% endif %}
+                {% endcomment %}
 
-	    {% if user.is_authenticated %}
-			<div class="nav-menu">
-				<h1>Utente</h1>
-				<ul>
-					<li><a href="{% url 'password_change' %}">Cambia password</a></li>
-				</ul>
-		{% endif %}
-			
-        {% if user.is_staff %}
-		<div class="nav-menu">
-			<h1>GM</h1>
-		    <ul>
-			<li><a href="{% url 'adminstatus' %}">Tutte le informazioni</a></li>
-			<li><a href="{% url 'advanceturn' %}" onclick="return confirm('Vuoi davvero avanzare al turno successivo?');">Turno successivo</a></li>
-			<li><a href="{% url 'pointofview' %}">Punto di vista</a></li>
-			<li><a href="{% url 'dump' %}">Dump della partita</a></li>
-			<li><a href="{% url 'admin:index' %}">Admin: Index</a></li>
-			<li><a href="{% url 'admin:game_player_changelist' %}">Admin: Players</a></li>
-			<li><a href="{% url 'admin:game_commandevent_changelist' %}">Admin: CommandEvents</a></li>
-			<li><a href="{% url 'admin:game_comment_changelist' %}">Admin: Comments</a></li>
-			<li><a href="{% url 'admin:game_pagerequest_changelist' %}">Admin: PageRequests</a></li>
-		    </ul>
-		</div>
-		{% endif %}
-	        
-	    </aside>
-	    
-	    {% block content %}{% endblock %}
+            {% if user.is_authenticated %}
+                <div class="nav-menu">
+                    <h1>Utente</h1>
+                    <ul>
+                        <li><a href="{% url 'password_change' %}">Cambia password</a></li>
+                    </ul>
+            {% endif %}
 
-	    <div class="clear"></div>
+            {% if master %}
+                <div class="nav-menu">
+                    <h1>GM</h1>
+                    <ul>
+                        <li><a href="{% url 'adminstatus' %}">Tutte le informazioni</a></li>
+                        <li><a href="{% url 'pointofview' %}">Punto di vista</a></li>
+                    </ul>
+                </div>
+            {% endif %}
+
+            {% if user.is_staff %}
+                <div class="nav-menu">
+                    <h1>Admin</h1>
+                    <ul>
+                        <li><a href="{% url 'admin:index' %}">Admin: Index</a></li>
+                        <li><a href="{% url 'admin:game_player_changelist' %}">Admin: Players</a></li>
+                        <li><a href="{% url 'admin:game_commandevent_changelist' %}">Admin: CommandEvents</a></li>
+                        <li><a href="{% url 'admin:game_comment_changelist' %}">Admin: Comments</a></li>
+                        <li><a href="{% url 'admin:game_pagerequest_changelist' %}">Admin: PageRequests</a></li>
+                    </ul>
+                </div>
+            {% endif %}
+
+            </aside>
+
+            {% block content %}{% endblock %}
+
+            <div class="clear"></div>
     </div>
     
     

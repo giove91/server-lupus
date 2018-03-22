@@ -38,6 +38,7 @@ class GameMiddleware(MiddlewareMixin):
         request.current_turn = current_turn
         
         user = request.user
+        request.is_master = False
 
         if user.is_authenticated:
             # Authenticated
@@ -46,6 +47,7 @@ class GameMiddleware(MiddlewareMixin):
             except Player.DoesNotExist:
                 try:
                     master = GameMaster.objects.get(user=user,game=game)
+                    request.is_master = True
                     # The User is a Game Master, so she can become any Player
                     player_id = request.session.get('player_id', None)
                     if player_id is not None:
@@ -62,6 +64,7 @@ class GameMiddleware(MiddlewareMixin):
         else:
             # Not authenticated
             player = None
+            master = None
         
         request.player = player
         
