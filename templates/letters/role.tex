@@ -1,0 +1,125 @@
+{% autoescape off %}
+
+\documentclass[a4paper,10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[italian]{babel}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{fancyhdr}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage[parfill]{parskip}
+\usepackage{multicol}
+\usepackage{fullpage}
+
+\topmargin -1cm
+\textheight 26cm
+\oddsidemargin -1cm
+\textwidth 18cm
+
+\title{Lupus in tempo reale}
+\author{Settima edizione}
+\date{28 febbraio 2018}
+
+\begin{document}
+\pagenumbering{gobble}
+
+\maketitle
+
+\emph{È vietato mostrare il contenuto di questa lettera ad altre persone, fino al termine della partita.}
+
+
+\subsection*{Ruolo e personaggio}
+Carissim{{ player.oa }} {{ player.full_name }}, nel corso della partita ricoprirai il ruolo di {{ player.role.name }}.
+
+{% include "letters/role_details.tex" %}
+
+{% if initial_knowledge %}
+    {% for message in initial_knowledge %}
+        {{ message }}
+    {% endfor %}
+{% endif %}
+
+{% if player.is_mayor %}
+    Ti comunichiamo inoltre che sei stato nominato Sindaco del villaggio.
+{% endif %}
+
+
+\subsection*{Composizione del villaggio}
+La composizione iniziale del villaggio non è nota.
+{% if initial_propositions %} %
+Tuttavia vi vengono fornite le seguenti utilissime proposizioni, che i Game Master garantiscono essere vere.
+\nopagebreak
+\begin{itemize}
+{% for proposition in initial_propositions %}
+  \item {{ proposition.text }}
+{% endfor %}
+\end{itemize}
+{% endif %}
+
+Il Sindaco del villaggio è {{ mayor.full_name }}.
+
+
+\subsection*{Credenziali di accesso all'interfaccia web}
+
+Le comunicazioni relative alle dinamiche di gioco (non le comunicazioni tra giocatori, bensì le azioni eseguite, le votazioni, ecc.) avvengono attraverso l'interfaccia web di \emph{Lupus in tempo reale}.
+L'indirizzo a cui collegarsi è il seguente:
+\nopagebreak
+\begin{center}
+    \verb|http://lupus.uz.sns.it/|
+\end{center}
+
+Le credenziali con cui puoi accedere all'area riservata (per votare, utilizzare il tuo potere notturno e visualizzare le informazioni personali) sono le seguenti.
+\nopagebreak
+\begin{center}
+\begin{tabular}{ll}
+    Username: & \verb| {{ player.user.username }} | \\
+    Password: & \verb| {{ password }} | \\
+\end{tabular}
+\end{center}
+
+
+\subsection*{Elenco dei giocatori}
+Partecipano alla partita {{ numplayers }} giocatori, di cui si fornisce l'elenco completo:
+\nopagebreak
+
+\begin{minipage}{0.5\textwidth}
+\small
+\begin{tabular}{ll}
+{% for player in players %}
+        {{ player.full_name }} & \verb| {{ player.user.email }} | \\
+{% if forloop.counter == column_height %}
+\end{tabular}
+\end{minipage}
+\begin{minipage}{0.5\textwidth}
+\small
+\begin{tabular}{ll}
+{% endif %}
+{% endfor %}
+\end{tabular}
+\end{minipage}
+
+È stata creata una mailing-list che potete utilizzare per scrivere a tutti i giocatori:
+\begin{center}
+\verb||
+\end{center}
+
+
+\subsection*{Segretezza delle informazioni}
+
+Come già specificato in precedenza, è vietato mostrare il contenuto di questa lettera a qualsiasi persona prima che la partita sia conclusa, anche se il tuo personaggio muore o viene esiliato.
+Ciò non significa che tu non possa \emph{dichiarare} di avere un determinato ruolo: semplicemente non puoi dimostrarlo facendo vedere questa lettera a qualcun altro.
+
+Discorso analogo si applica all'interfaccia web: alcune pagine (quelle che, nel menu, appaiono sotto la scritta ``Area riservata'') contengono informazioni che possono essere viste solo da te. Pertanto assicurati di essere lontano da occhi indiscreti ogni volta che accedi a pagine dell'area riservata.
+
+
+\subsection*{Comunicazioni con i Game Master}
+
+I Game Master che gestiscono la partita sono Alessandro Iraci, Matteo Migliorini e Manuele Cusumano.
+In caso di dubbi o necessità, potete contattarli all'indirizzo e-mail:
+
+\end{document}
+
+{% endautoescape %}
+

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<main id="content" class="grid_13">
+
+    <h1>Contatti</h1>
+    
+    <div class="info-block">
+        <h2>Game Master</h2>
+    </div>
+    <div class="info-block">
+        <h2>Giocatori</h2>
+        <p>Mailing list di tutti i giocatori e dei GM: </p>
+        
+        <table class="normal">
+        {% for player in object_list %}
+            <tr>
+                <td class="name-container">{{ player.full_name }}</td>
+                <td>{{ player.user.email }}</td>
+            </tr>
+        {% empty %}
+            <tr><td>Curiosamente non ci sono giocatori.</td></tr>
+        {% endfor %}
+        </table>
+    
+    </div>
+</main>
+{% endblock %}
+
+

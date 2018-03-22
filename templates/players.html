@@ -1,0 +1,32 @@
+<div class="players-status">
+<h2>Vivi</h2>
+<ul>
+    {% for player in game.alive_players %}
+        <li>{{ player.full_name }}</li>
+    {% empty %}
+        <p><i>Non ci sono vivi</i></p>
+    {% endfor %}
+</ul>
+
+
+
+<h2>Morti</h2>
+<ul>
+    {% for player in game.dead_players %}
+        <li>{{ player.full_name }}</li>
+    {% empty %}
+        <p><i>Non ci sono morti</i></p>
+    {% endfor %}
+</ul>
+
+{% if game.inactive_players %}
+<h2>Esiliati</h2>
+<ul>
+    {% for player in game.inactive_players %}
+        <li>{{ player.full_name }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+</div>
+
