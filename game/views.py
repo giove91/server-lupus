@@ -243,8 +243,13 @@ def get_weather(request):
         request.session['weather'] = weather.stored()
     return weather
 
+class GameView(View):
+    def dispatch(self, game_name, *args, **kwargs)
+        #Do not pass game_name to view, because it's handled by the middleware
+        return super().dispatch(self, *args, **kwargs)
+
 # View of village status and public events
-class VillageStatusView(View):
+class VillageStatusView(GameView):
     def get(self, request):
         
         game = request.game
@@ -265,7 +270,7 @@ class VillageStatusView(View):
 
 
 # View of personal info and events
-class PersonalInfoView(View):
+class PersonalInfoView(GameView):
     def get(self, request):
         
         if request.player is None:
@@ -294,7 +299,7 @@ class PersonalInfoView(View):
 
 
 # View of all info (for GM only)
-class AdminStatusView(View):
+class AdminStatusView(GameView):
     def get(self, request):
         events = get_events(request, 'admin')
         weather = get_weather(request)
@@ -368,7 +373,7 @@ class CommandForm(forms.Form):
 
 
 
-class CommandView(View):
+class CommandView(GameView):
     
     template_name = 'command.html'
     
@@ -695,7 +700,7 @@ class ChangePointOfViewForm(forms.Form):
 
 
 # View for changing point of view (for GMs only)
-class PointOfView(View):
+class PointOfView(GameView):
     def get(self, request):
         player = request.player
         form = ChangePointOfViewForm(initial={'player': player})
@@ -728,7 +733,7 @@ class PointOfView(View):
 class CommentForm(forms.Form):
     text = forms.CharField(widget=forms.Textarea, label='', max_length=4096)
 
-class CommentView(View):
+class CommentView(GameView):
     max_comments_per_turn = 100
     
     def can_comment(self, request):
@@ -780,7 +785,7 @@ class CommentView(View):
 
 
 # Dump view (for GM only)
-class DumpView(View):
+class DumpView(GameView):
     def get(self, request):
         game = request.game
         response = HttpResponse(content_type='application/json; charset=utf-8')
@@ -791,6 +796,4 @@ class DumpView(View):
     @method_decorator(user_passes_test(is_GM_check))
     def dispatch(self, *args, **kwargs):
         return super(DumpView, self).dispatch(*args, **kwargs)
-
-
 
