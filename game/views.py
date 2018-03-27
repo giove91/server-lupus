@@ -244,9 +244,9 @@ def get_weather(request):
     return weather
 
 class GameView(View):
-    def dispatch(self, game_name, *args, **kwargs):
+    def dispatch(self, request, game_name, *args, **kwargs):
         #Do not pass game_name to view, because it's handled by the middleware
-        return super().dispatch(self, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 # View of village status and public events
 class VillageStatusView(GameView):
