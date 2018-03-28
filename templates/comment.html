@@ -11,7 +11,7 @@
         Saranno visibili solamente a te e ai GM, ed eventualmente verranno pubblicati dopo la fine della partita.</p>
         
         {% if can_comment %}
-            <form action="{% url 'comment' %}" method="post">
+            <form action="{% url 'comment' game_name=game_name %}" method="post">
             {% csrf_token %}
             {{ form.as_p }}
             <p><input type="submit" value="Invia il commento" /></p>

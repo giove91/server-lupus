@@ -14,7 +14,8 @@ def context_player_and_game(request):
     return {
         'player': player,
         'game': game,
-        'game_name': game_name
+        'game_name': game_name,
+        'is_master': request.is_master
     }
 
 def context_current_turn(request):
