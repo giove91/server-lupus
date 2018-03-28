@@ -104,7 +104,8 @@ def get_events(request, player):
     
     return ordered_result
 
-
+def not_implemented(request):
+    raise NotImplementedError("View not implemented")
 
 def home(request):
     return render(request, 'index.html')
@@ -676,7 +677,6 @@ class CreateGameView(View):
             game_name = slugify(form.cleaned_data['game_name'])
             (game, created) = Game.objects.get_or_create(game_name=game_name)
             if created:
-                game.initialize(get_now())
                 master = GameMaster(user=user,game=game)
                 master.save()
                 return redirect('status', game_name=game_name)

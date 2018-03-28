@@ -29,6 +29,7 @@ class GameMiddleware(MiddlewareMixin):
         if game is not None:
             current_turn = dynamics.current_turn
             
+            # TODO: Sarà da levare con l'auto-avanzamento
             # If the current turn has actually finished, automatically assume
             # that we are in the following one
             if current_turn.end is not None and get_now() >= current_turn.end:

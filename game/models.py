@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, time
 from threading import RLock
 import sys
 
@@ -72,6 +72,15 @@ class Game(models.Model):
     def __unicode__(self):
         return u"Game %d" % self.pk
     game_name = models.CharField(max_length=32)
+    num_teams = models.IntegerField(choices=[('2',2),('3',3)])
+
+    day_end_weekdays = models.PositiveSmallIntegerField(default=48)
+
+    def get_day_end_weekdays(self):
+        return [ (self.day_end_weekdays >> i) & 1 for i in range(7)]
+
+    night_end_time = models.TimeField(default=time(8), null=True)
+    day_end_time = models.TimeField(default=time(22), null=True)
 
     def current_turn(self):
         try:
@@ -85,13 +94,6 @@ class Game(models.Model):
         which does not change neither by restarting the server (but it
         can change if players' data is changed)."""
         return self.get_dynamics().players
-
-    @staticmethod
-    def get_running_game():
-        try:
-            return Game.objects.get(running=True)
-        except Game.DoesNotExist:
-            return None
 
     def mayor(self):
         return self.get_dynamics().mayor

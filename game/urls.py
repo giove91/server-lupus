@@ -20,6 +20,10 @@ urlpatterns = [
     path('contacts/', ContactsView.as_view(), name='contacts'),
     path('comment/', CommentView.as_view(), name='comment'),
     
+    path('initialize/', not_implemented, name='initialize'),
+    path('propositions/', not_implemented, name='propositions'),
+    path('soothsayer/', not_implemented, name='soothsayer'),
+    
     path('adminstatus/', AdminStatusView.as_view(), name='adminstatus'),
     path('setup/', setup, name='setup'),
     path('advanceturn/', advance_turn, name='advanceturn'),
