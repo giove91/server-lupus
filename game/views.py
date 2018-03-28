@@ -678,7 +678,7 @@ class CreateGameView(View):
             if created:
                 game.initialize(get_now())
                 master = GameMaster(user=user,game=game)
-                master.save
+                master.save()
                 return redirect('status', game_name=game_name)
             else:
                 return render(request, 'create_game.html', {'form': form, 'message': 'Nome già in uso.'})

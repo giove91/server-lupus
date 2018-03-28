@@ -16,6 +16,7 @@ class GameMiddleware(MiddlewareMixin):
             request.player = None
             request.current_turn = None
             request.dynamics = None
+            request.is_master = False
             return None
 
         game = get_object_or_404(Game,game_name=game_name)
@@ -39,7 +40,6 @@ class GameMiddleware(MiddlewareMixin):
         
         user = request.user
         request.is_master = False
-
         if user.is_authenticated:
             # Authenticated
             try:
