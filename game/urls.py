@@ -5,6 +5,7 @@ from django.views.generic.base import RedirectView
 
 from game.views import *
 
+app_name = 'game'
 
 urlpatterns = [
     path('', RedirectView.as_view(url='status', permanent=False)),
@@ -20,15 +21,18 @@ urlpatterns = [
     path('contacts/', ContactsView.as_view(), name='contacts'),
     path('comment/', CommentView.as_view(), name='comment'),
 
-    path('subscribe/', not_implemented, name='subscribe'),
-    path('unsubscribe/', not_implemented, name='unsubscribe'),
-    
-    path('composition/', not_implemented, name='composition'),
-    path('seed/', not_implemented, name='seed'),
-    path('propositions/', not_implemented, name='propositions'),
-    path('soothsayer/', not_implemented, name='soothsayer'),
-    path('settings/', not_implemented, name='gamesettings'),
-    path('delete/', not_implemented, name='deletegame'),
+    path('subscribe/', not_implemented, name='subscribe'), # Aggiunge il giocatore
+    path('unsubscribe/', not_implemented, name='unsubscribe'), # Rimuove il giocatore
+
+    path('addmaster/', not_implemented, name='addmaster'), # Aggiunge un master alla partita
+    path('initialize/', not_implemented, name='initialize'), # Chiude le iscrizioni
+    path('composition/', not_implemented, name='composition'), # Imposta la composizione del villaggio
+    path('seed/', not_implemented, name='seed'), # Cambia il seed
+    path('propositions/', not_implemented, name='propositions'), # Cambia le proposizioni iniziali
+    path('soothsayer/', not_implemented, name='soothsayer'), # Cambia le frasi dei divinatori
+    path('settings/', not_implemented, name='settings'), # Cambia le impostazioni della partita
+    path('restart/', not_implemented, name='restart'), # Elimina tutti gli eventi e riapre le iscrizioni
+    path('delete/', not_implemented, name='delete'), # Cancella la partita
     
     path('adminstatus/', AdminStatusView.as_view(), name='adminstatus'),
     path('setup/', setup, name='setup'),
