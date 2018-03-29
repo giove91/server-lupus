@@ -11,6 +11,7 @@ from django.views import generic
 from django.views.generic.base import View
 from django.views.generic.base import TemplateView
 from django.views.generic import ListView
+from django.views.generic.edit import CreateView
 
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
@@ -653,37 +654,25 @@ class AnnouncementsView(ListView):
         game = Game.get_running_game()
         return Announcement.objects.filter(game=game).filter(visible=True).order_by('-timestamp')
 
-# Form to create a new game
-class CreateGameForm(forms.Form):
-    game_name = forms.CharField(
-                max_length=30,
-                min_length=3,
-                required=True,
-                label='Scegli un nome per la partita.'
-            )
+class CreateGameView(CreateView):
+    model = Game
+    fields = ['name', 'description', 'num_teams']
+    template_name = 'create_game.html'
 
-class CreateGameView(View):
-    def get(self, request):
-        player = request.player
-        form = CreateGameForm()
-        return render(request, 'create_game.html', {'form': form, 'message': None})
+    def form_valid(self, form):
+        player = self.request.player
+        user = self.request.user
 
-    def post(self, request):
-        player = request.player
-        user = request.user
-        form = CreateGameForm(request.POST)
-
-        if form.is_valid():
-            game_name = slugify(form.cleaned_data['game_name'])
-            (game, created) = Game.objects.get_or_create(game_name=game_name)
-            if created:
-                master = GameMaster(user=user,game=game)
-                master.save()
-                return redirect('status', game_name=game_name)
-            else:
-                return render(request, 'create_game.html', {'form': form, 'message': 'Nome già in uso.'})
+        game_name = slugify(form.cleaned_data['name'])
+        description = form.cleaned_data['description']
+        num_teams = form.cleaned_data['num_teams']
+        (game, created) = Game.objects.get_or_create(name=game_name, description=description, num_teams=num_teams)
+        if created:
+            master = GameMaster(user=user,game=game)
+            master.save()
+            return redirect('game:status', game_name=game_name)
         else:
-            return render(request, 'create_game.html', {'form': form, 'message': 'Scelta non valida'})
+            return render(self.request, 'create_game.html', {'form': form, 'message': 'Nome già in uso.'})
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
