@@ -6,15 +6,10 @@ from .utils import get_now
 def context_player_and_game(request):
     player = request.player
     game = request.game
-    if game is not None:
-        game_name = game.game_name
-    else:
-        game_name = None
 
     return {
         'player': player,
         'game': game,
-        'game_name': game_name,
         'is_master': request.is_master
     }
 

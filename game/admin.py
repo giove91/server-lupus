@@ -21,7 +21,7 @@ admin.site.register(User, UserAdmin)
 
 
 class GameAdmin(admin.ModelAdmin):
-    list_display = ('game_name', 'running', 'current_turn', 'mayor')
+    list_display = ('name', 'running', 'current_turn', 'mayor')
 
 class TurnAdmin(admin.ModelAdmin):
     list_display = ('as_string', 'date', 'phase', 'begin', 'end')

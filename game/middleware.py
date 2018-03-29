@@ -19,14 +19,12 @@ class GameMiddleware(MiddlewareMixin):
             request.is_master = False
             return None
 
-        game = get_object_or_404(Game,game_name=game_name)
+        game = get_object_or_404(Game,name=game_name)
         dynamics = None
         current_turn = None
         
         if game is not None:
             dynamics = game.get_dynamics()
-        
-        if game is not None:
             current_turn = dynamics.current_turn
             
             # TODO: Sarà da levare con l'auto-avanzamento

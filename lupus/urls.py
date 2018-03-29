@@ -25,7 +25,7 @@ urlpatterns = [
 
     path('creategame/', CreateGameView.as_view(), name='creategame'),
 
-    path('game/<str:game_name>/', include('game.urls'))
+    path('game/<str:game_name>/', include('game.urls', namespace='game'))
 ]
 
 if settings.DEBUG:

@@ -89,14 +89,14 @@
                     <div class="nav-menu">
                         <h1>Azioni di gioco</h1>
                         <ul>
-                        <li><a href="{% url 'personalinfo' game_name=game_name %}">Informazioni personali</a></li>
-                        <li><a href="{% url 'vote' game_name=game_name %}">Votazione per il rogo</a></li>
-                        <li><a href="{% url 'elect' game_name=game_name %}">Elezione del Sindaco</a></li>
-                        <li><a href="{% url 'usepower' game_name=game_name %}">Potere notturno</a></li>
+                        <li><a href="{% url 'game:personalinfo' game_name=game.name %}">Informazioni personali</a></li>
+                        <li><a href="{% url 'game:vote' game_name=game.name %}">Votazione per il rogo</a></li>
+                        <li><a href="{% url 'game:elect' game_name=game.name %}">Elezione del Sindaco</a></li>
+                        <li><a href="{% url 'game:usepower' game_name=game.name %}">Potere notturno</a></li>
                         {% if player.is_mayor and current_turn.phase != CREATION %}
-                            <li><a href="{% url 'appoint' game_name=game_name %}">Designa successore</a></li>
+                            <li><a href="{% url 'game:appoint' game_name=game.name %}">Designa successore</a></li>
                         {% endif %}
-                        <li><a href="{% url 'comment' game_name=game_name %}">Commenti alla partita</a></li>
+                        <li><a href="{% url 'game:comment' game_name=game.name %}">Commenti alla partita</a></li>
                     </ul>
                     </div>
                 {% endif %}
@@ -120,7 +120,7 @@
                     <div class="nav-menu">
                             <h1>Dopo-partita</h1>
                             <ul>
-                                    <li><a href="{% url 'adminstatus' game_name=game_name %}">Tutte le informazioni</a></li>
+                                    <li><a href="{% url 'game:adminstatus' game_name=game.name %}">Tutte le informazioni</a></li>
                             </ul>
                     </div>
                     {% endif %}
@@ -138,8 +138,8 @@
                 <div class="nav-menu">
                     <h1>GM</h1>
                     <ul>
-                        <li><a href="{% url 'adminstatus' game_name=game_name %}">Tutte le informazioni</a></li>
-                        <li><a href="{% url 'pointofview' game_name=game_name %}">Punto di vista</a></li>
+                        <li><a href="{% url 'game:adminstatus' game_name=game.name %}">Tutte le informazioni</a></li>
+                        <li><a href="{% url 'game:pointofview' game_name=game.name %}">Punto di vista</a></li>
                     </ul>
                 </div>
             {% endif %}

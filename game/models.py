@@ -72,7 +72,7 @@ class Game(models.Model):
     public = models.BooleanField(default=False)
     def __unicode__(self):
         return u"Game %d" % self.pk
-    game_name = models.CharField(max_length=32)
+    name = models.CharField(max_length=32)
     description = models.CharField(max_length=64)
     num_teams = models.IntegerField(choices=[('2',2),('3',3)])
 
