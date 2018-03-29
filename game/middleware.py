@@ -38,32 +38,32 @@ class GameMiddleware(MiddlewareMixin):
         request.current_turn = current_turn
         
         user = request.user
-        request.is_master = False
         if user.is_authenticated:
             # Authenticated
             try:
+                master = GameMaster.objects.get(user=user,game=game)
+                request.is_master = True
+            except GameMaster.DoesNotExist:
+                request.is_master = None
+
+            try:
                 player = Player.objects.get(user=user,game=game)
             except Player.DoesNotExist:
-                try:
-                    master = GameMaster.objects.get(user=user,game=game)
-                    request.is_master = True
-                    # The User is a Game Master, so she can become any Player
-                    player_id = request.session.get('player_id', None)
-                    if player_id is not None:
-                        # A Player was already saved
-                        try:
-                            player = Player.objects.get(pk=player_id).canonicalize()
-                        except Player.DoesNotExist:
-                            player = None
-                    else:
-                        # No Player was saved
-                        player = None
-                except GameMaster.DoesNotExist:
-                    player = None
+                player = None
+                
+            if request.is_master:
+                # The User is a Game Master, so she can become any Player
+                player_id = request.session.get('player_id', None)
+                if player_id is not None:
+                    # A Player was already saved
+                    try:
+                        player = Player.objects.get(pk=player_id).canonicalize()
+                    except Player.DoesNotExist:
+                        pass
+
         else:
             # Not authenticated
             player = None
-            master = None
         
         request.player = player
         
