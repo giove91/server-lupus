@@ -69,9 +69,11 @@ def kill_all_dynamics():
 
 class Game(models.Model):
     running = models.BooleanField(default=False)
+    public = models.BooleanField(default=False)
     def __unicode__(self):
         return u"Game %d" % self.pk
     game_name = models.CharField(max_length=32)
+    description = models.CharField(max_length=64)
     num_teams = models.IntegerField(choices=[('2',2),('3',3)])
 
     day_end_weekdays = models.PositiveSmallIntegerField(default=48)

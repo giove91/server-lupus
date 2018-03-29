@@ -19,10 +19,16 @@ urlpatterns = [
     path('appoint/', AppointView.as_view(), name='appoint'),
     path('contacts/', ContactsView.as_view(), name='contacts'),
     path('comment/', CommentView.as_view(), name='comment'),
+
+    path('subscribe/', not_implemented, name='subscribe'),
+    path('unsubscribe/', not_implemented, name='unsubscribe'),
     
-    path('initialize/', not_implemented, name='initialize'),
+    path('composition/', not_implemented, name='composition'),
+    path('seed/', not_implemented, name='seed'),
     path('propositions/', not_implemented, name='propositions'),
     path('soothsayer/', not_implemented, name='soothsayer'),
+    path('settings/', not_implemented, name='gamesettings'),
+    path('delete/', not_implemented, name='deletegame'),
     
     path('adminstatus/', AdminStatusView.as_view(), name='adminstatus'),
     path('setup/', setup, name='setup'),
