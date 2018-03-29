@@ -76,13 +76,16 @@ class Game(models.Model):
     description = models.CharField(max_length=64, verbose_name='Descrizione')
     num_teams = models.IntegerField(choices=[(2,'2'),(3,'3')], verbose_name='Numero di fazioni')
 
-    day_end_weekdays = models.PositiveSmallIntegerField(default=48)
+    day_end_weekdays = models.PositiveSmallIntegerField(default=79)
 
     def get_day_end_weekdays(self):
-        return [ (self.day_end_weekdays >> i) & 1 for i in range(7)]
+        return [ i for i in range(7) if (self.day_end_weekdays >> i) & 1]
 
     night_end_time = models.TimeField(default=time(8), null=True)
     day_end_time = models.TimeField(default=time(22), null=True)
+
+    def started(self):
+        return self.get_dynamics.random is not None
 
     def current_turn(self):
         try:
@@ -101,6 +104,7 @@ class Game(models.Model):
         return self.get_dynamics().mayor
     mayor = property(mayor)
     
+    # TODO: tool per pubblicare i risultati
     over = False
 
     def get_dynamics(self):

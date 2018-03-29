@@ -38,7 +38,7 @@ class GameMiddleware(MiddlewareMixin):
                 master = GameMaster.objects.get(user=user,game=game)
                 request.is_master = True
             except GameMaster.DoesNotExist:
-                request.is_master = None
+                request.is_master = False
 
             try:
                 player = Player.objects.get(user=user,game=game)
@@ -58,6 +58,7 @@ class GameMiddleware(MiddlewareMixin):
         else:
             # Not authenticated
             player = None
+            request.is_master = False
         
         request.player = player
         

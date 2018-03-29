@@ -25,12 +25,11 @@ urlpatterns = [
     path('unsubscribe/', not_implemented, name='unsubscribe'), # Rimuove il giocatore
 
     path('addmaster/', not_implemented, name='addmaster'), # Aggiunge un master alla partita
-    path('initialize/', not_implemented, name='initialize'), # Chiude le iscrizioni
+    path('seed/', not_implemented, name='seed'), # Cambia o crea il seed
     path('composition/', not_implemented, name='composition'), # Imposta la composizione del villaggio
-    path('seed/', not_implemented, name='seed'), # Cambia il seed
     path('propositions/', not_implemented, name='propositions'), # Cambia le proposizioni iniziali
     path('soothsayer/', not_implemented, name='soothsayer'), # Cambia le frasi dei divinatori
-    path('settings/', not_implemented, name='settings'), # Cambia le impostazioni della partita
+    path('settings/', GameSettingsView.as_view(), name='settings'), # Cambia le impostazioni della partita
     path('restart/', not_implemented, name='restart'), # Elimina tutti gli eventi e riapre le iscrizioni
     path('delete/', not_implemented, name='delete'), # Cancella la partita
     

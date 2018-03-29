@@ -48,7 +48,16 @@ def can_access_admin_view(user):
     if not user.is_authenticated:
         return False
     return user.is_staff or (user.is_authenticated and Game.get_running_game().over)
+    
+def master_required(func):
+    def decorator(request, *args, **kwargs):
+        if request.is_master:
+            return func(request, *args, **kwargs)
+        else:
+            return redirect('game:status',game_name=request.game.name)
 
+    return decorator
+    
 def get_events(request, player):
     # player can be a Player, 'admin' or 'public' (depending on the view)
     game = request.game
@@ -668,6 +677,7 @@ class CreateGameView(CreateView):
         num_teams = form.cleaned_data['num_teams']
         (game, created) = Game.objects.get_or_create(name=game_name, description=description, num_teams=num_teams)
         if created:
+            game.initialize(get_now())
             master = GameMaster(user=user,game=game)
             master.save()
             return redirect('game:status', game_name=game_name)
@@ -677,6 +687,28 @@ class CreateGameView(CreateView):
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         return super(CreateGameView, self).dispatch(*args, **kwargs)
+
+class GameSettingsForm(forms.Form):
+    WEEKDAYS = [(0,'Lunedì'), (1,'Martedì'), (2,'Mercoledì'), (3,'Giovedì'), (4,'Venerdì'), (5,'Sabato'), (6,'Domenica')]
+    day_end_weekdays = forms.MultipleChoiceField(choices=WEEKDAYS,widget=forms.CheckboxSelectMultiple)
+    day_end_time = forms.TimeField()
+    night_end_time = forms.TimeField()
+
+class GameSettingsView(GameView):
+    def get(self, request):
+        player = request.player
+        game = request.game
+        form = GameSettingsForm(initial={'day_end_weekdays': game.get_day_end_weekdays(), 'day_end_time':game.day_end_time, 'night_end_time':game.night_end_time })
+        print(game.get_day_end_weekdays())
+        return render(request, 'game_settings.html', {'form': form, 'message': None, 'classified': True})
+    
+    def post(self, request):
+        raise NotImplementedError()
+    
+    @method_decorator(master_required)
+    def dispatch(self, *args, **kwargs):
+        return super(GameSettingsView, self).dispatch(*args, **kwargs)
+    
 
 # Form for changing point of view (for GMs only)
 class ChangePointOfViewForm(forms.Form):
