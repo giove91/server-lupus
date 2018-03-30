@@ -76,13 +76,13 @@ class Game(models.Model):
     description = models.CharField(max_length=64, verbose_name='Descrizione')
     num_teams = models.IntegerField(choices=[(2,'2'),(3,'3')], verbose_name='Numero di fazioni')
 
-    day_end_weekdays = models.PositiveSmallIntegerField(default=79)
+    day_end_weekdays = models.PositiveSmallIntegerField(default=79, verbose_name='Sere in cui finisce il giorno')
 
     def get_day_end_weekdays(self):
         return [ i for i in range(7) if (self.day_end_weekdays >> i) & 1]
 
-    night_end_time = models.TimeField(default=time(8), null=True)
-    day_end_time = models.TimeField(default=time(22), null=True)
+    night_end_time = models.TimeField(default=time(8), null=True, verbose_name='Ora dell\'alba')
+    day_end_time = models.TimeField(default=time(22), null=True, verbose_name='Ora del tramonto')
 
     def started(self):
         return self.get_dynamics.random is not None

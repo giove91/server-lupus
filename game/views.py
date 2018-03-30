@@ -690,9 +690,9 @@ class CreateGameView(CreateView):
 
 class GameSettingsForm(forms.Form):
     WEEKDAYS = [(0,'Lunedì'), (1,'Martedì'), (2,'Mercoledì'), (3,'Giovedì'), (4,'Venerdì'), (5,'Sabato'), (6,'Domenica')]
-    day_end_weekdays = forms.MultipleChoiceField(choices=WEEKDAYS,widget=forms.CheckboxSelectMultiple)
-    day_end_time = forms.TimeField()
-    night_end_time = forms.TimeField()
+    day_end_weekdays = forms.MultipleChoiceField(choices=WEEKDAYS, widget=forms.CheckboxSelectMultiple, label='Sere in cui finisce il giorno')
+    day_end_time = forms.TimeField(label='Ora del tramonto')
+    night_end_time = forms.TimeField(label='Ora dell\'alba')
 
 class GameSettingsView(GameView):
     def get(self, request):
@@ -703,7 +703,19 @@ class GameSettingsView(GameView):
         return render(request, 'game_settings.html', {'form': form, 'message': None, 'classified': True})
     
     def post(self, request):
-        raise NotImplementedError()
+        game = request.game
+        form = GameSettingsForm(request.POST)
+
+        if form.is_valid():
+            game.day_end_time = form.cleaned_data['day_end_time']
+            game.night_end_time = form.cleaned_data['night_end_time']
+            game.day_end_weekdays = sum([ 2**int(i) for i in form.cleaned_data['day_end_weekdays']])
+            game.save()
+
+            form = GameSettingsForm(initial={'day_end_weekdays': game.get_day_end_weekdays(), 'day_end_time':game.day_end_time, 'night_end_time':game.night_end_time })
+            return render(request, 'game_settings.html', {'form': form, 'message': 'Impostazioni aggiornate correttamente.'})
+        else:
+            return render(request, 'game_settings.html', {'form': form, 'message': 'Scelta non valida.'})
     
     @method_decorator(master_required)
     def dispatch(self, *args, **kwargs):
