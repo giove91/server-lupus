@@ -13,8 +13,9 @@ from django.views.generic.base import TemplateView
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView
 
-from django.contrib.auth import logout
+from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
 from django.utils.decorators import method_decorator
 from django.utils.text import slugify
 from django.contrib.auth.decorators import user_passes_test
@@ -120,6 +121,35 @@ def not_implemented(request):
 def home(request):
     return render(request, 'index.html')
 
+class SignUpForm(UserCreationForm):
+    GENDERS = (
+        ('M','Maschio'), ('F','Femmina')
+    )
+    first_name = forms.CharField(label='Nome')
+    last_name = forms.CharField(label='Cognome')
+    gender = forms.ChoiceField(label='Genere', choices=GENDERS)
+
+    class Meta:
+        model = User
+        fields = ('username', 'first_name', 'last_name', 'email', 'gender', 'password1', 'password2')
+
+def signup(request):
+    if request.method == 'POST':
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            profile = Profile(user=user)
+            profile.save()
+            user.refresh_from_db()  # load the profile instance created by the signal
+            user.profile.gender = form.cleaned_data.get('gender')
+            user.save()
+            raw_password = form.cleaned_data.get('password1')
+            user = authenticate(username=user.username, password=raw_password)
+            login(request, user)
+            return redirect('home')
+    else:
+        form = SignUpForm()
+    return render(request, 'registration/signup.html', {'form': form})
 
 def logout_view(request):
     logout(request)
@@ -829,4 +859,3 @@ class DumpView(GameView):
     @method_decorator(user_passes_test(is_GM_check))
     def dispatch(self, *args, **kwargs):
         return super(DumpView, self).dispatch(*args, **kwargs)
-

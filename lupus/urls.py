@@ -13,6 +13,7 @@ admin.autodiscover()
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/logout/', views.logout_view, name='logout'),
+    path('accounts/signup/', views.signup, name='signup'),
     path('accounts/', include('django.contrib.auth.urls')),
     path('index/', home, name='home'),
     path('', RedirectView.as_view(pattern_name='home', permanent=False)),
@@ -34,4 +35,3 @@ if settings.DEBUG:
     urlpatterns += [
         path('__debug__/', include(debug_toolbar.urls)),
     ]
-
