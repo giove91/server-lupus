@@ -89,12 +89,15 @@
         <aside class="grid_3">
                 {% if game is not None and user.is_authenticated %}
                     <div class="nav-menu">
-                        <h1>Partita</h1>
+                        <h1>Villaggio</h1>
                         <ul>
-                        {% if not player and current_turn.phase == CREATION %}
-                            <li><a href="{% url 'game:join' game_name=game.name %}">Unisciti alla partita</a></li>
+                        {% if player is None and current_turn.phase == CREATION %}
+                            <li><a href="{% url 'game:join' game_name=game.name %}">Unisciti al villaggio</a></li>
                         {% endif %}
-                        {% if player %}
+                        {% if player is not None and current_turn.phase == CREATION %}
+                            <li><a href="{% url 'game:leave' game_name=game.name %}">Abbandona il villaggio</a></li>
+                        {% endif %}
+                        {% if player and current_turn.phase != CREATION %}
                             <li><a href="{% url 'game:personalinfo' game_name=game.name %}">Informazioni personali</a></li>
                             <li><a href="{% url 'game:vote' game_name=game.name %}">Votazione per il rogo</a></li>
                             <li><a href="{% url 'game:elect' game_name=game.name %}">Elezione del Sindaco</a></li>

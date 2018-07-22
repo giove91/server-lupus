@@ -773,6 +773,29 @@ class JoinGameView(GameView):
     def dispatch(self, *args, **kwargs):
         return super(JoinGameView, self).dispatch(*args, **kwargs)
 
+class LeaveGameView(GameView):
+    def can_leave(self, request):
+        game = request.game
+        dynamics = game.get_dynamics()
+        dynamics.update()
+        subphase = dynamics.creation_subphase
+        return request.player is not None and subphase == SIGNING_UP
+
+    def get(self, request):
+        return render(request, 'leave_game.html', {'can_leave': self.can_leave(request)})
+
+    def post(self, request):
+        game = request.game
+        user = request.user
+        player = request.player
+        if self.can_leave(request):
+            player.canonicalize().delete()
+        return redirect('game:status', game_name=request.game.name)
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(LeaveGameView, self).dispatch(*args, **kwargs)
+
 # Form for changing point of view (for GMs only)
 class ChangePointOfViewForm(forms.Form):
     player = forms.ModelChoiceField(

@@ -22,7 +22,7 @@ urlpatterns = [
     path('comment/', CommentView.as_view(), name='comment'),
 
     path('join/', JoinGameView.as_view(), name='join'), # Aggiunge il giocatore
-    path('unsubscribe/', not_implemented, name='unsubscribe'), # Rimuove il giocatore
+    path('leave/', LeaveGameView.as_view(), name='leave'), # Rimuove il giocatore
 
     path('addmaster/', not_implemented, name='addmaster'), # Aggiunge un master alla partita
     path('seed/', not_implemented, name='seed'), # Cambia o crea il seed
