@@ -25,6 +25,7 @@ urlpatterns = [
     path('leave/', LeaveGameView.as_view(), name='leave'), # Rimuove il giocatore
 
     path('addmaster/', not_implemented, name='addmaster'), # Aggiunge un master alla partita
+    path('setup/', SetupGameView.as_view(), name='setup'), # Prepara l'inizio
     path('seed/', not_implemented, name='seed'), # Cambia o crea il seed
     path('composition/', not_implemented, name='composition'), # Imposta la composizione del villaggio
     path('propositions/', not_implemented, name='propositions'), # Cambia le proposizioni iniziali
@@ -34,7 +35,6 @@ urlpatterns = [
     path('delete/', not_implemented, name='delete'), # Cancella la partita
     
     path('adminstatus/', AdminStatusView.as_view(), name='adminstatus'),
-    path('setup/', setup, name='setup'),
     path('advanceturn/', advance_turn, name='advanceturn'),
     path('pointofview/', PointOfView.as_view(), name='pointofview'),
     path('dump/', DumpView.as_view(), name='dump'),

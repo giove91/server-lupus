@@ -155,13 +155,6 @@ def logout_view(request):
     logout(request)
     return redirect(home)
 
-
-@user_passes_test(is_GM_check)
-def setup(request):
-    setup_game(get_now())
-    return render(request, 'index.html')
-
-
 @user_passes_test(is_GM_check)
 def advance_turn(request):
     game = request.game
@@ -795,6 +788,26 @@ class LeaveGameView(GameView):
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         return super(LeaveGameView, self).dispatch(*args, **kwargs)
+
+class SetupGameView(GameView):
+    def get(self, request):
+        game = request.game
+        dynamics = game.get_dynamics()
+        dynamics.update()
+        subphase = dynamics.creation_subphase
+        
+        SETUP_PAGES = {
+            SIGNING_UP: 'game:seed',
+            CHOOSING_ROLES: 'game:composition',
+            SOOTHSAYING: 'game:soothsayer',
+            PUBLISHING_INFORMATION: 'game:propositions',
+        }
+
+        return redirect(SETUP_PAGES[subphase], game_name=game.name)
+
+    @method_decorator(master_required)
+    def dispatch(self, *args, **kwargs):
+        return super(SetupGameView, self).dispatch(*args, **kwargs)
 
 # Form for changing point of view (for GMs only)
 class ChangePointOfViewForm(forms.Form):
