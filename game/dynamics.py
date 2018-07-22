@@ -79,6 +79,7 @@ class Dynamics:
         self.prev_turn = None
         self.last_timestamp_in_turn = None
         self.last_pk_in_turn = None
+        self.creation_subphase = SIGNING_UP
         self.mayor = None
         self.appointed_mayor = None
         self.pre_simulation_mayor = None
@@ -459,12 +460,19 @@ class Dynamics:
         self.playing_teams = self._count_alive_teams()
         assert sorted(self.playing_teams) == sorted([POPOLANI, LUPI, NEGROMANTI])
 
+
+    def check_soothsayers(self):
         # Check that the soothsayer received revelations according to
         # the rules
+        result = True
         for soothsayer in [pl for pl in self.players if isinstance(pl.role, Divinatore)]:
             events = [ev for ev in self.events if isinstance(ev, RoleKnowledgeEvent) and ev.player.pk == soothsayer.pk]
-            assert len(events) == 4, len(events)
-            assert sorted([isinstance(ev.target.canonicalize().role, roles_map[ev.role_name]) for ev in events]) == sorted([False, False, True, True])
+            if len(events) != 4 or sorted([isinstance(ev.target.canonicalize().role, roles_map[ev.role_name]) for ev in events]) != sorted([False, False, True, 
+True]):
+                result = False
+        assert self.creation_subphase == SOOTHSAYING or result
+        if self.creation_subphase == SOOTHSAYING and result:
+            self.creation_subphase = PUBLISHING_INFORMATION
 
     def _compute_entering_night(self):
         if DEBUG_DYNAMICS:

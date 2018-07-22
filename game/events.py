@@ -146,6 +146,7 @@ class SeedEvent(Event):
  
         dynamics.random = WichmannHill()
         dynamics.random.seed(int(self.seed))
+        dynamics.creation_subphase = CHOOSING_ROLES
 
 
 class AvailableRoleEvent(Event):
@@ -206,6 +207,8 @@ class AvailableRoleEvent(Event):
                     if target.pk != player.pk:
                         event = RoleKnowledgeEvent(player=player, target=target, role_name=given_roles[target.pk], cause=KNOWLEDGE_CLASS)
                         dynamics.generate_event(event)
+            dynamics.creation_suphase = SOOTHSAYING
+            dynamics.check_soothsayers()
 
 
 class SetRoleEvent(Event):

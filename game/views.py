@@ -730,7 +730,7 @@ class GameSettingsView(GameView):
         game = request.game
         form = GameSettingsForm(initial={'day_end_weekdays': game.get_day_end_weekdays(), 'day_end_time':game.day_end_time, 'night_end_time':game.night_end_time })
         print(game.get_day_end_weekdays())
-        return render(request, 'game_settings.html', {'form': form, 'message': None, 'classified': True})
+        return render(request, 'settings.html', {'form': form, 'message': None, 'classified': True})
     
     def post(self, request):
         game = request.game
@@ -743,9 +743,9 @@ class GameSettingsView(GameView):
             game.save()
 
             form = GameSettingsForm(initial={'day_end_weekdays': game.get_day_end_weekdays(), 'day_end_time':game.day_end_time, 'night_end_time':game.night_end_time })
-            return render(request, 'game_settings.html', {'form': form, 'message': 'Impostazioni aggiornate correttamente.'})
+            return render(request, 'settings.html', {'form': form, 'message': 'Impostazioni aggiornate correttamente.'})
         else:
-            return render(request, 'game_settings.html', {'form': form, 'message': 'Scelta non valida.'})
+            return render(request, 'settings.html', {'form': form, 'message': 'Scelta non valida.'})
     
     @method_decorator(master_required)
     def dispatch(self, *args, **kwargs):
