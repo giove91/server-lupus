@@ -759,10 +759,7 @@ class JoinGameView(GameView):
         return request.player is None and subphase == SIGNING_UP
 
     def get(self, request):
-        if self.can_join(request):
-            return render(request, 'join_game.html')
-        else:
-            return redirect('game:status', game_name=request.game.name)
+        return render(request, 'join_game.html', {'can_join': self.can_join(request)})
 
     def post(self, request):
         game = request.game
