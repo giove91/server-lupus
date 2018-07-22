@@ -21,7 +21,7 @@ urlpatterns = [
     path('contacts/', ContactsView.as_view(), name='contacts'),
     path('comment/', CommentView.as_view(), name='comment'),
 
-    path('subscribe/', not_implemented, name='subscribe'), # Aggiunge il giocatore
+    path('join/', JoinGameView.as_view(), name='join'), # Aggiunge il giocatore
     path('unsubscribe/', not_implemented, name='unsubscribe'), # Rimuove il giocatore
 
     path('addmaster/', not_implemented, name='addmaster'), # Aggiunge un master alla partita

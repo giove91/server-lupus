@@ -729,7 +729,6 @@ class GameSettingsView(GameView):
         player = request.player
         game = request.game
         form = GameSettingsForm(initial={'day_end_weekdays': game.get_day_end_weekdays(), 'day_end_time':game.day_end_time, 'night_end_time':game.night_end_time })
-        print(game.get_day_end_weekdays())
         return render(request, 'settings.html', {'form': form, 'message': None, 'classified': True})
     
     def post(self, request):
@@ -750,7 +749,32 @@ class GameSettingsView(GameView):
     @method_decorator(master_required)
     def dispatch(self, *args, **kwargs):
         return super(GameSettingsView, self).dispatch(*args, **kwargs)
-    
+
+class JoinGameView(GameView):
+    def can_join(self, request):
+        game = request.game
+        dynamics = game.get_dynamics()
+        dynamics.update()
+        subphase = dynamics.creation_subphase
+        return request.player is None and subphase == SIGNING_UP
+
+    def get(self, request):
+        if self.can_join(request):
+            return render(request, 'join_game.html')
+        else:
+            return redirect('game:status', game_name=request.game.name)
+
+    def post(self, request):
+        game = request.game
+        user = request.user
+        if self.can_join(request):
+            player = Player.objects.create(game=game, user=user)
+            player.save()
+        return redirect('game:status', game_name=request.game.name)
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(JoinGameView, self).dispatch(*args, **kwargs)
 
 # Form for changing point of view (for GMs only)
 class ChangePointOfViewForm(forms.Form):

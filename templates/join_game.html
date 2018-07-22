@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<main id="content" class="grid_13">
+    <h1>Unisciti alla partita</h1>
+    
+    <div class="info-block">
+        <p>Vuoi partecipare alla partita?</p>
+        <p>
+        <form action="{% url 'game:join' game_name=game.name %}" method="post">
+        {% csrf_token %}
+        <p><input type="submit" value="Iscriviti" /></p>
+        </form>
+        </p>
+        
+        {% if message != None %}
+            <p><strong>{{ message }}</strong></p>
+        {% endif %}
+        
+    </div>
+</main>
+{% endblock %}
+

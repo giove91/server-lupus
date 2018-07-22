@@ -61,8 +61,8 @@
                         <ul>
                             <li><a href="{% url 'home' %}">Home</a></li>
                             {% if game and player %}
-                                <li><a href="{% url 'status' %}">Stato del villaggio</a></li>
-                                <li><a href="{% url 'announcements' %}">Annunci dei GM</a></li>
+                                <li><a href="{% url 'game:status' game_name=game.name  %}">Stato del villaggio</a></li>
+                                <li><a href="{% url 'game:announcements' game_name=game.name %}">Annunci dei GM</a></li>
                             {% endif %}
                         </ul>
                     </div>
@@ -87,18 +87,23 @@
         <div class="clear vertical-space"></div>
         
         <aside class="grid_3">
-                {% if game is not None %}
+                {% if game is not None and user.is_authenticated %}
                     <div class="nav-menu">
-                        <h1>Azioni di gioco</h1>
+                        <h1>Partita</h1>
                         <ul>
-                        <li><a href="{% url 'game:personalinfo' game_name=game.name %}">Informazioni personali</a></li>
-                        <li><a href="{% url 'game:vote' game_name=game.name %}">Votazione per il rogo</a></li>
-                        <li><a href="{% url 'game:elect' game_name=game.name %}">Elezione del Sindaco</a></li>
-                        <li><a href="{% url 'game:usepower' game_name=game.name %}">Potere notturno</a></li>
-                        {% if player.is_mayor and current_turn.phase != CREATION %}
-                            <li><a href="{% url 'game:appoint' game_name=game.name %}">Designa successore</a></li>
+                        {% if not player and current_turn.phase == CREATION %}
+                            <li><a href="{% url 'game:join' game_name=game.name %}">Unisciti alla partita</a></li>
                         {% endif %}
-                        <li><a href="{% url 'game:comment' game_name=game.name %}">Commenti alla partita</a></li>
+                        {% if player %}
+                            <li><a href="{% url 'game:personalinfo' game_name=game.name %}">Informazioni personali</a></li>
+                            <li><a href="{% url 'game:vote' game_name=game.name %}">Votazione per il rogo</a></li>
+                            <li><a href="{% url 'game:elect' game_name=game.name %}">Elezione del Sindaco</a></li>
+                            <li><a href="{% url 'game:usepower' game_name=game.name %}">Potere notturno</a></li>
+                            {% if player.is_mayor and current_turn.phase != CREATION %}
+                                <li><a href="{% url 'game:appoint' game_name=game.name %}">Designa successore</a></li>
+                            {% endif %}
+                            <li><a href="{% url 'game:comment' game_name=game.name %}">Commenti alla partita</a></li>
+                        {% endif %}
                     </ul>
                     </div>
                 {% endif %}
@@ -109,7 +114,7 @@
                         <li><a href="{% url 'ruleset' %}">Regolamento</a></li>
                         <li><a href="{% url 'prototypes' %}">Prototipi</a></li>
                         {% if game and player %}
-                            <li><a href="{% url 'contacts' %}">Contatti</a></li>
+                            <li><a href="{% url 'game:contacts' game_name=game.name %}">Contatti</a></li>
                         {% endif %}
                     <li><a href="{% url 'credits' %}">Riconoscimenti</a></li>
                     <li><a href="{% url 'trailer' %}">Trailer</a></li>
