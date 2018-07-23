@@ -89,9 +89,9 @@
         <aside class="grid_3">
                 {% if game is not None and user.is_authenticated %}
                     <div class="nav-menu">
-                        <h1>Villaggio</h1>
+                        <h1>{{ game.description }}</h1>
                         <ul>
-                        {% if player is None and current_turn.phase == CREATION %}
+                        {% if player is None and not is_master and current_turn.phase == CREATION %}
                             <li><a href="{% url 'game:join' game_name=game.name %}">Unisciti al villaggio</a></li>
                         {% endif %}
                         {% if player is not None and current_turn.phase == CREATION %}
@@ -138,9 +138,10 @@
 
             {% if user.is_authenticated %}
                 <div class="nav-menu">
-                    <h1>Utente</h1>
+                    <h1>Area personale</h1>
                     <ul>
                         <li><a href="{% url 'password_change' %}">Cambia password</a></li>
+                        <li><a href="{% url 'creategame' %}">Crea nuovo villaggio</a></li>
                     </ul>
             {% endif %}
 
@@ -151,6 +152,7 @@
                         <li><a href="{% url 'game:adminstatus' game_name=game.name %}">Tutte le informazioni</a></li>
                         <li><a href="{% url 'game:pointofview' game_name=game.name %}">Punto di vista</a></li>
                         <li><a href="{% url 'game:settings' game_name=game.name %}">Impostazioni</a></li>
+                        <li><a href="{% url 'game:restart' game_name=game.name %}">Ricomincia partita</a></li>
                     </ul>
                 </div>
             {% endif %}

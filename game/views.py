@@ -744,15 +744,25 @@ class GameSettingsView(GameView):
         return super(GameSettingsView, self).dispatch(*args, **kwargs)
 
 class JoinGameView(GameView):
+    title = 'Unisciti al villaggio'
     def can_join(self, request):
         game = request.game
         dynamics = game.get_dynamics()
         dynamics.update()
         subphase = dynamics.creation_subphase
-        return request.player is None and subphase == SIGNING_UP
+        return request.player is None and not request.is_master and subphase == SIGNING_UP
 
     def get(self, request):
-        return render(request, 'join_game.html', {'can_join': self.can_join(request)})
+        if self.can_join(request):
+            return render(request, 'confirm.html', {
+                'title': self.title,
+                'message': 'Vuoi davvero partecipare a ' + request.game.description + '?'
+            })
+        else:
+            return render(request, 'command_not_allowed.html', {
+                'message': 'Non puoi unirti al villaggio.', 
+                'title': self.title
+            })
 
     def post(self, request):
         game = request.game
@@ -767,6 +777,7 @@ class JoinGameView(GameView):
         return super(JoinGameView, self).dispatch(*args, **kwargs)
 
 class LeaveGameView(GameView):
+    title = 'Abbandona il villaggio'
     def can_leave(self, request):
         game = request.game
         dynamics = game.get_dynamics()
@@ -775,7 +786,16 @@ class LeaveGameView(GameView):
         return request.player is not None and subphase == SIGNING_UP
 
     def get(self, request):
-        return render(request, 'leave_game.html', {'can_leave': self.can_leave(request)})
+        if self.can_leave(request):
+            return render(request, 'confirm.html', {
+                'title': self.title,
+                'message': 'Vuoi davvero abbandonare la partita?'
+            })
+        else:
+            return render(request, 'command_not_allowed.html', {
+                'message': 'Non puoi abbandonare il villaggio.', 
+                'title': self.title
+            })
 
     def post(self, request):
         game = request.game
@@ -788,6 +808,21 @@ class LeaveGameView(GameView):
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         return super(LeaveGameView, self).dispatch(*args, **kwargs)
+
+class RestartGameView(GameView):
+    def get(self, request):
+        return render(request, 'confirm.html', {'can_leave': self.can_leave(request)})
+
+    def post(self, request):
+        game = request.game
+        dynamics = game.get_dynamics()
+        Event.objects.filter(game=game).delete()
+        game.kill_all_dynamics()
+        return redirect('game:status', game_name=game.name)
+
+    @method_decorator(master_required)
+    def dispatch(self, *args, **kwargs):
+        return super(RestartGameView, self).dispatch(*args, **kwargs)
 
 class SetupGameView(GameView):
     def get(self, request):

@@ -31,7 +31,7 @@ urlpatterns = [
     path('propositions/', not_implemented, name='propositions'), # Cambia le proposizioni iniziali
     path('soothsayer/', not_implemented, name='soothsayer'), # Cambia le frasi dei divinatori
     path('settings/', GameSettingsView.as_view(), name='settings'), # Cambia le impostazioni della partita
-    path('restart/', not_implemented, name='restart'), # Elimina tutti gli eventi e riapre le iscrizioni
+    path('restart/', RestartGameView.as_view(), name='restart'), # Elimina tutti gli eventi e riapre le iscrizioni
     path('delete/', not_implemented, name='delete'), # Cancella la partita
     
     path('adminstatus/', AdminStatusView.as_view(), name='adminstatus'),
