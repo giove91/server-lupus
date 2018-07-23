@@ -128,6 +128,17 @@ class Game(models.Model):
         else:
             return None
 
+    def kill_dynamics(self):
+        """Kill the Dynamics object globally assigned to
+        this game."""
+        global _dynamics_map
+        global _dynamics_map_lock
+        if self.pk in _dynamics_map:
+            with _dynamics_map_lock:
+                if self.pk in _dynamics_map:
+                    from .dynamics import Dynamics
+                    del _dynamics_map[self.pk]
+
     def recompute_automatic_events(self):
         """This is not really race-free, so use with care..."""
         global _dynamics_map
@@ -371,7 +382,7 @@ class Player(models.Model):
             return MALE
     gender = property(get_gender)
     
-    def __unicode__(self):
+    def __str__(self):
         return u"%s %s" % (self.user.first_name, self.user.last_name)
     
     # Returns 'o' or 'a' depending on the player's gender

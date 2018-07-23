@@ -7,7 +7,7 @@
     
     <div class="info-block">
         <p>
-        <form action="{% url 'game:settings' game_name=game.name %}" method="post">
+        <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
         <p><input type="submit" value="Conferma" /></p>

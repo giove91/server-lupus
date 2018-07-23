@@ -811,14 +811,13 @@ class LeaveGameView(GameView):
 
 class RestartGameView(GameView):
     def get(self, request):
-        return render(request, 'confirm.html', {'can_leave': self.can_leave(request)})
+        return render(request, 'confirm.html', {'message': 'Sei sicuro di voler ricominciare la partita? Questa azione non può essere annullata.', 'title': 'Azzera partita'})
 
     def post(self, request):
         game = request.game
         dynamics = game.get_dynamics()
-        Event.objects.filter(game=game).delete()
         Turn.objects.filter(game=game).delete()
-        game.kill_all_dynamics()
+        game.kill_dynamics()
         return redirect('game:status', game_name=game.name)
 
     @method_decorator(master_required)
@@ -849,7 +848,8 @@ class SeedForm(forms.Form):
     excluded_players = forms.ModelMultipleChoiceField(
         queryset = Player.objects.all(),
         widget=forms.CheckboxSelectMultiple,
-        label='Giocatori da escludere:'
+        label='Giocatori da escludere:',
+        required=False
     )
     seed = forms.IntegerField(required=True, label='Seed')
 
