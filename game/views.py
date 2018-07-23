@@ -817,6 +817,7 @@ class RestartGameView(GameView):
         game = request.game
         dynamics = game.get_dynamics()
         Event.objects.filter(game=game).delete()
+        Turn.objects.filter(game=game).delete()
         game.kill_all_dynamics()
         return redirect('game:status', game_name=game.name)
 
@@ -843,6 +844,43 @@ class SetupGameView(GameView):
     @method_decorator(master_required)
     def dispatch(self, *args, **kwargs):
         return super(SetupGameView, self).dispatch(*args, **kwargs)
+
+class SeedForm(forms.Form):
+    excluded_players = forms.ModelMultipleChoiceField(
+        queryset = Player.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        label='Giocatori da escludere:'
+    )
+    seed = forms.IntegerField(required=True, label='Seed')
+
+    def __init__(self, *args, **kwargs):
+        game = kwargs.pop('game', None)
+        super(SeedForm, self).__init__(*args, **kwargs)
+        self.fields['excluded_players'].queryset = Player.objects.filter(game=game)
+
+class SeedView(GameView):
+    def get(self, request):
+        game = request.game
+        form = SeedForm(game=game)
+        return render(request, 'seed.html', {'form': form, 'message': None, 'classified': True})
+
+    def post(self, request):
+        game = request.game
+        form = SeedForm(request.POST)
+        if form.is_valid():
+            excluded_players = form.cleaned_data['excluded_players']
+            excluded_players.delete()
+            game.initialize(get_now())
+            dynamics = game.get_dynamics()
+            first_turn = dynamics.current_turn
+
+            event = SeedEvent(form.cleaned_data['seed'])
+            event.timestamp = first_turn.begin
+            dynamics.inject_event(event)
+            
+            return redirect('game:setup', game_name=game.name)
+        else:
+            return render(request, 'seed.html', {'form': form, 'message': 'Scelta non valida', 'classified': True})
 
 # Form for changing point of view (for GMs only)
 class ChangePointOfViewForm(forms.Form):

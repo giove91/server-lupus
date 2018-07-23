@@ -26,7 +26,7 @@ urlpatterns = [
 
     path('addmaster/', not_implemented, name='addmaster'), # Aggiunge un master alla partita
     path('setup/', SetupGameView.as_view(), name='setup'), # Prepara l'inizio
-    path('seed/', not_implemented, name='seed'), # Cambia o crea il seed
+    path('seed/', SeedView.as_view(), name='seed'), # Cambia o crea il seed
     path('composition/', not_implemented, name='composition'), # Imposta la composizione del villaggio
     path('propositions/', not_implemented, name='propositions'), # Cambia le proposizioni iniziali
     path('soothsayer/', not_implemented, name='soothsayer'), # Cambia le frasi dei divinatori

@@ -149,6 +149,9 @@
                 <div class="nav-menu">
                     <h1>GM</h1>
                     <ul>
+                        {% if current_turn.phase == CREATION %}
+                            <li><a href="{% url 'game:setup' game_name=game.name %}">Setup iniziale</a></li>
+                        {% endif %}
                         <li><a href="{% url 'game:adminstatus' game_name=game.name %}">Tutte le informazioni</a></li>
                         <li><a href="{% url 'game:pointofview' game_name=game.name %}">Punto di vista</a></li>
                         <li><a href="{% url 'game:settings' game_name=game.name %}">Impostazioni</a></li>
