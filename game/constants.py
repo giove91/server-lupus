@@ -88,6 +88,17 @@ VISIONE = 'V'
 IPNOSI = 'P'
 CORRUZIONE = 'U'
 
+POWER_NAMES = {
+    AMNESIA: 'Amnesia',
+    CONFUSIONE: 'Confusione',
+    CORRUZIONE: 'Corruzione',
+    ILLUSIONE: 'Illusione',
+    IPNOSI: 'Ipnosi',
+    MORTE: 'Morte',
+    OCCULTAMENTO: 'Occultamento',
+    VISIONE: 'Visione'
+}
+
 # Commands
 USEPOWER = 'P'
 VOTE = 'V'

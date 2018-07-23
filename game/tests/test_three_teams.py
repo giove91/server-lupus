@@ -1,4 +1,3 @@
-
 import sys
 import datetime
 import json
@@ -12,219 +11,17 @@ from django.utils import timezone
 from django.test import TestCase
 
 from game.models import *
-from game.roles import *
+from game.roles.three_teams import *
 from game.events import *
 from game.constants import *
 from game.utils import get_now, advance_to_time
 
 from datetime import timedelta, datetime, time
 
-
-class AdvanceTimeTests(TestCase):
-
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-
-    def test_simple_advance(self):
-        now = datetime(2015, 11, 11, 16, 0, 0, tzinfo=REF_TZINFO)
-        when = time(18, 0, 0)
-        later = advance_to_time(now, when)
-        self.assertEqual(later, REF_TZINFO.localize(datetime(2015, 11, 11, 18, 0, 0), is_dst=None))
-
-    def test_wrapped_advance(self):
-        now = datetime(2015, 11, 11, 20, 0, 0, tzinfo=REF_TZINFO)
-        when = time(18, 0, 0)
-        later = advance_to_time(now, when)
-        self.assertEqual(later, REF_TZINFO.localize(datetime(2015, 11, 12, 18, 0, 0), is_dst=None))
-
-    def test_enter_dst_advance(self):
-        now = datetime(2015, 3, 28, 20, 0, 0, tzinfo=REF_TZINFO)
-        when = time(18, 0, 0)
-        later = advance_to_time(now, when)
-        self.assertEqual(later, REF_TZINFO.localize(datetime(2015, 3, 29, 18, 0, 0), is_dst=None))
-
-    def test_exit_dst_advance(self):
-        now = datetime(2015, 10, 24, 20, 0, 0, tzinfo=REF_TZINFO)
-        when = time(18, 0, 0)
-        later = advance_to_time(now, when)
-        self.assertEqual(later, REF_TZINFO.localize(datetime(2015, 10, 25, 18, 0, 0), is_dst=None))
-
-    def test_simple_advance_with_useless_skip(self):
-        now = datetime(2015, 11, 11, 16, 0, 0, tzinfo=REF_TZINFO)
-        when = time(18, 0, 0)
-        later = advance_to_time(now, when, day_end_skip=True)
-        self.assertEqual(later, REF_TZINFO.localize(datetime(2015, 11, 11, 18, 0, 0), is_dst=None))
-
-    def test_wrapped_advance_with_useless_skip(self):
-        now = datetime(2015, 11, 11, 20, 0, 0, tzinfo=REF_TZINFO)
-        when = time(18, 0, 0)
-        later = advance_to_time(now, when, day_end_skip=True)
-        self.assertEqual(later, REF_TZINFO.localize(datetime(2015, 11, 12, 18, 0, 0), is_dst=None))
-
-    def test_enter_dst_advance_with_useless_skip(self):
-        now = datetime(2015, 3, 28, 20, 0, 0, tzinfo=REF_TZINFO)
-        when = time(18, 0, 0)
-        later = advance_to_time(now, when, day_end_skip=True)
-        self.assertEqual(later, REF_TZINFO.localize(datetime(2015, 3, 29, 18, 0, 0), is_dst=None))
-
-    def test_exit_dst_advance_with_useless_skip(self):
-        now = datetime(2015, 10, 24, 20, 0, 0, tzinfo=REF_TZINFO)
-        when = time(18, 0, 0)
-        later = advance_to_time(now, when, day_end_skip=True)
-        self.assertEqual(later, REF_TZINFO.localize(datetime(2015, 10, 25, 18, 0, 0), is_dst=None))
-
-    def test_simple_advance_with_real_skip(self):
-        now = datetime(2015, 11, 13, 16, 0, 0, tzinfo=REF_TZINFO)
-        when = time(18, 0, 0)
-        later = advance_to_time(now, when, day_end_skip=True)
-        self.assertEqual(later, REF_TZINFO.localize(datetime(2015, 11, 15, 18, 0, 0), is_dst=None))
-
-    def test_wrapped_advance_with_real_skip(self):
-        now = datetime(2015, 11, 12, 20, 0, 0, tzinfo=REF_TZINFO)
-        when = time(18, 0, 0)
-        later = advance_to_time(now, when, day_end_skip=True)
-        self.assertEqual(later, REF_TZINFO.localize(datetime(2015, 11, 15, 18, 0, 0), is_dst=None))
-
-    def test_enter_dst_advance_with_real_skip(self):
-        now = datetime(2015, 3, 26, 20, 0, 0, tzinfo=REF_TZINFO)
-        when = time(18, 0, 0)
-        later = advance_to_time(now, when, day_end_skip=True)
-        self.assertEqual(later, REF_TZINFO.localize(datetime(2015, 3, 29, 18, 0, 0), is_dst=None))
-
-    def test_exit_dst_advance_with_real_skip(self):
-        now = datetime(2015, 10, 22, 20, 0, 0, tzinfo=REF_TZINFO)
-        when = time(18, 0, 0)
-        later = advance_to_time(now, when, day_end_skip=True)
-        self.assertEqual(later, REF_TZINFO.localize(datetime(2015, 10, 25, 18, 0, 0), is_dst=None))
-
-    def test_wrapped_advance_through_immacolate_bridge(self):
-        now = datetime(2015, 12, 3, 20, 0, 0, tzinfo=REF_TZINFO)
-        when = time(18, 0, 0)
-        later = advance_to_time(now, when, day_end_skip=True)
-        self.assertEqual(later, REF_TZINFO.localize(datetime(2015, 12, 8, 18, 0, 0), is_dst=None))
-
-
-def create_users(n):
-    users = []
-    for i in range(n):
-        user = User.objects.create(username='pk%d' % (i), first_name='Paperinik', last_name='%d' % (i), email='paperinik.%d@sns.it' % (i), password='ciaociao')
-        profile = Profile.objects.create(user=user, gender=MALE)
-        profile.save()
-        user.set_password('ciaociao')
-        user.save()
-        users.append(user)
-    return users
-
-
-def delete_auto_users():
-    for user in User.objects.all():
-        if user.username.startswith('pk'):
-            user.delete()
-
-
-def delete_non_staff_users():
-    for user in User.objects.all():
-        if not user.is_staff:
-            user.delete()
-
-
-def delete_games():
-    for game in Game.objects.all():
-        game.delete()
-
+from .test_utils import create_game, delete_auto_users, create_users, create_game_from_dump, test_advance_turn, record_name
 
 def create_test_game(seed, roles):
-    game = Game(running=True)
-    game.save()
-    game.initialize(get_now())
-
-    users = create_users(len(roles))
-    for user in users:
-        if user.is_staff:
-            raise Exception()
-        player = Player.objects.create(user=user, game=game)
-        player.save()
-
-    first_turn = game.get_dynamics().current_turn
-
-    event = SeedEvent(seed=seed)
-    event.timestamp = first_turn.begin
-    game.get_dynamics().inject_event(event)
-
-    for i in range(len(game.get_dynamics().players)):
-        event = AvailableRoleEvent(role_name=roles[i%len(roles)].__name__)
-        event.timestamp = first_turn.begin
-        game.get_dynamics().inject_event(event)
-
-    return game
-
-
-def create_game_from_dump(data, start_moment=None):
-    if start_moment is None:
-        start_moment = get_now()
-
-    game = Game(running=True)
-    game.save()
-    game.initialize(start_moment)
-
-    for player_data in data['players']:
-        user = User.objects.create(username=player_data['username'],
-                                   first_name=player_data.get('first_name', ''),
-                                   last_name=player_data.get('last_name', ''),
-                                   password=player_data.get('password', ''),
-                                   email=player_data.get('email', ''))
-        profile = Profile.objects.create(user=user, gender=player_data.get('gender', ''))
-        profile.save()
-        user.save()
-        player = Player.objects.create(user=user, game=game)
-        player.save()
-
-    # Here we canonicalize the players, so this has to happen after
-    # all users and players have been inserted in the database;
-    # therefore, this loop cannot be merged with the previous one
-    players_map = {None: None}
-    for player in game.get_players():
-        assert player.user.username not in players_map
-        players_map[player.user.username] = player
-
-    # Now we're ready to reply turns and events
-    first_turn = True
-    for turn_data in data['turns']:
-        if not first_turn:
-            test_advance_turn(game)
-        else:
-            first_turn = False
-        current_turn = game.current_turn
-        for event_data in turn_data['events']:
-            event = Event.from_dict(event_data, players_map)
-            if current_turn.phase in FULL_PHASES:
-                event.timestamp = get_now()
-            else:
-                event.timestamp = current_turn.begin
-            #print >> sys.stderr, "Injecting event of type %s" % (event.subclass)
-            game.get_dynamics().inject_event(event)
-
-    return game
-
-
-def test_advance_turn(game):
-    turn = game.current_turn
-    turn.end = get_now()
-    turn.save()
-    game.advance_turn()
-
-
-def record_name(f):
-    @wraps(f)
-    def g(self):
-        self._name = f.__name__
-        return f(self)
-
-    return g
-
+	return create_game(seed, 'three_teams', roles)
 
 class GameTests(TestCase):
 
@@ -7896,3 +7693,4 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
 
         self.assertEqual(dynamics.over, True) #Still over!
+    

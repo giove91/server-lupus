@@ -74,7 +74,6 @@ class Game(models.Model):
         return u"Game %d" % self.pk
     name = models.CharField(max_length=32, verbose_name='Nome della partita')
     description = models.CharField(max_length=64, verbose_name='Descrizione')
-    num_teams = models.IntegerField(choices=[(2,'2'),(3,'3')], verbose_name='Numero di fazioni')
 
     day_end_weekdays = models.PositiveSmallIntegerField(default=79, verbose_name='Sere in cui finisce il giorno')
 
