@@ -5,6 +5,7 @@ from .models import Event, Player
 from .roles import *
 from .constants import *
 from .utils import dir_dict, rev_dict
+from importlib import import_module
 
 class CommandEvent(Event):
     # A command submitted by a player
@@ -31,7 +32,7 @@ class CommandEvent(Event):
     
     target = models.ForeignKey(Player, null=True, blank=True, related_name='+',on_delete=models.CASCADE)
     target2 = models.ForeignKey(Player, null=True, blank=True, related_name='+',on_delete=models.CASCADE)
-    target_ghost = models.CharField(max_length=1, choices=Spettro.POWERS_LIST, null=True, blank=True)
+    target_ghost = models.CharField(max_length=200, null=True, blank=True)
     
     def __unicode__(self):
         return u"CommandEvent %d" % self.pk
@@ -60,7 +61,7 @@ class CommandEvent(Event):
                 'player': self.player.user.username,
                 'target': self.target.user.username if self.target is not None else None,
                 'target2': self.target2.user.username if self.target2 is not None else None,
-                'target_ghost': dir_dict(Spettro.POWERS_LIST)[self.target_ghost],
+                'target_ghost': self.target_ghost,
                 'type': dict(CommandEvent.ACTION_TYPES)[self.type],
                 })
         return ret
@@ -69,7 +70,7 @@ class CommandEvent(Event):
         self.player = players_map[data['player']]
         self.target = players_map[data['target']]
         self.target2 = players_map[data['target2']]
-        self.target_ghost = rev_dict(Spettro.POWERS_LIST)[data['target_ghost']]
+        self.target_ghost = data['target_ghost']
         self.type = rev_dict(CommandEvent.ACTION_TYPES)[data['type']]
 
     def check_phase(self, dynamics=None, turn=None):
@@ -146,8 +147,27 @@ class SeedEvent(Event):
  
         dynamics.random = WichmannHill()
         dynamics.random.seed(int(self.seed))
-        dynamics.creation_subphase = CHOOSING_ROLES
 
+class SetRulesEvent(Event):
+    RELEVANT_PHASES = [CREATION]
+    AUTOMATIC = False
+
+    ruleset = models.CharField(max_length=200)
+
+    def to_dict(self):
+        ret = Event.to_dict(self)
+        ret.update({
+                'ruleset': self.ruleset,
+                })
+        return ret
+
+    def load_from_dict(self, data, players_map):
+        self.ruleset = data['ruleset']
+
+    def apply(self, dynamics):
+        roles = import_module('game/roles/' + self.ruleset)
+        dynamics.roles_list = roles.roles_list
+        dynamics.creation_subphase = CHOOSING_ROLES
 
 class AvailableRoleEvent(Event):
     RELEVANT_PHASES = [CREATION]
@@ -192,7 +212,7 @@ class AvailableRoleEvent(Event):
             knowledge_classes = {}
             knowledge_classes_rev = {}
             for player in dynamics.players:
-                role_class = Role.get_from_name(given_roles[player.pk])
+                role_class = dynamics.roles_list[given_roles[player.pk]]
                 knowledge_class = role_class.knowledge_class
                 if knowledge_class is not None:
                     if not knowledge_class in knowledge_classes:
@@ -219,7 +239,7 @@ class SetRoleEvent(Event):
     role_name = models.CharField(max_length=200)
 
     def apply(self, dynamics):
-        role_class = Role.get_from_name(self.role_name)
+        role_class = dynamics.roles_list[self.role_name]
         player = self.player.canonicalize()
         role = role_class(player)
         player.role = role
@@ -232,12 +252,10 @@ class SetRoleEvent(Event):
         assert player.is_mystic is not None
     
     def to_player_string(self, player):
-        role = Role.get_from_name(self.role_name).name
-        
         if player == self.player:
-            return u'Ti è stato assegnato il ruolo di %s.' % role
+            return u'Ti è stato assegnato il ruolo di %s.' % role_name
         elif player == 'admin':
-            return u'A%s %s è stato assegnato il ruolo di %s.' % ('d' if self.player.full_name[0] in ['A','E','I','O','U', 'a', 'e', 'i', 'o', 'u'] else '', self.player.full_name, role)
+            return u'A%s %s è stato assegnato il ruolo di %s.' % ('d' if self.player.full_name[0] in ['A','E','I','O','U', 'a', 'e', 'i', 'o', 'u'] else '', self.player.full_name, role_name)
         else:
             return None
 
@@ -391,7 +409,7 @@ class PlayerResurrectsEvent(Event):
 
         # If the player is a ghost, their power gets deactivated. Poor
         # they!
-        if isinstance(player.role, Spettro):
+        if player.role.ghost:
             assert player.role.has_power
             player.role.has_power = False
 
@@ -427,20 +445,19 @@ class TransformationEvent(Event):
         assert not target.alive
 
         if self.cause == TRANSFORMIST:
-            assert isinstance(player.role, Trasformista)
+            assert player.role.__class__.__name__ == 'Trasformista'
         elif self.cause == NECROPHILIAC:
-            assert isinstance(player.role, Necrofilo)
+            assert player.role.__class__.__name__ == 'Necrofilo'
         else:
             raise Exception ('Unknown cause for TransformationEvent')
 
         # Check that power is not una tantum or that role is powerless
-        if isinstance(player.role, Trasformista):
-            assert not isinstance(target.role, tuple(UNA_TANTUM_ROLES))
-            assert not isinstance(target.role, tuple(POWERLESS_ROLES))
+        if player.role.__class__.__name__ == 'Trasformista':
+            assert target.role.frequency not in [UNA_TANTUM, NEVER]
 
         # Take original role class if the target is a ghost
         new_role_class = target.role.__class__
-        if isinstance(target.role, Spettro):
+        if target.role.ghost:
             new_role_class = target.role_class_before_ghost
             assert new_role_class is not None
         assert self.role_name == new_role_class.__name__
@@ -455,18 +472,16 @@ class TransformationEvent(Event):
         player.role.post_appearance(dynamics)
 
     def to_player_string(self, player):
-        role = Role.get_from_name(self.role_name).name
-        
         if self.cause == TRANSFORMIST:
             if player == self.player:
-                return u'Dopo aver utilizzato il tuo potere su %s hai assunto il ruolo di %s.' % (self.target.full_name, role)
+                return u'Dopo aver utilizzato il tuo potere su %s hai assunto il ruolo di %s.' % (self.target.full_name, role_name)
             elif player == 'admin':
-                return u'%s ha utilizzato il proprio potere di Trasformista su %s assumendo il ruolo di %s.' % (self.player.full_name, self.target.full_name, role)
+                return u'%s ha utilizzato il proprio potere di Trasformista su %s assumendo il ruolo di %s.' % (self.player.full_name, self.target.full_name, role_name)
         elif self.cause == NECROPHILIAC:
             if player == self.player:
-                return u'Dopo aver utilizzato il tuo potere su %s hai assunto il ruolo di %s.' % (self.target.full_name, role)
+                return u'Dopo aver utilizzato il tuo potere su %s hai assunto il ruolo di %s.' % (self.target.full_name, role_name)
             elif player == 'admin':
-                return u'%s ha utilizzato il proprio potere di Necrofilo su %s assumendo il ruolo di %s.' % (self.player.full_name, self.target.full_name, role)
+                return u'%s ha utilizzato il proprio potere di Necrofilo su %s assumendo il ruolo di %s.' % (self.player.full_name, self.target.full_name, role_name)
         else:
             raise Exception ('Unknown cause for TransformationEvent')
 
@@ -483,7 +498,7 @@ class CorruptionEvent(Event):
         assert player.is_mystic and player.aura == WHITE
 
         # Change role in Negromante
-        player.role = Negromante(player)
+        player.role = dynamics.roles_list['Negromante'](player)
         player.team = NEGROMANTI
 
     def to_player_string(self, player):
@@ -552,29 +567,31 @@ class PlayerDiesEvent(Event):
         assert player.alive
         assert player.just_dead
 
-        # Fantasma death
-        if isinstance(player.role, Fantasma):
-            powers = set(Spettro.POWER_NAMES.keys())
-            available_powers = powers - dynamics.used_ghost_powers - set([MORTE, CORRUZIONE])
-            if len(available_powers) >= 1:
-                power = dynamics.random.choice(sorted(list(available_powers)))
-                dynamics.generate_event(GhostificationEvent(player=player, cause=PHANTOM, ghost=power))
-                for negromante in dynamics.players:
-                    if isinstance(negromante.role, Negromante):
-                        dynamics.generate_event(RoleKnowledgeEvent(player=player,
-                                                                   target=negromante,
-                                                                   role_name=Negromante.__name__,
-                                                                   cause=GHOST))
-                        dynamics.generate_event(RoleKnowledgeEvent(player=negromante,
-                                                                   target=player,
-                                                                   role_name=Spettro.__name__,
-                                                                   cause=PHANTOM))
-            else:
-                dynamics.generate_event(GhostificationFailedEvent(player=player))
+        # Fantasma death (TODO: Place under Fantasma role
+        # if player.role.__class__.__name__ == 'Fantasma':
+        #    powers = set(Spettro.POWER_NAMES.keys())
+        #    available_powers = powers - dynamics.used_ghost_powers - set([MORTE, CORRUZIONE])
+        #    if len(available_powers) >= 1:
+        #        power = dynamics.random.choice(sorted(list(available_powers)))
+        #        dynamics.generate_event(GhostificationEvent(player=player, cause=PHANTOM, ghost=power))
+        #        for negromante in dynamics.players:
+        #            if negromante.role.__class__.__name__ == 'Negromante':
+        #                dynamics.generate_event(RoleKnowledgeEvent(player=player,
+        #                                                           target=negromante,
+        #                                                           role_name='Negromante',
+        #                                                           cause=GHOST))
+        #                dynamics.generate_event(RoleKnowledgeEvent(player=negromante,
+        #                                                           target=player,
+        #                                                           role_name='Spettro',
+        #                                                           cause=PHANTOM))
+        #    else:
+        #        dynamics.generate_event(GhostificationFailedEvent(player=player))
 
         # Yeah, finally kill player!
         player.alive = False
         player.just_dead = False
+        
+        player.role.post_death()
 
     def to_player_string(self, player):
         oa = self.player.oa
@@ -664,21 +681,21 @@ class RoleKnowledgeEvent(Event):
         assert dynamics.current_turn.phase in RoleKnowledgeEvent.REAL_RELEVANT_PHASES[self.cause]
 
         if self.cause == SOOTHSAYER:
-            assert isinstance(self.player.canonicalize().role, Divinatore)
+            assert self.player.canonicalize().role.__class__.__name == 'Divinatore'
 
         elif self.cause == EXPANSIVE:
-            assert isinstance(self.target.canonicalize().role, Espansivo)
+            assert self.target.canonicalize().role.__class__.__name__ == 'Espansivo'
 
         elif self.cause == NECROPHILIAC:
-            assert isinstance(self.target.canonicalize().role, Necrofilo)
+            assert self.target.canonicalize().role.__class__.__name__ == 'Necrofilo'
 
         elif self.cause == GHOST:
-            assert isinstance(self.player.canonicalize().role, Spettro)
-            assert isinstance(self.target.canonicalize().role, Negromante)
+            assert self.player.canonicalize().role.ghost
+            assert self.target.canonicalize().role.__class__.__name__ == 'Negromante'
 
         elif self.cause == PHANTOM or self.cause == HYPNOTIST_DEATH or self.cause == CORRUPTION:
-            assert isinstance(self.player.canonicalize().role, Negromante)
-            assert isinstance(self.target.canonicalize().role, Spettro)
+            assert self.player.canonicalize().role.__class__.__name__ == 'Negromante'
+            assert self.target.canonicalize().role.ghost
 
         elif self.cause == KNOWLEDGE_CLASS:
             assert self.player.canonicalize().role.knowledge_class is not None
@@ -686,19 +703,18 @@ class RoleKnowledgeEvent(Event):
             assert self.player.canonicalize().role.knowledge_class == self.target.canonicalize().role.knowledge_class
 
         elif self.cause == DEVIL:
-            assert isinstance(self.player.canonicalize().role, Diavolo)
+            assert self.player.canonicalize().role.__class__.__name__ == 'Diavolo'
             assert self.target.canonicalize().alive
 
         elif self.cause == MEDIUM:
-            assert isinstance(self.player.canonicalize().role, Medium)
+            assert self.player.canonicalize().role.__class__.__name__ == 'Medium'
             assert not self.target.canonicalize().alive
 
         elif self.cause == HYPNOTIST_DEATH:
             assert False
 
         if self.cause in [EXPANSIVE, GHOST, PHANTOM, HYPNOTIST_DEATH, KNOWLEDGE_CLASS]:
-            role_class = roles_map[self.role_name]
-            assert isinstance(self.target.canonicalize().role, role_class)
+            assert self.target.canonicalize().role.__class__.__name__ == role_name
     
     
     def to_player_string(self, player):
@@ -1001,7 +1017,7 @@ class HypnotizationEvent(Event):
         player = self.player.canonicalize()
         hypnotist = self.hypnotist.canonicalize()
 
-        assert isinstance(hypnotist.role, Ipnotista)
+        assert hypnotist.role.__class__.__nam__ = 'Ipnotista'
 
         player.hypnotist = hypnotist
     
@@ -1019,7 +1035,7 @@ class GhostificationEvent(Event):
     AUTOMATIC = True
 
     player = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
-    ghost = models.CharField(max_length=1, choices=Spettro.POWERS_LIST, default=None)
+    ghost = models.CharField(max_length=200, default=None)
     GHOSTIFICATION_CAUSES = (
         (NECROMANCER, 'Necromancer'),
         (PHANTOM, 'Phantom'),
@@ -1051,12 +1067,12 @@ class GhostificationEvent(Event):
         player.role_class_before_ghost = player.role.__class__
 
         # Real ghostification
-        player.role = Spettro(player, power=self.ghost)
+        player.role = dynamics.roles_list[self.ghost](player)
         player.team = NEGROMANTI
 
     def to_player_string(self, player):
         oa = self.player.oa
-        power = Spettro.POWER_NAMES[self.ghost]
+        power = self.ghost
         
         if self.cause == NECROMANCER:
             if player == self.player:
@@ -1131,8 +1147,8 @@ class PowerOutcomeEvent(Event):
 
         def role_description(role, rcbf):
             desc = role.name
-            if isinstance(role, Spettro):
-                desc += ' %s, ex %s' % (Spettro.POWER_NAMES[role.power], rcbf.name)
+            if role.ghost:
+                desc += ', ex %s' % (rcbf.name)
             return desc
 
         player_role = role_description(self.player.role, self.player.role_class_before_ghost)

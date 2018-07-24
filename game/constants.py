@@ -78,6 +78,10 @@ AURA_IT = {
     BLACK: 'Nera',
 }
 
+# Power frequency
+UNA_TANTUM = 'U'
+NEVER = 'N'
+
 # Supernatural powers
 AMNESIA = 'A'
 CONFUSIONE = 'C'
