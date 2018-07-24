@@ -39,7 +39,7 @@ def create_game(seed, ruleset, roles):
     game.get_dynamics().inject_event(event)
 
     event = SetRulesEvent(ruleset=ruleset)
-    event.timestamp = get_now()
+    event.timestamp = first_turn.begin
     game.get_dynamics().inject_event(event)
 
     for i in range(len(game.get_dynamics().players)):

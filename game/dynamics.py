@@ -36,7 +36,7 @@ class Dynamics:
 
     def __init__(self, game):
         if DEBUG_DYNAMICS:
-            print >> sys.stderr, "New dynamics spawned: %r" % (self)
+            print("New dynamics spawned: %r" % (self), file=sys.stderr)
             self.spawned_at = time.time()
         self.game = game
         self.check_mode = False  # Not supported at the moment
@@ -222,7 +222,7 @@ class Dynamics:
             queued_event = self._pop_event_from_queue()
             if queued_event is not None:
                 if DEBUG_DYNAMICS:
-                    print >> sys.stderr, "Receiving event from queue"
+                    print("Receiving event from queue", file=sys.stderr)
                 if self.debug_event_bin is not None:
                     self.debug_event_bin.append(queued_event)
                 if SINGLE_MODE:
@@ -239,7 +239,7 @@ class Dynamics:
                 event = self._pop_event_from_db()
                 if event is not None:
                     if DEBUG_DYNAMICS:
-                        print >> sys.stderr, "Receiving event from database"
+                        print("Receiving event from database", file=sys.stderr)
                     self._receive_event(event)
                     return True
 
@@ -289,7 +289,7 @@ class Dynamics:
 
         # Debug print
         if DEBUG_DYNAMICS:
-            print >> sys.stderr, "Received turn %r" % (turn)
+            print("Received turn %r" % (turn), file=sys.stderr)
 
         # Do some checks on it
         assert self.current_turn.begin is not None
@@ -392,9 +392,9 @@ class Dynamics:
 
         # Debug prints
         if DEBUG_DYNAMICS:
-            print >> sys.stderr, "Received event %r of subclass %s" % (event, event.subclass)
+            print("Received event %r of subclass %s" % (event, event.subclass), file=sys.stderr)
             if isinstance(event, AvailableRoleEvent):
-                print >> sys.stderr, "  Available role: %s" % (event.role_name)
+                print("  Available role: %s" % (event.role_name), file=sys.stderr)
 
         # Do some check on the new event
         if not RELAX_TIME_CHECKS:
@@ -451,7 +451,7 @@ class Dynamics:
 
     def _compute_entering_creation(self):
         if DEBUG_DYNAMICS:
-            print >> sys.stderr, "Computing creation"
+            print("Computing creation", file=sys.stderr)
 
     def _checks_after_creation(self):
         # You shall generate no events here!
@@ -465,7 +465,7 @@ class Dynamics:
         # Check that the soothsayer received revelations according to
         # the rules
         result = True
-        for soothsayer in [pl for pl in self.players if isinstance(pl.role, Divinatore)]:
+        for soothsayer in [pl for pl in self.players if pl.role.__class__.__name__ == 'Divinatore']:
             events = [ev for ev in self.events if isinstance(ev, RoleKnowledgeEvent) and ev.player.pk == soothsayer.pk]
             if len(events) != 4 or sorted([isinstance(ev.target.canonicalize().role, roles_map[ev.role_name]) for ev in events]) != sorted([False, False, True, 
 True]):
@@ -476,7 +476,7 @@ True]):
 
     def _compute_entering_night(self):
         if DEBUG_DYNAMICS:
-            print >> sys.stderr, "Computing night"
+            print("Computing night", file=sys.stderr)
 
         # Before first night check that creation went ok
         first_night_date = FIRST_DATE

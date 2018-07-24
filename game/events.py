@@ -165,7 +165,7 @@ class SetRulesEvent(Event):
         self.ruleset = data['ruleset']
 
     def apply(self, dynamics):
-        roles = import_module('game/roles/' + self.ruleset)
+        roles = import_module('game.roles.' + self.ruleset)
         dynamics.roles_list = roles.roles_list
         dynamics.creation_subphase = CHOOSING_ROLES
 
@@ -567,26 +567,6 @@ class PlayerDiesEvent(Event):
         assert player.alive
         assert player.just_dead
 
-        # Fantasma death (TODO: Place under Fantasma role
-        # if player.role.__class__.__name__ == 'Fantasma':
-        #    powers = set(Spettro.POWER_NAMES.keys())
-        #    available_powers = powers - dynamics.used_ghost_powers - set([MORTE, CORRUZIONE])
-        #    if len(available_powers) >= 1:
-        #        power = dynamics.random.choice(sorted(list(available_powers)))
-        #        dynamics.generate_event(GhostificationEvent(player=player, cause=PHANTOM, ghost=power))
-        #        for negromante in dynamics.players:
-        #            if negromante.role.__class__.__name__ == 'Negromante':
-        #                dynamics.generate_event(RoleKnowledgeEvent(player=player,
-        #                                                           target=negromante,
-        #                                                           role_name='Negromante',
-        #                                                           cause=GHOST))
-        #                dynamics.generate_event(RoleKnowledgeEvent(player=negromante,
-        #                                                           target=player,
-        #                                                           role_name='Spettro',
-        #                                                           cause=PHANTOM))
-        #    else:
-        #        dynamics.generate_event(GhostificationFailedEvent(player=player))
-
         # Yeah, finally kill player!
         player.alive = False
         player.just_dead = False
@@ -714,7 +694,7 @@ class RoleKnowledgeEvent(Event):
             assert False
 
         if self.cause in [EXPANSIVE, GHOST, PHANTOM, HYPNOTIST_DEATH, KNOWLEDGE_CLASS]:
-            assert self.target.canonicalize().role.__class__.__name__ == role_name
+            assert self.target.canonicalize().role.__class__.__name__ == self.role_name
     
     
     def to_player_string(self, player):
@@ -1017,7 +997,7 @@ class HypnotizationEvent(Event):
         player = self.player.canonicalize()
         hypnotist = self.hypnotist.canonicalize()
 
-        assert hypnotist.role.__class__.__nam__ = 'Ipnotista'
+        assert hypnotist.role.__class__.__name__ == 'Ipnotista'
 
         player.hypnotist = hypnotist
     

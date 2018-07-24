@@ -46,6 +46,7 @@ class GameTests(TestCase):
         dynamics = self.game.get_dynamics()
         players = self.game.get_players()
 
+        self.assertFalse(True, (players[0]))
         [cacciatore] = [x for x in players if isinstance(x.role, Cacciatore)]
         [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
 

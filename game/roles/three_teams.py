@@ -1,5 +1,5 @@
-from .models import KnowsChild, Player
-from .constants import *
+from ..models import KnowsChild, Player
+from ..constants import *
 
 import sys
 
@@ -8,6 +8,7 @@ class Role(object):
     team = None
     aura = None
     is_mystic = False
+    ghost = False
     knowledge_class = None
     
     message = 'Usa il tuo potere su:'
@@ -106,6 +107,11 @@ class Role(object):
 
         """
         pass
+
+    def post_death(self, dynamics):
+        """To be called just after this role dies.
+
+        """
 
     def apply_dawn(self, dynamics):
         raise NotImplementedError("Please extend this method in subclasses")
@@ -736,6 +742,25 @@ class Fantasma(Role):
     team = NEGROMANTI
     aura = BLACK
 
+    def post_death(self, dynamics):
+        powers = set([role for role in dynamics.roles_list if role.ghost])
+        available_powers = powers - dynamics.used_ghost_powers - set([Morte, Corruzione])
+        if len(available_powers) >= 1:
+            power = dynamics.random.choice(sorted(list(available_powers)))
+            dynamics.generate_event(GhostificationEvent(player=player, cause=PHANTOM, ghost=power))
+            for negromante in dynamics.players:
+                if isinstance(negromante.role, Negromante):
+                    dynamics.generate_event(RoleKnowledgeEvent(player=player,
+                                                               target=negromante,
+                                                               role_name='Negromante',
+                                                               cause=GHOST))
+                    dynamics.generate_event(RoleKnowledgeEvent(player=negromante,
+                                                               target=player,
+                                                               role_name=power.__class__.__name__,
+                                                               cause=PHANTOM))
+        else:
+            dynamics.generate_event(GhostificationFailedEvent(player=player))
+        
 
 class Ipnotista(Role):
     name = 'Ipnotista'
@@ -959,9 +984,126 @@ class Spettro(Role):
         else:
             return []
 
-roles_map = dict([(x.__name__, x) for x in Role.__subclasses__()])
+class Amnesia(Role):
+    name = 'Spettro'
+    team = NEGROMANTI
+    aura = None
+    is_mystic = None
+    ghost = True
+
+    def get_power_name(self):
+        return self.__class__.__name__
+    power_name = property(get_power_name)
+
+    def __init__(self, player):
+        Role.__init__(self, player)
+        self.has_power = True
+
+    def can_use_power(self):
+        return not self.player.alive and self.has_power
+
+    def get_targets(self):
+        return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
+ 
+    def get_targets2(self):
+        return None
+
+    def pre_apply_dawn(self, dynamics):
+        return True
+
+    def apply_dawn(self, dynamics):
+        assert self.has_power
+
+        assert dynamics.amnesia_target is None
+        dynamics.amnesia_target = self.recorded_target.canonicalize()
+
+class Confusione(Role):
+    name = 'Spettro'
+    team = NEGROMANTI
+    aura = None
+    is_mystic = None
+    ghost = True
+
+    def get_power_name(self):
+        return self.__class__.__name__
+    power_name = property(get_power_name)
+
+    def __init__(self, player):
+        Role.__init__(self, player)
+        self.has_power = True
+
+    def can_use_power(self):
+        if self.player.alive or not self.has_power:
+            return False
+
+    def get_targets(self):
+        return [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
+ 
+    def get_targets2(self):
+        return self.player.game.get_active_players()
+
+    def pre_apply_dawn(self, dynamics):
+        return True
+
+    def apply_dawn(self, dynamics):
+        assert self.has_power
+
+        target = self.recorded_target.canonicalize()
+        target2 = self.recorded_target2.canonicalize()
+
+        target.has_confusion = True
+        # Apply to target target2's apparent status
+        target.apparent_aura = target2.apparent_aura
+        target.apparent_mystic = target2.apparent_mystic
+        target.apparent_role = target2.apparent_role
+        target.apparent_team = target2.apparent_team
+
+
+class Corruzione(Role):
+    name = 'Spettro'
+    team = NEGROMANTI
+    aura = None
+    is_mystic = None
+    ghost = True
+
+    def get_power_name(self):
+        return self.__class__.__name__
+    power_name = property(get_power_name)
+
+    def __init__(self, player):
+        Role.__init__(self, player)
+        self.has_power = True
+
+    def can_use_power(self):
+        if self.player.alive or not self.has_power:
+            return False
+
+        return self.last_usage is None
+
+    def get_targets(self):
+        return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
+
+    def get_targets2(self):
+        return None
+
+    def pre_apply_dawn(self, dynamics):
+        if self.recorded_target.aura == BLACK or not self.recorded_target.is_mystic \
+                or not self.recorded_target.team == POPOLANI or self.recorded_target.just_dead \
+                or self.recorded_target.just_transformed:
+            return False
+
+        return True
+
+    def apply_dawn(self, dynamics):
+        assert self.has_power
+
+        from .events import CorruptionEvent, RoleKnowledgeEvent
+        dynamics.generate_event(CorruptionEvent(player=self.recorded_target))
+        dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=self.__class__.__name__, cause=CORRUPTION))
+
+
 
 UNA_TANTUM_ROLES = [Cacciatore, Messia, Trasformista]
 POWERLESS_ROLES = [Contadino, Divinatore, Massone, Rinnegato, Fantasma]
-VALID_ROLES = [Contadino, Divinatore, Esorcista, Espansivo, Guardia, Investigatore, Mago, Massone, Messia, Sciamano, Stalker, Trasformista, Veggente, Voyeur, Lupo, Assassino, Avvocato, Diavolo, Fattucchiera, Rinnegato, Sequestratore, Stregone, Negromante, Fantasma, Ipnotista, Medium, Scrutatore, Spettro]
-
+valid_roles = [Cacciatore, Contadino, Divinatore, Esorcista, Espansivo, Guardia, Investigatore, Mago, Massone, Messia, Sciamano, Stalker, Trasformista, Veggente, Voyeur, Lupo, Assassino, Avvocato, Diavolo, Fattucchiera, Rinnegato, Sequestratore, Stregone, Negromante, Fantasma, Ipnotista, Medium, Scrutatore, Spettro]
+roles_list = dict([(x.__name__, x) for x in valid_roles])
