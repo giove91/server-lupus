@@ -480,6 +480,9 @@ class Lupo(Role):
         else:
             assert self.recorded_target is None
 
+    def post_death(self, dynamics):
+        if [player for player in dynamics.get_alive_players() if isinstance(player.role, self.__class__)] == []:
+            dynamics.dying_teams += self.team
 
 class Assassino(Role):
     name = 'Assassino'
@@ -735,6 +738,10 @@ class Negromante(Role):
 
         else:
             assert self.recorded_target is None
+
+    def post_death(self, dynamics):
+        if [player for player in dynamics.get_alive_players() if isinstance(player.role, self.__class__)] == []:
+            dynamics.dying_teams += self.team
 
 
 class Fantasma(Role):

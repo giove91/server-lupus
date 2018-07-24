@@ -998,42 +998,26 @@ True]):
     def _count_alive_teams(self):
         teams = []
 
-        # Popolani
         for player in self.get_alive_players():
-            if player.team == POPOLANI:
-                teams.append(POPOLANI)
-                break
-
-        # Lupi
-        for player in self.get_alive_players():
-            if isinstance(player.role, Lupo):
-                teams.append(LUPI)
-                break
-
-        # Negromanti
-        for player in self.get_alive_players():
-            if isinstance(player.role, Negromante):
-                teams.append(NEGROMANTI)
-                break
+            if player.team not in teams:
+                teams.append(player.team)
 
         return teams
 
     def _check_team_exile(self):
         # Detect dying teams
-        teams = self._count_alive_teams()
-        assert set(teams) <= set(self.playing_teams)
-        dying_teams = set(self.playing_teams) - set(teams)
-        for team in dying_teams:
-            if team in [LUPI, NEGROMANTI]:
-                for player in self.players:
-                    if player.team == team and player.active:
-                        event = ExileEvent(player=player, cause=TEAM_DEFEAT)
-                        self.generate_event(event)
+        for team in self.dying_teams:
+            for player in self.players:
+                if player.team == team and player.active:
+                    event = ExileEvent(player=player, cause=TEAM_DEFEAT)
+                    self.generate_event(event)
 
         while self._update_step(advancing_turn=True):
             pass
 
         # Check victory condition
+        teams = self._count_alive_teams()
+        assert set(teams) <= set(self.playing_teams)
         winning_teams = None
         if len(teams) == 1:
             winning_teams = teams
