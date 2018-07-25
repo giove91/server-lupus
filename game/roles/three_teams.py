@@ -693,7 +693,7 @@ class Negromante(Role):
     knowledge_class = 4
     priority = MODIFY
 
-    valid_powers = ['Amnesia', 'Confusione', 'Corruzione', 'Illusione', 'Ipnosi', 'Morte', 'Occultamento', 'Visione']
+    valid_powers = [AMNESIA, CONFUSIONE, CORRUZIONE, ILLUSIONE, IPNOSI, MORTE, OCCULTAMENTO, VISIONE]
 
     def can_use_power(self):
         return self.player.alive

@@ -32,7 +32,7 @@ class CommandEvent(Event):
     
     target = models.ForeignKey(Player, null=True, blank=True, related_name='+',on_delete=models.CASCADE)
     target2 = models.ForeignKey(Player, null=True, blank=True, related_name='+',on_delete=models.CASCADE)
-    target_ghost = models.CharField(max_length=200, null=True, blank=True)
+    target_ghost = models.CharField(max_length=1, choices=POWER_NAMES, null=True, blank=True)
     
     def __unicode__(self):
         return u"CommandEvent %d" % self.pk
@@ -61,7 +61,7 @@ class CommandEvent(Event):
                 'player': self.player.user.username,
                 'target': self.target.user.username if self.target is not None else None,
                 'target2': self.target2.user.username if self.target2 is not None else None,
-                'target_ghost': self.target_ghost,
+                'target_ghost': POWER_NAMES[self.target_ghost],
                 'type': dict(CommandEvent.ACTION_TYPES)[self.type],
                 })
         return ret
@@ -1037,7 +1037,7 @@ class GhostificationEvent(Event):
         #assert not(self.ghost == IPNOSI and [player2 for player2 in dynamics.get_alive_players() if isinstance(player2.role, Ipnotista) and player2.team == NEGROMANTI] != [])
 
         # Update global status
-        dynamics.used_ghost_powers.add(dynamics.roles_list[self.ghost])
+        dynamics.used_ghost_powers.add(self.ghost)
 
         # Call pre disappearance code
         player.role.pre_disappearance(dynamics)
@@ -1047,7 +1047,7 @@ class GhostificationEvent(Event):
         player.role_class_before_ghost = player.role.__class__
 
         # Real ghostification
-        player.role = dynamics.roles_list[self.ghost](player)
+        player.role = dynamics.roles_list[POWER_NAMES[self.ghost]](player)
         player.team = NEGROMANTI
 
     def to_player_string(self, player):
