@@ -82,6 +82,16 @@ AURA_IT = {
 UNA_TANTUM = 'U'
 NEVER = 'N'
 
+# Power priorities
+BLOCK = 10
+QUERY_INFLUENCE = 20
+MODIFY_INFLUENCE = 30
+QUERY = 40
+MODIFY = 50
+KILLER = 60
+POST_MORTEM = 70
+USELESS = 80
+
 # Supernatural powers
 AMNESIA = 'A'
 CONFUSIONE = 'C'

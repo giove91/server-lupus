@@ -93,6 +93,7 @@ class Dynamics:
         self.server_is_on_fire = False  # so far...
         self.sasha_is_sleeping = False  # usually...
         self.playing_teams = []
+        self.dying_teams = []
         self.advocated_players = []
         self.redirected_ballots = []
         self.amnesia_target = None
@@ -589,13 +590,13 @@ True]):
         # Create an index of all roles and ghost powers
         players_by_role = {}
         ghosts_by_power = {}
-        for role_class in Role.__subclasses__():
+        for role_class in self.roles_list.values():
             players_by_role[role_class.__name__] = []
         for player in self.get_active_players():
             role_name = player.role.__class__.__name__
             players_by_role[role_name].append(player)
 
-            if isinstance(player.role, Spettro):
+            if player.role.ghost:
                 ghost_power = player.role.power
                 assert ghost_power not in ghosts_by_power
                 ghosts_by_power[ghost_power] = player
@@ -621,13 +622,7 @@ True]):
         # Sciamano, Esorcista, Stregone
 
         # Build the list of blockers
-        critical_blockers = players_by_role[Sequestratore.__name__] + \
-            players_by_role[Sciamano.__name__] + \
-            players_by_role[Esorcista.__name__] + \
-            players_by_role[Stregone.__name__]
-        if OCCULTAMENTO in ghosts_by_power:
-            critical_blockers.append(ghosts_by_power[OCCULTAMENTO])
-        critical_blockers = [x for x in critical_blockers if x.role.recorded_target is not None]
+        critical_blockers = [player for player in self.get_active_players if player.role.critical_blocker and player.role.recorded_target is not None]
 
         # Build the block graph and compute blocking success
         block_graph = dict([(x.pk, x.role.get_blocked(self.players)) for x in self.players])
@@ -653,7 +648,7 @@ True]):
                         assert not powers_success[dst]
                     else:
                         powers_success[dst] = False
-                    if self.players_dict[src].role.__class__ == Sequestratore:
+                    if self.players_dict[src].role.sequester:
                         sequestrated[dst] = True
         if DEBUG_DYNAMICS:
             print >> sys.stderr, "powers_success: " + repr(powers_success)
@@ -662,7 +657,7 @@ True]):
         # Then compute the visit graph
         for player in self.get_active_players():
             if player.role.recorded_target is not None and \
-                    player.role.__class__ != Spettro and \
+                    not player.role.ghost and \
                     player.pk not in sequestrated:
                 player.visiting.append(player.role.recorded_target)
                 player.role.recorded_target.visitors.append(player)
@@ -691,76 +686,12 @@ True]):
             if success:
                 player.role.apply_dawn(self)
 
-        def apply_roles(roles):
-            for role in roles:
-                if isinstance(role, str):
-                    if role in ghosts_by_power:
-                        player = ghosts_by_power[role]
-                        apply_role(player)
-                        while self._update_step(advancing_turn=True):
-                            pass
-                else:
-                    if role.__name__ in players_by_role:
-                        for player in players_by_role[role.__name__]:
-                            apply_role(player)
-                            while self._update_step(advancing_turn=True):
-                                pass
-
-        # Apply roles of blockers computed above, so that
-        # PowerOutcomeEvent's are properly generated
-        BLOCK_ROLES = [Sequestratore, Stregone, Sciamano, Esorcista, OCCULTAMENTO]
-        apply_roles(BLOCK_ROLES)
-
-        # Powers that influence querying powers: Fattucchiera, Spettro
-        # della Confusione, Spettro dell'Illusione
-        #
-        # Fattucchiera must act after Confusione
-        QUERY_INFLUENCE_ROLES = [CONFUSIONE, Fattucchiera, ILLUSIONE]
-        apply_roles(QUERY_INFLUENCE_ROLES)
-
-        # Then powers that influence modifying powers: Guardia del
-        # Corpo and Custode del Cimitero
-        MODIFY_INFLUENCE_ROLES = [Guardia, Custode]
-        apply_roles(MODIFY_INFLUENCE_ROLES)
-
-        # Powers that query the state: Espansivo, Investigatore, Mago,
-        # Stalker, Veggente, Voyeur, Diavolo, Medium and Spettro della
-        # Visione
-        QUERY_ROLES = [Espansivo, Investigatore, Mago, Stalker, Veggente,
-                       Voyeur, Diavolo, Medium, VISIONE]
-        apply_roles(QUERY_ROLES)
-
-        # Identify targets for Lupi and Negromanti
-        self.wolves_target = self._solve_common_target(players_by_role[Lupo.__name__], ghosts=False)
-        self.necromancers_target = self._solve_common_target(players_by_role[Negromante.__name__], ghosts=True)
-
-        assert self.upcoming_deaths == []
-
-        # Powers that modify the state: Cacciatore, Messia,
-        # Trasformista, Lupi, Assassino, Avvocato del Diavolo, Negromante,
-        # Ipnotista, Spettro dell'Amnesia and Spettro della Morte. The
-        # order is important: in particular, these inequalities have
-        # to be satisfied ("<" means "must act before"):
-        #
-        #  * Messia < Negromante (resurrection has precedence over
-        #    ghostification)
-        #
-        #  * anything < Cacciatore, Lupo, Assassino, MORTE (deaths happen at the
-        #    and of the turn) except CORRUZIONE
-        MODIFY_ROLES = [Avvocato, AMNESIA, Scrutatore, IPNOSI,
-                        Ipnotista, Trasformista, Necrofilo, Messia, Negromante]
-        KILLER_ROLES = [Cacciatore, Lupo, Assassino, MORTE]
-        POST_MORTEM_ROLES = [CORRUZIONE]
-        # self.random.shuffle(KILLER_ROLES)
-        MODIFY_ROLES = MODIFY_ROLES + KILLER_ROLES + POST_MORTEM_ROLES
-        apply_roles(MODIFY_ROLES)
-
-        # Roles with no power: Contadino, Divinatore, Massone,
-        # Rinnegato, Fantasma; we apply them anyway, so that we are
-        # sure that all players pass through apply_role()
-        STUPID_ROLES = [Contadino, Divinatore, Massone, Rinnegato,
-                        Fantasma]
-        apply_roles(STUPID_ROLES)
+        players = self.get_active_players()
+        self.random.shuffle(players)
+        players.sort(key=lambda x:x.priority)
+        for player in players:
+            assert player.role.priority is not None
+            apply_role(player)
 
         # Unset (nearly) all temporary status
         self.wolves_target = None
@@ -1025,6 +956,7 @@ True]):
             winning_teams = self.playing_teams
 
         self.playing_teams = teams
+        self.dying_teams = []
 
         if winning_teams is not None and self.winners is None:
             self.generate_event(VictoryEvent(popolani_win=POPOLANI in winning_teams,

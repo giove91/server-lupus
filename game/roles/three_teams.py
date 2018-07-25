@@ -9,6 +9,9 @@ class Role(object):
     aura = None
     is_mystic = False
     ghost = False
+    priority = None            # Priority of actions. Lower values act before
+    critical_blocker = False   # Power that blocks powers that block powers
+    sequester = False          # When True, blocked roles will not be seen moving
     knowledge_class = None
     
     message = 'Usa il tuo potere su:'
@@ -126,12 +129,13 @@ class Contadino(Role):
     name = 'Contadino'
     team = POPOLANI
     aura = WHITE
-
+    priority = USELESS
 
 class Cacciatore(Role):
     name = 'Cacciatore'
     team = POPOLANI
     aura = BLACK
+    priority = KILLER
     
     def can_use_power(self):
         return self.player.alive and self.player.game.current_turn.full_days_from_start() > 0 and self.last_usage is None
@@ -150,7 +154,8 @@ class Custode(Role):
     name = 'Custode del cimitero'
     team = POPOLANI
     aura = WHITE
-    
+    priority = MODIFY_INFLUENCE
+
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
     
@@ -168,14 +173,16 @@ class Divinatore(Role):
     team = POPOLANI
     aura = WHITE
     is_mystic = True
-
+    priority = USELESS
 
 class Esorcista(Role):
     name = 'Esorcista'
     team = POPOLANI
     aura = WHITE
     is_mystic = True
-    
+    critical_blocker = True
+    priority = BLOCK
+
     # message = 'Benedici la casa di:'
     
     def can_use_power(self):
@@ -191,7 +198,7 @@ class Esorcista(Role):
         for blocker in players:
             if blocker.pk == self.player.pk:
                 continue
-            if not isinstance(blocker.role, Spettro):
+            if not blocker.role.ghost:
                 continue
             if blocker.role.recorded_target is not None and \
                     blocker.role.recorded_target.pk == self.recorded_target.pk:
@@ -207,6 +214,7 @@ class Espansivo(Role):
     name = 'Espansivo'
     team = POPOLANI
     aura = WHITE
+    priority = QUERY
     
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
@@ -223,6 +231,7 @@ class Guardia(Role):
     name = 'Guardia del corpo'
     team = POPOLANI
     aura = WHITE
+    priority = MODIFY_INFLUENCE
     
     # message = 'Proteggi:'
     
@@ -243,6 +252,7 @@ class Investigatore(Role):
     name = 'Investigatore'
     team = POPOLANI
     aura = WHITE
+    priority = QUERY
     
     def can_use_power(self):
         return self.player.alive
@@ -260,6 +270,7 @@ class Mago(Role):
     team = POPOLANI
     aura = WHITE
     is_mystic = True
+    priority = QUERY
     
     def can_use_power(self):
         return self.player.alive
@@ -277,13 +288,14 @@ class Massone(Role):
     team = POPOLANI
     aura = WHITE
     knowledge_class = 0
-
+    priority = USELESS
 
 class Messia(Role):
     name = 'Messia'
     team = POPOLANI
     aura = WHITE
     is_mystic = True
+    priority = MODIFY
     
     def can_use_power(self):
         return self.player.alive and self.last_usage is None
@@ -293,7 +305,7 @@ class Messia(Role):
 
     def pre_apply_dawn(self, dynamics):
         # Power fails on Spettri
-        if isinstance(self.recorded_target.role, (Spettro)):
+        if self.recorded_target.role.ghost:
             return False
         return True
 
@@ -309,6 +321,8 @@ class Sciamano(Role):
     team = POPOLANI
     aura = BLACK
     is_mystic = True
+    critical_blocker = True
+    priority = BLOCK
 
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
@@ -319,7 +333,7 @@ class Sciamano(Role):
     def get_blocked(self, players):
         if self.recorded_target is None:
             return []
-        if isinstance(self.recorded_target.role, Spettro):
+        if self.recorded_target.role.ghost:
             return [self.recorded_target.pk]
         else:
             return []
@@ -333,6 +347,7 @@ class Stalker(Role):
     name = 'Stalker'
     team = POPOLANI
     aura = WHITE
+    priority = QUERY
     
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
@@ -360,7 +375,8 @@ class Trasformista(Role):
     name = 'Trasformista'
     team = POPOLANI
     aura = BLACK
-    
+    priority = MODIFY
+
     def can_use_power(self):
         return self.player.alive and self.last_usage is None
     
@@ -369,7 +385,7 @@ class Trasformista(Role):
 
     def pre_apply_dawn(self, dynamics):
         # There are some forbidden roles
-        if self.recorded_target.team != POPOLANI and not isinstance(self.recorded_target.role, Spettro):
+        if self.recorded_target.team != POPOLANI and not self.recorded_target.role.ghost:
             return False
         if isinstance(self.recorded_target.role, tuple(UNA_TANTUM_ROLES)):
             return False
@@ -381,7 +397,7 @@ class Trasformista(Role):
     def apply_dawn(self, dynamics):
         from .events import TransformationEvent
         new_role_class = self.recorded_target.role.__class__
-        if isinstance(self.recorded_target.role, Spettro):
+        if self.recorded_target.role.ghost:
             new_role_class = self.recorded_target.role_class_before_ghost
         assert new_role_class.team == POPOLANI
         dynamics.generate_event(TransformationEvent(player=self.player, target=self.recorded_target, role_name=new_role_class.__name__, cause=TRANSFORMIST))
@@ -393,7 +409,8 @@ class Veggente(Role):
     team = POPOLANI
     aura = WHITE
     is_mystic = True
-    
+    priority = QUERY
+
     def can_use_power(self):
         return self.player.alive
     
@@ -409,6 +426,7 @@ class Voyeur(Role):
     name = 'Voyeur'
     team = POPOLANI
     aura = WHITE
+    priority = QUERY
     
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
@@ -438,7 +456,8 @@ class Lupo(Role):
     team = LUPI
     aura = BLACK
     knowledge_class = 1
-    
+    priority = KILLER
+
     def can_use_power(self):
         return self.player.alive and self.player.game.current_turn.full_days_from_start() > 0
     
@@ -489,7 +508,8 @@ class Assassino(Role):
     team = LUPI
     aura = BLACK
     knowledge_class = 2
-    
+    priority = KILLER
+
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 ) and self.player.game.current_turn.full_days_from_start() > 0
     
@@ -513,6 +533,7 @@ class Avvocato(Role):
     team = LUPI
     aura = BLACK
     knowledge_class = 2
+    priority = MODIFY
     
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
@@ -531,6 +552,7 @@ class Diavolo(Role):
     aura = BLACK
     is_mystic = True
     knowledge_class = 3
+    priority = QUERY
     
     def can_use_power(self):
         return self.player.alive
@@ -555,6 +577,7 @@ class Fattucchiera(Role):
     aura = WHITE
     is_mystic = True
     knowledge_class = 3
+    priority = QUERY_INFLUENCE + 1 # Must act after Confusione
     
     def can_use_power(self):
         return self.player.alive
@@ -572,6 +595,7 @@ class Necrofilo(Role):
     team = LUPI
     aura = BLACK
     knowledge_class = 2
+    priority = MODIFY
     
     def can_use_power(self):
         return self.player.alive and self.last_usage is None
@@ -599,13 +623,16 @@ class Rinnegato(Role):
     team = LUPI
     aura = WHITE
     knowledge_class = 2
-
+    priority = USELESS
 
 class Sequestratore(Role):
     name = 'Sequestratore'
     team = LUPI
     aura = BLACK
     knowledge_class = 2
+    critical_blocker = True
+    sequester = True
+    priority = BLOCK
     
     def can_use_power(self):
         return self.player.alive
@@ -630,7 +657,9 @@ class Stregone(Role):
     aura = BLACK
     is_mystic = True
     knowledge_class = 3
-    
+    critical_blocker = True
+    priority = BLOCK
+
     def can_use_power(self):
         return self.player.alive
     
@@ -644,7 +673,7 @@ class Stregone(Role):
         for blocked in players:
             if blocked.pk == self.player.pk:
                 continue
-            if isinstance(blocked.role, Spettro):
+            if blocked.role.ghost:
                 continue
             if blocked.role.recorded_target is not None and blocked.role.recorded_target.pk == self.recorded_target.pk:
                 ret.append(blocked.pk)
@@ -662,7 +691,10 @@ class Negromante(Role):
     aura = WHITE
     is_mystic = True
     knowledge_class = 4
-    
+    priority = MODIFY
+
+    valid_powers = [Amnesia, Confusione, Corruzione, Illusione, Ipnosi, Morte, Occultamento, Visione]
+
     def can_use_power(self):
         return self.player.alive
     
@@ -671,7 +703,7 @@ class Negromante(Role):
     
     def get_targets_ghost(self):
         dynamics = self.player.game.get_dynamics()
-        powers = set(Spettro.POWER_NAMES.keys())
+        powers = set(self.valid_powers)
         available_powers = powers - dynamics.used_ghost_powers
         return list(available_powers)
 
@@ -748,6 +780,7 @@ class Fantasma(Role):
     name = 'Fantasma'
     team = NEGROMANTI
     aura = BLACK
+    priority = USELESS
 
     def post_death(self, dynamics):
         powers = set([role for role in dynamics.roles_list if role.ghost])
@@ -774,7 +807,8 @@ class Ipnotista(Role):
     team = NEGROMANTI
     aura = WHITE
     knowledge_class = 5
-    
+    priority = MODIFY
+
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
     
@@ -799,6 +833,7 @@ class Medium(Role):
     aura = WHITE
     is_mystic = True
     knowledge_class = 5
+    priority = QUERY
     
     def can_use_power(self):
         return self.player.alive
@@ -816,6 +851,7 @@ class Scrutatore(Role):
     team = NEGROMANTI
     aura = WHITE
     knowledge_class = 5
+    priority = MODIFY
 
     message2 = 'Aggiungi un voto per:'
 
@@ -1114,3 +1150,33 @@ UNA_TANTUM_ROLES = [Cacciatore, Messia, Trasformista]
 POWERLESS_ROLES = [Contadino, Divinatore, Massone, Rinnegato, Fantasma]
 valid_roles = [Cacciatore, Contadino, Divinatore, Esorcista, Espansivo, Guardia, Investigatore, Mago, Massone, Messia, Sciamano, Stalker, Trasformista, Veggente, Voyeur, Lupo, Assassino, Avvocato, Diavolo, Fattucchiera, Rinnegato, Sequestratore, Stregone, Negromante, Fantasma, Ipnotista, Medium, Scrutatore, Spettro]
 roles_list = dict([(x.__name__, x) for x in valid_roles])
+
+
+# ABOUT ORDER
+# Powers that influence querying powers: Fattucchiera, Spettro
+# della Confusione, Spettro dell'Illusione
+#
+# Fattucchiera must act after Confusione
+
+# Then powers that influence modifying powers: Guardia del
+# Corpo and Custode del Cimitero
+
+# Powers that query the state: Espansivo, Investigatore, Mago,
+# Stalker, Veggente, Voyeur, Diavolo, Medium and Spettro della
+# Visione
+
+# Powers that modify the state: Cacciatore, Messia,
+# Trasformista, Lupi, Assassino, Avvocato del Diavolo, Negromante,
+# Ipnotista, Spettro dell'Amnesia and Spettro della Morte. The
+# order is important: in particular, these inequalities have
+# to be satisfied ("<" means "must act before"):
+#
+#  * Messia < Negromante (resurrection has precedence over
+#    ghostification)
+#
+#  * anything < Cacciatore, Lupo, Assassino, MORTE (deaths happen at the
+#    and of the turn) except CORRUZIONE
+
+# Roles with no power: Contadino, Divinatore, Massone,
+# Rinnegato, Fantasma.
+

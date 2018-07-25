@@ -1037,7 +1037,7 @@ class GhostificationEvent(Event):
         #assert not(self.ghost == IPNOSI and [player2 for player2 in dynamics.get_alive_players() if isinstance(player2.role, Ipnotista) and player2.team == NEGROMANTI] != [])
 
         # Update global status
-        dynamics.used_ghost_powers.add(self.ghost)
+        dynamics.used_ghost_powers.add(dynamics.roles_list[self.ghost])
 
         # Call pre disappearance code
         player.role.pre_disappearance(dynamics)
