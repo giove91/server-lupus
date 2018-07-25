@@ -373,7 +373,7 @@ class CommandForm(forms.Form):
                     choices.extend( [ (player.pk, player.full_name) for player in field['choices'] ] )
                 elif key == 'target_ghost':
                     choices = [ (None, '(Nessuno)') ]
-                    choices.extend( [ (power, Spettro.POWER_NAMES[power]) for power in field['choices'] ] )
+                    choices.extend( [ (power, power) for power in field['choices'] ] )
                 else:
                     raise Exception ('Unknown form field.')
                 
