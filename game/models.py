@@ -183,6 +183,7 @@ class Game(models.Model):
         first_turn = Turn.first_turn(self)
         first_turn.set_first_begin_end(begin)
         first_turn.save()
+        assert first_turn.phase == CREATION
 
     def advance_turn(self):
         assert self.current_turn.end is not None

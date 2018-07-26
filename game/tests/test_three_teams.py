@@ -1104,7 +1104,7 @@ class GameTests(TestCase):
         self.assertEqual(event.player, contadino)
         self.assertEqual(event.ghost, AMNESIA)
         self.assertEqual(event.cause, NECROMANCER)
-        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertTrue(contadino.role.ghost)
     
     @record_name
     def test_ipnotista(self):
@@ -1393,7 +1393,7 @@ class GameTests(TestCase):
             [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
             self.assertEqual(event.player, fantasma)
             self.assertEqual(event.cause, PHANTOM)
-            self.assertTrue(isinstance(fantasma.role, Spettro))
+            self.assertTrue(fantasma.role.ghost)
             self.assertTrue(event.ghost in phantom_roles)
             
             [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent) and event.cause == GHOST]
@@ -2098,7 +2098,7 @@ class GameTests(TestCase):
         
         # Advance to second night and use power
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(investigatore.role, Spettro))
+        self.assertTrue(investigatore.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -2670,7 +2670,7 @@ class GameTests(TestCase):
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertTrue(contadino.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -2872,7 +2872,7 @@ class GameTests(TestCase):
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertTrue(contadino.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -2924,7 +2924,7 @@ class GameTests(TestCase):
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(veggente.role, Spettro))
+        self.assertTrue(veggente.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -3079,7 +3079,7 @@ class GameTests(TestCase):
         
         # Advance to tnegromantehird night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(veggente.role, Spettro))
+        self.assertTrue(veggente.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -3137,7 +3137,7 @@ class GameTests(TestCase):
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertTrue(contadino.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -3185,7 +3185,7 @@ class GameTests(TestCase):
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertTrue(contadino.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -3244,7 +3244,7 @@ class GameTests(TestCase):
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertTrue(contadino.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -3329,7 +3329,7 @@ class GameTests(TestCase):
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertTrue(contadino.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -3385,7 +3385,7 @@ class GameTests(TestCase):
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertTrue(contadino.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -3435,7 +3435,7 @@ class GameTests(TestCase):
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertTrue(contadino.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -3484,7 +3484,7 @@ class GameTests(TestCase):
 
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(veggente.role, Spettro))
+        self.assertTrue(veggente.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -3537,7 +3537,7 @@ class GameTests(TestCase):
 
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(messia.role, Spettro))
+        self.assertTrue(messia.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -3594,7 +3594,7 @@ class GameTests(TestCase):
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertTrue(contadino.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -3692,7 +3692,7 @@ class GameTests(TestCase):
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(veggente.role, Spettro))
+        self.assertTrue(veggente.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -3745,7 +3745,7 @@ class GameTests(TestCase):
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(veggente.role, Spettro))
+        self.assertTrue(veggente.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -3792,7 +3792,7 @@ class GameTests(TestCase):
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(veggente.role, Spettro))
+        self.assertTrue(veggente.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -3849,7 +3849,7 @@ class GameTests(TestCase):
         
         # Corruzione acts on trasformista which is becoming mago
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(veggente.role, Spettro))
+        self.assertTrue(veggente.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -3900,7 +3900,7 @@ class GameTests(TestCase):
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(veggente.role, Spettro))
+        self.assertTrue(veggente.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -3947,7 +3947,7 @@ class GameTests(TestCase):
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(veggente.role, Spettro))
+        self.assertTrue(veggente.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -4020,7 +4020,7 @@ class GameTests(TestCase):
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(veggente.role, Spettro))
+        self.assertTrue(veggente.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -4097,7 +4097,7 @@ class GameTests(TestCase):
         
         # Advance to night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(veggente.role, Spettro))
+        self.assertTrue(veggente.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -4157,7 +4157,7 @@ class GameTests(TestCase):
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(veggente.role, Spettro))
+        self.assertTrue(veggente.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -4229,7 +4229,7 @@ class GameTests(TestCase):
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertTrue(contadino.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -4280,7 +4280,7 @@ class GameTests(TestCase):
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertTrue(contadino.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -4331,7 +4331,7 @@ class GameTests(TestCase):
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertTrue(contadino.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -4567,7 +4567,7 @@ class GameTests(TestCase):
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertTrue(contadino.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -4675,7 +4675,7 @@ class GameTests(TestCase):
         for event in events:
             self.assertTrue(event.success)
         self.assertTrue(isinstance(messia.role, Messia))
-        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertTrue(contadino.role.ghost)
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
         self.assertEqual(event.player, contadino)
         self.assertEqual(event.ghost, ILLUSIONE)
@@ -4731,7 +4731,7 @@ class GameTests(TestCase):
 
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
         self.assertEqual(event.player, cacciatore)
-        self.assertTrue(isinstance(cacciatore.role, Spettro))
+        self.assertTrue(cacciatore.role.ghost)
         self.assertEqual(event.ghost, ILLUSIONE)
         
         self.assertFalse(contadino.alive)
@@ -4767,7 +4767,7 @@ class GameTests(TestCase):
 
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
         self.assertEqual(event.player, contadino)
-        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertTrue(contadino.role.ghost)
         self.assertEqual(event.ghost, CONFUSIONE)
         
         self.assertTrue(isinstance(veggente.role, Veggente))
@@ -4811,7 +4811,7 @@ class GameTests(TestCase):
         self.assertEqual(event.player, contadino1)
         self.assertEqual(event.ghost, AMNESIA)
         self.assertEqual(event.cause, NECROMANCER)
-        self.assertTrue(isinstance(contadino1.role, Spettro))
+        self.assertTrue(contadino1.role.ghost)
         
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
         self.assertEqual(event.player, contadino2)
@@ -4832,7 +4832,7 @@ class GameTests(TestCase):
         self.assertEqual(event.player, contadino2)
         self.assertEqual(event.ghost, CONFUSIONE)
         self.assertEqual(event.cause, NECROMANCER)
-        self.assertTrue(isinstance(contadino2.role, Spettro))
+        self.assertTrue(contadino2.role.ghost)
         
 
     @record_name
@@ -4866,7 +4866,7 @@ class GameTests(TestCase):
         
         # Advance to second day and kill fantasma
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(veggente.role, Spettro))
+        self.assertTrue(veggente.role.ghost)
         test_advance_turn(self.game)
         
         dynamics.inject_event(CommandEvent(type=VOTE, player=messia, target=fantasma, timestamp=get_now()))
@@ -4885,7 +4885,7 @@ class GameTests(TestCase):
         
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
         self.assertEqual(event.player, fantasma)
-        self.assertTrue(isinstance(fantasma.role, Spettro))
+        self.assertTrue(fantasma.role.ghost)
         self.assertEqual(event.cause, PHANTOM)
     
     @record_name
@@ -5114,7 +5114,7 @@ class GameTests(TestCase):
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertTrue(contadino.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -5190,7 +5190,7 @@ class GameTests(TestCase):
 
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertTrue(contadino.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -5313,7 +5313,7 @@ class GameTests(TestCase):
         self.assertEqual(event.player, mago)
         self.assertEqual(event.ghost, IPNOSI)
         self.assertEqual(event.cause, NECROMANCER)
-        self.assertTrue(isinstance(mago.role, Spettro))
+        self.assertTrue(mago.role.ghost)
         
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent) and event.cause == GHOST]
         self.assertEqual(event.player, mago)
@@ -5389,7 +5389,7 @@ class GameTests(TestCase):
         self.assertEqual(event.player, cacciatore)
         self.assertEqual(event.ghost, IPNOSI)
         self.assertEqual(event.cause, NECROMANCER)
-        self.assertTrue(isinstance(cacciatore.role, Spettro))
+        self.assertTrue(cacciatore.role.ghost)
         
         # Advance to night
         test_advance_turn(self.game)
@@ -5454,7 +5454,7 @@ class GameTests(TestCase):
         self.assertEqual(event.player, cacciatore)
         self.assertEqual(event.ghost, IPNOSI)
         self.assertEqual(event.cause, NECROMANCER)
-        self.assertTrue(isinstance(cacciatore.role, Spettro))
+        self.assertTrue(cacciatore.role.ghost)
         
         # Advance to night
         test_advance_turn(self.game)
@@ -5553,7 +5553,7 @@ class GameTests(TestCase):
         
         # Advance to night
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(veggente.role, Spettro))
+        self.assertTrue(veggente.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -5667,7 +5667,7 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PlayerDiesEvent)]
         self.assertEqual(event.player, amnesia)
-        
+        self.assertFalse(amnesia.alive)
         
         # Advance to night make ipnosi
         test_advance_turn(self.game)
@@ -6020,7 +6020,7 @@ class GameTests(TestCase):
         self.assertEqual(event.player, contadino)
         self.assertEqual(event.ghost, IPNOSI)
         self.assertEqual(event.cause, NECROMANCER)
-        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertTrue(contadino.role.ghost)
         
         # Advance to night and use power
         test_advance_turn(self.game)
@@ -6109,7 +6109,7 @@ class GameTests(TestCase):
         self.assertEqual(event.player, contadino)
         self.assertEqual(event.ghost, IPNOSI)
         self.assertEqual(event.cause, NECROMANCER)
-        self.assertTrue(isinstance(contadino.role, Spettro), ipnotista1.role)
+        self.assertTrue(contadino.role.ghost, ipnotista1.role)
         
         # Advance to night and use power
         test_advance_turn(self.game)
@@ -6330,7 +6330,7 @@ class GameTests(TestCase):
         # self.assertEqual(event.player, ipnotista)
         # self.assertEqual(event.ghost, IPNOSI)
         # self.assertEqual(event.cause, HYPNOTIST_DEATH)
-        # self.assertTrue(isinstance(ipnotista.role, Spettro))
+        # self.assertTrue(ipnotista.role.ghost)
         
         # [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent) and event.cause == GHOST]
         # self.assertEqual(event.player, ipnotista)
@@ -6417,7 +6417,7 @@ class GameTests(TestCase):
         # self.assertEqual(event.player, ipnotista)
         # self.assertEqual(event.ghost, IPNOSI)
         # self.assertEqual(event.cause, HYPNOTIST_DEATH)
-        # self.assertTrue(isinstance(ipnotista.role, Spettro))
+        # self.assertTrue(ipnotista.role.ghost)
         
         # [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent) and event.cause == GHOST]
         # self.assertEqual(event.player, ipnotista)
@@ -6443,7 +6443,7 @@ class GameTests(TestCase):
         # self.assertEqual(event.player, contadino)
         # self.assertEqual(event.ghost, AMNESIA)
         # self.assertEqual(event.cause, NECROMANCER)
-        # self.assertTrue(isinstance(ipnotista.role, Spettro))
+        # self.assertTrue(ipnotista.role.ghost)
         
         # # Advance to night
         # test_advance_turn(self.game)
@@ -6514,7 +6514,7 @@ class GameTests(TestCase):
         # [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
         # self.assertEqual(event.ghost, IPNOSI)
         # self.assertEqual(event.cause, HYPNOTIST_DEATH)
-        # self.assertTrue(isinstance(ipnotista1.role, Spettro), ipnotista1.role)
+        # self.assertTrue(ipnotista1.role.ghost, ipnotista1.role)
         # [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) if event.player == ipnotista2]
         # self.assertTrue(event.success)
         
@@ -6588,7 +6588,7 @@ class GameTests(TestCase):
         # [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
         # self.assertEqual(event.ghost, IPNOSI)
         # self.assertEqual(event.cause, HYPNOTIST_DEATH)
-        # self.assertTrue(isinstance(ipnotista1.role, Spettro), ipnotista1.role)
+        # self.assertTrue(ipnotista1.role.ghost, ipnotista1.role)
         
         # # Advance to night
         # test_advance_turn(self.game)
@@ -6669,7 +6669,7 @@ class GameTests(TestCase):
         self.assertEqual(event.player, contadino)
         self.assertEqual(event.ghost, AMNESIA)
         self.assertEqual(event.cause, NECROMANCER)
-        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertTrue(contadino.role.ghost)
         
         # Advance to night
         test_advance_turn(self.game)
@@ -6700,7 +6700,7 @@ class GameTests(TestCase):
         self.assertEqual(event.player, mago)
         self.assertEqual(event.ghost, IPNOSI)
         self.assertEqual(event.cause, NECROMANCER)
-        self.assertTrue(isinstance(mago.role, Spettro))
+        self.assertTrue(mago.role.ghost)
         
         # Advance to night
         test_advance_turn(self.game)
@@ -6853,8 +6853,8 @@ class GameTests(TestCase):
         self.assertEqual(event.player, contadino)
         self.assertEqual(event.ghost, IPNOSI)
         self.assertEqual(event.cause, NECROMANCER)
-        self.assertTrue(isinstance(contadino.role, Spettro))
-        self.assertFalse(isinstance(ipnotista.role, Spettro))
+        self.assertTrue(contadino.role.ghost)
+        self.assertFalse(ipnotista.role.ghost)
     
     @record_name    
     def test_messia_fails_on_spettri(self): # Updated Lupus7
@@ -6897,11 +6897,11 @@ class GameTests(TestCase):
         self.assertEqual(event1.player, veggente)
         self.assertEqual(event1.ghost, CORRUZIONE)
         self.assertEqual(event1.cause, NECROMANCER)
-        self.assertTrue(isinstance(veggente.role, Spettro))
+        self.assertTrue(veggente.role.ghost)
         
         self.assertEqual(event2.player, fantasma)
         self.assertEqual(event2.cause, PHANTOM)
-        self.assertTrue(isinstance(fantasma.role, Spettro))
+        self.assertTrue(fantasma.role.ghost)
                 
         # Advance to fourth night and try resurrection
         dynamics.debug_event_bin = []
@@ -7029,7 +7029,7 @@ class GameTests(TestCase):
 
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertTrue(contadino.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -7165,7 +7165,7 @@ class GameTests(TestCase):
         self.assertEqual(event.player, contadino)
         self.assertEqual(event.ghost, CONFUSIONE)
         self.assertEqual(event.cause, NECROMANCER)
-        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertTrue(contadino.role.ghost)
         
         # Advance to next night
         test_advance_turn(self.game)
@@ -7470,7 +7470,7 @@ class GameTests(TestCase):
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertTrue(contadino.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -7518,7 +7518,7 @@ class GameTests(TestCase):
         
         # Advance to third night and use powers
         test_advance_turn(self.game)
-        self.assertTrue(isinstance(contadino.role, Spettro))
+        self.assertTrue(contadino.role.ghost)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)

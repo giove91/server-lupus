@@ -584,24 +584,6 @@ True]):
 
         self.ghosts_created_last_night = False
 
-        # Create an index of all roles and ghost powers
-        players_by_role = {}
-        ghosts_by_power = {}
-        for role_class in self.roles_list.values():
-            players_by_role[role_class.__name__] = []
-        for player in self.get_active_players():
-            role_name = player.role.__class__.__name__
-            players_by_role[role_name].append(player)
-
-            if player.role.ghost:
-                ghost_power = player.role.power
-                assert ghost_power not in ghosts_by_power
-                ghosts_by_power[ghost_power] = player
-
-        # Shuffle players in each role
-        for role_players in iter(players_by_role.values()):
-            self.random.shuffle(role_players)
-
         # Prepare temporary status
         self.wolves_agree = None
         self.necromancers_agree = None
@@ -689,6 +671,8 @@ True]):
         for player in players:
             assert player.role.priority is not None
             apply_role(player)
+            while self._update_step(advancing_turn=True):
+                pass
 
         # Unset (nearly) all temporary status
         self.wolves_agree = None
@@ -718,6 +702,7 @@ True]):
             self.redirected_ballots = []
             self.amnesia_target = None
         else:
+            
             self._end_of_main_phase()
 
     def _compute_entering_day(self):
@@ -993,6 +978,9 @@ True]):
             assert self.mayor.alive and self.mayor.active
 
     def _end_of_main_phase(self):
+        if DEBUG_DYNAMICS:
+            print("Terminating main phase", file=sys.stderr)
+
         assert self.mayor.alive and self.mayor.active
         if self.appointed_mayor is not None:
             assert self.appointed_mayor.alive and self.appointed_mayor.active

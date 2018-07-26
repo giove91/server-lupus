@@ -34,6 +34,7 @@ def create_game(seed, ruleset, roles):
 
     first_turn = game.get_dynamics().current_turn
 
+    assert first_turn.phase == FIRST_PHASE, Turn.objects.filter(game=game)
     event = SeedEvent(seed=seed)
     event.timestamp = first_turn.begin
     game.get_dynamics().inject_event(event)

@@ -57,12 +57,11 @@ class CommandEvent(Event):
 
     def to_dict(self):
         ret = Event.to_dict(self)
-        print(self.target_ghost,file=sys.stderr)
         ret.update({
                 'player': self.player.user.username,
                 'target': self.target.user.username if self.target is not None else None,
                 'target2': self.target2.user.username if self.target2 is not None else None,
-                'target_ghost': POWER_NAMES[self.target_ghost],
+                'target_ghost': POWER_NAMES[self.target_ghost] if self.target_ghost is not None else None,
                 'type': dict(CommandEvent.ACTION_TYPES)[self.type],
                 })
         return ret
@@ -611,7 +610,7 @@ class SoothsayerModelEvent(Event):
         self.soothsayer_num = int(data['soothsayer_num'])
 
     def apply(self, dynamics):
-        soothsayer = [pl for pl in dynamics.players if isinstance(pl.role, Divinatore)][self.soothsayer_num]
+        soothsayer = [pl for pl in dynamics.players if pl.role.__class__.__name__ == 'Divinatore'][self.soothsayer_num]
         target = dynamics.random.choice([pl for pl in dynamics.players if pl.role.__class__.__name__ == self.player_role and pl is not soothsayer])
         event = RoleKnowledgeEvent(player=soothsayer, target=target, role_name=self.advertised_role, cause=SOOTHSAYER)
         dynamics.generate_event(event)

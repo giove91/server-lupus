@@ -485,20 +485,16 @@ class Lupo(Role):
         return True
 
     def apply_dawn(self, dynamics):
-        if dynamics.wolves_target is not None:
-            assert self.recorded_target.pk == dynamics.wolves_target.pk
+        assert dynamics.wolves_agree
 
-            # Assert checks in pre_dawn_apply(), just to be sure
-            assert not isinstance(self.recorded_target.role, Negromante)
-            assert not self.recorded_target.protected_by_guard
+        # Assert checks in pre_dawn_apply(), just to be sure
+        assert not isinstance(self.recorded_target.role, Negromante)
+        assert not self.recorded_target.protected_by_guard
 
-            if not self.recorded_target.just_dead:
-                assert self.recorded_target.alive
-                from ..events import PlayerDiesEvent
-                dynamics.generate_event(PlayerDiesEvent(player=self.recorded_target, cause=WOLVES))
-
-        else:
-            assert self.recorded_target is None
+        if not self.recorded_target.just_dead:
+            assert self.recorded_target.alive
+            from ..events import PlayerDiesEvent
+            dynamics.generate_event(PlayerDiesEvent(player=self.recorded_target, cause=WOLVES))
 
     def post_death(self, dynamics):
         if [player for player in dynamics.get_alive_players() if isinstance(player.role, self.__class__)] == []:
@@ -863,6 +859,7 @@ class Amnesia(Role):
     aura = None
     is_mystic = None
     ghost = True
+    priority = MODIFY
 
     def get_power_name(self):
         return self.__class__.__name__
@@ -896,6 +893,7 @@ class Confusione(Role):
     aura = None
     is_mystic = None
     ghost = True
+    priority = QUERY_INFLUENCE
 
     def get_power_name(self):
         return self.__class__.__name__
@@ -909,9 +907,11 @@ class Confusione(Role):
         if self.player.alive or not self.has_power:
             return False
 
+        return True
+
     def get_targets(self):
         return [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
- 
+
     def get_targets2(self):
         return self.player.game.get_active_players()
 
@@ -938,6 +938,7 @@ class Corruzione(Role):
     aura = None
     is_mystic = None
     ghost = True
+    priority = POST_MORTEM
 
     def get_power_name(self):
         return self.__class__.__name__
@@ -980,6 +981,7 @@ class Illusione(Role):
     aura = None
     is_mystic = None
     ghost = True
+    priority = QUERY_INFLUENCE
 
     message2 = 'Genera l\'illusione di:'
     
@@ -989,7 +991,6 @@ class Illusione(Role):
 
     def __init__(self, player):
         Role.__init__(self, player)
-        self.power = power
         self.has_power = True
 
     def can_use_power(self):
@@ -1026,6 +1027,7 @@ class Ipnosi(Role):
     aura = None
     is_mystic = None
     ghost = True
+    priority = MODIFY
 
     message2 = 'Sposta il voto su:'
     
@@ -1035,7 +1037,6 @@ class Ipnosi(Role):
 
     def __init__(self, player):
         Role.__init__(self, player)
-        self.power = power
         self.has_power = True
 
     def can_use_power(self):
@@ -1062,6 +1063,7 @@ class Morte(Role):
     aura = None
     is_mystic = None
     ghost = True
+    priority = KILLER
 
     def get_power_name(self):
         return self.__class__.__name__
@@ -1099,6 +1101,8 @@ class Occultamento(Role):
     aura = None
     is_mystic = None
     ghost = True
+    critical_blocker = True
+    priority = BLOCK
 
     def get_power_name(self):
         return self.__class__.__name__
@@ -1141,6 +1145,7 @@ class Visione(Role):
     aura = None
     is_mystic = None
     ghost = True
+    priority = QUERY
 
     def get_power_name(self):
         return self.__class__.__name__
@@ -1174,7 +1179,7 @@ class Visione(Role):
 
 UNA_TANTUM_ROLES = [Cacciatore, Messia, Trasformista]
 POWERLESS_ROLES = [Contadino, Divinatore, Massone, Rinnegato, Fantasma]
-valid_roles = [Cacciatore, Contadino, Divinatore, Esorcista, Espansivo, Guardia,
+valid_roles = [Cacciatore, Contadino, Custode, Divinatore, Esorcista, Espansivo, Guardia,
     Investigatore, Mago, Massone, Messia, Sciamano, Stalker, Trasformista, Veggente,
     Voyeur, Lupo, Assassino, Avvocato, Diavolo, Fattucchiera, Rinnegato,
     Sequestratore, Stregone, Negromante, Fantasma, Ipnotista, Medium, Scrutatore,
