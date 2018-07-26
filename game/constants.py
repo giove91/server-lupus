@@ -80,7 +80,6 @@ AURA_IT = {
 
 # Power frequency
 UNA_TANTUM = 'U'
-NEVER = 'N'
 
 # Power priorities
 BLOCK = 10

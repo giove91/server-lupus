@@ -10,6 +10,7 @@ class Role(object):
     is_mystic = False
     ghost = False
     priority = None            # Priority of actions. Lower values act before
+    frequency = None           # How often the power can be used. Can be None(no power), UNA_TANTUM (once a game), or a number (usually 1 or 2)
     critical_blocker = False   # Power that blocks powers that block powers
     sequester = False          # When True, blocked roles will not be seen moving
     knowledge_class = None
@@ -136,6 +137,7 @@ class Cacciatore(Role):
     team = POPOLANI
     aura = BLACK
     priority = KILLER
+    frequency = UNA_TANTUM
     
     def can_use_power(self):
         return self.player.alive and self.player.game.current_turn.full_days_from_start() > 0 and self.last_usage is None
@@ -155,6 +157,7 @@ class Custode(Role):
     team = POPOLANI
     aura = WHITE
     priority = MODIFY_INFLUENCE
+    frequency = 2
 
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
@@ -182,6 +185,7 @@ class Esorcista(Role):
     is_mystic = True
     critical_blocker = True
     priority = BLOCK
+    frequency = 2
 
     # message = 'Benedici la casa di:'
     
@@ -215,6 +219,7 @@ class Espansivo(Role):
     team = POPOLANI
     aura = WHITE
     priority = QUERY
+    frequency = 2
     
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
@@ -232,6 +237,8 @@ class Guardia(Role):
     team = POPOLANI
     aura = WHITE
     priority = MODIFY_INFLUENCE
+    frequency = 1
+
     
     # message = 'Proteggi:'
     
@@ -253,6 +260,7 @@ class Investigatore(Role):
     team = POPOLANI
     aura = WHITE
     priority = QUERY
+    frequency = 1
     
     def can_use_power(self):
         return self.player.alive
@@ -271,6 +279,7 @@ class Mago(Role):
     aura = WHITE
     is_mystic = True
     priority = QUERY
+    frequency = 1
     
     def can_use_power(self):
         return self.player.alive
@@ -296,6 +305,7 @@ class Messia(Role):
     aura = WHITE
     is_mystic = True
     priority = MODIFY
+    frequency = UNA_TANTUM
     
     def can_use_power(self):
         return self.player.alive and self.last_usage is None
@@ -323,6 +333,8 @@ class Sciamano(Role):
     is_mystic = True
     critical_blocker = True
     priority = BLOCK
+    frequency = 2
+
 
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
@@ -348,6 +360,7 @@ class Stalker(Role):
     team = POPOLANI
     aura = WHITE
     priority = QUERY
+    frequency = 2
     
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
@@ -376,6 +389,7 @@ class Trasformista(Role):
     team = POPOLANI
     aura = BLACK
     priority = MODIFY
+    frequency = UNA_TANTUM
 
     def can_use_power(self):
         return self.player.alive and self.last_usage is None
@@ -410,6 +424,7 @@ class Veggente(Role):
     aura = WHITE
     is_mystic = True
     priority = QUERY
+    frequency = 1
 
     def can_use_power(self):
         return self.player.alive
@@ -427,6 +442,8 @@ class Voyeur(Role):
     team = POPOLANI
     aura = WHITE
     priority = QUERY
+    frequency = 2
+
     
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
@@ -457,6 +474,7 @@ class Lupo(Role):
     aura = BLACK
     knowledge_class = 1
     priority = KILLER
+    frequency = 1
 
     def can_use_power(self):
         return self.player.alive and self.player.game.current_turn.full_days_from_start() > 0
@@ -506,6 +524,8 @@ class Assassino(Role):
     aura = BLACK
     knowledge_class = 2
     priority = KILLER
+    frequency = 2
+
 
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 ) and self.player.game.current_turn.full_days_from_start() > 0
@@ -531,6 +551,7 @@ class Avvocato(Role):
     aura = BLACK
     knowledge_class = 2
     priority = MODIFY
+    frequency = 2
     
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
@@ -550,6 +571,7 @@ class Diavolo(Role):
     is_mystic = True
     knowledge_class = 3
     priority = QUERY
+    frequency = 1
     
     def can_use_power(self):
         return self.player.alive
@@ -575,6 +597,7 @@ class Fattucchiera(Role):
     is_mystic = True
     knowledge_class = 3
     priority = QUERY_INFLUENCE + 1 # Must act after Confusione
+    frequency = 1
     
     def can_use_power(self):
         return self.player.alive
@@ -593,6 +616,7 @@ class Necrofilo(Role):
     aura = BLACK
     knowledge_class = 2
     priority = MODIFY
+    frequency = UNA_TANTUM
     
     def can_use_power(self):
         return self.player.alive and self.last_usage is None
@@ -630,6 +654,7 @@ class Sequestratore(Role):
     critical_blocker = True
     sequester = True
     priority = BLOCK
+    frequency = 1
     
     def can_use_power(self):
         return self.player.alive
@@ -656,6 +681,7 @@ class Stregone(Role):
     knowledge_class = 3
     critical_blocker = True
     priority = BLOCK
+    frequency = 1
 
     def can_use_power(self):
         return self.player.alive
@@ -689,6 +715,7 @@ class Negromante(Role):
     is_mystic = True
     knowledge_class = 4
     priority = MODIFY
+    frequency = 1
 
     valid_powers = [AMNESIA, CONFUSIONE, CORRUZIONE, ILLUSIONE, IPNOSI, MORTE, OCCULTAMENTO, VISIONE]
 
@@ -796,6 +823,7 @@ class Ipnotista(Role):
     aura = WHITE
     knowledge_class = 5
     priority = MODIFY
+    frequency = 2
 
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
@@ -822,6 +850,7 @@ class Medium(Role):
     is_mystic = True
     knowledge_class = 5
     priority = QUERY
+    frequency = 1
     
     def can_use_power(self):
         return self.player.alive
@@ -840,6 +869,7 @@ class Scrutatore(Role):
     aura = WHITE
     knowledge_class = 5
     priority = MODIFY
+    frequency = 2
 
     message2 = 'Aggiungi un voto per:'
 
@@ -860,6 +890,7 @@ class Amnesia(Role):
     is_mystic = None
     ghost = True
     priority = MODIFY
+    frequency = 1
 
     def get_power_name(self):
         return self.__class__.__name__
@@ -894,6 +925,7 @@ class Confusione(Role):
     is_mystic = None
     ghost = True
     priority = QUERY_INFLUENCE
+    frequency = 1
 
     def get_power_name(self):
         return self.__class__.__name__
@@ -939,6 +971,7 @@ class Corruzione(Role):
     is_mystic = None
     ghost = True
     priority = POST_MORTEM
+    frequency = UNA_TANTUM
 
     def get_power_name(self):
         return self.__class__.__name__
@@ -982,6 +1015,7 @@ class Illusione(Role):
     is_mystic = None
     ghost = True
     priority = QUERY_INFLUENCE
+    frequency = 2
 
     message2 = 'Genera l\'illusione di:'
     
@@ -1028,6 +1062,7 @@ class Ipnosi(Role):
     is_mystic = None
     ghost = True
     priority = MODIFY
+    frequency = 2
 
     message2 = 'Sposta il voto su:'
     
@@ -1064,6 +1099,7 @@ class Morte(Role):
     is_mystic = None
     ghost = True
     priority = KILLER
+    frequency = 2
 
     def get_power_name(self):
         return self.__class__.__name__
@@ -1103,6 +1139,7 @@ class Occultamento(Role):
     ghost = True
     critical_blocker = True
     priority = BLOCK
+    frequency = 1
 
     def get_power_name(self):
         return self.__class__.__name__
@@ -1146,6 +1183,7 @@ class Visione(Role):
     is_mystic = None
     ghost = True
     priority = QUERY
+    frequency = 1
 
     def get_power_name(self):
         return self.__class__.__name__
