@@ -32,7 +32,7 @@ class CommandEvent(Event):
     
     target = models.ForeignKey(Player, null=True, blank=True, related_name='+',on_delete=models.CASCADE)
     target2 = models.ForeignKey(Player, null=True, blank=True, related_name='+',on_delete=models.CASCADE)
-    target_ghost = models.CharField(max_length=1, choices=POWER_NAMES, null=True, blank=True)
+    target_ghost = models.CharField(max_length=1, choices=POWER_NAMES.items(), null=True, blank=True)
     
     def __unicode__(self):
         return u"CommandEvent %d" % self.pk

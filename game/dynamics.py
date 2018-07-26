@@ -99,8 +99,8 @@ class Dynamics:
         self.amnesia_target = None
         self.hypnosis_ghost_target = None
         self.illusion = None
-        self.wolves_target = None
-        self.necromancers_target = None
+        self.wolves_agree = None
+        self.necromancers_agree = None
         self.winners = None
         self.over = False
         self.upcoming_deaths = []
@@ -553,7 +553,7 @@ True]):
             print >> sys.stderr, "min_score: " + repr(min_score)
         return self.random.choice(minimizers)
 
-    def _solve_common_target(self, players, ghosts=False):
+    def check_common_target(self, players, ghosts=False):
         target = None
         target_ghost = None
         for player in players:
@@ -569,17 +569,14 @@ True]):
                     if ghosts:
                         target_ghost = role.recorded_target_ghost
                 elif target.pk != role.recorded_target.pk:
-                    return None and victim.role.recorded_target == self.recorded_target
+                    return False
                 elif ghosts and target_ghost != role.recorded_target_ghost:
-                    return None
+                    return False
             else:
                 if ghosts:
                     assert role.recorded_target_ghost is None
 
-        if not ghosts:
-            return target
-        else:
-            return target, target_ghost
+        return True
 
     def _compute_entering_dawn(self):
         if DEBUG_DYNAMICS:
@@ -606,8 +603,8 @@ True]):
             self.random.shuffle(role_players)
 
         # Prepare temporary status
-        self.wolves_target = None
-        self.necromancers_target = None
+        self.wolves_agree = None
+        self.necromancers_agree = None
         for player in self.get_active_players():
             player.apparent_aura = player.aura
             player.apparent_mystic = player.is_mystic
@@ -622,7 +619,7 @@ True]):
         # Sciamano, Esorcista, Stregone
 
         # Build the list of blockers
-        critical_blockers = [player for player in self.get_active_players if player.role.critical_blocker and player.role.recorded_target is not None]
+        critical_blockers = [player for player in self.get_active_players() if player.role.critical_blocker and player.role.recorded_target is not None]
 
         # Build the block graph and compute blocking success
         block_graph = dict([(x.pk, x.role.get_blocked(self.players)) for x in self.players])
@@ -688,14 +685,14 @@ True]):
 
         players = self.get_active_players()
         self.random.shuffle(players)
-        players.sort(key=lambda x:x.priority)
+        players.sort(key=lambda x:x.role.priority)
         for player in players:
             assert player.role.priority is not None
             apply_role(player)
 
         # Unset (nearly) all temporary status
-        self.wolves_target = None
-        self.necromancers_target = None
+        self.wolves_agree = None
+        self.necromancers_agree = None
         self.illusion = None
         for player in self.players:
             if not self.simulating:
@@ -822,7 +819,7 @@ True]):
 
         # Apply Ipnotista
         def hypnotist_redirect(hypnotist):
-            if isinstance(hypnotist.role, Ipnotista):
+            if hypnotist.role.__class__.__name__ == 'Ipnotista': # TODO: sistemare per bene, magari mettendola sotto roles
                 for player in self.get_alive_players():
                     if player.hypnotist is hypnotist and ballots[player.pk] is not ballots[hypnotist.pk] and \
                     (self.hypnosis_ghost_target is None or player is not self.hypnosis_ghost_target[0]) and \
@@ -838,7 +835,7 @@ True]):
             if not scrutatore.alive:
                 continue
             assert target is not None
-            assert isinstance(scrutatore.role, Scrutatore)
+            assert scrutatore.role.__class__.__name__ == 'Scrutatore'
             for player in self.get_alive_players():
                 if ballots[player.pk] is target:
                     ballots[player.pk] = ballots[scrutatore.pk]

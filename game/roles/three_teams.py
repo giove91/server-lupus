@@ -465,9 +465,10 @@ class Lupo(Role):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
     def pre_apply_dawn(self, dynamics):
-        if dynamics.wolves_target is not None:
-            assert self.recorded_target.pk == dynamics.wolves_target.pk
+        if dynamics.wolves_agree is None:
+            dynamics.wolves_agree = dynamics.check_common_target([x for x in dynamics.get_alive_players if isinstance(x.role, Lupo)])
 
+        if dynamics.wolves_agree:
             # Lupi cannot kill non-Popolani
             if self.recorded_target.team != POPOLANI:
                 return False
@@ -708,11 +709,10 @@ class Negromante(Role):
         return list(available_powers)
 
     def pre_apply_dawn(self, dynamics):
-        if dynamics.necromancers_target is not None:
-            necromancers_target_player, necromancers_target_ghost = dynamics.necromancers_target
-            assert self.recorded_target.pk == necromancers_target_player.pk
-            assert self.recorded_target_ghost == necromancers_target_ghost
+        if dynamics.necromancers_agree is None:
+            dynamics.necromancers_agree = dynamics.check_common_target([x for x in dynamics.get_alive_players if isinstance(x.role, Negromante)], ghost=True)
 
+        if dynamics.necromancers_agree:
             # Negromanti cannot ghostify people in Lupi team
             if self.recorded_target.team == LUPI:
                 return False
@@ -1182,7 +1182,11 @@ class Visione(Role):
 
 UNA_TANTUM_ROLES = [Cacciatore, Messia, Trasformista]
 POWERLESS_ROLES = [Contadino, Divinatore, Massone, Rinnegato, Fantasma]
-valid_roles = [Cacciatore, Contadino, Divinatore, Esorcista, Espansivo, Guardia, Investigatore, Mago, Massone, Messia, Sciamano, Stalker, Trasformista, Veggente, Voyeur, Lupo, Assassino, Avvocato, Diavolo, Fattucchiera, Rinnegato, Sequestratore, Stregone, Negromante, Fantasma, Ipnotista, Medium, Scrutatore, Spettro]
+valid_roles = [Cacciatore, Contadino, Divinatore, Esorcista, Espansivo, Guardia,
+    Investigatore, Mago, Massone, Messia, Sciamano, Stalker, Trasformista, Veggente,
+    Voyeur, Lupo, Assassino, Avvocato, Diavolo, Fattucchiera, Rinnegato,
+    Sequestratore, Stregone, Negromante, Fantasma, Ipnotista, Medium, Scrutatore,
+    Amnesia, Confusione, Corruzione, Illusione, Ipnosi, Morte, Occultamento, Visione]
 roles_list = dict([(x.__name__, x) for x in valid_roles])
 
 
