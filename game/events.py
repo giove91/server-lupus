@@ -57,6 +57,7 @@ class CommandEvent(Event):
 
     def to_dict(self):
         ret = Event.to_dict(self)
+        print(self.target_ghost,file=sys.stderr)
         ret.update({
                 'player': self.player.user.username,
                 'target': self.target.user.username if self.target is not None else None,
@@ -571,7 +572,7 @@ class PlayerDiesEvent(Event):
         player.alive = False
         player.just_dead = False
         
-        player.role.post_death()
+        player.role.post_death(dynamics)
 
     def to_player_string(self, player):
         oa = self.player.oa

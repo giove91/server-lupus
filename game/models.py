@@ -84,7 +84,7 @@ class Game(models.Model):
     day_end_time = models.TimeField(default=time(22), null=True, verbose_name='Ora del tramonto')
 
     def started(self):
-        return self.get_dynamics.random is not None
+        return self.get_dynamics().random is not None
 
     def current_turn(self):
         try:

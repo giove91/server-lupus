@@ -61,7 +61,7 @@ class Dynamics:
                 event = event.as_child()
                 if event.AUTOMATIC:
                     if DEBUG_DYNAMICS:
-                        print >> sys.stderr, "Deleting event %r" % (event)
+                        print("Deleting event %r" % (event), file=sys.stderr)
                     event.delete()
 
         # Otherwise expect that there are no automatic events in the
@@ -512,7 +512,7 @@ True]):
         minimizers = None
         for competitor in iter_competitors():
             if DEBUG_DYNAMICS:
-                print >> sys.stderr, "  competitor: " + repr(competitor)
+                print("  competitor: " + repr(competitor), file=sys.stderr)
             score = 0
             skip = False
             for src, success in iter(competitor.items()):
@@ -536,8 +536,8 @@ True]):
                         score += 1
 
             if DEBUG_DYNAMICS:
-                print >> sys.stderr, "    skip: " + repr(skip)
-                print >> sys.stderr, "    score: " + repr(score)
+                print("    skip: " + repr(skip), file=sys.stderr)
+                print("    score: " + repr(score), file=sys.stderr)
 
             # Finally, count the score of this competitor
             if not skip:
@@ -549,8 +549,8 @@ True]):
 
         # Choose a random minimizing competitor
         if DEBUG_DYNAMICS:
-            print >> sys.stderr, "minimizers: " + repr(minimizers)
-            print >> sys.stderr, "min_score: " + repr(min_score)
+            print("minimizers: " + repr(minimizers), file=sys.stderr)
+            print("min_score: " + repr(min_score), file=sys.stderr)
         return self.random.choice(minimizers)
 
     def check_common_target(self, players, ghosts=False):
@@ -580,7 +580,7 @@ True]):
 
     def _compute_entering_dawn(self):
         if DEBUG_DYNAMICS:
-            print >> sys.stderr, "Computing dawn"
+            print("Computing dawn", file=sys.stderr)
 
         self.ghosts_created_last_night = False
 
@@ -629,9 +629,9 @@ True]):
                 rev_block_graph[y].append(x)
         blockers_success = self._solve_blockers(critical_blockers, block_graph, rev_block_graph)
         if DEBUG_DYNAMICS:
-            print >> sys.stderr, "block_graph:" + repr(block_graph)
-            print >> sys.stderr, "rev_block_graph:" + repr(rev_block_graph)
-            print >> sys.stderr, "blockers_success:" + repr(blockers_success)
+            print("block_graph:" + repr(block_graph), file=sys.stderr)
+            print("rev_block_graph:" + repr(rev_block_graph), file=sys.stderr)
+            print("blockers_success:" + repr(blockers_success), file=sys.stderr)
 
         # Extend the success status to all players and compute who has
         # been sequestrated
@@ -648,8 +648,8 @@ True]):
                     if self.players_dict[src].role.sequester:
                         sequestrated[dst] = True
         if DEBUG_DYNAMICS:
-            print >> sys.stderr, "powers_success: " + repr(powers_success)
-            print >> sys.stderr, "sequestrated: " + repr(sequestrated)
+            print("powers_success: " + repr(powers_success), file=sys.stderr)
+            print("sequestrated: " + repr(sequestrated), file=sys.stderr)
 
         # Then compute the visit graph
         for player in self.get_active_players():
@@ -659,25 +659,25 @@ True]):
                 player.visiting.append(player.role.recorded_target)
                 player.role.recorded_target.visitors.append(player)
         if DEBUG_DYNAMICS:
-            print >> sys.stderr, "visiting: " + repr(dict([(x, x.visiting) for x in self.get_active_players()]))
-            print >> sys.stderr, "visitors: " + repr(dict([(x, x.visitors) for x in self.get_active_players()]))
+            print("visiting: " + repr(dict([(x, x.visiting) for x in self.get_active_players()])), file=sys.stderr)
+            print("visitors: " + repr(dict([(x, x.visitors) for x in self.get_active_players()])), file=sys.stderr)
 
         # Utility methods for later
         def apply_role(player):
             if player.role.recorded_target is None:
                 return
             if DEBUG_DYNAMICS:
-                print >> sys.stderr, "> Applying role %r for %r:" % (player, player.role),
+                print("> Applying role %r for %r:" % (player, player.role), file=sys.stderr)
             success = powers_success[player.pk]
             if DEBUG_DYNAMICS:
-                print >> sys.stderr, success,
+                print(success, file=sys.stderr)
             if success:
                 success = player.role.pre_apply_dawn(self)
                 if DEBUG_DYNAMICS:
-                    print >> sys.stderr, success
+                    print(success, file=sys.stderr)
             else:
                 if DEBUG_DYNAMICS:
-                    print >> sys.stderr
+                    print(success, file=sys.stderr)
             event = PowerOutcomeEvent(player=player, success=success, sequestrated=player.pk in sequestrated, command=player.role.recorded_command)
             self.generate_event(event)
             if success:
@@ -722,11 +722,11 @@ True]):
 
     def _compute_entering_day(self):
         if DEBUG_DYNAMICS:
-            print >> sys.stderr, "Computing day"
+            print("Computing day", file=sys.stderr)
 
     def _compute_entering_sunset(self):
         if DEBUG_DYNAMICS:
-            print >> sys.stderr, "Computing sunset"
+            print("Computing sunset", file=sys.stderr)
 
         new_mayor = self._compute_elected_mayor()
         if new_mayor is not None:
@@ -914,7 +914,7 @@ True]):
         self.random.shuffle(self.pending_disqualifications)
 
         if DEBUG_DYNAMICS:
-            print >> sys.stderr, "Computing disqualifications"
+            print("Computing disqualifications", file=sys.stderr)
 
         for disqualification in self.pending_disqualifications:
             event = ExileEvent(player=disqualification.player, cause=DISQUALIFICATION, disqualification=disqualification)

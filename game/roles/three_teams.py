@@ -146,7 +146,7 @@ class Cacciatore(Role):
     def apply_dawn(self, dynamics):
         if not self.recorded_target.just_dead:
             assert self.recorded_target.alive
-            from .events import PlayerDiesEvent
+            from ..events import PlayerDiesEvent
             dynamics.generate_event(PlayerDiesEvent(player=self.recorded_target, cause=HUNTER))
 
 
@@ -165,7 +165,7 @@ class Custode(Role):
     def apply_dawn(self, dynamics):
         self.recorded_target.protected_by_keeper = True
         visitors = [visitor for visitor in self.recorded_target.visitors if visitor.pk not in [self.player.pk, self.recorded_target.pk] or dynamics.illusion == (self.player, self.recorded_target)]
-        from .events import QuantitativeMovementKnowledgeEvent
+        from ..events import QuantitativeMovementKnowledgeEvent
         dynamics.generate_event(QuantitativeMovementKnowledgeEvent(player=self.player, target=self.recorded_target, visitors=len(visitors), cause=KEEPER))
 
 class Divinatore(Role):
@@ -223,7 +223,7 @@ class Espansivo(Role):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        from .events import RoleKnowledgeEvent
+        from ..events import RoleKnowledgeEvent
         dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=self.__class__.__name__, cause=EXPANSIVE))
 
 
@@ -244,7 +244,7 @@ class Guardia(Role):
     def apply_dawn(self, dynamics):
         self.recorded_target.protected_by_guard = True
         visitors = [visitor for visitor in self.recorded_target.visitors if visitor.pk not in [self.player.pk, self.recorded_target.pk] or dynamics.illusion == (self.player, self.recorded_target)]
-        from .events import QuantitativeMovementKnowledgeEvent
+        from ..events import QuantitativeMovementKnowledgeEvent
         dynamics.generate_event(QuantitativeMovementKnowledgeEvent(player=self.player, target=self.recorded_target,visitors=len(visitors), cause=GUARD))
 
 
@@ -261,7 +261,7 @@ class Investigatore(Role):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        from .events import AuraKnowledgeEvent
+        from ..events import AuraKnowledgeEvent
         dynamics.generate_event(AuraKnowledgeEvent(player=self.player, target=self.recorded_target, aura=dynamics.get_apparent_aura(self.recorded_target), cause=DETECTIVE))
 
 
@@ -279,7 +279,7 @@ class Mago(Role):
         return [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        from .events import MysticityKnowledgeEvent
+        from ..events import MysticityKnowledgeEvent
         dynamics.generate_event(MysticityKnowledgeEvent(player=self.player, target=self.recorded_target, is_mystic=dynamics.get_apparent_mystic(self.recorded_target), cause=MAGE))
 
 
@@ -312,7 +312,7 @@ class Messia(Role):
     def apply_dawn(self, dynamics):
         if not self.recorded_target.just_resurrected:
             self.recorded_target.just_resurrected = True
-            from .events import PlayerResurrectsEvent
+            from ..events import PlayerResurrectsEvent
             dynamics.generate_event(PlayerResurrectsEvent(player=self.recorded_target))
 
 
@@ -356,7 +356,7 @@ class Stalker(Role):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        from .events import MovementKnowledgeEvent, NoMovementKnowledgeEvent
+        from ..events import MovementKnowledgeEvent, NoMovementKnowledgeEvent
         gen_set = set()
         gen_num = 0
         for visiting in self.recorded_target.visiting:
@@ -395,7 +395,7 @@ class Trasformista(Role):
         return True
 
     def apply_dawn(self, dynamics):
-        from .events import TransformationEvent
+        from ..events import TransformationEvent
         new_role_class = self.recorded_target.role.__class__
         if self.recorded_target.role.ghost:
             new_role_class = self.recorded_target.role_class_before_ghost
@@ -418,7 +418,7 @@ class Veggente(Role):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        from .events import AuraKnowledgeEvent
+        from ..events import AuraKnowledgeEvent
         dynamics.generate_event(AuraKnowledgeEvent(player=self.player, target=self.recorded_target, aura=dynamics.get_apparent_aura(self.recorded_target), cause=SEER))
 
 
@@ -435,7 +435,7 @@ class Voyeur(Role):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        from .events import MovementKnowledgeEvent, NoMovementKnowledgeEvent
+        from ..events import MovementKnowledgeEvent, NoMovementKnowledgeEvent
         gen_set = set()
         gen_num = 0
         for visitor in self.recorded_target.visitors:
@@ -466,7 +466,7 @@ class Lupo(Role):
 
     def pre_apply_dawn(self, dynamics):
         if dynamics.wolves_agree is None:
-            dynamics.wolves_agree = dynamics.check_common_target([x for x in dynamics.get_alive_players if isinstance(x.role, Lupo)])
+            dynamics.wolves_agree = dynamics.check_common_target([x for x in dynamics.get_alive_players() if isinstance(x.role, Lupo)])
 
         if dynamics.wolves_agree:
             # Lupi cannot kill non-Popolani
@@ -494,7 +494,7 @@ class Lupo(Role):
 
             if not self.recorded_target.just_dead:
                 assert self.recorded_target.alive
-                from .events import PlayerDiesEvent
+                from ..events import PlayerDiesEvent
                 dynamics.generate_event(PlayerDiesEvent(player=self.recorded_target, cause=WOLVES))
 
         else:
@@ -518,7 +518,7 @@ class Assassino(Role):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
     
     def apply_dawn(self, dynamics):
-        from .events import PlayerDiesEvent
+        from ..events import PlayerDiesEvent
         assert self.recorded_target is not None
         visitors = [x for x in self.recorded_target.visitors if x.pk != self.player.pk and x.role.recorded_target == self.recorded_target and not x.sequestrated]
         if len(visitors) > 0:
@@ -568,7 +568,7 @@ class Diavolo(Role):
         return True
 
     def apply_dawn(self, dynamics):
-        from .events import RoleKnowledgeEvent
+        from ..events import RoleKnowledgeEvent
         dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, role_name=dynamics.get_apparent_role(self.recorded_target).__name__, cause=DEVIL))
 
 
@@ -612,7 +612,7 @@ class Necrofilo(Role):
         return True
 
     def apply_dawn(self, dynamics):
-        from .events import TransformationEvent, RoleKnowledgeEvent
+        from ..events import TransformationEvent, RoleKnowledgeEvent
         new_role_class = self.recorded_target.role.__class__
         assert new_role_class.team == LUPI
         dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=self.__class__.__name__, cause=NECROPHILIAC))
@@ -710,7 +710,7 @@ class Negromante(Role):
 
     def pre_apply_dawn(self, dynamics):
         if dynamics.necromancers_agree is None:
-            dynamics.necromancers_agree = dynamics.check_common_target([x for x in dynamics.get_alive_players if isinstance(x.role, Negromante)], ghost=True)
+            dynamics.necromancers_agree = dynamics.check_common_target([x for x in dynamics.get_alive_players() if isinstance(x.role, Negromante)], ghosts=True)
 
         if dynamics.necromancers_agree:
             # Negromanti cannot ghostify people in Lupi team
@@ -743,33 +743,25 @@ class Negromante(Role):
         return True
 
     def apply_dawn(self, dynamics):
-        if dynamics.necromancers_target is not None:
-            necromancers_target_player, necromancers_target_ghost = dynamics.necromancers_target
-            assert self.recorded_target.pk == necromancers_target_player.pk
-            assert self.recorded_target_ghost == necromancers_target_ghost
+        # Assert checks in pre_dawn_apply(), just to be sure
+        assert not isinstance(self.recorded_target.role, (Lupo, Fattucchiera))
+        assert self.recorded_target.team != NEGROMANTI or self.recorded_target.just_ghostified
+        assert not self.recorded_target.protected_by_keeper
 
-            # Assert checks in pre_dawn_apply(), just to be sure
-            assert not isinstance(self.recorded_target.role, (Lupo, Fattucchiera))
-            assert self.recorded_target.team != NEGROMANTI or self.recorded_target.just_ghostified
-            assert not self.recorded_target.protected_by_keeper
+        assert not self.recorded_target.alive
+        from ..events import GhostificationEvent, RoleKnowledgeEvent
 
-            assert not self.recorded_target.alive
-            from .events import GhostificationEvent, RoleKnowledgeEvent
-
-            if not self.recorded_target.just_ghostified:
-                assert not self.recorded_target.role.ghost
-                dynamics.generate_event(GhostificationEvent(player=self.recorded_target, ghost=self.recorded_target_ghost, cause=NECROMANCER))
-                self.recorded_target.just_ghostified = True
-
-            else:
-                # Since GhostificationEvent is not applied during simulation,
-                # we must not check the following during simulation
-                assert self.recorded_target.role.ghost or dynamics.simulating
-
-            dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=Negromante.__name__, cause=GHOST))
+        if not self.recorded_target.just_ghostified:
+            assert not self.recorded_target.role.ghost
+            dynamics.generate_event(GhostificationEvent(player=self.recorded_target, ghost=self.recorded_target_ghost, cause=NECROMANCER))
+            self.recorded_target.just_ghostified = True
 
         else:
-            assert self.recorded_target is None
+            # Since GhostificationEvent is not applied during simulation,
+            # we must not check the following during simulation
+            assert self.recorded_target.role.ghost or dynamics.simulating
+
+        dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=Negromante.__name__, cause=GHOST))
 
     def post_death(self, dynamics):
         if [player for player in dynamics.get_alive_players() if isinstance(player.role, self.__class__)] == []:
@@ -823,7 +815,7 @@ class Ipnotista(Role):
                 player.hypnotist = None
 
     def apply_dawn(self, dynamics):
-        from .events import HypnotizationEvent
+        from ..events import HypnotizationEvent
         dynamics.generate_event(HypnotizationEvent(player=self.recorded_target, hypnotist=self.player))
 
 
@@ -842,7 +834,7 @@ class Medium(Role):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        from .events import RoleKnowledgeEvent
+        from ..events import RoleKnowledgeEvent
         dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, role_name=dynamics.get_apparent_role(self.recorded_target).__name__, cause=MEDIUM))
 
 
@@ -978,7 +970,7 @@ class Corruzione(Role):
     def apply_dawn(self, dynamics):
         assert self.has_power
 
-        from .events import CorruptionEvent, RoleKnowledgeEvent
+        from ..events import CorruptionEvent, RoleKnowledgeEvent
         dynamics.generate_event(CorruptionEvent(player=self.recorded_target))
         dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=self.__class__.__name__, cause=CORRUPTION))
 
@@ -995,7 +987,7 @@ class Illusione(Role):
         return self.__class__.__name__
     power_name = property(get_power_name)
 
-    def __init__(self, player, power):
+    def __init__(self, player):
         Role.__init__(self, player)
         self.power = power
         self.has_power = True
@@ -1041,7 +1033,7 @@ class Ipnosi(Role):
         return self.__class__.__name__
     power_name = property(get_power_name)
 
-    def __init__(self, player, power):
+    def __init__(self, player):
         Role.__init__(self, player)
         self.power = power
         self.has_power = True
@@ -1098,7 +1090,7 @@ class Morte(Role):
         assert not isinstance(self.recorded_target.role, Lupo)
         if not self.recorded_target.just_dead:
             assert self.recorded_target.alive
-            from .events import PlayerDiesEvent
+            from ..events import PlayerDiesEvent
             dynamics.generate_event(PlayerDiesEvent(player=self.recorded_target, cause=DEATH_GHOST))
 
 class Occultamento(Role):
@@ -1176,7 +1168,7 @@ class Visione(Role):
     def apply_dawn(self, dynamics):
         assert self.has_power
 
-        from .events import RoleKnowledgeEvent
+        from ..events import RoleKnowledgeEvent
         dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, role_name=dynamics.get_apparent_role(self.recorded_target).__name__, cause=VISION_GHOST))
 
 
@@ -1188,7 +1180,6 @@ valid_roles = [Cacciatore, Contadino, Divinatore, Esorcista, Espansivo, Guardia,
     Sequestratore, Stregone, Negromante, Fantasma, Ipnotista, Medium, Scrutatore,
     Amnesia, Confusione, Corruzione, Illusione, Ipnosi, Morte, Occultamento, Visione]
 roles_list = dict([(x.__name__, x) for x in valid_roles])
-
 
 # ABOUT ORDER
 # Powers that influence querying powers: Fattucchiera, Spettro
