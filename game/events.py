@@ -168,6 +168,7 @@ class SetRulesEvent(Event):
         roles = import_module('game.roles.' + self.ruleset)
         dynamics.roles_list = roles.roles_list
         dynamics.required_roles = roles.required_roles.copy()
+        dynamics.starting_teams = roles.starting_teams
         dynamics.creation_subphase = CHOOSING_ROLES
 
 class AvailableRoleEvent(Event):

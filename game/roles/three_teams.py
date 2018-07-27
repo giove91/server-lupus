@@ -9,16 +9,35 @@ class Role(object):
     aura = None
     is_mystic = False
     ghost = False
-    priority = None            # Priority of actions. Lower values act before
-    frequency = None           # How often the power can be used. Can be None(no power), UNA_TANTUM (once a game), or a number (usually 1 or 2)
-    critical_blocker = False   # Power that blocks powers that block powers
-    sequester = False          # When True, blocked roles will not be seen moving
+
+    ''' Priority of actions.
+    Lower values will act before during dawn computation.
+    Equal values will act in random order.
+    See constants.py for a list of priority constants. '''
+    priority = None
+
+    ''' How often the power can be used. Can be:
+    - None(no power),
+    - UNA_TANTUM (once a game),
+    - 1 (every night)
+    - 2 (every other night) '''
+    frequency = None
+
+    ''' A critical blocker is a role that can block powers that can block powers,
+    so it must be handled with care to avoid paradoxes that can set the server on fire. '''
+    critical_blocker = False
+
+    ''' When the following is True, player blocked by this role will not be seen by roles
+    that query movements, such as Voyeur and Stalker. '''
+    sequester = False
+
+    ''' Roles in the same knowledge class will be aware of each other at game start. '''
     knowledge_class = None
-    
+
     message = 'Usa il tuo potere su:'
     message2 = 'Parametro secondario:'
     message_ghost = 'Potere soprannaturale:'
-    
+
     def __init__(self, player):
         self.player = player.canonicalize()
         self.last_usage = None
@@ -30,7 +49,7 @@ class Role(object):
 
     def __unicode__(self):
         return u"%s" % self.name
-        
+
     @staticmethod
     def get_from_name(role_name):
         [role_class] = [x for x in Role.__subclasses__() if x.__name__ == role_name]
@@ -96,6 +115,7 @@ class Role(object):
         self.recorded_command = event
 
     def pre_apply_dawn(self, dynamics):
+        ''' Check any condition that must be met in order for the power to succeed.'''
         return True
 
     def pre_disappearance(self, dynamics):
@@ -138,10 +158,10 @@ class Cacciatore(Role):
     aura = BLACK
     priority = KILLER
     frequency = UNA_TANTUM
-    
+
     def can_use_power(self):
         return self.player.alive and self.player.game.current_turn.full_days_from_start() > 0 and self.last_usage is None
-    
+
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
@@ -161,7 +181,7 @@ class Custode(Role):
 
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
-    
+
     def get_targets(self):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
 
@@ -188,10 +208,10 @@ class Esorcista(Role):
     frequency = 2
 
     # message = 'Benedici la casa di:'
-    
+
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
-    
+
     def get_targets(self):
         return [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
 
@@ -220,10 +240,10 @@ class Espansivo(Role):
     aura = WHITE
     priority = QUERY
     frequency = 2
-    
+
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
-    
+
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
@@ -239,12 +259,11 @@ class Guardia(Role):
     priority = MODIFY_INFLUENCE
     frequency = 1
 
-    
     # message = 'Proteggi:'
-    
+
     def can_use_power(self):
         return self.player.alive
-    
+
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
@@ -261,10 +280,10 @@ class Investigatore(Role):
     aura = WHITE
     priority = QUERY
     frequency = 1
-    
+
     def can_use_power(self):
         return self.player.alive
-    
+
     def get_targets(self):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
 
@@ -280,10 +299,10 @@ class Mago(Role):
     is_mystic = True
     priority = QUERY
     frequency = 1
-    
+
     def can_use_power(self):
         return self.player.alive
-    
+
     def get_targets(self):
         return [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
 
@@ -306,10 +325,10 @@ class Messia(Role):
     is_mystic = True
     priority = MODIFY
     frequency = UNA_TANTUM
-    
+
     def can_use_power(self):
         return self.player.alive and self.last_usage is None
-    
+
     def get_targets(self):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
 
@@ -361,10 +380,10 @@ class Stalker(Role):
     aura = WHITE
     priority = QUERY
     frequency = 2
-    
+
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
-    
+
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
@@ -393,7 +412,7 @@ class Trasformista(Role):
 
     def can_use_power(self):
         return self.player.alive and self.last_usage is None
-    
+
     def get_targets(self):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
 
@@ -401,9 +420,7 @@ class Trasformista(Role):
         # There are some forbidden roles
         if self.recorded_target.team != POPOLANI and not self.recorded_target.role.ghost:
             return False
-        if isinstance(self.recorded_target.role, tuple(UNA_TANTUM_ROLES)):
-            return False
-        if isinstance(self.recorded_target.role, tuple(POWERLESS_ROLES)):
+        if self.recorded_target.role.frequency in [UNA_TANTUM, None]:
             return False
 
         return True
@@ -428,7 +445,7 @@ class Veggente(Role):
 
     def can_use_power(self):
         return self.player.alive
-    
+
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
@@ -444,10 +461,9 @@ class Voyeur(Role):
     priority = QUERY
     frequency = 2
 
-    
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
-    
+
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
@@ -478,7 +494,7 @@ class Lupo(Role):
 
     def can_use_power(self):
         return self.player.alive and self.player.game.current_turn.full_days_from_start() > 0
-    
+
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
@@ -529,10 +545,10 @@ class Assassino(Role):
 
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 ) and self.player.game.current_turn.full_days_from_start() > 0
-    
+
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
-    
+
     def apply_dawn(self, dynamics):
         from ..events import PlayerDiesEvent
         assert self.recorded_target is not None
@@ -542,7 +558,6 @@ class Assassino(Role):
             if not victim.just_dead:
                 assert victim.alive
                 dynamics.generate_event(PlayerDiesEvent(player=victim, cause=ASSASSIN))
-        
 
 
 class Avvocato(Role):
@@ -552,10 +567,10 @@ class Avvocato(Role):
     knowledge_class = 2
     priority = MODIFY
     frequency = 2
-    
+
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
-    
+
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
@@ -572,10 +587,10 @@ class Diavolo(Role):
     knowledge_class = 3
     priority = QUERY
     frequency = 1
-    
+
     def can_use_power(self):
         return self.player.alive
-    
+
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
@@ -598,10 +613,10 @@ class Fattucchiera(Role):
     knowledge_class = 3
     priority = QUERY_INFLUENCE + 1 # Must act after Confusione
     frequency = 1
-    
+
     def can_use_power(self):
         return self.player.alive
-    
+
     def get_targets(self):
         return [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
 
@@ -617,10 +632,10 @@ class Necrofilo(Role):
     knowledge_class = 2
     priority = MODIFY
     frequency = UNA_TANTUM
-    
+
     def can_use_power(self):
         return self.player.alive and self.last_usage is None
-    
+
     def get_targets(self):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
 
@@ -655,10 +670,10 @@ class Sequestratore(Role):
     sequester = True
     priority = BLOCK
     frequency = 1
-    
+
     def can_use_power(self):
         return self.player.alive
-    
+
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
@@ -685,10 +700,10 @@ class Stregone(Role):
 
     def can_use_power(self):
         return self.player.alive
-    
+
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
-    
+
     def get_blocked(self, players):
         if self.recorded_target is None:
             return []
@@ -721,10 +736,10 @@ class Negromante(Role):
 
     def can_use_power(self):
         return self.player.alive
-    
+
     def get_targets(self):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
-    
+
     def get_targets_ghost(self):
         dynamics = self.player.game.get_dynamics()
         powers = set(self.valid_powers)
@@ -818,7 +833,7 @@ class Fantasma(Role):
         else:
             from ..events import GhostificationFailedEvent
             dynamics.generate_event(GhostificationFailedEvent(player=self.player))
-        
+
 
 class Ipnotista(Role):
     name = 'Ipnotista'
@@ -830,7 +845,7 @@ class Ipnotista(Role):
 
     def can_use_power(self):
         return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
-    
+
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
@@ -854,10 +869,10 @@ class Medium(Role):
     knowledge_class = 5
     priority = QUERY
     frequency = 1
-    
+
     def can_use_power(self):
         return self.player.alive
-    
+
     def get_targets(self):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
 
@@ -911,7 +926,7 @@ class Amnesia(Spettro):
 
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
- 
+
     def get_targets2(self):
         return None
 
@@ -1005,7 +1020,7 @@ class Illusione(Spettro):
 
     def get_targets(self):
         return [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
-    
+
     def get_targets2(self):
         return self.player.game.get_alive_players()
 
@@ -1037,10 +1052,10 @@ class Ipnosi(Spettro):
             return False
 
         return self.last_usage is None or self.days_from_last_usage() >= 2
- 
+
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
-    
+
     def get_targets2(self):
         return self.player.game.get_alive_players()
 
@@ -1060,7 +1075,7 @@ class Morte(Spettro):
 
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
-    
+
     def pre_apply_dawn(self, dynamics):
 
         if self.recorded_target.team != POPOLANI:
@@ -1091,7 +1106,7 @@ class Occultamento(Spettro):
 
     def get_targets(self):
         return [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
-    
+
     def apply_dawn(self, dynamics):
         # Nothing to do here...
         pass
@@ -1136,6 +1151,9 @@ class Visione(Spettro):
         from ..events import RoleKnowledgeEvent
         dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, role_name=dynamics.get_apparent_role(self.recorded_target).__name__, cause=VISION_GHOST))
 
+# Define variable used for the game
+
+starting_teams = [POPOLANI, LUPI, NEGROMANTI]
 
 # Roles that can appear in The Game
 valid_roles = [Cacciatore, Contadino, Custode, Divinatore, Esorcista, Espansivo, Guardia,
@@ -1153,31 +1171,48 @@ required_roles = [Lupo, Negromante]
 
 roles_list = dict([(x.__name__, x) for x in valid_roles])
 
-# ABOUT ORDER
-# Powers that influence querying powers: Fattucchiera, Spettro
-# della Confusione, Spettro dell'Illusione
-#
-# Fattucchiera must act after Confusione
+'''
+ABOUT ORDER
+Roles will be applied in the following order, according to
+the constant assigned in priority.
+Sometimes, in the same group, certain roles must act before
+some others; in this case a +1/-1 can be added to anticipate
+or delay the application of some roles.
 
-# Then powers that influence modifying powers: Guardia del
-# Corpo and Custode del Cimitero
+QUERY_INFLUENCE
+Powers that influence querying powers: Fattucchiera, Spettro
+della Confusione, Spettro dell'Illusione
+    * Fattucchiera must act after Confusione
 
-# Powers that query the state: Espansivo, Investigatore, Mago,
-# Stalker, Veggente, Voyeur, Diavolo, Medium and Spettro della
-# Visione
+MODIFY_INFLUENCE
+Powers that influence modifying powers:
+Guardia del Corpo and Custode del Cimitero
 
-# Powers that modify the state: Cacciatore, Messia,
-# Trasformista, Lupi, Assassino, Avvocato del Diavolo, Negromante,
-# Ipnotista, Spettro dell'Amnesia and Spettro della Morte. The
-# order is important: in particular, these inequalities have
-# to be satisfied ("<" means "must act before"):
-#
-#  * Messia < Negromante (resurrection has precedence over
-#    ghostification)
-#
-#  * anything < Cacciatore, Lupo, Assassino, MORTE (deaths happen at the
-#    and of the turn) except CORRUZIONE
+QUERY
+Powers that query the state: Espansivo, Investigatore, Mago,
+Stalker, Veggente, Voyeur, Diavolo, Medium and Spettro della
+Visione
 
-# Roles with no power: Contadino, Divinatore, Massone,
-# Rinnegato, Fantasma.
+MODIFY
+Powers that modify the state: Cacciatore, Messia,
+Trasformista, Lupi, Assassino, Avvocato del Diavolo, Negromante,
+Ipnotista, Spettro dell'Amnesia and Spettro della Morte. The
+order is important: in particular, these inequalities have
+to be satisfied ("<" means "must act before"):
 
+ * Messia must act before Negromante (resurrection has precedence over
+   ghostification)
+
+KILLER
+Powers that kill (duh):
+Lupi, Assassino, Spettro della Morte, Cacciatore
+
+POST_MORTEM
+Powers that must act after killers have killed:
+Spettro della Corruzione
+
+USELESS
+Roles with no power: Contadino, Divinatore, Massone,
+Rinnegato, Fantasma.
+Will be applied at the end, but seriously, who cares.
+'''

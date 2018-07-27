@@ -463,7 +463,7 @@ class Dynamics:
 
         # Check that all teams are represented
         self.playing_teams = self._count_alive_teams()
-        assert sorted(self.playing_teams) == sorted([POPOLANI, LUPI, NEGROMANTI])
+        assert sorted(self.playing_teams) == sorted(self.starting_teams)
         for player in self.players:
             if player.role.__class__ in self.required_roles:
                 self.required_roles.remove(player.role.__class__)
