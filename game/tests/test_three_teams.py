@@ -266,7 +266,7 @@ class GameTests(TestCase):
     def test_stake_vote_tie_without_mayor(self):
         roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
         votes = [ 2, 0, 0, 1, 1, 1, 0, 4, None, None ]
-        self.game = self.voting_helper(roles, None, votes, None, 0)
+        self.game = self.voting_helper(roles, None, votes, None, 1)
 
     @record_name
     def test_stake_vote_no_quorum(self):

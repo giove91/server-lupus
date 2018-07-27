@@ -587,7 +587,7 @@ class Diavolo(Role):
 
     def apply_dawn(self, dynamics):
         from ..events import RoleKnowledgeEvent
-        dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, role_name=dynamics.get_apparent_role(self.recorded_target).__name__, cause=DEVIL))
+        dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, role_name=dynamics.get_apparent_role(self.recorded_target).name, cause=DEVIL))
 
 
 class Fattucchiera(Role):
@@ -714,7 +714,7 @@ class Negromante(Role):
     aura = WHITE
     is_mystic = True
     knowledge_class = 4
-    priority = MODIFY
+    priority = MODIFY + 1 # Must act after Messia
     frequency = 1
 
     valid_powers = [AMNESIA, CONFUSIONE, CORRUZIONE, ILLUSIONE, IPNOSI, MORTE, OCCULTAMENTO, VISIONE]
@@ -885,15 +885,12 @@ class Scrutatore(Role):
     def apply_dawn(self, dynamics):
         dynamics.redirected_ballots.append((self.recorded_target, self.player))
 
-
-class Amnesia(Role):
-    name = 'Spettro dell\'Amnesia'
+class Spettro(Role):
+    name = 'Spettro'
     team = NEGROMANTI
     aura = None
     is_mystic = None
     ghost = True
-    priority = MODIFY
-    frequency = 1
 
     def get_power_name(self):
         return self.__class__.__name__
@@ -902,6 +899,12 @@ class Amnesia(Role):
     def __init__(self, player):
         Role.__init__(self, player)
         self.has_power = True
+
+
+class Amnesia(Spettro):
+    name = 'Spettro dell\'Amnesia'
+    priority = MODIFY
+    frequency = 1
 
     def can_use_power(self):
         return not self.player.alive and self.has_power
@@ -921,22 +924,10 @@ class Amnesia(Role):
         assert dynamics.amnesia_target is None
         dynamics.amnesia_target = self.recorded_target.canonicalize()
 
-class Confusione(Role):
+class Confusione(Spettro):
     name = 'Spettro della Confusione'
-    team = NEGROMANTI
-    aura = None
-    is_mystic = None
-    ghost = True
     priority = QUERY_INFLUENCE
     frequency = 1
-
-    def get_power_name(self):
-        return self.__class__.__name__
-    power_name = property(get_power_name)
-
-    def __init__(self, player):
-        Role.__init__(self, player)
-        self.has_power = True
 
     def can_use_power(self):
         if self.player.alive or not self.has_power:
@@ -967,22 +958,10 @@ class Confusione(Role):
         target.apparent_team = target2.apparent_team
 
 
-class Corruzione(Role):
+class Corruzione(Spettro):
     name = 'Spettro della Corruzione'
-    team = NEGROMANTI
-    aura = None
-    is_mystic = None
-    ghost = True
     priority = POST_MORTEM
     frequency = UNA_TANTUM
-
-    def get_power_name(self):
-        return self.__class__.__name__
-    power_name = property(get_power_name)
-
-    def __init__(self, player):
-        Role.__init__(self, player)
-        self.has_power = True
 
     def can_use_power(self):
         if self.player.alive or not self.has_power:
@@ -1011,24 +990,12 @@ class Corruzione(Role):
         dynamics.generate_event(CorruptionEvent(player=self.recorded_target))
         dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=self.__class__.__name__, cause=CORRUPTION))
 
-class Illusione(Role):
+class Illusione(Spettro):
     name = 'Spettro dell\'Illusione'
-    team = NEGROMANTI
-    aura = None
-    is_mystic = None
-    ghost = True
     priority = QUERY_INFLUENCE
     frequency = 2
 
     message2 = 'Genera l\'illusione di:'
-    
-    def get_power_name(self):
-        return self.__class__.__name__
-    power_name = property(get_power_name)
-
-    def __init__(self, player):
-        Role.__init__(self, player)
-        self.has_power = True
 
     def can_use_power(self):
         if self.player.alive or not self.has_power:
@@ -1058,24 +1025,12 @@ class Illusione(Role):
 
         dynamics.illusion = (self.recorded_target2, self.recorded_target)
 
-class Ipnosi(Role):
+class Ipnosi(Spettro):
     name = 'Spettro dell\'Ipnosi'
-    team = NEGROMANTI
-    aura = None
-    is_mystic = None
-    ghost = True
     priority = MODIFY
     frequency = 2
 
     message2 = 'Sposta il voto su:'
-    
-    def get_power_name(self):
-        return self.__class__.__name__
-    power_name = property(get_power_name)
-
-    def __init__(self, player):
-        Role.__init__(self, player)
-        self.has_power = True
 
     def can_use_power(self):
         if self.player.alive or not self.has_power:
@@ -1095,22 +1050,10 @@ class Ipnosi(Role):
         assert dynamics.hypnosis_ghost_target is None
         dynamics.hypnosis_ghost_target = (self.recorded_target, self.recorded_target2)
 
-class Morte(Role):
+class Morte(Spettro):
     name = 'Spettro della Morte'
-    team = NEGROMANTI
-    aura = None
-    is_mystic = None
-    ghost = True
     priority = KILLER
     frequency = 2
-
-    def get_power_name(self):
-        return self.__class__.__name__
-    power_name = property(get_power_name)
-
-    def __init__(self, player):
-        Role.__init__(self, player)
-        self.has_power = True
 
     def can_use_power(self):
         return self.last_usage is None or self.days_from_last_usage() >= 2
@@ -1134,23 +1077,11 @@ class Morte(Role):
             from ..events import PlayerDiesEvent
             dynamics.generate_event(PlayerDiesEvent(player=self.recorded_target, cause=DEATH_GHOST))
 
-class Occultamento(Role):
+class Occultamento(Spettro):
     name = 'Spettro dell\'Occultamento'
-    team = NEGROMANTI
-    aura = None
-    is_mystic = None
-    ghost = True
     critical_blocker = True
     priority = BLOCK
     frequency = 1
-
-    def get_power_name(self):
-        return self.__class__.__name__
-    power_name = property(get_power_name)
-
-    def __init__(self, player):
-        Role.__init__(self, player)
-        self.has_power = True
 
     def can_use_power(self):
         if self.player.alive or not self.has_power:
@@ -1179,22 +1110,10 @@ class Occultamento(Role):
                 ret.append(blocker.pk)
         return ret
 
-class Visione(Role):
+class Visione(Spettro):
     name = 'Spettro della Visione'
-    team = NEGROMANTI
-    aura = None
-    is_mystic = None
-    ghost = True
     priority = QUERY
     frequency = 1
-
-    def get_power_name(self):
-        return self.__class__.__name__
-    power_name = property(get_power_name)
-
-    def __init__(self, player):
-        Role.__init__(self, player)
-        self.has_power = True
 
     def can_use_power(self):
         if self.player.alive or not self.has_power:
@@ -1204,7 +1123,7 @@ class Visione(Role):
 
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
-    
+
     def pre_apply_dawn(self, dynamics):
         if self.recorded_target.team == LUPI:
             return False
@@ -1218,13 +1137,20 @@ class Visione(Role):
         dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, role_name=dynamics.get_apparent_role(self.recorded_target).__name__, cause=VISION_GHOST))
 
 
-UNA_TANTUM_ROLES = [Cacciatore, Messia, Trasformista]
-POWERLESS_ROLES = [Contadino, Divinatore, Massone, Rinnegato, Fantasma]
+# Roles that can appear in The Game
 valid_roles = [Cacciatore, Contadino, Custode, Divinatore, Esorcista, Espansivo, Guardia,
     Investigatore, Mago, Massone, Messia, Sciamano, Stalker, Trasformista, Veggente,
     Voyeur, Lupo, Assassino, Avvocato, Diavolo, Fattucchiera, Rinnegato, Necrofilo,
     Sequestratore, Stregone, Negromante, Fantasma, Ipnotista, Medium, Scrutatore,
     Amnesia, Confusione, Corruzione, Illusione, Ipnosi, Morte, Occultamento, Visione]
+
+# Roles that can be assigned at game start
+starting_roles = [role for role in valid_roles if not role.ghost]
+
+# Roles that must be assigned at game start
+required_roles = [Lupo, Negromante]
+
+
 roles_list = dict([(x.__name__, x) for x in valid_roles])
 
 # ABOUT ORDER

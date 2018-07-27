@@ -167,6 +167,7 @@ class SetRulesEvent(Event):
     def apply(self, dynamics):
         roles = import_module('game.roles.' + self.ruleset)
         dynamics.roles_list = roles.roles_list
+        dynamics.required_roles = roles.required_roles.copy()
         dynamics.creation_subphase = CHOOSING_ROLES
 
 class AvailableRoleEvent(Event):
@@ -227,7 +228,7 @@ class AvailableRoleEvent(Event):
                     if target.pk != player.pk:
                         event = RoleKnowledgeEvent(player=player, target=target, role_name=given_roles[target.pk], cause=KNOWLEDGE_CLASS)
                         dynamics.generate_event(event)
-            dynamics.creation_suphase = SOOTHSAYING
+            dynamics.creation_subphase = SOOTHSAYING
             dynamics.check_soothsayers()
 
 

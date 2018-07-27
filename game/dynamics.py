@@ -169,7 +169,11 @@ class Dynamics:
         return player.apparent_mystic
     
     def get_apparent_role(self, player):
-        return player.apparent_role
+        # If role is Spettro, return only Spettro
+        if player.apparent_role.ghost:
+            return player.apparent_role.__base__
+        else:
+            return player.apparent_role
     
     def get_apparent_team(self, player):
         return player.apparent_team
@@ -460,7 +464,10 @@ class Dynamics:
         # Check that all teams are represented
         self.playing_teams = self._count_alive_teams()
         assert sorted(self.playing_teams) == sorted([POPOLANI, LUPI, NEGROMANTI])
-
+        for player in self.players:
+            if player.role.__class__ in self.required_roles:
+                self.required_roles.remove(player.role.__class__)
+        assert len(self.required_roles) == 0
 
     def check_soothsayers(self):
         # Check that the soothsayer received revelations according to
