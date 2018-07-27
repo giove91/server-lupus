@@ -46,7 +46,6 @@ class GameTests(TestCase):
         dynamics = self.game.get_dynamics()
         players = self.game.get_players()
 
-        self.assertFalse(True, (players[0]))
         [cacciatore] = [x for x in players if isinstance(x.role, Cacciatore)]
         [ipnotista] = [x for x in players if isinstance(x.role, Ipnotista)]
 
@@ -370,7 +369,7 @@ class GameTests(TestCase):
         roles = [ Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Negromante, Fattucchiera, Ipnotista, Ipnotista ]
         mayor_votes = [ 1, 1, 1, 1, 1, 1, 0, 0, 0, 0 ]
         stake_votes = [ 1, 1, 1, 1, 1, 1,  None, None, None, None ]
-        self.game = self.voting_helper(roles, mayor_votes, stake_votes, 1, 1, appointed_mayor=8, expected_final_mayor=4)
+        self.game = self.voting_helper(roles, mayor_votes, stake_votes, 1, 1, appointed_mayor=8, expected_final_mayor=9)
 
 
     @record_name
@@ -1404,7 +1403,7 @@ class GameTests(TestCase):
             [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent) and event.cause == PHANTOM]
             self.assertEqual(event.player, negromante)
             self.assertEqual(event.target, fantasma)
-            self.assertEqual(event.role_name, 'Spettro')
+            self.assertTrue(event.role_name in [v for k, v in POWER_NAMES.items() if k in phantom_roles])
 
     @record_name
     def test_veggente_medium_investigatore_diavolo(self):
@@ -1537,7 +1536,7 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
         self.assertEqual(event.player, medium)
         self.assertEqual(event.target, contadino)
-        self.assertEqual(event.role_name, Spettro.__name__)
+        self.assertEqual(event.role_name, 'Spettro')
 
     @record_name
     def test_diavolo_on_negromante_faction(self): # Lupus7 new
@@ -3714,7 +3713,7 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
         self.assertEqual(event.player, messia)
         self.assertEqual(event.target, veggente)
-        self.assertEqual(event.role_name, Spettro.__name__)
+        self.assertEqual(event.role_name, Corruzione.__name__)
         
     @record_name
     def test_corruzione_on_medium(self): # Lupus7 new
@@ -5585,7 +5584,7 @@ class GameTests(TestCase):
         
     @record_name
     def test_many_fantasmi(self): # Lupus7 update
-        for i in xrange(4):
+        for i in range(4):
             # Since this test is repeasted many times, we have to
             # destroy it and delete all users before testing again
             if 'game' in self.__dict__ and self.game is not None:

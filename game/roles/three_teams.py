@@ -113,7 +113,7 @@ class Role(object):
         pass
 
     def post_death(self, dynamics):
-        """To be called just after this role dies.
+        """To be called just after this role dies or is exiled while beong alive.
 
         """
 
@@ -797,24 +797,27 @@ class Fantasma(Role):
     aura = BLACK
     priority = USELESS
 
+    valid_powers = [AMNESIA, CONFUSIONE, ILLUSIONE, IPNOSI, OCCULTAMENTO, VISIONE]
+
     def post_death(self, dynamics):
-        powers = set([role for role in dynamics.roles_list if role.ghost])
-        available_powers = powers - dynamics.used_ghost_powers - set([Morte, Corruzione])
+        available_powers = set(self.valid_powers) - dynamics.used_ghost_powers
         if len(available_powers) >= 1:
             power = dynamics.random.choice(sorted(list(available_powers)))
-            dynamics.generate_event(GhostificationEvent(player=player, cause=PHANTOM, ghost=power))
+            from ..events import RoleKnowledgeEvent, GhostificationEvent
+            dynamics.generate_event(GhostificationEvent(player=self.player, cause=PHANTOM, ghost=power))
             for negromante in dynamics.players:
                 if isinstance(negromante.role, Negromante):
-                    dynamics.generate_event(RoleKnowledgeEvent(player=player,
+                    dynamics.generate_event(RoleKnowledgeEvent(player=self.player,
                                                                target=negromante,
                                                                role_name='Negromante',
                                                                cause=GHOST))
                     dynamics.generate_event(RoleKnowledgeEvent(player=negromante,
-                                                               target=player,
-                                                               role_name=power.__class__.__name__,
+                                                               target=self.player,
+                                                               role_name=POWER_NAMES[power],
                                                                cause=PHANTOM))
         else:
-            dynamics.generate_event(GhostificationFailedEvent(player=player))
+            from ..events import GhostificationFailedEvent
+            dynamics.generate_event(GhostificationFailedEvent(player=self.player))
         
 
 class Ipnotista(Role):
@@ -1219,7 +1222,7 @@ UNA_TANTUM_ROLES = [Cacciatore, Messia, Trasformista]
 POWERLESS_ROLES = [Contadino, Divinatore, Massone, Rinnegato, Fantasma]
 valid_roles = [Cacciatore, Contadino, Custode, Divinatore, Esorcista, Espansivo, Guardia,
     Investigatore, Mago, Massone, Messia, Sciamano, Stalker, Trasformista, Veggente,
-    Voyeur, Lupo, Assassino, Avvocato, Diavolo, Fattucchiera, Rinnegato,
+    Voyeur, Lupo, Assassino, Avvocato, Diavolo, Fattucchiera, Rinnegato, Necrofilo,
     Sequestratore, Stregone, Negromante, Fantasma, Ipnotista, Medium, Scrutatore,
     Amnesia, Confusione, Corruzione, Illusione, Ipnosi, Morte, Occultamento, Visione]
 roles_list = dict([(x.__name__, x) for x in valid_roles])

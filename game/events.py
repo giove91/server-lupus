@@ -661,7 +661,7 @@ class RoleKnowledgeEvent(Event):
         assert dynamics.current_turn.phase in RoleKnowledgeEvent.REAL_RELEVANT_PHASES[self.cause]
 
         if self.cause == SOOTHSAYER:
-            assert self.player.canonicalize().role.__class__.__name == 'Divinatore'
+            assert self.player.canonicalize().role.__class__.__name__ == 'Divinatore'
 
         elif self.cause == EXPANSIVE:
             assert self.target.canonicalize().role.__class__.__name__ == 'Espansivo'
@@ -1015,7 +1015,7 @@ class GhostificationEvent(Event):
     AUTOMATIC = True
 
     player = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
-    ghost = models.CharField(max_length=200, default=None)
+    ghost = models.CharField(max_length=1, choices=POWER_NAMES.items(), default=None)
     GHOSTIFICATION_CAUSES = (
         (NECROMANCER, 'Necromancer'),
         (PHANTOM, 'Phantom'),
@@ -1088,7 +1088,7 @@ class GhostificationFailedEvent(Event):
         player = self.player.canonicalize()
 
         assert not player.alive
-        assert isinstance(player.role, Fantasma)
+        assert player.role.__class__.__name__ == 'Fantasma'
 
     def to_player_string(self, player):
         oa = self.player.oa
@@ -1234,6 +1234,8 @@ class ExileEvent(Event):
 
         assert player.active
 
+        was_alive = player.alive
+
         player.role.pre_disappearance(dynamics)
 
         if self.cause == DISQUALIFICATION:
@@ -1244,7 +1246,9 @@ class ExileEvent(Event):
         player.active = False
         if self.cause == DISQUALIFICATION:
             player.disqualified = True
-    
+
+        if was_alive:
+            player.role.post_death(dynamics)
     def to_player_string(self, player):
         oa = self.player.oa
         
