@@ -1398,12 +1398,12 @@ class GameTests(TestCase):
             [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent) and event.cause == GHOST]
             self.assertEqual(event.player, fantasma)
             self.assertEqual(event.target, negromante)
-            self.assertEqual(event.role_name, 'Negromante')
+            self.assertEqual(event.full_role_name, Negromante.full_name)
             
             [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent) and event.cause == PHANTOM]
             self.assertEqual(event.player, negromante)
             self.assertEqual(event.target, fantasma)
-            self.assertTrue(event.role_name in [v for k, v in POWER_NAMES.items() if k in phantom_roles])
+            self.assertTrue(event.full_role_name in [roles_list[v].full_name for k, v in POWER_NAMES.items() if k in phantom_roles])
 
     @record_name
     def test_veggente_medium_investigatore_diavolo(self):
@@ -1446,7 +1446,7 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
         self.assertEqual(event.player, diavolo)
         self.assertEqual(event.target, lupo)
-        self.assertEqual(event.role_name, Lupo.__name__)
+        self.assertEqual(event.full_role_name, Lupo.full_name)
         self.assertEqual(event.cause, DEVIL)
         
         # Advance to day and kill lupo
@@ -1483,7 +1483,7 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
         self.assertEqual(event.player, medium)
         self.assertEqual(event.target, lupo)
-        self.assertEqual(event.role_name, lupo.role.__class__.__name__)
+        self.assertEqual(event.full_role_name, lupo.role.full_name)
         self.assertEqual(event.cause, MEDIUM)
     
     def test_medium_on_spettro(self):
@@ -1521,7 +1521,7 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent) and event.cause == MEDIUM]
         self.assertEqual(event.player, medium)
         self.assertEqual(event.target, contadino)
-        self.assertEqual(event.role_name, Contadino.__name__)
+        self.assertEqual(event.full_role_name, Contadino.full_name)
         
         # Advance to second night try again
         test_advance_turn(self.game)
@@ -1536,7 +1536,7 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
         self.assertEqual(event.player, medium)
         self.assertEqual(event.target, contadino)
-        self.assertEqual(event.role_name, 'Spettro')
+        self.assertEqual(event.full_role_name, Spettro.full_name)
 
     @record_name
     def test_diavolo_on_negromante_faction(self): # Lupus7 new
@@ -1572,7 +1572,7 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
         self.assertEqual(event.player, d1)
         self.assertEqual(event.target, contadino)
-        self.assertEqual(event.role_name, Contadino.__name__)
+        self.assertEqual(event.full_role_name, Contadino.full_name)
         self.assertEqual(event.cause, DEVIL)
 
     @record_name
@@ -1863,7 +1863,7 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, TransformationEvent)]
         self.assertEqual(event.player, trasformista)
         self.assertEqual(event.target, stalker)
-        self.assertEqual(event.role_name, Stalker.__name__)
+        self.assertEqual(event.full_role_name, Stalker.full_name)
         
         self.assertEqual(trasformista.team, POPOLANI)
         self.assertEqual(trasformista.aura, WHITE)
@@ -2116,7 +2116,7 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, TransformationEvent)]
         self.assertEqual(event.player, trasformista)
         self.assertEqual(event.target, investigatore)
-        self.assertEqual(event.role_name, Investigatore.__name__)
+        self.assertEqual(event.full_role_name, Investigatore.full_name)
         
         self.assertEqual(trasformista.team, POPOLANI)
         self.assertEqual(trasformista.aura, WHITE)
@@ -2169,12 +2169,12 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, TransformationEvent)]
         self.assertEqual(event.player, necrofilo)
         self.assertEqual(event.target, diavolo)
-        self.assertEqual(event.role_name, Diavolo.__name__)
+        self.assertEqual(event.full_role_name, Diavolo.full_name)
 
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
         self.assertEqual(event.player, diavolo)
         self.assertEqual(event.target, necrofilo)
-        self.assertEqual(event.role_name, Necrofilo.__name__)
+        self.assertEqual(event.full_role_name, Necrofilo.full_name)
         
         self.assertEqual(necrofilo.team, LUPI)
         self.assertEqual(necrofilo.aura, BLACK)
@@ -2227,7 +2227,7 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, TransformationEvent)]
         self.assertEqual(event.player, necrofilo)
         self.assertEqual(event.target, lupo)
-        self.assertEqual(event.role_name, Lupo.__name__)
+        self.assertEqual(event.full_role_name, Lupo.full_name)
         
         self.assertEqual(necrofilo.team, LUPI)
         self.assertEqual(necrofilo.aura, BLACK)
@@ -3713,7 +3713,7 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
         self.assertEqual(event.player, messia)
         self.assertEqual(event.target, veggente)
-        self.assertEqual(event.role_name, Corruzione.__name__)
+        self.assertEqual(event.full_role_name, Corruzione.full_name)
         
     @record_name
     def test_corruzione_on_medium(self): # Lupus7 new
@@ -4344,7 +4344,7 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
         self.assertEqual(event.player, contadino)
         self.assertEqual(event.target, ipnotista)
-        self.assertEqual(event.role_name, Ipnotista.__name__)
+        self.assertEqual(event.full_role_name, Ipnotista.full_name)
         self.assertEqual(event.cause, VISION_GHOST)
 
         # Retry with lupo
@@ -5317,7 +5317,7 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent) and event.cause == GHOST]
         self.assertEqual(event.player, mago)
         self.assertEqual(event.target, negromante)
-        self.assertEqual(event.role_name, 'Negromante')
+        self.assertEqual(event.full_role_name, Negromante.full_name)
         
         # Advance to night and use power
         test_advance_turn(self.game)
@@ -6744,10 +6744,10 @@ class GameTests(TestCase):
         
         # Inserting Soothsayer propositions
         ref_timestamp = self.game.current_turn.begin
-        dynamics.inject_event(SoothsayerModelEvent(player_role=Cacciatore.name, advertised_role=Veggente.name, soothsayer_num=0, timestamp=ref_timestamp))
-        dynamics.inject_event(SoothsayerModelEvent(player_role=Negromante.name, advertised_role=Negromante.name, soothsayer_num=0, timestamp=ref_timestamp))
-        dynamics.inject_event(SoothsayerModelEvent(player_role=Lupo.name, advertised_role=Contadino.name, soothsayer_num=0, timestamp=ref_timestamp))
-        dynamics.inject_event(SoothsayerModelEvent(player_role=Contadino.name, advertised_role=Contadino.name, soothsayer_num=0, timestamp=ref_timestamp))
+        dynamics.inject_event(SoothsayerModelEvent(player_role=Cacciatore.__name__, advertised_role=Veggente.full_name, soothsayer_num=0, timestamp=ref_timestamp))
+        dynamics.inject_event(SoothsayerModelEvent(player_role=Negromante.__name__, advertised_role=Negromante.full_name, soothsayer_num=0, timestamp=ref_timestamp))
+        dynamics.inject_event(SoothsayerModelEvent(player_role=Lupo.__name__, advertised_role=Contadino.full_name, soothsayer_num=0, timestamp=ref_timestamp))
+        dynamics.inject_event(SoothsayerModelEvent(player_role=Contadino.__name__, advertised_role=Contadino.full_name, soothsayer_num=0, timestamp=ref_timestamp))
         
         # Check
         events = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
@@ -6755,11 +6755,11 @@ class GameTests(TestCase):
         for e in events:
             self.assertEqual(e.player, divinatore)
         
-        info = [(e.target, e.role_name) for e in events]
-        self.assertTrue((negromante1, Negromante.name) in info or (negromante2, Negromante.name) in info)
-        self.assertTrue((cacciatore, Veggente.name) in info)
-        self.assertTrue((lupo1, Contadino.name) in info or (lupo2, Contadino.name) in info)
-        self.assertTrue((contadino, Contadino.name) in info)
+        info = [(e.target, e.full_role_name) for e in events]
+        self.assertTrue((negromante1, Negromante.full_name) in info or (negromante2, Negromante.full_name) in info)
+        self.assertTrue((cacciatore, Veggente.full_name) in info)
+        self.assertTrue((lupo1, Contadino.full_name) in info or (lupo2, Contadino.full_name) in info)
+        self.assertTrue((contadino, Contadino.full_name) in info)
 
         test_advance_turn(self.game)
     
@@ -6773,7 +6773,7 @@ class GameTests(TestCase):
         # Inserting Soothsayer proposition about himself
         ref_timestamp = self.game.current_turn.begin
         with self.assertRaises(IndexError):
-            dynamics.inject_event(SoothsayerModelEvent(player_role=Divinatore.name, advertised_role=Divinatore.name, soothsayer_num=0, timestamp=ref_timestamp))
+            dynamics.inject_event(SoothsayerModelEvent(player_role=Divinatore.__name__, advertised_role=Divinatore.full_name, soothsayer_num=0, timestamp=ref_timestamp))
     
     @record_name
     def test_divinatore_knowing_about_another_divinatore(self):
@@ -6788,7 +6788,7 @@ class GameTests(TestCase):
         
         # Inserting Soothsayer proposition about a Soothsayer
         ref_timestamp = self.game.current_turn.begin
-        dynamics.inject_event(SoothsayerModelEvent(player_role=Divinatore.name, advertised_role=Divinatore.name, soothsayer_num=0, timestamp=ref_timestamp))
+        dynamics.inject_event(SoothsayerModelEvent(player_role=Divinatore.__name__, advertised_role=Divinatore.full_name, soothsayer_num=0, timestamp=ref_timestamp))
         
         # Check
         events = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
@@ -6800,8 +6800,8 @@ class GameTests(TestCase):
         else:
             divinatore_target = divinatore1
         
-        info = (event.target, event.role_name)
-        self.assertTrue((divinatore_target, Divinatore.name) == info)
+        info = (event.target, event.full_role_name)
+        self.assertTrue((divinatore_target, Divinatore.full_name) == info)
             
     @record_name
     def test_load_test(self):
@@ -7194,7 +7194,7 @@ class GameTests(TestCase):
         mysticities = set([event.is_mystic for event in dynamics.debug_event_bin if isinstance(event, MysticityKnowledgeEvent)])
         self.assertEqual(mysticities, set([True]))
 
-        roles = [event.role_name for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
+        roles = [event.full_role_name for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
         self.assertEqual(len(set(roles)), 1)
         self.assertEqual(roles[0],Negromante.__name__)
         
@@ -7257,7 +7257,7 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
         self.assertEqual(event.player, contadino1)
         self.assertEqual(event.target, negromante)
-        self.assertEqual(event.role_name, Veggente.__name__)
+        self.assertEqual(event.full_role_name, Veggente.full_name)
         self.assertEqual(event.cause, VISION_GHOST)
         
         # Advance to next night
@@ -7276,7 +7276,7 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
         self.assertEqual(event.player, contadino1)
         self.assertEqual(event.target, negromante)
-        self.assertEqual(event.role_name, Lupo.__name__)
+        self.assertEqual(event.full_role_name, Lupo.full_name)
         self.assertEqual(event.cause, VISION_GHOST)
         
     @record_name

@@ -437,6 +437,7 @@ class Dynamics:
         assert self.current_turn.phase in event.RELEVANT_PHASES
         event.turn = self.current_turn
         event.save()
+        
         if self.debug_event_bin is not None:
             self.debug_event_bin.append(event)
         self.update()
@@ -475,7 +476,7 @@ class Dynamics:
         result = True
         for soothsayer in [pl for pl in self.players if pl.role.__class__.__name__ == 'Divinatore']:
             events = [ev for ev in self.events if isinstance(ev, RoleKnowledgeEvent) and ev.player.pk == soothsayer.pk]
-            if len(events) != 4 or sorted([isinstance(ev.target.canonicalize().role, roles_map[ev.role_name]) for ev in events]) != sorted([False, False, True, 
+            if len(events) != 4 or sorted([ev.target.canonicalize().role.full_name == ev.role_name for ev in events]) != sorted([False, False, True, 
 True]):
                 result = False
         assert self.creation_subphase == SOOTHSAYING or result

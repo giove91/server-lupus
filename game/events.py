@@ -39,19 +39,19 @@ class CommandEvent(Event):
 
     def player_role(self):
         if self.player is not None:
-            return self.player.canonicalize().role.name
+            return self.player.canonicalize().role.full_name
         else:
             return None
 
     def target_role(self):
         if self.target is not None:
-            return self.target.canonicalize().role.name
+            return self.target.canonicalize().role.full_name
         else:
             return None
 
     def target2_role(self):
         if self.target2 is not None:
-            return self.target2.canonicalize().role.name
+            return self.target2.canonicalize().role.full_name
         else:
             return None
 
@@ -200,7 +200,8 @@ class AvailableRoleEvent(Event):
 
             given_roles = {}
             for player_pk, role_name in zip(players_pks, dynamics.available_roles):
-                event = SetRoleEvent(player=dynamics.players_dict[player_pk], role_name=role_name)
+                full_role_name = dynamics.roles_list[role_name].full_name
+                event = SetRoleEvent(player=dynamics.players_dict[player_pk], role_name=role_name, full_role_name=full_role_name)
                 dynamics.generate_event(event)
                 given_roles[player_pk] = role_name
 
@@ -227,7 +228,7 @@ class AvailableRoleEvent(Event):
                 knowledge_class = knowledge_classes[knowledge_classes_rev[player.pk]]
                 for target in knowledge_class:
                     if target.pk != player.pk:
-                        event = RoleKnowledgeEvent(player=player, target=target, role_name=given_roles[target.pk], cause=KNOWLEDGE_CLASS)
+                        event = RoleKnowledgeEvent(player=player, target=target, full_role_name=dynamics.roles_list[given_roles[target.pk]].full_name, cause=KNOWLEDGE_CLASS)
                         dynamics.generate_event(event)
             dynamics.creation_subphase = SOOTHSAYING
             dynamics.check_soothsayers()
@@ -239,6 +240,7 @@ class SetRoleEvent(Event):
 
     player = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
     role_name = models.CharField(max_length=200)
+    full_role_name = models.CharField(max_length=200)
 
     def apply(self, dynamics):
         role_class = dynamics.roles_list[self.role_name]
@@ -255,9 +257,9 @@ class SetRoleEvent(Event):
     
     def to_player_string(self, player):
         if player == self.player:
-            return u'Ti è stato assegnato il ruolo di %s.' % role_name
+            return u'Ti è stato assegnato il ruolo di %s.' % self.full_role_name
         elif player == 'admin':
-            return u'A%s %s è stato assegnato il ruolo di %s.' % ('d' if self.player.full_name[0] in ['A','E','I','O','U', 'a', 'e', 'i', 'o', 'u'] else '', self.player.full_name, role_name)
+            return u'A%s %s è stato assegnato il ruolo di %s.' % ('d' if self.player.full_name[0] in ['A','E','I','O','U', 'a', 'e', 'i', 'o', 'u'] else '', self.player.full_name, self.full_role_name)
         else:
             return None
 
@@ -431,7 +433,7 @@ class TransformationEvent(Event):
 
     player = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
     target = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
-    role_name = models.CharField(max_length=200, default=None)
+    full_role_name = models.CharField(max_length=200, default=None)
 
     TRANSFORMATION_CAUSES = (
         (TRANSFORMIST, 'Transformist'),
@@ -462,7 +464,7 @@ class TransformationEvent(Event):
         if target.role.ghost:
             new_role_class = target.role_class_before_ghost
             assert new_role_class is not None
-        assert self.role_name == new_role_class.__name__
+        assert self.full_role_name == new_role_class.full_name
         assert new_role_class.team == self.player.team
 
         # Instantiate new role class and copy attributes
@@ -476,14 +478,14 @@ class TransformationEvent(Event):
     def to_player_string(self, player):
         if self.cause == TRANSFORMIST:
             if player == self.player:
-                return u'Dopo aver utilizzato il tuo potere su %s hai assunto il ruolo di %s.' % (self.target.full_name, role_name)
+                return u'Dopo aver utilizzato il tuo potere su %s hai assunto il ruolo di %s.' % (self.target.full_name, self.full_role_name)
             elif player == 'admin':
-                return u'%s ha utilizzato il proprio potere di Trasformista su %s assumendo il ruolo di %s.' % (self.player.full_name, self.target.full_name, role_name)
+                return u'%s ha utilizzato il proprio potere di Trasformista su %s assumendo il ruolo di %s.' % (self.player.full_name, self.target.full_name, self.full_role_name)
         elif self.cause == NECROPHILIAC:
             if player == self.player:
-                return u'Dopo aver utilizzato il tuo potere su %s hai assunto il ruolo di %s.' % (self.target.full_name, role_name)
+                return u'Dopo aver utilizzato il tuo potere su %s hai assunto il ruolo di %s.' % (self.target.full_name, self.full_role_name)
             elif player == 'admin':
-                return u'%s ha utilizzato il proprio potere di Necrofilo su %s assumendo il ruolo di %s.' % (self.player.full_name, self.target.full_name, role_name)
+                return u'%s ha utilizzato il proprio potere di Necrofilo su %s assumendo il ruolo di %s.' % (self.player.full_name, self.target.full_name, self.full_role_name)
         else:
             raise Exception ('Unknown cause for TransformationEvent')
 
@@ -593,8 +595,8 @@ class SoothsayerModelEvent(Event):
     RELEVANT_PHASES = [CREATION]
     AUTOMATIC = False
 
-    player_role = models.CharField(max_length=200, default=None)
-    advertised_role = models.CharField(max_length=200, default=None)
+    player_role = models.CharField(max_length=200, default=None) # Short name of role
+    advertised_role = models.CharField(max_length=200, default=None) # Full name of role
     soothsayer_num = models.IntegerField()
 
     def to_dict(self):
@@ -614,7 +616,7 @@ class SoothsayerModelEvent(Event):
     def apply(self, dynamics):
         soothsayer = [pl for pl in dynamics.players if pl.role.__class__.__name__ == 'Divinatore'][self.soothsayer_num]
         target = dynamics.random.choice([pl for pl in dynamics.players if pl.role.__class__.__name__ == self.player_role and pl is not soothsayer])
-        event = RoleKnowledgeEvent(player=soothsayer, target=target, role_name=self.advertised_role, cause=SOOTHSAYER)
+        event = RoleKnowledgeEvent(player=soothsayer, target=target, full_role_name=self.advertised_role, cause=SOOTHSAYER)
         dynamics.generate_event(event)
 
 class RoleKnowledgeEvent(Event):
@@ -623,7 +625,7 @@ class RoleKnowledgeEvent(Event):
 
     player = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
     target = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
-    role_name = models.CharField(max_length=200, default=None)
+    full_role_name = models.CharField(max_length=200, default=None)
     KNOWLEDGE_CAUSE_TYPES = (
         (SOOTHSAYER, 'Soothsayer'),
         (EXPANSIVE, 'Expansive'),
@@ -696,13 +698,13 @@ class RoleKnowledgeEvent(Event):
             assert False
 
         if self.cause in [EXPANSIVE, GHOST, PHANTOM, HYPNOTIST_DEATH, KNOWLEDGE_CLASS]:
-            assert self.target.canonicalize().role.__class__.__name__ == self.role_name
+            assert self.target.canonicalize().role.full_name == self.full_role_name
     
     
     def to_player_string(self, player):
         toa = self.target.oa
         poa = self.player.oa
-        role = Role.get_from_name(self.role_name).name
+        role = self.full_role_name
         
         if self.cause == SOOTHSAYER:
             if player == 'admin':
@@ -776,8 +778,7 @@ class RoleKnowledgeEvent(Event):
     
     def to_soothsayer_proposition(self):
         assert self.cause == SOOTHSAYER
-        role = Role.get_from_name(self.role_name).name
-        return u'%s ha il ruolo di %s.' % (self.target.full_name, role)
+        return u'%s ha il ruolo di %s.' % (self.target.full_name, self.full_role_name)
 
 
 class AuraKnowledgeEvent(Event):
@@ -1054,7 +1055,7 @@ class GhostificationEvent(Event):
 
     def to_player_string(self, player):
         oa = self.player.oa
-        power = self.ghost
+        power = POWER_NAMES[self.ghost]
         
         if self.cause == NECROMANCER:
             if player == self.player:
@@ -1128,9 +1129,9 @@ class PowerOutcomeEvent(Event):
         oa = self.player.oa
 
         def role_description(role, rcbf):
-            desc = role.name
+            desc = role.full_name
             if role.ghost:
-                desc += ', ex %s' % (rcbf.name)
+                desc += ', ex %s' % (rcbf.full_name)
             return desc
 
         player_role = role_description(self.player.role, self.player.role_class_before_ghost)

@@ -59,7 +59,7 @@ class SoothsayerModelEventAdmin(admin.ModelAdmin):
 
 class RoleKnowledgeEventAdmin(admin.ModelAdmin):
     list_filter = ['cause', 'turn']
-    list_display = ('event_name', 'turn', 'timestamp', 'player', 'target', 'role_name', 'cause')
+    list_display = ('event_name', 'turn', 'timestamp', 'player', 'target', 'full_role_name', 'cause')
     search_fields = ['player__user__first_name', 'player__user__last_name', 'target__user__first_name', 'target__user__last_name']
 
 class PowerOutcomeEventAdmin(admin.ModelAdmin):
