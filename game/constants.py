@@ -79,7 +79,12 @@ AURA_IT = {
 }
 
 # Power frequency
-UNA_TANTUM = 'U'
+
+NEVER = 0
+EVERY_NIGHT = 1
+EVERY_OTHER_NIGHT = 2
+ONCE_A_GAME = 3
+EXCEPT_THE_FIRST = 4
 
 # Power priorities
 BLOCK = 10

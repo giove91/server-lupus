@@ -852,6 +852,10 @@ class SeedForm(forms.Form):
         required=False
     )
     seed = forms.IntegerField(required=True, label='Seed')
+    RULESETS = [
+        ('three_teams', 'Regole con tre fazioni')
+    ]
+    ruleset = forms.ChoiceField(choices=RULESETS)
 
     def __init__(self, *args, **kwargs):
         game = kwargs.pop('game', None)
@@ -874,10 +878,14 @@ class SeedView(GameView):
             dynamics = game.get_dynamics()
             first_turn = dynamics.current_turn
 
-            event = SeedEvent(form.cleaned_data['seed'])
+            event = SeedEvent(seed=str(form.cleaned_data['seed']))
             event.timestamp = first_turn.begin
             dynamics.inject_event(event)
-            
+
+            event = SetRulesEvent(ruleset=form.cleaned_data['ruleset'])
+            event.timestamp = first_turn.begin
+            dynamics.inject_event(event)
+
             return redirect('game:setup', game_name=game.name)
         else:
             return render(request, 'seed.html', {'form': form, 'message': 'Scelta non valida', 'classified': True})

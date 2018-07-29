@@ -17,11 +17,14 @@ class Role(object):
     priority = None
 
     ''' How often the power can be used. Can be:
-    - None(no power),
-    - UNA_TANTUM (once a game),
-    - 1 (every night)
-    - 2 (every other night) '''
+    - NEVER
+    - EVERY_NIGHT
+    - EVERY_OTHER_NIGHT
+    - ONCE_A_GAME '''
     frequency = None
+
+    ''' Whether the role can act the first night of play (usually True, except for killers. '''
+    can_act_first_night = True
 
     ''' A critical blocker is a role that can block powers that can block powers,
     so it must be handled with care to avoid paradoxes that can set the server on fire. '''
@@ -56,8 +59,23 @@ class Role(object):
         return role_class
     
     def can_use_power(self):
-        return False
-    
+        if not self.ghost and not self.player.alive:
+            return False
+
+        if not self.can_act_first_night and self.player.game.current_turn.full_days_from_start() == 0:
+            return False
+
+        if self.frequency == NEVER:
+            return False
+        elif self.frequency == EVERY_NIGHT:
+            return True
+        elif self.frequency == EVERY_OTHER_NIGHT:
+            return self.last_usage is None or self.days_from_last_usage() >= 2
+        elif self.frequency == ONCE_A_GAME:
+            return self.last_usage is None
+        else:
+            raise Exception("Invalid frequency value")
+
     def get_targets(self):
         '''Returns the list of possible targets.'''
         return None
@@ -157,10 +175,8 @@ class Cacciatore(Role):
     team = POPOLANI
     aura = BLACK
     priority = KILLER
-    frequency = UNA_TANTUM
-
-    def can_use_power(self):
-        return self.player.alive and self.player.game.current_turn.full_days_from_start() > 0 and self.last_usage is None
+    frequency = ONCE_A_GAME
+    can_act_first_night = False
 
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
@@ -177,10 +193,7 @@ class Custode(Role):
     team = POPOLANI
     aura = WHITE
     priority = MODIFY_INFLUENCE
-    frequency = 2
-
-    def can_use_power(self):
-        return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
+    frequency = EVERY_OTHER_NIGHT
 
     def get_targets(self):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
@@ -205,12 +218,9 @@ class Esorcista(Role):
     is_mystic = True
     critical_blocker = True
     priority = BLOCK
-    frequency = 2
+    frequency = EVERY_OTHER_NIGHT
 
     # message = 'Benedici la casa di:'
-
-    def can_use_power(self):
-        return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
 
     def get_targets(self):
         return [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
@@ -239,10 +249,7 @@ class Espansivo(Role):
     team = POPOLANI
     aura = WHITE
     priority = QUERY
-    frequency = 2
-
-    def can_use_power(self):
-        return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
+    frequency = EVERY_OTHER_NIGHT
 
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
@@ -257,12 +264,9 @@ class Guardia(Role):
     team = POPOLANI
     aura = WHITE
     priority = MODIFY_INFLUENCE
-    frequency = 1
+    frequency = EVERY_NIGHT
 
     # message = 'Proteggi:'
-
-    def can_use_power(self):
-        return self.player.alive
 
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
@@ -279,10 +283,7 @@ class Investigatore(Role):
     team = POPOLANI
     aura = WHITE
     priority = QUERY
-    frequency = 1
-
-    def can_use_power(self):
-        return self.player.alive
+    frequency = EVERY_NIGHT
 
     def get_targets(self):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
@@ -298,10 +299,7 @@ class Mago(Role):
     aura = WHITE
     is_mystic = True
     priority = QUERY
-    frequency = 1
-
-    def can_use_power(self):
-        return self.player.alive
+    frequency = EVERY_NIGHT
 
     def get_targets(self):
         return [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
@@ -324,10 +322,7 @@ class Messia(Role):
     aura = WHITE
     is_mystic = True
     priority = MODIFY
-    frequency = UNA_TANTUM
-
-    def can_use_power(self):
-        return self.player.alive and self.last_usage is None
+    frequency = ONCE_A_GAME
 
     def get_targets(self):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
@@ -352,11 +347,8 @@ class Sciamano(Role):
     is_mystic = True
     critical_blocker = True
     priority = BLOCK
-    frequency = 2
+    frequency = EVERY_OTHER_NIGHT
 
-
-    def can_use_power(self):
-        return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
 
     def get_targets(self):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
@@ -379,10 +371,7 @@ class Stalker(Role):
     team = POPOLANI
     aura = WHITE
     priority = QUERY
-    frequency = 2
-
-    def can_use_power(self):
-        return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
+    frequency = EVERY_OTHER_NIGHT
 
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
@@ -408,10 +397,7 @@ class Trasformista(Role):
     team = POPOLANI
     aura = BLACK
     priority = MODIFY
-    frequency = UNA_TANTUM
-
-    def can_use_power(self):
-        return self.player.alive and self.last_usage is None
+    frequency = ONCE_A_GAME
 
     def get_targets(self):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
@@ -420,7 +406,7 @@ class Trasformista(Role):
         # There are some forbidden roles
         if self.recorded_target.team != POPOLANI and not self.recorded_target.role.ghost:
             return False
-        if self.recorded_target.role.frequency in [UNA_TANTUM, None]:
+        if self.recorded_target.role.frequency in [NEVER, ONCE_A_GAME]:
             return False
 
         return True
@@ -441,10 +427,7 @@ class Veggente(Role):
     aura = WHITE
     is_mystic = True
     priority = QUERY
-    frequency = 1
-
-    def can_use_power(self):
-        return self.player.alive
+    frequency = EVERY_NIGHT
 
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
@@ -459,10 +442,7 @@ class Voyeur(Role):
     team = POPOLANI
     aura = WHITE
     priority = QUERY
-    frequency = 2
-
-    def can_use_power(self):
-        return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
+    frequency = EVERY_OTHER_NIGHT
 
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
@@ -490,10 +470,9 @@ class Lupo(Role):
     aura = BLACK
     knowledge_class = 1
     priority = KILLER
-    frequency = 1
+    frequency = EVERY_NIGHT
+    can_act_first_night = False
 
-    def can_use_power(self):
-        return self.player.alive and self.player.game.current_turn.full_days_from_start() > 0
 
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
@@ -540,11 +519,9 @@ class Assassino(Role):
     aura = BLACK
     knowledge_class = 2
     priority = KILLER
-    frequency = 2
+    frequency = EVERY_OTHER_NIGHT
+    can_act_first_night = False
 
-
-    def can_use_power(self):
-        return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 ) and self.player.game.current_turn.full_days_from_start() > 0
 
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
@@ -566,10 +543,7 @@ class Avvocato(Role):
     aura = BLACK
     knowledge_class = 2
     priority = MODIFY
-    frequency = 2
-
-    def can_use_power(self):
-        return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
+    frequency = EVERY_OTHER_NIGHT
 
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
@@ -586,10 +560,7 @@ class Diavolo(Role):
     is_mystic = True
     knowledge_class = 3
     priority = QUERY
-    frequency = 1
-
-    def can_use_power(self):
-        return self.player.alive
+    frequency = EVERY_NIGHT
 
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
@@ -612,10 +583,7 @@ class Fattucchiera(Role):
     is_mystic = True
     knowledge_class = 3
     priority = QUERY_INFLUENCE + 1 # Must act after Confusione
-    frequency = 1
-
-    def can_use_power(self):
-        return self.player.alive
+    frequency = EVERY_NIGHT
 
     def get_targets(self):
         return [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
@@ -631,10 +599,7 @@ class Necrofilo(Role):
     aura = BLACK
     knowledge_class = 2
     priority = MODIFY
-    frequency = UNA_TANTUM
-
-    def can_use_power(self):
-        return self.player.alive and self.last_usage is None
+    frequency = ONCE_A_GAME
 
     def get_targets(self):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
@@ -669,10 +634,7 @@ class Sequestratore(Role):
     critical_blocker = True
     sequester = True
     priority = BLOCK
-    frequency = 1
-
-    def can_use_power(self):
-        return self.player.alive
+    frequency = EVERY_NIGHT
 
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
@@ -696,10 +658,7 @@ class Stregone(Role):
     knowledge_class = 3
     critical_blocker = True
     priority = BLOCK
-    frequency = 1
-
-    def can_use_power(self):
-        return self.player.alive
+    frequency = EVERY_NIGHT
 
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
@@ -730,12 +689,9 @@ class Negromante(Role):
     is_mystic = True
     knowledge_class = 4
     priority = MODIFY + 1 # Must act after Messia
-    frequency = 1
+    frequency = EVERY_NIGHT
 
     valid_powers = [AMNESIA, CONFUSIONE, CORRUZIONE, ILLUSIONE, IPNOSI, MORTE, OCCULTAMENTO, VISIONE]
-
-    def can_use_power(self):
-        return self.player.alive
 
     def get_targets(self):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
@@ -841,10 +797,7 @@ class Ipnotista(Role):
     aura = WHITE
     knowledge_class = 5
     priority = MODIFY
-    frequency = 2
-
-    def can_use_power(self):
-        return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
+    frequency = EVERY_OTHER_NIGHT
 
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
@@ -868,10 +821,7 @@ class Medium(Role):
     is_mystic = True
     knowledge_class = 5
     priority = QUERY
-    frequency = 1
-
-    def can_use_power(self):
-        return self.player.alive
+    frequency = EVERY_NIGHT
 
     def get_targets(self):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
@@ -887,12 +837,9 @@ class Scrutatore(Role):
     aura = WHITE
     knowledge_class = 5
     priority = MODIFY
-    frequency = 2
+    frequency = EVERY_OTHER_NIGHT
 
     message2 = 'Aggiungi un voto per:'
-
-    def can_use_power(self):
-        return self.player.alive and ( self.last_usage is None or self.days_from_last_usage() >= 2 )
 
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
@@ -919,10 +866,7 @@ class Spettro(Role):
 class Amnesia(Spettro):
     full_name = 'Spettro dell\'Amnesia'
     priority = MODIFY
-    frequency = 1
-
-    def can_use_power(self):
-        return not self.player.alive and self.has_power
+    frequency = EVERY_NIGHT
 
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
@@ -942,13 +886,7 @@ class Amnesia(Spettro):
 class Confusione(Spettro):
     full_name = 'Spettro della Confusione'
     priority = QUERY_INFLUENCE
-    frequency = 1
-
-    def can_use_power(self):
-        if self.player.alive or not self.has_power:
-            return False
-
-        return True
+    frequency = EVERY_NIGHT
 
     def get_targets(self):
         return [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
@@ -976,13 +914,7 @@ class Confusione(Spettro):
 class Corruzione(Spettro):
     full_name = 'Spettro della Corruzione'
     priority = POST_MORTEM
-    frequency = UNA_TANTUM
-
-    def can_use_power(self):
-        if self.player.alive or not self.has_power:
-            return False
-
-        return self.last_usage is None
+    frequency = ONCE_A_GAME
 
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
@@ -1008,15 +940,9 @@ class Corruzione(Spettro):
 class Illusione(Spettro):
     full_name = 'Spettro dell\'Illusione'
     priority = QUERY_INFLUENCE
-    frequency = 2
+    frequency = EVERY_OTHER_NIGHT
 
     message2 = 'Genera l\'illusione di:'
-
-    def can_use_power(self):
-        if self.player.alive or not self.has_power:
-            return False
-
-        return self.last_usage is None or self.days_from_last_usage() >= 2
 
     def get_targets(self):
         return [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
@@ -1043,15 +969,9 @@ class Illusione(Spettro):
 class Ipnosi(Spettro):
     full_name = 'Spettro dell\'Ipnosi'
     priority = MODIFY
-    frequency = 2
+    frequency = EVERY_OTHER_NIGHT
 
     message2 = 'Sposta il voto su:'
-
-    def can_use_power(self):
-        if self.player.alive or not self.has_power:
-            return False
-
-        return self.last_usage is None or self.days_from_last_usage() >= 2
 
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
@@ -1068,10 +988,8 @@ class Ipnosi(Spettro):
 class Morte(Spettro):
     full_name = 'Spettro della Morte'
     priority = KILLER
-    frequency = 2
-
-    def can_use_power(self):
-        return self.last_usage is None or self.days_from_last_usage() >= 2
+    frequency = EVERY_OTHER_NIGHT
+    can_act_first_night = False
 
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
@@ -1096,13 +1014,7 @@ class Occultamento(Spettro):
     full_name = 'Spettro dell\'Occultamento'
     critical_blocker = True
     priority = BLOCK
-    frequency = 1
-
-    def can_use_power(self):
-        if self.player.alive or not self.has_power:
-            return False
-
-        return True
+    frequency = EVERY_NIGHT
 
     def get_targets(self):
         return [player for player in self.player.game.get_active_players() if player.pk != self.player.pk]
@@ -1128,13 +1040,7 @@ class Occultamento(Spettro):
 class Visione(Spettro):
     full_name = 'Spettro della Visione'
     priority = QUERY
-    frequency = 1
-
-    def can_use_power(self):
-        if self.player.alive or not self.has_power:
-            return False
-
-        return True
+    frequency = EVERY_NIGHT
 
     def get_targets(self):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]

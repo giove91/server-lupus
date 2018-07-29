@@ -457,7 +457,7 @@ class TransformationEvent(Event):
 
         # Check that power is not una tantum or that role is powerless
         if player.role.__class__.__name__ == 'Trasformista':
-            assert target.role.frequency not in [UNA_TANTUM, None]
+            assert target.role.frequency not in [NEVER, ONCE_A_GAME]
 
         # Take original role class if the target is a ghost
         new_role_class = target.role.__class__
