@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<main id="content" class="grid_13">
+    <h1>Composizione del villaggio</h1>
+    
+    <div class="info-block">
+        <p>
+        <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <p><input type="submit" value="Conferma" /></p>
+        </form>
+        </p>
+        
+        {% if message != None %}
+            <p><strong>{{ message }}</strong></p>
+        {% endif %}
+        
+    </div>
+</main>
+{% endblock %}
+

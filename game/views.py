@@ -338,22 +338,21 @@ class AdminStatusView(GameView):
         events = get_events(request, 'admin')
         weather = get_weather(request)
         game = request.game
-        
+
         context = {
             'events': events,
             'weather': weather,
             'classified': True,
         }
-        
+
         return render(request, 'public_info.html', context)
-    
+
     # After game is over:
     # @method_decorator(login_required)
     # During game:
-    @method_decorator(user_passes_test(can_access_admin_view))
+    @method_decorator(master_required)
     def dispatch(self, *args, **kwargs):
         return super(AdminStatusView, self).dispatch(*args, **kwargs)
-
 
 
 # "Generic" form for submitting actions
@@ -688,7 +687,7 @@ class AnnouncementsView(ListView):
 
 class CreateGameView(CreateView):
     model = Game
-    fields = ['name', 'description', 'num_teams']
+    fields = ['name', 'description']
     template_name = 'create_game.html'
 
     def form_valid(self, form):
@@ -697,8 +696,7 @@ class CreateGameView(CreateView):
 
         game_name = slugify(form.cleaned_data['name'])
         description = form.cleaned_data['description']
-        num_teams = form.cleaned_data['num_teams']
-        (game, created) = Game.objects.get_or_create(name=game_name, description=description, num_teams=num_teams)
+        (game, created) = Game.objects.get_or_create(name=game_name, description=description)
         if created:
             game.initialize(get_now())
             master = GameMaster(user=user,game=game)
@@ -879,16 +877,63 @@ class SeedView(GameView):
             first_turn = dynamics.current_turn
 
             event = SeedEvent(seed=str(form.cleaned_data['seed']))
-            event.timestamp = first_turn.begin
+            event.timestamp = get_now()
             dynamics.inject_event(event)
 
             event = SetRulesEvent(ruleset=form.cleaned_data['ruleset'])
-            event.timestamp = first_turn.begin
+            event.timestamp = get_now()
             dynamics.inject_event(event)
 
             return redirect('game:setup', game_name=game.name)
         else:
             return render(request, 'seed.html', {'form': form, 'message': 'Scelta non valida', 'classified': True})
+
+class VillageCompositionForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        self.game = kwargs.pop('game', None)
+        super(VillageCompositionForm, self).__init__(*args, **kwargs)
+        dynamics = self.game.get_dynamics()
+        assert dynamics.creation_subphase == CHOOSING_ROLES
+
+        for role in dynamics.starting_roles:
+            self.fields[role.__name__] = forms.IntegerField(label=role.full_name, min_value=0, initial=0)
+
+    def clean(self):
+        dynamics = self.game.get_dynamics()
+        cleaned_data = super().clean()
+        count = 0
+        for role in dynamics.starting_roles:
+            count += cleaned_data.get(role.__name__)
+
+        if count != len(dynamics.players):
+            raise forms.ValidationError(
+                'Sono stati selezionati %(roles)s ruoli, mentre partecipano %(players)s giocatori.',
+                params = {'roles': count, 'players': len(dynamics.players)}
+            )
+
+class VillageCompositionView(GameView):
+    def get(self, request):
+        game = request.game
+        form = VillageCompositionForm(game=game)
+        return render(request, 'composition.html', {'form': form, 'message': None, 'classified': True})
+
+    def post(self, request):
+        game = request.game
+        form = VillageCompositionForm(request.POST, game=game)
+        if form.is_valid():
+            dynamics = game.get_dynamics()
+            
+            roles = dynamics.starting_roles
+            for role in roles:
+                for i in range(form.cleaned_data[role.__name__]):
+                    event = AvailableRoleEvent(role_name = role.__name__)
+                    event.timestamp = get_now()
+                    dynamics.inject_event(event)
+
+            return redirect('game:setup', game_name=game.name)
+        else:
+            return render(request, 'composition.html', {'form': form, 'message': 'Scelta non valida', 'classified': True})
+
 
 # Form for changing point of view (for GMs only)
 class ChangePointOfViewForm(forms.Form):
