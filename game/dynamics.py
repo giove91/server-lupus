@@ -397,7 +397,7 @@ class Dynamics:
 
         # Debug prints
         if DEBUG_DYNAMICS:
-            print("Received event %r of subclass %s" % (event, event.subclass), file=sys.stderr)
+            print("Received event %r of subclass %s, timed %s" % (event, event.subclass, event.timestamp), file=sys.stderr)
             if isinstance(event, AvailableRoleEvent):
                 print("  Available role: %s" % (event.role_name), file=sys.stderr)
 
@@ -448,7 +448,7 @@ class Dynamics:
         assert self.current_turn.phase in event.RELEVANT_PHASES
         event.turn = self.current_turn
         if event.timestamp is None:
-            event.timestamp = get_now()
+            event.timestamp = self.last_timestamp_in_turn
 
         if self.simulating:
             self.simulated_events.append(event)

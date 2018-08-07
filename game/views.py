@@ -939,6 +939,39 @@ class VillageCompositionView(GameView):
         else:
             return render(request, 'composition.html', {'form': form, 'message': 'Scelta non valida', 'classified': True})
 
+class InitialPropositionsForm(forms.Form):
+    propositions = forms.CharField(widget=forms.Textarea())
+
+    def __init__(self, *args, **kwargs):
+        self.game = kwargs.pop('game', None)
+        super(InitialPropositionsForm, self).__init__(*args, **kwargs)
+        dynamics = self.game.get_dynamics()
+        assert dynamics.creation_subphase == PUBLISHING_INFORMATION
+
+class InitialPropositionsView(GameView):
+    def get(self, request):
+        game = request.game
+        form = InitialPropositionsForm(game=game)
+        return render(request, 'propositions.html', {'form': form, 'message': None, 'classified': True})
+
+    def post(self, request):
+        game = request.game
+        form = InitialPropositionsForm(request.POST, game=game)
+        if form.is_valid():
+            dynamics = game.get_dynamics()
+            
+            for line in form.cleaned_data['propositions'].splitlines():
+                event = InitialPropositionEvent(turn=dynamics.current_turn, timestamp=get_now(), text=line)
+                dynamics.inject_event(event)
+
+            turn = game.current_turn
+            turn.end = get_now()
+            turn.save()
+            game.advance_turn()
+            return redirect('game:status',game_name=request.game.name)
+        else:
+            return render(request, 'propositions.html', {'form': form, 'message': 'Scelta non valida', 'classified': True})
+
 
 # Form for changing point of view (for GMs only)
 class ChangePointOfViewForm(forms.Form):
