@@ -14,7 +14,7 @@ from .events import CommandEvent, VoteAnnouncedEvent, TallyAnnouncedEvent, \
     ExileEvent, VictoryEvent, AvailableRoleEvent, RoleKnowledgeEvent
 from .constants import *
 from .roles import *
-
+from .utils import get_now
 DEBUG_DYNAMICS = False
 SIMULATE_NEXT_TURN = True
 FORCE_SIMULATION = False # Enable only while running tests
@@ -448,7 +448,7 @@ class Dynamics:
         assert self.current_turn.phase in event.RELEVANT_PHASES
         event.turn = self.current_turn
         if event.timestamp is None:
-            event.timestamp = self.current_turn.begin
+            event.timestamp = get_now()
 
         if self.simulating:
             self.simulated_events.append(event)
