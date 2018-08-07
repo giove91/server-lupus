@@ -768,6 +768,8 @@ class JoinGameView(GameView):
         if self.can_join(request):
             player = Player.objects.create(game=game, user=user)
             player.save()
+            # Kill dynamics to refresh players list
+            game.kill_dynamics()
         return redirect('game:status', game_name=request.game.name)
 
     @method_decorator(login_required)
@@ -801,6 +803,8 @@ class LeaveGameView(GameView):
         player = request.player
         if self.can_leave(request):
             player.canonicalize().delete()
+            # Kill dynamics to refresh players list
+            game.kill_dynamics()
         return redirect('game:status', game_name=request.game.name)
 
     @method_decorator(login_required)
@@ -816,6 +820,7 @@ class RestartGameView(GameView):
         dynamics = game.get_dynamics()
         Turn.objects.filter(game=game).delete()
         game.kill_dynamics()
+        game.initialize(get_now())
         return redirect('game:status', game_name=game.name)
 
     @method_decorator(master_required)
