@@ -87,10 +87,11 @@
         <div class="clear vertical-space"></div>
         
         <aside class="grid_3">
-                {% if game is not None and user.is_authenticated %}
+                {% if game is not None %}
                     <div class="nav-menu">
                         <h1>{{ game.description }}</h1>
                         <ul>
+                        <li><a href="{% url 'game:status' game_name=game.name %}">Stato del villaggio</a></li>
                         {% if player is None and not is_master and current_turn.phase == CREATION %}
                             <li><a href="{% url 'game:join' game_name=game.name %}">Unisciti al villaggio</a></li>
                         {% endif %}

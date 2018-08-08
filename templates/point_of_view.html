@@ -8,7 +8,7 @@
     <div class="info-block">
         
         <p>
-        <form action="{% url 'pointofview' game_name=game_name %}" method="post">
+        <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
         <p><input type="submit" value="Cambia punto di vista" /></p>
