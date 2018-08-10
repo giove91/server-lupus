@@ -8,13 +8,24 @@
     
     <div class="info-block">
         <h2>Game Master</h2>
+        <table class="normal">
+        {% for master in game.get_masters %}
+            <tr>
+                <td class="name-container">{{ master.full_name }}</td>
+                <td>{{ master.user.email }}</td>
+            </tr>
+        {% empty %}
+            <tr><td>Curiosamente non ci sono master.</td></tr>
+        {% endfor %}
+        </table>
+
     </div>
     <div class="info-block">
         <h2>Giocatori</h2>
         <p>Mailing list di tutti i giocatori e dei GM: </p>
         
         <table class="normal">
-        {% for player in object_list %}
+        {% for player in game.players %}
             <tr>
                 <td class="name-container">{{ player.full_name }}</td>
                 <td>{{ player.user.email }}</td>

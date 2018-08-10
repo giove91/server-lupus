@@ -53,6 +53,15 @@ def master_required(func):
 
     return decorator
 
+def player_required(func):
+    def decorator(request, *args, **kwargs):
+        if request.is_master or request.player:
+            return func(request, *args, **kwargs)
+        else:
+            return redirect('game:status',game_name=request.game.name)
+
+    return decorator
+
 def can_access_admin_view(func):
     def decorator(request, *args, **kwargs):
         if request.is_master or (request.player and game.is_over and game.postgame_info):
@@ -664,15 +673,11 @@ class AppointView(CommandView):
 
 
 
-class ContactsView(ListView):
-    model = Player
-    template_name = 'contacts.html'
-    
-    def get_queryset(self):
-        game = Game.get_running_game()
-        return Player.objects.filter(game=game).select_related('user').order_by('user__last_name', 'user__first_name')
-    
-    @method_decorator(login_required)
+class ContactsView(GameView):
+    def get(self, request):
+        return render(request, 'contacts.html', {})
+
+    @method_decorator(player_required)
     def dispatch(self, *args, **kwargs):
         return super(ContactsView, self).dispatch(*args, **kwargs)
 

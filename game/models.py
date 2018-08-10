@@ -94,12 +94,16 @@ class Game(models.Model):
             return None
     current_turn = property(current_turn)
 
+    def get_masters(self):
+        return GameMaster.objects.filter(game=self)
+    masters = property(get_masters)
+
     def get_players(self):
         """Players are guaranteed to be sorted in a canonical order,
         which does not change neither by restarting the server (but it
         can change if players' data is changed)."""
         return self.get_dynamics().players
-
+    players = property(get_players)
     def mayor(self):
         return self.get_dynamics().mayor
     mayor = property(mayor)
@@ -527,6 +531,10 @@ class GameMaster(models.Model):
     class Meta:
         ordering = ['user__last_name', 'user__first_name']
         unique_together = ['user','game']
+
+    def get_full_name(self):
+        return "%s %s" % (self.user.first_name, self.user.last_name)
+    full_name = property(get_full_name)
 
     def get_gender(self):
         try:
