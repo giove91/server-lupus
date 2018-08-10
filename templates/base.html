@@ -92,10 +92,10 @@
                         <h1>{{ game.description }}</h1>
                         <ul>
                         <li><a href="{% url 'game:status' game_name=game.name %}">Stato del villaggio</a></li>
-                        {% if player is None and not is_master and current_turn.phase == CREATION %}
+                        {% if player is None and not is_master and not game.started %}
                             <li><a href="{% url 'game:join' game_name=game.name %}">Unisciti al villaggio</a></li>
                         {% endif %}
-                        {% if player is not None and current_turn.phase == CREATION %}
+                        {% if player is not None and not game.started %}
                             <li><a href="{% url 'game:leave' game_name=game.name %}">Abbandona il villaggio</a></li>
                         {% endif %}
                         {% if player and current_turn.phase != CREATION %}
@@ -107,6 +107,9 @@
                                 <li><a href="{% url 'game:appoint' game_name=game.name %}">Designa successore</a></li>
                             {% endif %}
                             <li><a href="{% url 'game:comment' game_name=game.name %}">Commenti alla partita</a></li>
+                        {% endif %}
+                        {% if is_master or game.postgame_info and game.is_over %}
+                            <li><a href="{% url 'game:adminstatus' game_name=game.name %}">Tutte le informazioni</a></li>
                         {% endif %}
                     </ul>
                     </div>
@@ -124,18 +127,6 @@
                     <li><a href="{% url 'trailer' %}">Trailer</a></li>
                 </ul>
                 </div>
-                {% comment %}
-                    <!--TODO: Decidere come mostrare il menù Dopo-partita.-->
-                    {% if current_turn.phase == DAY or current_turn.phase == NIGHT or user.is_staff %}
-                    {# This menu is shown when game is over. When the game finishes, only staff can see it until DAY or NIGHT #}
-                    <div class="nav-menu">
-                            <h1>Dopo-partita</h1>
-                            <ul>
-                                    <li><a href="{% url 'game:adminstatus' game_name=game.name %}">Tutte le informazioni</a></li>
-                            </ul>
-                    </div>
-                    {% endif %}
-                {% endcomment %}
 
             {% if user.is_authenticated %}
                 <div class="nav-menu">

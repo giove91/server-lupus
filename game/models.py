@@ -68,8 +68,8 @@ def kill_all_dynamics():
         _dynamics_map.clear()
 
 class Game(models.Model):
-    running = models.BooleanField(default=False)
     public = models.BooleanField(default=False)
+    postgame_info = models.BooleanField(default=False)
     def __unicode__(self):
         return u"Game %d" % self.pk
     name = models.CharField(max_length=32, verbose_name='Nome della partita')
@@ -85,6 +85,7 @@ class Game(models.Model):
 
     def started(self):
         return self.get_dynamics().random is not None
+    started = property(started)
 
     def current_turn(self):
         try:
@@ -102,9 +103,10 @@ class Game(models.Model):
     def mayor(self):
         return self.get_dynamics().mayor
     mayor = property(mayor)
-    
-    # TODO: tool per pubblicare i risultati
-    over = False
+
+    def is_over(self):
+        return self.get_dynamics().over
+    is_over = property(is_over)
 
     def get_dynamics(self):
         """Obtain or create the Dynamics object globally assigned to

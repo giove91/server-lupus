@@ -44,15 +44,18 @@ def is_GM_check(user):
         return False
     return user.is_staff
 
-def can_access_admin_view(user):
-    # Checks if the game is over
-    if not user.is_authenticated:
-        return False
-    return user.is_staff or (user.is_authenticated and Game.get_running_game().over)
-    
 def master_required(func):
     def decorator(request, *args, **kwargs):
         if request.is_master:
+            return func(request, *args, **kwargs)
+        else:
+            return redirect('game:status',game_name=request.game.name)
+
+    return decorator
+
+def can_access_admin_view(func):
+    def decorator(request, *args, **kwargs):
+        if request.is_master or (request.player and game.is_over and game.postgame_info):
             return func(request, *args, **kwargs)
         else:
             return redirect('game:status',game_name=request.game.name)
@@ -347,10 +350,7 @@ class AdminStatusView(GameView):
 
         return render(request, 'public_info.html', context)
 
-    # After game is over:
-    # @method_decorator(login_required)
-    # During game:
-    @method_decorator(master_required)
+    @method_decorator(can_access_admin_view)
     def dispatch(self, *args, **kwargs):
         return super(AdminStatusView, self).dispatch(*args, **kwargs)
 
@@ -714,12 +714,14 @@ class GameSettingsForm(forms.Form):
     day_end_weekdays = forms.MultipleChoiceField(choices=WEEKDAYS, widget=forms.CheckboxSelectMultiple, label='Sere in cui finisce il giorno')
     day_end_time = forms.TimeField(label='Ora del tramonto')
     night_end_time = forms.TimeField(label='Ora dell\'alba')
+    public = forms.BooleanField(label='Pubblica partita', required=False)
+    postgame_info = forms.BooleanField(label='Mostra tutte le informazioni al termine della partita', required=False)
 
 class GameSettingsView(GameView):
     def get(self, request):
         player = request.player
         game = request.game
-        form = GameSettingsForm(initial={'day_end_weekdays': game.get_day_end_weekdays(), 'day_end_time':game.day_end_time, 'night_end_time':game.night_end_time })
+        form = GameSettingsForm(initial={'day_end_weekdays': game.get_day_end_weekdays(), 'day_end_time':game.day_end_time, 'night_end_time':game.night_end_time, 'public':game.public, 'postgame_info':game.postgame_info })
         return render(request, 'settings.html', {'form': form, 'message': None, 'classified': True})
     
     def post(self, request):
@@ -730,9 +732,11 @@ class GameSettingsView(GameView):
             game.day_end_time = form.cleaned_data['day_end_time']
             game.night_end_time = form.cleaned_data['night_end_time']
             game.day_end_weekdays = sum([ 2**int(i) for i in form.cleaned_data['day_end_weekdays']])
+            game.public = form.cleaned_data['public']
+            game.postgame_info = form.cleaned_data['postgame_info']
             game.save()
 
-            form = GameSettingsForm(initial={'day_end_weekdays': game.get_day_end_weekdays(), 'day_end_time':game.day_end_time, 'night_end_time':game.night_end_time })
+            form = GameSettingsForm(initial={'day_end_weekdays': game.get_day_end_weekdays(), 'day_end_time':game.day_end_time, 'night_end_time':game.night_end_time, 'public':game.public, 'postgame_info':game.postgame_info })
             return render(request, 'settings.html', {'form': form, 'message': 'Impostazioni aggiornate correttamente.'})
         else:
             return render(request, 'settings.html', {'form': form, 'message': 'Scelta non valida.'})
