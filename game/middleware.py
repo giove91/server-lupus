@@ -3,9 +3,12 @@ from django.utils.deprecation import MiddlewareMixin
 from django.shortcuts import get_object_or_404
 from game.models import *
 from game.utils import get_now
+from threading import Lock
+
+_turn_advance_lock = Lock()
 
 # Middleware for finding Game, Dynamics and current turn.
-# TODO: forse e' il caso di unificarla alla precedente, assicurando che player.game==game quando esistono entrambi
+# This is also responsible for automatic turn advance when end of current turn has passed.
 class GameMiddleware(MiddlewareMixin):
     def process_view(self, request, view_func, view_args, view_kwargs):
 
@@ -24,9 +27,16 @@ class GameMiddleware(MiddlewareMixin):
         current_turn = None
         
         if game is not None:
+            current_turn = game.current_turn
+            # Check if current_turn has ended: if so, automatically advance turn
+            while current_turn.end is not None and current_turn.end <= get_now():
+                with _turn_advance_lock:
+                    if current_turn.end is not None and current_turn.end <= get_now():
+                        game.advance_turn()
+                        current_turn = game.current_turn
+
             dynamics = game.get_dynamics()
-            current_turn = dynamics.current_turn
-            
+
         request.game = game
         request.dynamics = dynamics
         request.current_turn = current_turn

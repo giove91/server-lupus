@@ -284,6 +284,7 @@ class Dynamics:
             self.prev_turn = Turn.objects.get(pk=self.current_turn.pk)
         self.current_turn = turn
 
+        # Create turn to be simulated
         if self.current_turn.phase in [DAY, NIGHT] and self.current_turn.end is not None:
             self.simulated_turn = self.current_turn.next_turn()
             self.simulated_turn.set_begin_end(self.current_turn)
@@ -362,6 +363,14 @@ class Dynamics:
         real_prev_turn = self.prev_turn
         self.current_turn = self.simulated_turn
         self.prev_turn = real_current_turn
+
+        # Prepare data for checking events
+        if RELAX_TIME_CHECKS:
+            self.last_timestamp_in_turn = ANCIENT_DATETIME
+        else:
+            self.last_timestamp_in_turn = self.current_turn.begin
+        self.last_pk_in_turn = -1
+
         assert self.simulated_turn.phase in [DAWN,SUNSET], self.simulated_turn
         {
             SUNSET: self._compute_entering_sunset,

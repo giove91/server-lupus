@@ -167,16 +167,6 @@ def logout_view(request):
     logout(request)
     return redirect(home)
 
-@user_passes_test(is_GM_check)
-def advance_turn(request):
-    game = request.game
-    turn = game.current_turn
-    turn.end = get_now()
-    turn.save()
-    game.advance_turn()
-    return redirect('status')
-
-
 def ruleset(request):
     return render(request, 'ruleset.html')
 
@@ -311,6 +301,7 @@ class VillageStatusView(GameView):
         context = {
             'events': events,
             'weather': weather,
+            'display_time': False
         }   
         return render(request, 'public_info.html', context)
 
@@ -355,6 +346,7 @@ class AdminStatusView(GameView):
             'events': events,
             'weather': weather,
             'classified': True,
+            'display_time': True
         }
 
         return render(request, 'public_info.html', context)
@@ -982,9 +974,25 @@ class InitialPropositionsView(GameView):
             turn.end = get_now()
             turn.save()
             game.advance_turn()
-            return redirect('game:status',game_name=request.game.name)
+            return redirect('game:status', game_name=request.game.name)
         else:
             return render(request, 'propositions.html', {'form': form, 'message': 'Scelta non valida', 'classified': True})
+
+class AdvanceTurnView(GameView):
+    def get(self, request):
+        return render(request, 'confirm.html', {'message': 'Sei sicuro di voler avanzare immediatamente al prossimo turno?', 'title': 'Avanza turno'})
+
+    def post(self, request):
+        game = request.game
+        turn = game.current_turn
+        turn.end = get_now()
+        turn.save()
+        return redirect('game:status', game_name=request.game.name)
+
+    @method_decorator(master_required)
+    def dispatch(self, *args, **kwargs):
+        return super(AdvanceTurnView, self).dispatch(*args, **kwargs)
+
 
 
 # Form for changing point of view (for GMs only)

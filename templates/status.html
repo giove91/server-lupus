@@ -61,7 +61,7 @@
     {% endif %}
 {% endif %}
 
-{% if current_turn.end is not None %}
+{% if current_turn.end is not None and display_time %}
     {% if current_turn.phase == DAY %}
         <p>Il prossimo rogo sarà il {{ current_turn.end | date:"d/m" }} alle {{ current_turn.end | time:"H:i" }}.</p>
     {% endif %}

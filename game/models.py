@@ -329,8 +329,8 @@ class Turn(models.Model):
 
     def set_end(self):
         if self.phase in FULL_PHASES:
-            day_end_skip = self.phase == DAY
-            self.end = advance_to_time(self.begin, FULL_PHASE_END_TIMES[self.phase], day_end_skip=day_end_skip)
+            allowed_weekdays = self.game.get_day_end_weekdays() if self.phase == DAY else None
+            self.end = advance_to_time(self.begin, self.game.get_phase_end_time(self.phase), allowed_weekdays=allowed_weekdays)
         else:
             self.end = None
 
@@ -447,8 +447,8 @@ class Player(models.Model):
     
     
     def can_use_power(self):
-        if not self.game.running:
-            # The game is not running
+        if self.game.is_over:
+            # The game has ended
             return False
         if self.game.current_turn is None:
             # The current turn has not been set -- this shouldn't happen if Game is running
@@ -492,8 +492,8 @@ class Player(models.Model):
     
     
     def can_vote(self):
-        if not self.game.running:
-            # The game is not running
+        if self.game.is_over:
+            # The game is over
             return False
         if self.game.current_turn is None:
             # The current turn has not been set -- this shouldn't happen if Game is running

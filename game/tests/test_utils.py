@@ -21,7 +21,7 @@ def create_users(n):
     return users
 
 def create_game(seed, ruleset, roles):
-    game = Game(running=True)
+    game = Game()
     game.save()
     game.initialize(get_now())
 
@@ -54,7 +54,7 @@ def create_game_from_dump(data, start_moment=None):
     if start_moment is None:
         start_moment = get_now()
 
-    game = Game(running=True)
+    game = Game()
     game.save()
     game.initialize(start_moment)
 

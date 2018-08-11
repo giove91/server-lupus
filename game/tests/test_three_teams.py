@@ -7666,7 +7666,7 @@ class GameTests(TestCase):
         [lupo] = [x for x in players if isinstance(x.role, Lupo)]
         [contadino] = [x for x in players if isinstance(x.role, Contadino)]
 
-        self.assertEqual(self.game.over, False)
+        self.assertEqual(self.game.is_over, False)
 
         #Advance to day and kill negromante
         test_advance_turn(self.game)
@@ -7693,4 +7693,9 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
 
         self.assertEqual(dynamics.over, True) #Still over!
-    
+        self.assertFalse(lupo.can_vote()) #Player cannot vote since game is over
+
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        self.assertFalse(lupo.can_use_power()) #Player cannot use power since game is over
