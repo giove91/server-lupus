@@ -741,6 +741,11 @@ class GameSettingsView(GameView):
             game.postgame_info = form.cleaned_data['postgame_info']
             game.save()
 
+            current_turn = game.current_turn
+            allowed_weekdays = self.get_day_end_weekdays if current_turn.phase == DAY else None
+            current_turn.end = min(get_now(), advance_to_time(current_turn.begin, game.get_phase_end_time(current_turn.phase), allowed_weekdays=allowed_weekdays))
+            current_turn.save()
+
             form = GameSettingsForm(initial={'day_end_weekdays': game.get_day_end_weekdays(), 'day_end_time':game.day_end_time, 'night_end_time':game.night_end_time, 'public':game.public, 'postgame_info':game.postgame_info })
             return render(request, 'settings.html', {'form': form, 'message': 'Impostazioni aggiornate correttamente.'})
         else:

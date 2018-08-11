@@ -83,6 +83,14 @@ class Game(models.Model):
     night_end_time = models.TimeField(default=time(8), null=True, verbose_name='Ora dell\'alba')
     day_end_time = models.TimeField(default=time(22), null=True, verbose_name='Ora del tramonto')
 
+    def get_phase_end_time(self, phase):
+        if phase == DAY:
+            return self.day_end_time
+        elif phase == NIGHT:
+            return self.night_end_time
+        else:
+            return None
+
     def started(self):
         return self.get_dynamics().random is not None
     started = property(started)

@@ -33,20 +33,9 @@ DATE_CHANGE_PHASE = DAWN
 
 FIRST_PHASE = CREATION
 FIRST_DATE = 0
-FIRST_PHASE_BEGIN_TIME = _datetime.time(hour=22)
 
 HALF_PHASES = [SUNSET, DAWN, CREATION]
 FULL_PHASES = [DAY, NIGHT]
-
-FULL_PHASE_END_TIMES = {
-    NIGHT: _datetime.time(hour=8),
-    DAY: _datetime.time(hour=22),
-    }
-
-# 0 is Monday, 6 is Sunday: here we say that DAY cannot finish on
-# Friday or Saturday; moreover it cannot finish on some dates
-DAY_END_SKIP_WEEKDAYS = [ 4, 5 ]
-DAY_END_SKIP_DATES = [ _datetime.date(2015, 12, 6), _datetime.date(2015, 12, 7), _datetime.date(2018, 3, 4) ]
 
 # Creation subphases
 SIGNING_UP = 0

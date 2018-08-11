@@ -4,7 +4,7 @@ import datetime
 
 from .constants import *
 
-def advance_to_time(current_datetime, target_time, day_end_skip=False):
+def advance_to_time(current_datetime, target_time, allowed_weekdays=None):
     """Return the smallest datetime object that is strictly greater than
     current_datetime and has time part equal to target_time. All
     objects are supposed to be timezone-aware.
@@ -20,8 +20,10 @@ def advance_to_time(current_datetime, target_time, day_end_skip=False):
     target_date = date
     if time >= target_time:
         target_date = date + datetime.timedelta(days=1)
-    if day_end_skip:
-        while target_date.weekday() in DAY_END_SKIP_WEEKDAYS or target_date in DAY_END_SKIP_DATES:
+    if allowed_weekdays is not None:
+        if allowed_weekdays == []:
+            return None
+        while target_date.weekday() not in allowed_weekdays:
             target_date += datetime.timedelta(days=1)
     target_datetime = datetime.datetime.combine(target_date, target_time)
     assert target_datetime.tzinfo is None
