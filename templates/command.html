@@ -5,7 +5,7 @@
     <h1>{{ title }}</h1>
     
     <div class="info-block">
-        <form action="{% url url_name %}" method="post">
+        <form action="{% url url_name game_name=game.name%}" method="post">
         {% csrf_token %}
         {{ form.as_p }}
         <p><input type="submit" value="Invia" /></p>

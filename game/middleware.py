@@ -51,7 +51,7 @@ class GameMiddleware(MiddlewareMixin):
                 request.is_master = False
 
             try:
-                player = Player.objects.get(user=user,game=game)
+                player = Player.objects.get(user=user,game=game).canonicalize()
             except Player.DoesNotExist:
                 player = None
                 

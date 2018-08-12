@@ -1,4 +1,4 @@
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 from threading import RLock
 import sys
 
@@ -11,7 +11,7 @@ from django.conf import settings
 
 from .constants import *
 
-from .utils import advance_to_time
+from .utils import advance_to_time, get_now
 
 
 class KnowsChild(models.Model):
@@ -82,6 +82,8 @@ class Game(models.Model):
 
     night_end_time = models.TimeField(default=time(8), null=True, verbose_name='Ora dell\'alba')
     day_end_time = models.TimeField(default=time(22), null=True, verbose_name='Ora del tramonto')
+
+    half_phase_duration = models.IntegerField(default=60, verbose_name='Durata delle fasi di alba e tramonto (in secondi)')
 
     def get_phase_end_time(self, phase):
         if phase == DAY:
@@ -327,12 +329,19 @@ class Turn(models.Model):
     def first_turn(game, must_exist=False):
         return Turn.get_or_create(game, FIRST_DATE, FIRST_PHASE, must_exist=must_exist)
 
-    def set_end(self):
+    def set_end(self, allow_retroactive_end=True):
         if self.phase in FULL_PHASES:
             allowed_weekdays = self.game.get_day_end_weekdays() if self.phase == DAY else None
             self.end = advance_to_time(self.begin, self.game.get_phase_end_time(self.phase), allowed_weekdays=allowed_weekdays)
+        elif self.phase in HALF_PHASES:
+            self.end = self.begin + timedelta(seconds=self.game.half_phase_duration)
         else:
             self.end = None
+
+        # If allow_retroactive_end is False, the turn cannot end in the past: in that case,
+        # we force the turn to end now.
+        if not allow_retroactive_end and self.end is not None and self.end <= get_now():
+            self.end = get_now()
 
     def set_first_begin_end(self, begin):
         #self.begin = datetime.combine(begin_date, FIRST_PHASE_BEGIN_TIME)

@@ -472,7 +472,7 @@ class CommandView(GameView):
 class UsePowerView(CommandView):
     
     title = 'Potere notturno'
-    url_name = 'usepower'
+    url_name = 'game:usepower'
     
     def check(self, request):
         return request.player is not None and request.player.can_use_power()
@@ -552,7 +552,7 @@ class UsePowerView(CommandView):
 class VoteView(CommandView):
     
     title = 'Votazione per il rogo'
-    url_name = 'vote'
+    url_name = 'game:vote'
     
     def check(self, request):
         return request.player is not None and request.player.can_vote()
@@ -588,7 +588,7 @@ class VoteView(CommandView):
 class ElectView(CommandView):
     
     title = 'Elezione del Sindaco'
-    url_name = 'elect'
+    url_name = 'game:elect'
     
     def check(self, request):
         return request.player is not None and request.player.can_vote()
@@ -625,7 +625,7 @@ class ElectView(CommandView):
 class AppointView(CommandView):
     
     title = 'Nomina del successore'
-    url_name = 'appoint'
+    url_name = 'game:appoint'
     
     def check(self, request):
         return request.player is not None and request.player.is_mayor() and request.game is not None and (request.game.current_turn.phase == DAY or request.game.current_turn.phase == NIGHT)
@@ -711,6 +711,7 @@ class GameSettingsForm(forms.Form):
     day_end_weekdays = forms.MultipleChoiceField(choices=WEEKDAYS, widget=forms.CheckboxSelectMultiple, label='Sere in cui finisce il giorno')
     day_end_time = forms.TimeField(label='Ora del tramonto')
     night_end_time = forms.TimeField(label='Ora dell\'alba')
+    half_phase_duration = forms.IntegerField(label='Durata di alba e tramonto (in secondi)')
     public = forms.BooleanField(label='Pubblica partita', required=False)
     postgame_info = forms.BooleanField(label='Mostra tutte le informazioni al termine della partita', required=False)
 
@@ -718,7 +719,14 @@ class GameSettingsView(GameView):
     def get(self, request):
         player = request.player
         game = request.game
-        form = GameSettingsForm(initial={'day_end_weekdays': game.get_day_end_weekdays(), 'day_end_time':game.day_end_time, 'night_end_time':game.night_end_time, 'public':game.public, 'postgame_info':game.postgame_info })
+        form = GameSettingsForm(initial={
+            'day_end_weekdays': game.get_day_end_weekdays(),
+            'day_end_time':game.day_end_time,
+            'night_end_time':game.night_end_time,
+            'half_phase_duration': game.half_phase_duration,
+            'public':game.public,
+            'postgame_info':game.postgame_info
+        })
         return render(request, 'settings.html', {'form': form, 'message': None, 'classified': True})
     
     def post(self, request):
@@ -729,16 +737,23 @@ class GameSettingsView(GameView):
             game.day_end_time = form.cleaned_data['day_end_time']
             game.night_end_time = form.cleaned_data['night_end_time']
             game.day_end_weekdays = sum([ 2**int(i) for i in form.cleaned_data['day_end_weekdays']])
+            game.half_phase_duration = form.cleaned_data['half_phase_duration']
             game.public = form.cleaned_data['public']
             game.postgame_info = form.cleaned_data['postgame_info']
             game.save()
 
             current_turn = game.current_turn
-            allowed_weekdays = self.get_day_end_weekdays if current_turn.phase == DAY else None
-            current_turn.end = min(get_now(), advance_to_time(current_turn.begin, game.get_phase_end_time(current_turn.phase), allowed_weekdays=allowed_weekdays))
+            current_turn.set_end(allow_retroactive_end=False)
             current_turn.save()
 
-            form = GameSettingsForm(initial={'day_end_weekdays': game.get_day_end_weekdays(), 'day_end_time':game.day_end_time, 'night_end_time':game.night_end_time, 'public':game.public, 'postgame_info':game.postgame_info })
+            form = GameSettingsForm(initial={
+                'day_end_weekdays': game.get_day_end_weekdays(),
+                'day_end_time': game.day_end_time,
+                'night_end_time': game.night_end_time,
+                'half_phase_duration': game.half_phase_duration,
+                'public': game.public,
+                'postgame_info': game.postgame_info
+            })
             return render(request, 'settings.html', {'form': form, 'message': 'Impostazioni aggiornate correttamente.'})
         else:
             return render(request, 'settings.html', {'form': form, 'message': 'Scelta non valida.'})
