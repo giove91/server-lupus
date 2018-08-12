@@ -421,7 +421,7 @@ class Player(models.Model):
     gender = property(get_gender)
     
     def __str__(self):
-        return u"%s %s" % (self.user.first_name, self.user.last_name)
+        return u"%s (%s %s)" % (self.user.username, self.user.first_name, self.user.last_name)
     
     # Returns 'o' or 'a' depending on the player's gender
     def get_oa(self):
