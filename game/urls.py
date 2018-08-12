@@ -31,6 +31,7 @@ urlpatterns = [
     path('propositions/', InitialPropositionsView.as_view(), name='propositions'), # Pubblica le proposizioni iniziali
     path('soothsayer/', not_implemented, name='soothsayer'), # Cambia le frasi dei divinatori
     path('settings/', GameSettingsView.as_view(), name='settings'), # Cambia le impostazioni della partita
+    path('rollbackturn/', RollbackLastTurnView.as_view(), name='rollbackturn'), # Riporta la partita alla fine del turno precedente, cancellando gli eventi di quello in corso.
     path('restart/', RestartGameView.as_view(), name='restart'), # Elimina tutti gli eventi e riapre le iscrizioni
     path('delete/', not_implemented, name='delete'), # Cancella la partita
     

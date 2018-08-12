@@ -21,8 +21,7 @@ def advance_to_time(current_datetime, target_time, allowed_weekdays=None):
     if time >= target_time:
         target_date = date + datetime.timedelta(days=1)
     if allowed_weekdays is not None:
-        if allowed_weekdays == []:
-            return None
+        assert len(allowed_weekdays) > 0
         while target_date.weekday() not in allowed_weekdays:
             target_date += datetime.timedelta(days=1)
     target_datetime = datetime.datetime.combine(target_date, target_time)

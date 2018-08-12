@@ -330,7 +330,10 @@ class Turn(models.Model):
         return Turn.get_or_create(game, FIRST_DATE, FIRST_PHASE, must_exist=must_exist)
 
     def set_end(self, allow_retroactive_end=True):
-        if self.phase in FULL_PHASES:
+        if self.game.is_over:
+            # If the game has already ended, the turn will be endless
+            self.end = None
+        elif self.phase in FULL_PHASES:
             allowed_weekdays = self.game.get_day_end_weekdays() if self.phase == DAY else None
             self.end = advance_to_time(self.begin, self.game.get_phase_end_time(self.phase), allowed_weekdays=allowed_weekdays)
         elif self.phase in HALF_PHASES:

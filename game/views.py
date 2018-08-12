@@ -390,7 +390,7 @@ class CommandForm(forms.Form):
     def clean(self):
         cleaned_data = super(CommandForm, self).clean()
         
-        for key, field in self.fields.iteritems():
+        for key, field in self.fields.items():
             if key == 'target' or key == 'target2':
                 player_id = cleaned_data.get(key)
                 if player_id:
@@ -708,7 +708,7 @@ class CreateGameView(CreateView):
 
 class GameSettingsForm(forms.Form):
     WEEKDAYS = [(0,'Lunedì'), (1,'Martedì'), (2,'Mercoledì'), (3,'Giovedì'), (4,'Venerdì'), (5,'Sabato'), (6,'Domenica')]
-    day_end_weekdays = forms.MultipleChoiceField(choices=WEEKDAYS, widget=forms.CheckboxSelectMultiple, label='Sere in cui finisce il giorno')
+    day_end_weekdays = forms.MultipleChoiceField(choices=WEEKDAYS, widget=forms.CheckboxSelectMultiple, label='Sere in cui finisce il giorno', required=True)
     day_end_time = forms.TimeField(label='Ora del tramonto')
     night_end_time = forms.TimeField(label='Ora dell\'alba')
     half_phase_duration = forms.IntegerField(label='Durata di alba e tramonto (in secondi)')
@@ -743,8 +743,9 @@ class GameSettingsView(GameView):
             game.save()
 
             current_turn = game.current_turn
-            current_turn.set_end(allow_retroactive_end=False)
-            current_turn.save()
+            if current_turn.end is not None:
+                current_turn.set_end(allow_retroactive_end=False)
+                current_turn.save()
 
             form = GameSettingsForm(initial={
                 'day_end_weekdays': game.get_day_end_weekdays(),
@@ -831,6 +832,27 @@ class LeaveGameView(GameView):
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         return super(LeaveGameView, self).dispatch(*args, **kwargs)
+
+class RollbackLastTurnView(GameView):
+    title = "Annulla ultimo turno"
+    def get(self, request):
+        return render(request, 'confirm.html', {
+            'message': 'Sei sicuro di voler tornare al turno precedente? Questo cancellerà definitivamente tutti gli eventi del turno corrente.',
+            'title': self.title })
+
+    def post(self, request):
+        game = request.game
+        current_turn = game.current_turn
+        prev_turn = current_turn.prev_turn()
+        prev_turn.end = None
+        prev_turn.save()
+        current_turn.delete()
+        game.kill_dynamics()
+        return redirect('game:status', game_name=game.name)
+
+    @method_decorator(master_required)
+    def dispatch(self, *args, **kwargs):
+        return super(RollbackLastTurnView, self).dispatch(*args, **kwargs)
 
 class RestartGameView(GameView):
     def get(self, request):
@@ -994,14 +1016,26 @@ class InitialPropositionsView(GameView):
             return render(request, 'propositions.html', {'form': form, 'message': 'Scelta non valida', 'classified': True})
 
 class AdvanceTurnView(GameView):
+    title = 'Turno successivo'
     def get(self, request):
-        return render(request, 'confirm.html', {'message': 'Sei sicuro di voler avanzare immediatamente al prossimo turno?', 'title': 'Avanza turno'})
+        game = request.game
+        if game.is_over:
+            return render(request, 'command_not_allowed.html', {
+                'message': 'Non puoi avanzare al prossimo turno in quanto la partita è finita.',
+                'title': self.title
+            })
+        else:
+            return render(request, 'confirm.html', {
+                'message': 'Sei sicuro di voler avanzare immediatamente al prossimo turno?', 
+                'title': self.title
+            })
 
     def post(self, request):
         game = request.game
         turn = game.current_turn
-        turn.end = get_now()
-        turn.save()
+        if not game.is_over:
+            turn.end = get_now()
+            turn.save()
         return redirect('game:status', game_name=request.game.name)
 
     @method_decorator(master_required)
