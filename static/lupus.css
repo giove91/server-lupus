@@ -25,6 +25,14 @@ label {
 	width: 20px;
 }
 
+.game-container {
+	width: 250px;
+}
+
+.turn-container {
+	width: 150px;
+}
+
 .info-block {
 	background-color: #fff;
 	box-shadow: rgba(0, 0, 0, 0.0980392) 0px 1px 2px 0px;

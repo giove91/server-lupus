@@ -134,7 +134,26 @@ def not_implemented(request):
     raise NotImplementedError("View not implemented")
 
 def home(request):
-    return render(request, 'index.html')
+    user = request.user
+    if user.is_authenticated:
+        games = Game.objects.filter(
+            Q(pk__in=user.player_set.values('game')) |
+            Q(pk__in=user.gamemaster_set.values('game')) |
+            Q(public=True))
+    else:
+        games = Game.objects.filter(public=True)
+
+    beginning_games = [g for g in games if not g.started]
+    ongoing_games = [g for g in games if g.started and not g.is_over]
+    ended_games = [g for g in games if g.is_over]
+
+    context = {
+        'games': games,
+        'beginning_games': beginning_games,
+        'ongoing_games': ongoing_games,
+        'ended_games': ended_games,
+    }
+    return render(request, 'index.html', context)
 
 class SignUpForm(UserCreationForm):
     GENDERS = (
