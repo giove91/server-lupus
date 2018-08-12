@@ -148,7 +148,6 @@ def home(request):
     ended_games = [g for g in games if g.is_over]
 
     context = {
-        'games': games,
         'beginning_games': beginning_games,
         'ongoing_games': ongoing_games,
         'ended_games': ended_games,

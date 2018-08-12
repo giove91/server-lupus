@@ -21,86 +21,9 @@ Francesco Guatieri come principale Game Master.
     A partire dall'anno 2014 è passato sotto il controllo di Giovanni Mascellani e Giovanni Paolini, che lo gestiscono a tutt'oggi. Nel 2014 sono state giocate due partite, una in primavera e una in autunno. Dalla presente edizione anche Alessandro Iraci è diventato Game Master.
     </p>
     </div>
-    {% if ongoing_games %}
-    <div class="info-block">
-    <h2>Partite in corso</h2>
-    <table>
-        <thead>
-        <tr>
-            <td class="game-container">Partita</td>
-            <td class="turn-container">Turno</td>
-            <td>Sindaco</td>
-        </tr>
-        </thead>
-        <tbody>
-        {% for g in ongoing_games %}
-            <tr>
-                <td><a href="{% url 'game:status' game_name=g.name %}">
-                    {{ g.description }}
-                </a></td>
-                <td>{{ g.current_turn.turn_as_italian_string }}</td>
-                <td>{{ g.mayor.full_name }}</td>
-            </tr>
-            </a>
-        {% endfor %}
-        </tbody>
-    </table>
-    </div>
-    {% endif %}
-
-    {% if beginning_games %}
-    <div class="info-block">
-    <h2>Iscrizioni aperte</h2>
-    <table>
-        <thead>
-        <tr>
-            <td>Partita</td>
-            <td>Turno</td>
-            <td>Sindaco</td>
-        </tr>
-        </thead>
-        <tbody>
-        {% for g in beginning_games %}
-            <tr>
-                <td><a href="{% url 'game:status' game_name=g.name %}">
-                    {{ g.description }}
-                </a></td>
-                <td>{{ g.current_turn.turn_as_italian_string }}</td>
-                <td>{{ g.mayor.full_name }}</td>
-            </tr>
-            </a>
-        {% endfor %}
-        </tbody>
-    </table>
-    </div>
-    {% endif %}
-
-    {% if ended_games %}
-    <div class="info-block">
-    <h2>Partite terminate</h2>
-    <table>
-        <thead>
-        <tr>
-            <td>Partita</td>
-            <td>Turno</td>
-            <td>Sindaco</td>
-        </tr>
-        </thead>
-        <tbody>
-        {% for g in ended_games %}
-            <tr>
-                <td><a href="{% url 'game:status' game_name=g.name %}">
-                    {{ g.description }}
-                </a></td>
-                <td>{{ g.current_turn.turn_as_italian_string }}</td>
-                <td>{{ g.mayor.full_name }}</td>
-            </tr>
-            </a>
-        {% endfor %}
-        </tbody>
-    </table>
-    </div>
-    {% endif %}
+    {% include "games_list.html" with games=ongoing_games title="Partite in corso" %}
+    {% include "games_list.html" with games=beginning_games title="Iscrizioni aperte" %}
+    {% include "games_list.html" with games=ended_games title="Partite terminate" %}
 </main>
 
 {% endblock %}
