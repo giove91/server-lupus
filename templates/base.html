@@ -111,8 +111,8 @@
                     {% if is_master or game.postgame_info and game.is_over %}
                         <li><a href="{% url 'game:adminstatus' game_name=game.name %}">Tutte le informazioni</a></li>
                     {% endif %}
-                    {% if is_master or is_player %}
-                        <li><a href="{% url 'game:contacts' game_name=game.name %}">Contatti</a></li>
+                    {% if is_master or player and game.started %}
+                        <li><a href="{% url 'game:contacts' game_name=game.name %}">Elenco partecipanti</a></li>
                     {% endif %}
                 </ul>
                 </div>
@@ -141,12 +141,9 @@
                     <ul>
                         <li><a href="{% url 'ruleset' %}">Regolamento</a></li>
                         <li><a href="{% url 'prototypes' %}">Prototipi</a></li>
-                        {% if game and player %}
-                            <li><a href="{% url 'game:contacts' game_name=game.name %}">Contatti</a></li>
-                        {% endif %}
-                    <li><a href="{% url 'credits' %}">Riconoscimenti</a></li>
-                    <li><a href="{% url 'trailer' %}">Trailer</a></li>
-                </ul>
+                        <li><a href="{% url 'credits' %}">Riconoscimenti</a></li>
+                        <li><a href="{% url 'trailer' %}">Trailer</a></li>
+                    </ul>
                 </div>
 
             {% if user.is_authenticated %}

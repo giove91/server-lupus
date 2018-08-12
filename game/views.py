@@ -54,8 +54,11 @@ def master_required(func):
     return decorator
 
 def player_required(func):
+    """Checks that the user is taking part in the current game. If s/he is not
+    a game master, s/he must have been accepted in the game (that is, the game must
+    be started)."""
     def decorator(request, *args, **kwargs):
-        if request.is_master or request.player:
+        if request.is_master or (request.player and request.game.started):
             return func(request, *args, **kwargs)
         else:
             return redirect('game:status',game_name=request.game.name)
@@ -659,11 +662,6 @@ class AppointView(CommandView):
         dynamics = request.player.game.get_dynamics()
         dynamics.inject_event(command)
         return True
-
-
-
-
-
 
 class ContactsView(GameView):
     def get(self, request):
