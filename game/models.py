@@ -2,7 +2,7 @@ from datetime import datetime, time, timedelta
 from threading import RLock
 import sys
 
-from django.db import models
+from django.db import models, IntegrityError
 from django import forms
 from django.utils.text import capfirst
 from django.contrib.auth.models import User
@@ -201,11 +201,23 @@ class Game(models.Model):
         first_turn.save()
         assert first_turn.phase == CREATION
 
-    def advance_turn(self):
-        assert self.current_turn.end is not None
-        next_turn = self.current_turn.next_turn()
-        next_turn.set_begin_end(self.current_turn)
-        next_turn.save()
+    def advance_turn(self, current_turn=None):
+        """Advance to next turn. If current_turn is passed, the turn
+        that will be created is the one following the turn passed. If
+        the next turn is already in the database, it will not be created
+        twice."""
+        if current_turn is None:
+            current_turn = self.current_turn
+        assert current_turn.end is not None
+        next_turn = current_turn.next_turn()
+        next_turn.set_begin_end(current_turn)
+        try:
+            next_turn.save()
+        except IntegrityError:
+            # Next turn has already been created by another thread.
+            # Let's check it is indeed there.
+            next_turn = current_turn.next_turn(must_exist=True)
+
         dynamics = self.get_dynamics()
         assert dynamics is not None
         dynamics.update()
