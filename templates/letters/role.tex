@@ -31,7 +31,7 @@
 
 
 \subsection*{Ruolo e personaggio}
-Carissim{{ player.oa }} {{ player.full_name }}, nel corso della partita ricoprirai il ruolo di {{ player.role.name }}.
+Carissim{{ player.oa }} {{ player.full_name }}, nel corso della partita ricoprirai il ruolo di {{ player.role.full_name }}.
 
 {% include "letters/role_details.tex" %}
 
@@ -75,7 +75,7 @@ Le credenziali con cui puoi accedere all'area riservata (per votare, utilizzare 
 \begin{center}
 \begin{tabular}{ll}
     Username: & \verb| {{ player.user.username }} | \\
-    Password: & \verb| {{ password }} | \\
+    Password: & \verb| **** | \\
 \end{tabular}
 \end{center}
 

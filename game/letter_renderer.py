@@ -11,11 +11,6 @@ from .constants import *
 def render_to_file(template, filename, context):
     codecs.open(filename, 'w', 'utf-8').write(render_to_string(template, context))
 
-def generate_password(random, length):
-    chars = string.ascii_letters
-    return ''.join(random.choice(chars) for i in range(length))
-
-
 class LetterRenderer:
     template_setting = 'letters/setting.tex'
     template_role = 'letters/role.tex'
@@ -24,9 +19,8 @@ class LetterRenderer:
     
     password_length = 8
     
-    def __init__(self, player, random):
+    def __init__(self, player):
         self.player = player
-        self.random = random
 
         self.game = player.game
         self.players = self.game.get_players()
@@ -34,8 +28,7 @@ class LetterRenderer:
         self.column_height = (self.numplayers+1)/2
         self.mayor = self.game.mayor
         
-        self.password = generate_password(self.random, self.password_length)
-        
+        self.directory += self.game.name + "/"
         self.initial_propositions = InitialPropositionEvent.objects.filter(turn__game=self.game)
         
         knowledge_events = [event for event in self.game.get_dynamics().events if event.subclass == 'RoleKnowledgeEvent' and event.player.pk == player.pk and event.cause == KNOWLEDGE_CLASS]
@@ -54,7 +47,6 @@ class LetterRenderer:
         
         self.context = {
             'player': self.player,
-            'password': self.password,
             'game': self.game,
             'players': self.players,
             'numplayers': self.numplayers,
@@ -77,10 +69,11 @@ class LetterRenderer:
         filename = basename + '.tex'
         
         # Rendering .tex
-        render_to_file(template, self.directory + filename, self.context)
+        os.system('mkdir templates/' + self.directory)
+        render_to_file(template, 'templates/' + self.directory + filename, self.context)
         
         # Compiling
-        os.system('pdflatex -output-directory ' + self.directory + ' ' + self.directory + filename)
+        os.system('pdflatex -output-directory templates/' + self.directory + ' templates/' + self.directory + filename)
         
         # Cleaning
         os.system('rm ' + self.directory + basename + '.tex')
@@ -94,23 +87,17 @@ class LetterRenderer:
         filename = basename + '.tex'
         
         # Rendering .tex
-        render_to_file(template, self.directory + filename, self.context)
+        render_to_file(template, 'templates/' + self.directory + filename, self.context)
         
         # Compiling
-        os.system('pdflatex -output-directory ' + self.directory + ' ' + self.directory + filename)
+        os.system('pdflatex -output-directory templates/' + self.directory + ' templates/' + self.directory + filename)
         
         # Cleaning
-        #os.system('rm ' + self.directory + basename + '.tex')
-        os.system('rm ' + self.directory + basename + '.aux')
-        os.system('rm ' + self.directory + basename + '.log')
-    
-    def set_password(self):
-        user = self.player.user
-        user.set_password(self.password)
-        user.save()
+        os.system('rm templates/' + self.directory + basename + '.tex')
+        os.system('rm templates/' + self.directory + basename + '.aux')
+        os.system('rm templates/' + self.directory + basename + '.log')
     
     def render_all(self):
-        self.set_password()
         self.render_setting()
         self.render_role()
 

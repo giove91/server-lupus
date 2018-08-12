@@ -1005,10 +1005,6 @@ class InitialPropositionsView(GameView):
                 event = InitialPropositionEvent(turn=dynamics.current_turn, timestamp=get_now(), text=line)
                 dynamics.inject_event(event)
 
-            turn = game.current_turn
-            turn.end = get_now()
-            turn.save()
-            game.advance_turn()
             return redirect('game:status', game_name=request.game.name)
         else:
             return render(request, 'propositions.html', {'form': form, 'message': 'Scelta non valida', 'classified': True})
