@@ -61,12 +61,27 @@
     {% endif %}
 {% endif %}
 
-{% if current_turn.end is not None and display_time %}
-    {% if current_turn.phase == DAY %}
-        <p>Il prossimo rogo sarà il {{ current_turn.end | date:"d/m" }} alle {{ current_turn.end | time:"H:i" }}.</p>
-    {% endif %}
-    {% if current_turn.phase == NIGHT %}
-        <p>Il sole sorgerà alle ore {{ current_turn.end | time:"H:i" }}.</p>
+{% if display_time %}
+    {% if current_turn.end is not None %}
+        {% if current_turn.phase == DAY %}
+            <p>Il prossimo rogo sarà il {{ current_turn.end | date:"d/m" }} alle {{ current_turn.end | time:"H:i" }}.</p>
+        {% endif %}
+        {% if current_turn.phase == NIGHT %}
+            <p>Il sole sorgerà alle ore {{ current_turn.end | time:"H:i" }}.</p>
+        {% endif %}
+    {% else %}
+        {% if current_turn.phase == NIGHT %}
+            <p>Stranamente non si riesce a prevedere a che ora sorgerà il sole.</p>
+        {% endif %}
+        {% if current_turn.phase == DAY %}
+            <p>L'orario del prossimo rogo non è ancora stato deciso.</p>
+        {% endif %}
+        {% if current_turn.phase == DAWN %}
+            <p>Sembra che il sole stia impiegando un tempo insolitamente lungo per sorgere.</p>
+        {% endif %}
+        {% if current_turn.phase == SUNSET %}
+            <p>Sembra che il sole stia impiegando un tempo insolitamente lungo per tramontare.</p>
+        {% endif %}
     {% endif %}
 {% endif %}
 
