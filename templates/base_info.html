@@ -2,7 +2,7 @@
 
 {% block content %}
 
-{% if current_turn.phase == DAY or current_turn.phase == NIGHT or user.is_staff %}
+{% if current_turn.phase == DAY or current_turn.phase == NIGHT or is_master %}
     <main id="content" class="grid_10">
         
         {% block personal_info %}{% endblock %}

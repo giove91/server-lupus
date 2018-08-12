@@ -860,10 +860,11 @@ class RollbackLastTurnView(GameView):
     def post(self, request):
         game = request.game
         current_turn = game.current_turn
-        prev_turn = current_turn.prev_turn()
-        prev_turn.end = None
-        prev_turn.save()
         current_turn.delete()
+        # TODO: garantire che sia thread-safe
+        new_current_turn = game.current_turn
+        new_current_turn.end = None
+        new_current_turn.save()
         game.kill_dynamics()
         return redirect('game:status', game_name=game.name)
 
@@ -1000,7 +1001,7 @@ class VillageCompositionView(GameView):
             return render(request, 'composition.html', {'form': form, 'message': 'Scelta non valida', 'classified': True})
 
 class InitialPropositionsForm(forms.Form):
-    propositions = forms.CharField(widget=forms.Textarea())
+    proposition = forms.CharField(label='')
 
     def __init__(self, *args, **kwargs):
         self.game = kwargs.pop('game', None)
@@ -1011,22 +1012,31 @@ class InitialPropositionsForm(forms.Form):
 class InitialPropositionsView(GameView):
     def get(self, request):
         game = request.game
+        propositions = InitialPropositionEvent.objects.filter(turn__game=game)
         form = InitialPropositionsForm(game=game)
-        return render(request, 'propositions.html', {'form': form, 'message': None, 'classified': True})
+
+        return render(request, 'propositions.html', {
+            'form': form,
+            'message': None,
+            'propositions':propositions,
+            'classified': True
+        })
 
     def post(self, request):
         game = request.game
         form = InitialPropositionsForm(request.POST, game=game)
         if form.is_valid():
             dynamics = game.get_dynamics()
-            
-            for line in form.cleaned_data['propositions'].splitlines():
-                event = InitialPropositionEvent(turn=dynamics.current_turn, timestamp=get_now(), text=line)
-                dynamics.inject_event(event)
-
-            return redirect('game:status', game_name=request.game.name)
+            event = InitialPropositionEvent(
+                turn=dynamics.current_turn,
+                timestamp=get_now(),
+                text=form.cleaned_data['proposition']
+            )
+            dynamics.inject_event(event)
+            return redirect('game:setup', game_name=request.game.name)
         else:
-            return render(request, 'propositions.html', {'form': form, 'message': 'Scelta non valida', 'classified': True})
+            propositions = InitialPropositionEvent.objects.filter(turn__game=game)
+            return render(request, 'propositions.html', {'form': form, 'message': 'Scelta non valida', 'propositions': propositions, 'classified': True})
 
 class AdvanceTurnView(GameView):
     title = 'Turno successivo'

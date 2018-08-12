@@ -6,14 +6,26 @@
     <h1>Proposizioni Iniziali</h1>
     
     <div class="info-block">
-        <p>
-        <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <p><input type="submit" value="Pubblica" /></p>
+        Fornirai al villaggio le seguenti proposizioni iniziali, di cui dovrai garantire la veridicità.
+
+        <ul>
+        {% for prop in propositions %}
+        <li>
+            {{ prop.text }}
+        </li>
+        {% endfor %}
+        <li>
+        <form method="post" action="">
+            {% csrf_token %}
+            {{ form }}
+            <input type="submit" value="Aggiungi">
         </form>
-        </p>
-        
+        </li>
+        </ul>
+        <form method="get" action="{% url "game:advanceturn" game_name=game.name %}">
+            <input type="submit" value="Termina prologo" />
+        </form>
+
         {% if message != None %}
             <p><strong>{{ message }}</strong></p>
         {% endif %}
