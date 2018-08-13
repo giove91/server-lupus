@@ -21,7 +21,7 @@ class Role(object):
     - EVERY_NIGHT
     - EVERY_OTHER_NIGHT
     - ONCE_A_GAME '''
-    frequency = None
+    frequency = NEVER
 
     ''' Whether the role can act the first night of play (usually True, except for killers. '''
     can_act_first_night = True

@@ -1159,18 +1159,23 @@ class ChangePointOfViewForm(forms.Form):
                 required=False,
                 label='Scegli un giocatore:'
             )
-
+    def __init__(self, *args, **kwargs):
+        game = kwargs.pop('game', None)
+        super(ChangePointOfViewForm, self).__init__(*args, **kwargs)
+        self.fields['player'].queryset = Player.objects.filter(game=game)
 
 # View for changing point of view (for GMs only)
 class PointOfView(GameView):
     def get(self, request):
+        game = request.game
         player = request.player
-        form = ChangePointOfViewForm(initial={'player': player})
+        form = ChangePointOfViewForm(game=game, initial={'player': player})
         return render(request, 'point_of_view.html', {'form': form, 'message': None, 'classified': True})
     
     def post(self, request):
+        game = request.game
         player = request.player
-        form = ChangePointOfViewForm(request.POST)
+        form = ChangePointOfViewForm(request.POST, game=game)
         
         if form.is_valid():
             player = form.cleaned_data['player']
@@ -1187,7 +1192,7 @@ class PointOfView(GameView):
         else:
             return render(request, 'point_of_view.html', {'form': form, 'message': 'Scelta non valida', 'classified': True})
     
-    @method_decorator(user_passes_test(is_GM_check))
+    @method_decorator(master_required)
     def dispatch(self, *args, **kwargs):
         return super(PointOfView, self).dispatch(*args, **kwargs)
 
