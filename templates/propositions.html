@@ -11,7 +11,9 @@
         <ul>
         {% for prop in propositions %}
         <li>
-            {{ prop.text }}
+            <form method="get" action="{% url "game:deleteproposition" game_name=game.name pk=prop.pk %}">
+            <label>{{ prop.text }}</label><input type="submit" value="Elimina">
+            </form>
         </li>
         {% endfor %}
         <li>

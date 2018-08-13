@@ -128,8 +128,9 @@
                         {% if current_turn.phase != CREATION %}
                             <li><a href="{% url 'game:advanceturn' game_name=game.name %}">Avanza turno</a></li>
                             <li><a href="{% url 'game:rollbackturn' game_name=game.name %}">Retrocedi di un turno</a></li>
+                            <li><a href="{% url 'game:pointofview' game_name=game.name %}">Punto di vista</a></li>
                         {% endif %}
-                        <li><a href="{% url 'game:pointofview' game_name=game.name %}">Punto di vista</a></li>
+                        <li><a href="{% url 'game:managemasters' game_name=game.name %}">Gestisci master</a></li>
                         <li><a href="{% url 'game:settings' game_name=game.name %}">Impostazioni</a></li>
                         <li><a href="{% url 'game:restart' game_name=game.name %}">Ricomincia partita</a></li>
                     </ul>

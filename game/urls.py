@@ -24,11 +24,13 @@ urlpatterns = [
     path('join/', JoinGameView.as_view(), name='join'), # Aggiunge il giocatore
     path('leave/', LeaveGameView.as_view(), name='leave'), # Rimuove il giocatore
 
-    path('addmaster/', not_implemented, name='addmaster'), # Aggiunge un master alla partita
+    path('managemasters/', ManageGameMastersView.as_view(), name='managemasters'), # Aggiunge un master alla partita
+    path('deletemaster/<int:pk>', DeleteGameMasterView.as_view(), name='deletemaster'), # Aggiunge un master alla partita
     path('setup/', SetupGameView.as_view(), name='setup'), # Prepara l'inizio
     path('seed/', SeedView.as_view(), name='seed'), # Cambia o crea il seed
     path('composition/', VillageCompositionView.as_view(), name='composition'), # Imposta la composizione del villaggio
     path('propositions/', InitialPropositionsView.as_view(), name='propositions'), # Pubblica le proposizioni iniziali
+    path('deleteproposition/<int:pk>/', DeletePropositionView.as_view(), name='deleteproposition'), # Cancella una proposizione iniziale
     path('soothsayer/', not_implemented, name='soothsayer'), # Cambia le frasi dei divinatori
     path('settings/', GameSettingsView.as_view(), name='settings'), # Cambia le impostazioni della partita
     path('rollbackturn/', RollbackLastTurnView.as_view(), name='rollbackturn'), # Riporta la partita alla fine del turno precedente, cancellando gli eventi di quello in corso.

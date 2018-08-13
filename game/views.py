@@ -850,6 +850,69 @@ class LeaveGameView(GameView):
     def dispatch(self, *args, **kwargs):
         return super(LeaveGameView, self).dispatch(*args, **kwargs)
 
+class ManageGameMastersForm(forms.Form):
+    username = forms.CharField(label='')
+
+    def __init__(self, *args, **kwargs):
+        self.game = kwargs.pop('game', None)
+        super(ManageGameMastersForm, self).__init__(*args, **kwargs)
+
+class ManageGameMastersView(GameView):
+    def get(self, request):
+        game = request.game
+        masters = game.masters
+        form = ManageGameMastersForm(game=game)
+
+        return render(request, 'manage_masters.html', {
+            'form': form,
+            'message': None,
+            'masters':masters,
+            'classified': True
+        })
+
+    def post(self, request):
+        game = request.game
+        form = ManageGameMastersForm(request.POST, game=game)
+        masters = game.masters
+        if form.is_valid():
+            error = False
+            # Check user exists
+            try:
+                user = User.objects.get(username=form.cleaned_data['username'])
+            except User.DoesNotExist:
+                return render(request, 'manage_masters.html', {'form': form, 'message': 'L\'utente selezionato non esiste.', 'masters': masters, 'classified': True})
+
+            # Check s/he is not already a player
+            try:
+                _ = Player.objects.get(game=game,user=user)
+                return render(request, 'manage_masters.html', {'form': form, 'message': 'L\'utente selezionato è un giocatore della partita.', 'masters': masters, 'classified': True})
+            except Player.DoesNotExist:
+                pass
+
+            # Check s/he is not already a master
+            (master, created) = GameMaster.objects.get_or_create(game=game,user=user)
+            if created:
+                master.save()
+                return redirect('game:managemasters', game_name=game.name)
+            else:
+                return render(request, 'manage_masters.html', {'form': form, 'message': 'L\'utente selezionato è già un master della partita.', 'masters': masters, 'classified': True})
+        else:
+            return render(request, 'manage_masters.html', {'form': form, 'message': 'Scelta non valida..', 'masters': masters, 'classified': True})
+
+    @method_decorator(master_required)
+    def dispatch(self, *args, **kwargs):
+        return super(ManageGameMastersView, self).dispatch(*args, **kwargs)
+
+
+class DeleteGameMasterView(GameView):
+    def get(self, request, pk):
+        game = request.game
+        obj = GameMaster.objects.get(pk=pk)
+        if request.is_master and request.game==obj.game and len(game.masters) > 1:
+            obj.delete()
+        return redirect('game:managemasters', game_name=request.game.name)
+
+
 class RollbackLastTurnView(GameView):
     title = "Annulla ultimo turno"
     def get(self, request):
@@ -925,6 +988,7 @@ class SeedForm(forms.Form):
         game = kwargs.pop('game', None)
         super(SeedForm, self).__init__(*args, **kwargs)
         self.fields['excluded_players'].queryset = Player.objects.filter(game=game)
+        assert(not game.started)
 
 class SeedView(GameView):
     def get(self, request):
@@ -934,7 +998,7 @@ class SeedView(GameView):
 
     def post(self, request):
         game = request.game
-        form = SeedForm(request.POST)
+        form = SeedForm(request.POST, game=game)
         if form.is_valid():
             excluded_players = form.cleaned_data['excluded_players']
             excluded_players.delete()
@@ -953,6 +1017,10 @@ class SeedView(GameView):
             return redirect('game:setup', game_name=game.name)
         else:
             return render(request, 'seed.html', {'form': form, 'message': 'Scelta non valida', 'classified': True})
+
+    @method_decorator(master_required)
+    def dispatch(self, *args, **kwargs):
+        return super(SeedView, self).dispatch(*args, **kwargs)
 
 class VillageCompositionForm(forms.Form):
     def __init__(self, *args, **kwargs):
@@ -1000,6 +1068,10 @@ class VillageCompositionView(GameView):
         else:
             return render(request, 'composition.html', {'form': form, 'message': 'Scelta non valida', 'classified': True})
 
+    @method_decorator(master_required)
+    def dispatch(self, *args, **kwargs):
+        return super(VillageCompositionView, self).dispatch(*args, **kwargs)
+
 class InitialPropositionsForm(forms.Form):
     proposition = forms.CharField(label='')
 
@@ -1038,6 +1110,18 @@ class InitialPropositionsView(GameView):
             propositions = InitialPropositionEvent.objects.filter(turn__game=game)
             return render(request, 'propositions.html', {'form': form, 'message': 'Scelta non valida', 'propositions': propositions, 'classified': True})
 
+    @method_decorator(master_required)
+    def dispatch(self, *args, **kwargs):
+        return super(InitialPropositionsView, self).dispatch(*args, **kwargs)
+
+
+class DeletePropositionView(GameView):
+    def get(self, request, pk):
+        obj = InitialPropositionEvent.objects.get(pk=pk)
+        if request.is_master and request.game==obj.turn.game:
+            obj.delete()
+        return redirect('game:setup', game_name=request.game.name)
+
 class AdvanceTurnView(GameView):
     title = 'Turno successivo'
     def get(self, request):
@@ -1049,7 +1133,7 @@ class AdvanceTurnView(GameView):
             })
         else:
             return render(request, 'confirm.html', {
-                'message': 'Sei sicuro di voler avanzare immediatamente al prossimo turno?', 
+                'message': 'Vuoi davvero avanzare immediatamente al prossimo turno?', 
                 'title': self.title
             })
 
