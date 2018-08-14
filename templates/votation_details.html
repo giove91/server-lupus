@@ -1,4 +1,5 @@
 {% if dictionary %}
+{% load game_extras %}
 <table>
     <thead>
     <tr>
@@ -12,7 +13,7 @@
         <tr>
             <td>{{ voted.full_name }}</td>
             <td>{{ info.votes }}</td>
-            <td>{{ info.voters|join:", " }}</td>
+            <td>{{ info.voters|join_by_attr:"full_name" }}</td>
         </tr>
     {% endfor %}
     </tbody>

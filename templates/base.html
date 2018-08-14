@@ -52,7 +52,7 @@
                                     Sei loggato come {{ user.username }} ({{ user.first_name }} {{ user.last_name }})
                                 </div>
                             {% endif %}
-                            {% if user.is_master and player %}
+                            {% if is_master and player %}
                                 <div class="point-of-view">
                                     Punto di vista di {{ player.full_name }}
                                 </div>
@@ -100,10 +100,14 @@
                     {% endif %}
                     {% if player and current_turn.phase != CREATION %}
                         <li><a href="{% url 'game:personalinfo' game_name=game.name %}">Informazioni personali</a></li>
-                        <li><a href="{% url 'game:vote' game_name=game.name %}">Votazione per il rogo</a></li>
-                        <li><a href="{% url 'game:elect' game_name=game.name %}">Elezione del Sindaco</a></li>
-                        <li><a href="{% url 'game:usepower' game_name=game.name %}">Potere notturno</a></li>
-                        {% if player.is_mayor and current_turn.phase != CREATION %}
+                        {% if current_turn.phase == DAY %}
+                            <li><a href="{% url 'game:vote' game_name=game.name %}">Votazione per il rogo</a></li>
+                            <li><a href="{% url 'game:elect' game_name=game.name %}">Elezione del Sindaco</a></li>
+                        {% endif %}
+                        {% if current_turn.phase == NIGHT %}
+                            <li><a href="{% url 'game:usepower' game_name=game.name %}">Potere notturno</a></li>
+                        {% endif %}
+                        {% if player.is_mayor %}
                             <li><a href="{% url 'game:appoint' game_name=game.name %}">Designa successore</a></li>
                         {% endif %}
                         <li><a href="{% url 'game:comment' game_name=game.name %}">Commenti alla partita</a></li>

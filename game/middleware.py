@@ -6,7 +6,6 @@ from game.utils import get_now
 from threading import Lock
 
 # Middleware for finding Game, Dynamics and current turn.
-# This is also responsible for automatic turn advance when end of current turn has passed.
 class GameMiddleware(MiddlewareMixin):
     def process_view(self, request, view_func, view_args, view_kwargs):
 
@@ -26,11 +25,6 @@ class GameMiddleware(MiddlewareMixin):
         
         if game is not None:
             current_turn = game.current_turn
-            # Check if current_turn has ended: if so, automatically advance turn
-            while current_turn.end is not None and current_turn.end <= get_now():
-                game.advance_turn(current_turn=current_turn)
-                current_turn = game.current_turn
-
             dynamics = game.get_dynamics()
 
         request.game = game

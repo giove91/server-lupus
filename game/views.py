@@ -922,12 +922,13 @@ class RollbackLastTurnView(GameView):
 
     def post(self, request):
         game = request.game
-        current_turn = game.current_turn
-        current_turn.delete()
-        # TODO: garantire che sia thread-safe
-        new_current_turn = game.current_turn
-        new_current_turn.end = None
-        new_current_turn.save()
+        with transaction.atomic():
+            current_turn = game.get_current_turn(for_update=True)
+            prev_turn = Turn.objects.filter(game=game).exclude(pk=current_turn.pk).order_by('-date', '-phase').first()
+            if prev_turn is not None:
+                current_turn.delete()
+                prev_turn.end = None
+                prev_turn.save()
         game.kill_dynamics()
         return redirect('game:status', game_name=game.name)
 
@@ -1139,10 +1140,11 @@ class AdvanceTurnView(GameView):
 
     def post(self, request):
         game = request.game
-        turn = game.current_turn
-        if not game.is_over:
-            turn.end = get_now()
-            turn.save()
+        with transaction.atomic():
+            turn = game.get_current_turn(for_update=True)
+            if not game.is_over:
+                turn.end = get_now()
+                turn.save()
         return redirect('game:status', game_name=request.game.name)
 
     @method_decorator(master_required)
