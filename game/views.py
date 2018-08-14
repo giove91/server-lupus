@@ -731,6 +731,7 @@ class GameSettingsForm(forms.Form):
     half_phase_duration = forms.IntegerField(label='Durata di alba e tramonto (in secondi)')
     public = forms.BooleanField(label='Pubblica partita', required=False)
     postgame_info = forms.BooleanField(label='Mostra tutte le informazioni al termine della partita', required=False)
+    auto_advancing = forms.BooleanField(label='Abilita l\'avanzamento automatico per il turno corrente', required=False)
 
 class GameSettingsView(GameView):
     def get(self, request):
@@ -742,7 +743,8 @@ class GameSettingsView(GameView):
             'night_end_time':game.night_end_time,
             'half_phase_duration': game.half_phase_duration,
             'public':game.public,
-            'postgame_info':game.postgame_info
+            'postgame_info':game.postgame_info,
+            'auto_advancing':game.current_turn.end is not None,
         })
         return render(request, 'settings.html', {'form': form, 'message': None, 'classified': True})
     
@@ -759,10 +761,15 @@ class GameSettingsView(GameView):
             game.postgame_info = form.cleaned_data['postgame_info']
             game.save()
 
-            current_turn = game.current_turn
-            if current_turn.end is not None:
-                current_turn.set_end(allow_retroactive_end=False)
+            with transaction.atomic():
+                current_turn = game.get_current_turn(for_update=True)
+                if form.cleaned_data['auto_advancing'] and not game.is_over:
+                    current_turn.set_end(allow_retroactive_end=False)
+                else:
+                    current_turn.end = None
                 current_turn.save()
+
+            game.kill_dynamics()
 
             form = GameSettingsForm(initial={
                 'day_end_weekdays': game.get_day_end_weekdays(),
@@ -786,8 +793,7 @@ class JoinGameView(GameView):
         game = request.game
         dynamics = game.get_dynamics()
         dynamics.update()
-        subphase = dynamics.creation_subphase
-        return request.player is None and not request.is_master and subphase == SIGNING_UP
+        return request.player is None and not request.is_master and not game.started
 
     def get(self, request):
         if self.can_join(request):
@@ -821,8 +827,7 @@ class LeaveGameView(GameView):
         game = request.game
         dynamics = game.get_dynamics()
         dynamics.update()
-        subphase = dynamics.creation_subphase
-        return request.player is not None and subphase == SIGNING_UP
+        return request.player is not None and not game.started
 
     def get(self, request):
         if self.can_leave(request):
@@ -957,16 +962,21 @@ class SetupGameView(GameView):
         game = request.game
         dynamics = game.get_dynamics()
         dynamics.update()
-        subphase = dynamics.creation_subphase
-        
-        SETUP_PAGES = {
-            SIGNING_UP: 'game:seed',
-            CHOOSING_ROLES: 'game:composition',
-            SOOTHSAYING: 'game:soothsayer',
-            PUBLISHING_INFORMATION: 'game:propositions',
-        }
 
-        return redirect(SETUP_PAGES[subphase], game_name=game.name)
+        if game.current_turn.phase != CREATION:
+            return redirect('game:status', game_name=game.name)
+
+        if not game.started:
+            return redirect('game:seed', game_name=game.name)
+
+        if game.mayor is None:
+            return redirect('game:composition', game_name=game.name)
+
+        soothsayer = dynamics.check_missing_soothsayer_propositions()
+        if soothsayer is not None:
+            return redirect('game:composition', game_name=game.name, pk=soothsayer.pk)
+
+        return redirect('game:composition', game_name=game.name, pk=soothsayer.pk)
 
     @method_decorator(master_required)
     def dispatch(self, *args, **kwargs):
@@ -1028,7 +1038,7 @@ class VillageCompositionForm(forms.Form):
         self.game = kwargs.pop('game', None)
         super(VillageCompositionForm, self).__init__(*args, **kwargs)
         dynamics = self.game.get_dynamics()
-        assert dynamics.creation_subphase == CHOOSING_ROLES
+        assert game.started and game.mayor is None
 
         for role in dynamics.starting_roles:
             self.fields[role.__name__] = forms.IntegerField(label=role.full_name, min_value=0, initial=0)
@@ -1073,6 +1083,83 @@ class VillageCompositionView(GameView):
     def dispatch(self, *args, **kwargs):
         return super(VillageCompositionView, self).dispatch(*args, **kwargs)
 
+class SoothsayerForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        self.game = kwargs.pop('game', None)
+        super(SoothsayerForm, self).__init__(*args, **kwargs)
+        dynamics = self.game.get_dynamics()
+
+        for i in range(4):
+            self.fields["target_" + i] = forms.ChoiceField(
+                label="Saprà che il giocatore con il ruolo di",
+                choices=tuple([(x.pk, x.role.full_name + " (" + x.pk + ")") for x in dynamics.players]),
+                required = True
+            )
+            self.fields["advertised_role_" + i] = forms.ChoiceField(
+                label="ha il ruolo di",
+                choices=tuple([(x.full_name,x.full_name) for x in dynamics.starting_roles]),
+                required = True
+            )
+
+    def clean(self):
+        dynamics = self.game.get_dynamics()
+        cleaned_data = super().clean()
+
+        true_propositions = 0;
+        for i in range(4):
+            player = (Player.objects
+                    .get(game=self.game, pk=cleaned_data.get('target_' + i))
+                    .canonicalize())
+            if player.role.full_name == cleaned_data.get('advertised_role_' + i):
+                true_propositions += 1
+
+        if true_propositions != 2:
+            raise forms.ValidationError(
+                'Sono state fornite %(true) proposizioni vere e %false false.',
+                params = {'true': true_propositions, 'false': 4 - true_propositions}
+            )
+
+class SoothsayerView(GameView):
+    def get(self, request, pk):
+        game = request.game
+        soothsayer = Player.objects.get(game=game, pk=pk).canonicalize()
+        if not soothsayer.needs_soothsayer_propositions():
+            return redirect('game:status', game_name=game.name)
+        form = SoothsayerForm(game=game)
+
+        return render(request, 'soothsayer.html', {
+            'form': form,
+            'message': None,
+            'player': soothsayer,
+            'classified': True
+        })
+
+    def post(self, request, pk):
+        game = request.game
+        form = SoothsayerForm(request.POST, game=game)
+        soothsayer = Player.objects.get(game=game, pk=pk).canonicalize()
+        if form.is_valid():
+            for i in range(4):
+                target = Player.objects.get(game=game, pk=form.cleaned_data['target_' + i]).canonicalize()
+                advertised_role = form.cleaned_data['advertised_role' + i]
+                dynamics = game.get_dynamics()
+                event = RoleKnowledgeEvent(
+                    turn=dynamics.current_turn,
+                    timestamp=get_now(),
+                    player=soothsayer,
+                    target=target,
+                    full_role_name=advertised_role
+                )
+                dynamics.inject_event(event)
+            return redirect('game:setup', game_name=request.game.name)
+        else:
+            propositions = InitialPropositionEvent.objects.filter(turn__game=game)
+            return render(request, 'propositions.html', {'form': form, 'message': 'Scelta non valida', 'propositions': propositions, 'classified': True})
+
+    @method_decorator(master_required)
+    def dispatch(self, *args, **kwargs):
+        return super(SoothsayerView, self).dispatch(*args, **kwargs)
+
 class InitialPropositionsForm(forms.Form):
     proposition = forms.CharField(label='')
 
@@ -1080,7 +1167,6 @@ class InitialPropositionsForm(forms.Form):
         self.game = kwargs.pop('game', None)
         super(InitialPropositionsForm, self).__init__(*args, **kwargs)
         dynamics = self.game.get_dynamics()
-        assert dynamics.creation_subphase == PUBLISHING_INFORMATION
 
 class InitialPropositionsView(GameView):
     def get(self, request):

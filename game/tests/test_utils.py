@@ -23,7 +23,6 @@ def create_users(n):
 def create_game(seed, ruleset, roles):
     game = Game()
     game.save()
-    game.initialize(get_now())
 
     users = create_users(len(roles))
     for user in users:
@@ -31,6 +30,8 @@ def create_game(seed, ruleset, roles):
             raise Exception()
         player = Player.objects.create(user=user, game=game)
         player.save()
+
+    game.initialize(get_now())
 
     first_turn = game.get_dynamics().current_turn
 
@@ -101,8 +102,7 @@ def test_advance_turn(game):
     turn = game.current_turn
     turn.end = get_now()
     turn.save()
-    game.advance_turn()
-
+    game.get_dynamics().update()
 
 def record_name(f):
     @wraps(f)

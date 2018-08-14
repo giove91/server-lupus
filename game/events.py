@@ -170,7 +170,6 @@ class SetRulesEvent(Event):
         dynamics.required_roles = roles.required_roles.copy()
         dynamics.starting_roles = roles.starting_roles
         dynamics.starting_teams = roles.starting_teams
-        dynamics.creation_subphase = CHOOSING_ROLES
 
 class AvailableRoleEvent(Event):
     RELEVANT_PHASES = [CREATION]
@@ -231,8 +230,6 @@ class AvailableRoleEvent(Event):
                     if target.pk != player.pk:
                         event = RoleKnowledgeEvent(player=player, target=target, full_role_name=dynamics.roles_list[given_roles[target.pk]].full_name, cause=KNOWLEDGE_CLASS)
                         dynamics.generate_event(event)
-            dynamics.creation_subphase = SOOTHSAYING
-            dynamics.check_soothsayers()
 
 
 class SetRoleEvent(Event):
@@ -780,7 +777,6 @@ class RoleKnowledgeEvent(Event):
     def to_soothsayer_proposition(self):
         assert self.cause == SOOTHSAYER
         return u'%s ha il ruolo di %s.' % (self.target.full_name, self.full_role_name)
-
 
 class AuraKnowledgeEvent(Event):
     RELEVANT_PHASES = [DAWN]

@@ -161,6 +161,10 @@ class Role(object):
     def get_blocked(self, players):
         return []
 
+    def needs_soothsayer_propositions(self, dynamics):
+        """Should return False unless the player is a Divinatore who is missing their
+        propositions."""
+        return False
 
 # Fazione dei Popolani
 
@@ -210,6 +214,15 @@ class Divinatore(Role):
     aura = WHITE
     is_mystic = True
     priority = USELESS
+
+    def needs_soothsayer_propositions(self, dynamics):
+        events = [ev for ev in dynamics.events if isinstance(ev, RoleKnowledgeEvent) and ev.player.pk == self.player.pk and ev.cause == SOOTHSAYER]
+        if len(events) == 4:
+            assert sorted([ev.target.canonicalize().role.full_name == ev.role_name for ev in events]) == sorted([False, False, True, True])
+            return False
+        else:
+            assert(len(events) < 4)
+            return True
 
 class Esorcista(Role):
     full_name = 'Esorcista'

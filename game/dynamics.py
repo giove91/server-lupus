@@ -79,7 +79,6 @@ class Dynamics:
         self.prev_turn = None
         self.last_timestamp_in_turn = None
         self.last_pk_in_turn = None
-        self.creation_subphase = SIGNING_UP
         self.mayor = None
         self.appointed_mayor = None
         self.pre_simulation_mayor = None
@@ -260,7 +259,14 @@ class Dynamics:
             else:
                 turn = Turn.first_turn(self.game, must_exist=True)
         except Turn.DoesNotExist:
-            pass
+            # Refresh turn since the end might have changed
+            if self.current_turn is not None:
+                self.current_turn.refresh_from_db()
+
+            # Check if current_turn has ended: if so, automatically advance turn
+            if self.current_turn is not None and self.current_turn.end is not None and self.current_turn.end <= get_now():
+                self.game.advance_turn(current_turn=self.current_turn)
+                return True
         else:
             self.turns.append(turn)
             self._receive_turn(turn)
@@ -479,18 +485,19 @@ class Dynamics:
                 self.required_roles.remove(player.role.__class__)
         assert len(self.required_roles) == 0
 
-    def check_soothsayers(self):
-        # Check that the soothsayer received revelations according to
-        # the rules
-        result = True
-        for soothsayer in [pl for pl in self.players if pl.role.__class__.__name__ == 'Divinatore']:
-            events = [ev for ev in self.events if isinstance(ev, RoleKnowledgeEvent) and ev.player.pk == soothsayer.pk]
-            if len(events) != 4 or sorted([ev.target.canonicalize().role.full_name == ev.role_name for ev in events]) != sorted([False, False, True, 
-True]):
-                result = False
-        assert self.creation_subphase == SOOTHSAYING or result
-        if self.creation_subphase == SOOTHSAYING and result:
-            self.creation_subphase = PUBLISHING_INFORMATION
+    def check_missing_soothsayer_propositions(self):
+        """Check that the soothsayer received revelations according to
+        the rules.
+        If everything is ok it returns None,
+        else returns a player that is missing propositions.
+        Raises an exception if a player received more proposition than
+        required or if they don't satisfy the rules."""
+
+        for player in self.players:
+            if player.role.needs_soothsayer_propositions():
+                return player
+
+        return None
 
     def _compute_entering_night(self):
         if DEBUG_DYNAMICS:

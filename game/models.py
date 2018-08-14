@@ -98,19 +98,13 @@ class Game(models.Model):
     started = property(started)
 
     def get_current_turn(self, for_update=False):
-        """Returns current turn. If last turn in db has ended, then it creates the new one.
-        If for_update is provided, current_turn is returned locked from database to prevent concurrency.
+        """Returns current turn. If for_update is provided, current_turn
+         is returned locked from database to prevent concurrency.
         """
-        current_turn = Turn.objects.filter(game=self).order_by('-date', '-phase').first()
-        # Check if current_turn has ended: if so, automatically advance turn
-        while current_turn is not None and current_turn.end is not None and current_turn.end <= get_now():
-            self.advance_turn(current_turn=current_turn)
-            current_turn = Turn.objects.filter(game=self).order_by('-date', '-phase').first()
-
         if for_update:
             return Turn.objects.select_for_update().filter(game=self).order_by('-date', '-phase').first()
         else:
-            return current_turn
+            return Turn.objects.filter(game=self).order_by('-date', '-phase').first()
     current_turn = property(get_current_turn)
 
     def get_masters(self):
