@@ -9,9 +9,8 @@
             <h2>Modifica proposizioni del {{ player.role.disambiguated_name }}</h2>
         </div>
         {% if error == NUMBER_MISMATCH %}
-            <p>Il {{ player.role.disambiguated_name }} ha ricevuto un numero 
-            errato di proposizioni.</p>
-            <p>Inserisci il numero corretto di proposizioni per proseguire.</p>
+            <p>Il {{ player.role.disambiguated_name }} non ha ricevuto il numero
+            corretto di proposizioni.</p>
         {% elif error == TRUTH_MISMATCH %}
             <p>Il {{ player.role.disambiguated_name }} ha ricevuto delle proposizioni che non 
             soddisfano le condizioni di verità imposte dal regolamento.</p>

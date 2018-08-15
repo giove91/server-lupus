@@ -24,8 +24,8 @@ class GameMiddleware(MiddlewareMixin):
         current_turn = None
         
         if game is not None:
-            current_turn = game.current_turn
             dynamics = game.get_dynamics()
+            current_turn = game.current_turn
 
         request.game = game
         request.dynamics = dynamics

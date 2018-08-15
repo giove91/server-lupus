@@ -6,6 +6,9 @@
     <h1>Gestisci Game Master</h1>
     
     <div class="info-block">
+        <div class="separator">
+            <h2>Aggiungi o rimuovi un GM</h2>
+        </div>
         I seguenti utenti sono master della partita in corso:
 
         <ul>
@@ -28,6 +31,12 @@
         {% if message != None %}
             <p><strong>{{ message }}</strong></p>
         {% endif %}
+
+        <form method="get" action="{% url "game:settings" game_name=game.name %}">
+            <input type="submit" value="Indietro">
+        </form>
+    </div>
+
         
     </div>
 </main>

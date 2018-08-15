@@ -6,19 +6,61 @@
     <h1>Impostazioni di gioco</h1>
     
     <div class="info-block">
-        <p>
+        <div class="separator">
+            <h2>Impostazioni generali</h2>
+        </div>
         <form action="{% url 'game:settings' game_name=game.name %}" method="post">
         {% csrf_token %}
         {{ form.as_p }}
         <p><input type="submit" value="Salva" /></p>
         </form>
-        </p>
         
         {% if message != None %}
             <p><strong>{{ message }}</strong></p>
         {% endif %}
-        
     </div>
+
+    <h1>Gestione master</h1>
+    <div class="info-block">
+        <div class="separator">
+            <h2>Modifica GM</h2>
+        </div>
+        <p>Aggiungi o rimuovi un master dalla partita.</p>
+        <form method="get" action="{% url "game:managemasters" game_name=game.name %}">
+            <input type="submit" value="Vai alla pagina">
+        </form>
+    </div>
+
+    <h1>Gestione turni</h1>
+    <div class="info-block">
+        <div class="separator">
+            <h2>Avanza al prossimo turno</h2>
+        </div>
+        <p>Termina subito il turno corrente e avanza alla fase successiva.</p>
+        <form method="get" action="{% url "game:advanceturn" game_name=game.name %}">
+            <input type="submit" value="Avanza">
+        </form>
+    </div>
+    <div class="info-block">
+        <div class="separator">
+            <h2>Torna al turno precedente</h2>
+        </div>
+        <p>Cancella il turno corrente e tutte le azioni svolte in esso e torna alla
+        fase precedente.</p>
+        <form method="get" action="{% url "game:rollbackturn" game_name=game.name %}">
+            <input type="submit" value="Retrocedi">
+        </form>
+    </div>
+    <div class="info-block">
+        <div class="separator">
+            <h2>Resetta la partita</h2>
+        </div>
+        <p>Cancella tutti gli eventi della partita e riapre le iscrizioni.</p>
+        <form method="get" action="{% url "game:restart" game_name=game.name %}">
+            <input type="submit" value="Resetta">
+        </form>
+    </div>
+
 </main>
 {% endblock %}
 
