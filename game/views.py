@@ -1288,23 +1288,23 @@ class CommentForm(forms.Form):
 
 class CommentView(GameView):
     max_comments_per_turn = 100
-    
+
     def can_comment(self, request):
         # Checks if the user can post a comment
         user = request.user
         game = request.game
         current_turn = game.current_turn
-        
-        if is_GM_check(user):
+
+        if request.is_master:
             return True
-        
+
         try:
             comments_number = Comment.objects.filter(user=user).filter(turn=current_turn).count()
             if comments_number >= self.max_comments_per_turn:
                 return False
             else:
                 return True
-        
+
         except IndexError:
             return True
 
@@ -1315,23 +1315,26 @@ class CommentView(GameView):
         old_comments = Comment.objects.filter(user=user).filter(turn__game=game).filter(visible=True).order_by('-timestamp')
         can_comment = self.can_comment(request)
         return render(request, 'comment.html', {'form': form, 'old_comments': old_comments, 'can_comment': can_comment, 'classified': True})
-    
+
     def post(self, request):
         form = CommentForm(request.POST)
         user = request.user
         game = request.game
         current_turn = game.current_turn
-        
+
         if form.is_valid() and self.can_comment(request):
-                text = form.cleaned_data['text']
+            text = form.cleaned_data['text']
+            last_comment = Comment.objects.filter(user=user).filter(turn__game=game).filter(visible=True).order_by('-timestamp').first()
+            # Check against double post
+            if last_comment.text != text:
                 comment = Comment(turn=game.current_turn, user=user, text=text)
                 comment.save()
-                return redirect('comment')
-       
+            return redirect('game:comment', game_name=game.name)
+
         old_comments = Comment.objects.filter(user=user).filter(turn__game=game).filter(visible=True).order_by('-timestamp')
         can_comment = self.can_comment(request)
         return render(request, 'comment.html', {'form': form, 'old_comments': old_comments, 'can_comment': can_comment, 'classified': True})
-    
+
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         return super(CommentView, self).dispatch(*args, **kwargs)
