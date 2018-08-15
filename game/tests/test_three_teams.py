@@ -6744,10 +6744,10 @@ class GameTests(TestCase):
         
         # Inserting Soothsayer propositions
         ref_timestamp = self.game.current_turn.begin
-        dynamics.inject_event(SoothsayerModelEvent(player_role=Cacciatore.__name__, advertised_role=Veggente.full_name, soothsayer_num=0, timestamp=ref_timestamp))
-        dynamics.inject_event(SoothsayerModelEvent(player_role=Negromante.__name__, advertised_role=Negromante.full_name, soothsayer_num=0, timestamp=ref_timestamp))
-        dynamics.inject_event(SoothsayerModelEvent(player_role=Lupo.__name__, advertised_role=Contadino.full_name, soothsayer_num=0, timestamp=ref_timestamp))
-        dynamics.inject_event(SoothsayerModelEvent(player_role=Contadino.__name__, advertised_role=Contadino.full_name, soothsayer_num=0, timestamp=ref_timestamp))
+        dynamics.inject_event(SoothsayerModelEvent(target=cacciatore, advertised_role=Veggente.full_name, soothsayer=divinatore, timestamp=ref_timestamp))
+        dynamics.inject_event(SoothsayerModelEvent(target=negromante1, advertised_role=Negromante.full_name, soothsayer=divinatore, timestamp=ref_timestamp))
+        dynamics.inject_event(SoothsayerModelEvent(target=lupo1, advertised_role=Contadino.full_name, soothsayer=divinatore, timestamp=ref_timestamp))
+        dynamics.inject_event(SoothsayerModelEvent(target=contadino, advertised_role=Contadino.full_name, soothsayer=divinatore, timestamp=ref_timestamp))
         
         # Check
         events = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
@@ -6756,9 +6756,9 @@ class GameTests(TestCase):
             self.assertEqual(e.player, divinatore)
         
         info = [(e.target, e.full_role_name) for e in events]
-        self.assertTrue((negromante1, Negromante.full_name) in info or (negromante2, Negromante.full_name) in info)
+        self.assertTrue((negromante1, Negromante.full_name) in info)
         self.assertTrue((cacciatore, Veggente.full_name) in info)
-        self.assertTrue((lupo1, Contadino.full_name) in info or (lupo2, Contadino.full_name) in info)
+        self.assertTrue((lupo1, Contadino.full_name) in info)
         self.assertTrue((contadino, Contadino.full_name) in info)
 
         test_advance_turn(self.game)
@@ -6769,40 +6769,38 @@ class GameTests(TestCase):
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
         players = self.game.get_players()
-        
+
+        [divinatore] = [x for x in players if isinstance(x.role, Divinatore)]
+
         # Inserting Soothsayer proposition about himself
         ref_timestamp = self.game.current_turn.begin
-        with self.assertRaises(IndexError):
-            dynamics.inject_event(SoothsayerModelEvent(player_role=Divinatore.__name__, advertised_role=Divinatore.full_name, soothsayer_num=0, timestamp=ref_timestamp))
-    
+        dynamics.inject_event(SoothsayerModelEvent(target=divinatore, advertised_role=Divinatore.full_name, soothsayer=divinatore, timestamp=ref_timestamp))
+        self.assertEqual(divinatore.role.needs_soothsayer_propositions(), KNOWS_ABOUT_SELF)
+
     @record_name
     def test_divinatore_knowing_about_another_divinatore(self):
         roles = [ Contadino, Negromante, Lupo, Divinatore, Divinatore ]
         self.game = create_test_game(1, roles)
         dynamics = self.game.get_dynamics()
         players = self.game.get_players()
-        
+
         [divinatore1, divinatore2] = [x for x in players if isinstance(x.role, Divinatore)]
-        
+
         dynamics.debug_event_bin = []
-        
+
         # Inserting Soothsayer proposition about a Soothsayer
         ref_timestamp = self.game.current_turn.begin
-        dynamics.inject_event(SoothsayerModelEvent(player_role=Divinatore.__name__, advertised_role=Divinatore.full_name, soothsayer_num=0, timestamp=ref_timestamp))
-        
+        dynamics.inject_event(SoothsayerModelEvent(target=divinatore2, advertised_role=Divinatore.full_name, soothsayer=divinatore1, timestamp=ref_timestamp))
+
         # Check
         events = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
         self.assertEqual(len(events), 1)
         event = events[0]
-        self.assertTrue(event.player in [divinatore1, divinatore2])
-        if event.player == divinatore1:
-            divinatore_target = divinatore2
-        else:
-            divinatore_target = divinatore1
-        
+        self.assertEqual(event.player, divinatore1)
+
         info = (event.target, event.full_role_name)
-        self.assertTrue((divinatore_target, Divinatore.full_name) == info)
-            
+        self.assertEqual((divinatore2, Divinatore.full_name), info)
+
     @record_name
     def test_load_test(self):
         self.game = self.load_game_helper('test.json')

@@ -5,6 +5,7 @@ import sys
 
 class Role(object):
     full_name = 'Generic role'
+    disambiguation_label = None
     team = None
     aura = None
     is_mystic = False
@@ -57,7 +58,14 @@ class Role(object):
     def get_from_name(role_name):
         [role_class] = [x for x in Role.__subclasses__() if x.__name__ == role_name]
         return role_class
-    
+
+    def get_disambiguated_name(self):
+        if self.disambiguation_label is not None:
+            return self.full_name + ' ' + self.disambiguation_label
+        else:
+            return self.full_name
+    disambiguated_name = property(get_disambiguated_name)
+
     def can_use_power(self):
         if not self.ghost and not self.player.alive:
             return False
@@ -161,9 +169,10 @@ class Role(object):
     def get_blocked(self, players):
         return []
 
-    def needs_soothsayer_propositions(self, dynamics):
-        """Should return False unless the player is a Divinatore who is missing their
-        propositions."""
+    def needs_soothsayer_propositions(self):
+        """Should return False unless the player is a Divinatore who has not received
+        a propositions according to the rules. In that case, it should return a
+        description of the problem."""
         return False
 
 # Fazione dei Popolani
@@ -215,14 +224,18 @@ class Divinatore(Role):
     is_mystic = True
     priority = USELESS
 
-    def needs_soothsayer_propositions(self, dynamics):
-        events = [ev for ev in dynamics.events if isinstance(ev, RoleKnowledgeEvent) and ev.player.pk == self.player.pk and ev.cause == SOOTHSAYER]
-        if len(events) == 4:
-            assert sorted([ev.target.canonicalize().role.full_name == ev.role_name for ev in events]) == sorted([False, False, True, True])
-            return False
-        else:
-            assert(len(events) < 4)
-            return True
+    def needs_soothsayer_propositions(self):
+        from ..events import SoothsayerModelEvent
+        events = SoothsayerModelEvent.objects.filter(soothsayer=self.player)
+        if len([ev for ev in events if ev.target == ev.soothsayer]) > 0:
+            return KNOWS_ABOUT_SELF
+        if len(events) != 4:
+            return NUMBER_MISMATCH
+        if sorted([ev.target.canonicalize().role.full_name == ev.advertised_role for ev in events]) != sorted([False, False, True, True]):
+            return TRUTH_MISMATCH
+
+        return False
+
 
 class Esorcista(Role):
     full_name = 'Esorcista'

@@ -974,9 +974,9 @@ class SetupGameView(GameView):
 
         soothsayer = dynamics.check_missing_soothsayer_propositions()
         if soothsayer is not None:
-            return redirect('game:composition', game_name=game.name, pk=soothsayer.pk)
+            return redirect('game:soothsayer', game_name=game.name, pk=soothsayer.pk)
 
-        return redirect('game:composition', game_name=game.name, pk=soothsayer.pk)
+        return redirect('game:propositions', game_name=game.name)
 
     @method_decorator(master_required)
     def dispatch(self, *args, **kwargs):
@@ -1038,7 +1038,7 @@ class VillageCompositionForm(forms.Form):
         self.game = kwargs.pop('game', None)
         super(VillageCompositionForm, self).__init__(*args, **kwargs)
         dynamics = self.game.get_dynamics()
-        assert game.started and game.mayor is None
+        assert self.game.started and self.game.mayor is None
 
         for role in dynamics.starting_roles:
             self.fields[role.__name__] = forms.IntegerField(label=role.full_name, min_value=0, initial=0)
@@ -1089,41 +1089,25 @@ class SoothsayerForm(forms.Form):
         super(SoothsayerForm, self).__init__(*args, **kwargs)
         dynamics = self.game.get_dynamics()
 
-        for i in range(4):
-            self.fields["target_" + i] = forms.ChoiceField(
-                label="Saprà che il giocatore con il ruolo di",
-                choices=tuple([(x.pk, x.role.full_name + " (" + x.pk + ")") for x in dynamics.players]),
-                required = True
-            )
-            self.fields["advertised_role_" + i] = forms.ChoiceField(
-                label="ha il ruolo di",
-                choices=tuple([(x.full_name,x.full_name) for x in dynamics.starting_roles]),
-                required = True
-            )
-
-    def clean(self):
-        dynamics = self.game.get_dynamics()
-        cleaned_data = super().clean()
-
-        true_propositions = 0;
-        for i in range(4):
-            player = (Player.objects
-                    .get(game=self.game, pk=cleaned_data.get('target_' + i))
-                    .canonicalize())
-            if player.role.full_name == cleaned_data.get('advertised_role_' + i):
-                true_propositions += 1
-
-        if true_propositions != 2:
-            raise forms.ValidationError(
-                'Sono state fornite %(true) proposizioni vere e %false false.',
-                params = {'true': true_propositions, 'false': 4 - true_propositions}
-            )
+        self.fields["target"] = forms.ChoiceField(
+            label='',
+            choices=tuple([(str(x.pk), x.role.disambiguated_name) for x in dynamics.players]),
+            required = True
+        )
+        self.fields["advertised_role"] = forms.ChoiceField(
+            label="ha il ruolo di",
+            label_suffix='',
+            choices=tuple([(x.full_name,x.full_name) for x in dynamics.starting_roles]),
+            required = True
+        )
 
 class SoothsayerView(GameView):
     def get(self, request, pk):
         game = request.game
         soothsayer = Player.objects.get(game=game, pk=pk).canonicalize()
-        if not soothsayer.needs_soothsayer_propositions():
+        propositions = SoothsayerModelEvent.objects.filter(turn__game=game, soothsayer=soothsayer)
+        error = soothsayer.role.needs_soothsayer_propositions()
+        if not error:
             return redirect('game:status', game_name=game.name)
         form = SoothsayerForm(game=game)
 
@@ -1131,7 +1115,12 @@ class SoothsayerView(GameView):
             'form': form,
             'message': None,
             'player': soothsayer,
-            'classified': True
+            'propositions': propositions,
+            'classified': True,
+            'error': error,
+            'KNOWS_ABOUT_SELF': KNOWS_ABOUT_SELF,
+            'NUMBER_MISMATCH': NUMBER_MISMATCH,
+            'TRUTH_MISMATCH': TRUTH_MISMATCH,
         })
 
     def post(self, request, pk):
@@ -1139,26 +1128,34 @@ class SoothsayerView(GameView):
         form = SoothsayerForm(request.POST, game=game)
         soothsayer = Player.objects.get(game=game, pk=pk).canonicalize()
         if form.is_valid():
-            for i in range(4):
-                target = Player.objects.get(game=game, pk=form.cleaned_data['target_' + i]).canonicalize()
-                advertised_role = form.cleaned_data['advertised_role' + i]
-                dynamics = game.get_dynamics()
-                event = RoleKnowledgeEvent(
-                    turn=dynamics.current_turn,
-                    timestamp=get_now(),
-                    player=soothsayer,
-                    target=target,
-                    full_role_name=advertised_role
-                )
-                dynamics.inject_event(event)
+            target = Player.objects.get(game=game, pk=form.cleaned_data['target']).canonicalize()
+            advertised_role = form.cleaned_data['advertised_role']
+            dynamics = game.get_dynamics()
+            event = SoothsayerModelEvent(
+                turn=dynamics.current_turn,
+                timestamp=get_now(),
+                soothsayer=soothsayer,
+                target=target,
+                advertised_role=advertised_role
+            )
+            dynamics.inject_event(event)
             return redirect('game:setup', game_name=request.game.name)
         else:
-            propositions = InitialPropositionEvent.objects.filter(turn__game=game)
-            return render(request, 'propositions.html', {'form': form, 'message': 'Scelta non valida', 'propositions': propositions, 'classified': True})
+            propositions = SoothsayerModelEvent.objects.filter(turn__game=game, soothsayer=soothsayer)
+            return render(request, 'soothsayer.html', {'form': form, 'message': 'Scelta non valida', 'propositions': propositions, 'classified': True})
 
     @method_decorator(master_required)
     def dispatch(self, *args, **kwargs):
         return super(SoothsayerView, self).dispatch(*args, **kwargs)
+
+class DeleteSoothsayerView(GameView):
+    def get(self, request, pk):
+        obj = SoothsayerModelEvent.objects.get(pk=pk)
+        if request.is_master and request.game==obj.turn.game:
+            obj.delete()
+        request.game.kill_dynamics()
+        return redirect('game:setup', game_name=request.game.name)
+
 
 class InitialPropositionsForm(forms.Form):
     proposition = forms.CharField(label='')
@@ -1231,6 +1228,7 @@ class AdvanceTurnView(GameView):
             if not game.is_over:
                 turn.end = get_now()
                 turn.save()
+        game.get_dynamics().update()
         return redirect('game:status', game_name=request.game.name)
 
     @method_decorator(master_required)

@@ -61,6 +61,11 @@ AURA_IT = {
     BLACK: 'Nera',
 }
 
+# Soothsayer errors
+NUMBER_MISMATCH = 'N'
+TRUTH_MISMATCH = 'T'
+KNOWS_ABOUT_SELF = 'S'
+
 # Power frequency
 
 NEVER = 0

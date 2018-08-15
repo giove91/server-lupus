@@ -55,7 +55,7 @@ class InitialPropositionEventAdmin(admin.ModelAdmin):
     list_display = ('event_name', 'turn', 'timestamp', 'text')
 
 class SoothsayerModelEventAdmin(admin.ModelAdmin):
-    list_display = ('event_name', 'turn', 'timestamp', 'player_role', 'advertised_role', 'soothsayer_num')
+    list_display = ('event_name', 'turn', 'timestamp', 'target', 'advertised_role', 'soothsayer')
 
 class RoleKnowledgeEventAdmin(admin.ModelAdmin):
     list_filter = ['cause', 'turn']

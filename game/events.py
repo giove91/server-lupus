@@ -244,6 +244,14 @@ class SetRoleEvent(Event):
         role_class = dynamics.roles_list[self.role_name]
         player = self.player.canonicalize()
         role = role_class(player)
+        # Assign a label to disambiguate players with the same role
+        try:
+            dynamics.assignements_per_role[role_class.__name__] += 1
+        except KeyError:
+            dynamics.assignements_per_role[role_class.__name__] = 1
+        if len([role_name for role_name in dynamics.available_roles if role_name == role_class.__name__]) > 1:
+            role.disambiguation_label = chr(ord('A') + dynamics.assignements_per_role[role_class.__name__] - 1)
+
         player.role = role
         player.team = role.team
         player.aura = role.aura
@@ -252,7 +260,7 @@ class SetRoleEvent(Event):
         assert player.team is not None
         assert player.aura is not None
         assert player.is_mystic is not None
-    
+
     def to_player_string(self, player):
         if player == self.player:
             return u'Ti è stato assegnato il ruolo di %s.' % self.full_role_name
@@ -593,28 +601,26 @@ class SoothsayerModelEvent(Event):
     RELEVANT_PHASES = [CREATION]
     AUTOMATIC = False
 
-    player_role = models.CharField(max_length=200, default=None) # Short name of role
+    soothsayer = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
+    target = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
     advertised_role = models.CharField(max_length=200, default=None) # Full name of role
-    soothsayer_num = models.IntegerField()
 
     def to_dict(self):
         ret = Event.to_dict(self)
         ret.update({
-            'player_role': self.player_role,
+            'target': self.target.user.username,
             'advertised_role': self.advertised_role,
-            'soothsayer_num': self.soothsayer_num,
+            'soothsayer': self.soothsayer.user.username,
         })
         return ret
 
     def load_from_dict(self, data, players_map):
-        self.player_role = data['player_role']
+        self.target = players_map[data['target']]
         self.advertised_role = data['advertised_role']
-        self.soothsayer_num = int(data['soothsayer_num'])
+        self.soothsayer = players_map[data['soothsayer']]
 
     def apply(self, dynamics):
-        soothsayer = [pl for pl in dynamics.players if pl.role.__class__.__name__ == 'Divinatore'][self.soothsayer_num]
-        target = dynamics.random.choice([pl for pl in dynamics.players if pl.role.__class__.__name__ == self.player_role and pl is not soothsayer])
-        event = RoleKnowledgeEvent(player=soothsayer, target=target, full_role_name=self.advertised_role, cause=SOOTHSAYER)
+        event = RoleKnowledgeEvent(player=self.soothsayer, target=self.target, full_role_name=self.advertised_role, cause=SOOTHSAYER)
         dynamics.generate_event(event)
 
 class RoleKnowledgeEvent(Event):

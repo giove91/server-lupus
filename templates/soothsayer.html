@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<main id="content" class="grid_13">
+    <h1>Divinatori</h1>
+    <div class="info-block">
+        <div class="separator">
+            <h2>Modifica proposizioni del {{ player.role.disambiguated_name }}</h2>
+        </div>
+        {% if error == NUMBER_MISMATCH %}
+            <p>Il {{ player.role.disambiguated_name }} ha ricevuto un numero 
+            errato di proposizioni.</p>
+            <p>Inserisci il numero corretto di proposizioni per proseguire.</p>
+        {% elif error == TRUTH_MISMATCH %}
+            <p>Il {{ player.role.disambiguated_name }} ha ricevuto delle proposizioni che non 
+            soddisfano le condizioni di verità imposte dal regolamento.</p>
+            <p>Modifica le proposizioni per correggere l'errore.</p>
+        {% elif error == KNOWS_ABOUT_SELF %}
+            <p>Il {{ player.role.disambiguated_name }} ha ricevuto una frase riguardante se
+            stesso. Eliminala per continuare.</p>
+        {% endif %}
+    </div>
+    <div class="info-block">
+        <div class="separator">
+            <h2>Proposizioni</h2>
+        </div>
+        <ul>
+        {% for prop in propositions %}
+        <li>
+            <form method="get" action="{% url "game:deletesoothsayer" game_name=game.name pk=prop.pk %}">
+            <label>{{ prop.target.canonicalize.role.disambiguated_name }} ha il ruolo di {{ prop.advertised_role }}</label><input type="submit" value="Elimina">
+            </form>
+        </li>
+        {% endfor %}
+        <li>
+        <form method="post" action="">
+            {% csrf_token %}
+            {{ form }}
+            <input type="submit" value="Aggiungi">
+        </form>
+        </li>
+        </ul>
+    
+        {% if message != None %}
+            <p><strong>{{ message }}</strong></p>
+        {% endif %}
+        
+    </div>
+</main>
+{% endblock %}
+

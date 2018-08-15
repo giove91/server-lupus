@@ -84,6 +84,7 @@ class Dynamics:
         self.pre_simulation_mayor = None
         self.pre_simulation_appointed_mayor = None
         self.available_roles = []
+        self.assignements_per_role = {}
         self.death_ghost_created = False
         self.death_ghost_just_created = False
         self.ghosts_created_last_night = False
@@ -481,6 +482,7 @@ class Dynamics:
         self.playing_teams = self._count_alive_teams()
         assert sorted(self.playing_teams) == sorted(self.starting_teams)
         for player in self.players:
+            assert not player.role.needs_soothsayer_propositions()
             if player.role.__class__ in self.required_roles:
                 self.required_roles.remove(player.role.__class__)
         assert len(self.required_roles) == 0
