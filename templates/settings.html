@@ -37,7 +37,7 @@
             <h2>Avanza al prossimo turno</h2>
         </div>
         <p>Termina subito il turno corrente e avanza alla fase successiva.</p>
-        <form method="get" action="{% url "game:advanceturn" game_name=game.name %}">
+        <form method="get" action="{% url "game:advanceturn" game_name=game.name next_phase=next_phase %}">
             <input type="submit" value="Avanza">
         </form>
     </div>

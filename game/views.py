@@ -142,6 +142,9 @@ def home(request):
             Q(public=True))
     else:
         games = Game.objects.filter(public=True)
+    
+    # Remove failed games
+    games = [g for g in games if g.get_dynamics() is not None]
 
     beginning_games = [g for g in games if not g.started]
     ongoing_games = [g for g in games if g.started and not g.is_over]
@@ -737,6 +740,7 @@ class GameSettingsView(GameView):
     def get(self, request):
         player = request.player
         game = request.game
+        next_phase = Turn.TURN_PHASES[game.current_turn.next_turn().phase].lower()
         form = GameSettingsForm(initial={
             'day_end_weekdays': game.get_day_end_weekdays(),
             'day_end_time':game.day_end_time,
@@ -746,7 +750,7 @@ class GameSettingsView(GameView):
             'postgame_info':game.postgame_info,
             'auto_advancing':game.current_turn.end is not None,
         })
-        return render(request, 'settings.html', {'form': form, 'message': None, 'classified': True})
+        return render(request, 'settings.html', {'form': form, 'message': None, 'next_phase':next_phase, 'classified': True})
     
     def post(self, request):
         game = request.game
@@ -1091,7 +1095,7 @@ class SoothsayerForm(forms.Form):
 
         self.fields["target"] = forms.ChoiceField(
             label='',
-            choices=tuple([(str(x.pk), x.role.disambiguated_name) for x in dynamics.players]),
+            choices=tuple(sorted([(str(x.pk), x.role.disambiguated_name) for x in dynamics.players], key=lambda x:x[1])),
             required = True
         )
         self.fields["advertised_role"] = forms.ChoiceField(
@@ -1208,8 +1212,12 @@ class DeletePropositionView(GameView):
 
 class AdvanceTurnView(GameView):
     title = 'Turno successivo'
-    def get(self, request):
+    def get(self, request, next_phase):
         game = request.game
+        current_turn = game.current_turn
+        prep = "alla " if next_phase == "night" else "all'" if next_phase == DAWN else "al "
+        if Turn.TURN_PHASES[current_turn.next_turn().phase].lower() != next_phase:
+            return redirect('game:status', game_name=game.name)
         if game.is_over:
             return render(request, 'command_not_allowed.html', {
                 'message': 'Non puoi avanzare al prossimo turno in quanto la partita è finita.',
@@ -1217,14 +1225,16 @@ class AdvanceTurnView(GameView):
             })
         else:
             return render(request, 'confirm.html', {
-                'message': 'Vuoi davvero avanzare immediatamente al prossimo turno?', 
+                'message': 'Vuoi davvero avanzare %s%s?' % (prep, current_turn.next_turn().turn_as_italian_string()),
                 'title': self.title
             })
 
-    def post(self, request):
+    def post(self, request, next_phase):
         game = request.game
         with transaction.atomic():
             turn = game.get_current_turn(for_update=True)
+            if Turn.TURN_PHASES[turn.next_turn().phase].lower() != next_phase:
+                return redirect('game:status', game_name=game.name)
             if not game.is_over:
                 turn.end = get_now()
                 turn.save()

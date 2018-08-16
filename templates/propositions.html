@@ -24,7 +24,7 @@
         </form>
         </li>
         </ul>
-        <form method="get" action="{% url "game:advanceturn" game_name=game.name %}">
+        <form method="get" action="{% url "game:advanceturn" game_name=game.name next_phase="night" %}">
             <input type="submit" value="Termina prologo" />
         </form>
 

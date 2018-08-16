@@ -5,6 +5,19 @@
 <div class="separator"><div class="separator"><h2>{{ current_turn.turn_as_italian_string_property }}</h2></div></div>
 
 <p>
+    {% if current_turn.phase == CREATION %}
+        {% if is_master %}
+            Hai creato con successo la partita. Una volta che i giocatori si sono uniti
+            al villaggio, puoi selezionare "Setup iniziale" per configurare l'avvio della
+            partita. In "Gestione partita" trovi alcuni utili parametri di configurazione,
+            come la durata delle varie fasi e alcuni strumenti per gestire lo svolgimento
+            della partita.
+        {% elif not game.started %}
+            Benvenuto in questo villaggio! Se vuoi partecipare, clicca su "Unisciti al
+            villaggio". Se invece vuoi lasciare la partita, trovi l'opzione "Abbandona
+            il villaggio" nello stesso posto.
+        {% endif %}
+    {% endif %}
     {% if current_turn.phase == DAWN %}
         Un'alba {{ weather.adjective }}a sta sorgendo sul villaggio.
     {% endif %}
