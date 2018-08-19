@@ -755,6 +755,7 @@ class GameSettingsView(GameView):
     def post(self, request):
         game = request.game
         form = GameSettingsForm(request.POST)
+        next_phase = Turn.TURN_PHASES[game.current_turn.next_turn().phase].lower()
 
         if form.is_valid():
             game.day_end_time = form.cleaned_data['day_end_time']
@@ -783,9 +784,9 @@ class GameSettingsView(GameView):
                 'public': game.public,
                 'postgame_info': game.postgame_info
             })
-            return render(request, 'settings.html', {'form': form, 'message': 'Impostazioni aggiornate correttamente.'})
+            return render(request, 'settings.html', {'form': form, 'message': 'Impostazioni aggiornate correttamente.', 'next_phase': next_phase })
         else:
-            return render(request, 'settings.html', {'form': form, 'message': 'Scelta non valida.'})
+            return render(request, 'settings.html', {'form': form, 'message': 'Scelta non valida.', 'next_phase': next_phase })
     
     @method_decorator(master_required)
     def dispatch(self, *args, **kwargs):
@@ -995,9 +996,10 @@ class SeedForm(forms.Form):
     )
     seed = forms.IntegerField(required=True, label='Seed')
     RULESETS = [
-        ('three_teams', 'Regole con tre fazioni')
+        ('classic', 'Variante classica con due fazioni'),
+        ('negromanti', 'Variante con la fazione dei negromanti')
     ]
-    ruleset = forms.ChoiceField(choices=RULESETS)
+    ruleset = forms.ChoiceField(choices=RULESETS, label='Regolamento')
 
     def __init__(self, *args, **kwargs):
         game = kwargs.pop('game', None)

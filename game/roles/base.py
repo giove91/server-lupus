@@ -810,7 +810,7 @@ class Fantasma(Role):
                                                                cause=GHOST))
                     dynamics.generate_event(RoleKnowledgeEvent(player=negromante,
                                                                target=self.player,
-                                                               full_role_name=roles_list[POWER_NAMES[power]].full_name,
+                                                               full_role_name=dynamics.roles_list[POWER_NAMES[power]].full_name,
                                                                cause=PHANTOM))
         else:
             from ..events import GhostificationFailedEvent
@@ -1083,25 +1083,6 @@ class Visione(Spettro):
         from ..events import RoleKnowledgeEvent
         dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, full_role_name=dynamics.get_apparent_role(self.recorded_target).full_name, cause=VISION_GHOST))
 
-# Define variable used for the game
-
-starting_teams = [POPOLANI, LUPI, NEGROMANTI]
-
-# Roles that can appear in The Game
-valid_roles = [Cacciatore, Contadino, Custode, Divinatore, Esorcista, Espansivo, Guardia,
-    Investigatore, Mago, Massone, Messia, Sciamano, Stalker, Trasformista, Veggente,
-    Voyeur, Lupo, Assassino, Avvocato, Diavolo, Fattucchiera, Rinnegato, Necrofilo,
-    Sequestratore, Stregone, Negromante, Fantasma, Ipnotista, Medium, Scrutatore,
-    Amnesia, Confusione, Corruzione, Illusione, Ipnosi, Morte, Occultamento, Visione]
-
-# Roles that can be assigned at game start
-starting_roles = [role for role in valid_roles if not role.ghost]
-
-# Roles that must be assigned at game start
-required_roles = [Lupo, Negromante]
-
-
-roles_list = dict([(x.__name__, x) for x in valid_roles])
 
 '''
 ABOUT ORDER
