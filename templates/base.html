@@ -43,8 +43,6 @@
                                 <a href="{% url 'logout' %}">Logout</a>
                             {% else %}
                                 <a href="{% url 'login' %}">Login</a>
-                                -
-                                <a href="{% url 'signup' %}">Registrati</a>
                             {% endif %}
                             </div>
                             {% if user.is_authenticated %}
@@ -156,6 +154,14 @@
                     <h1>Area personale</h1>
                     <ul>
                         <li><a href="{% url 'password_change' %}">Cambia password</a></li>
+                    </ul>
+            {% endif %}
+
+            {% if user.is_staff %}
+                <div class="nav-menu">
+                    <h1>Admin</h1>
+                    <ul>
+                        <li><a href="{% url 'signup' %}">Crea nuovo utente</a></li>
                         <li><a href="{% url 'creategame' %}">Crea nuovo villaggio</a></li>
                     </ul>
             {% endif %}

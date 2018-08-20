@@ -37,9 +37,8 @@ from urllib.request import urlopen
 import xml.etree.ElementTree as ET
 
 
-def is_GM_check(user):
-    # Checks that the user is a GM
-    # FIXME: in many cases throughout the app, user.is_staff is checked (and not is_GM_check(user)).
+def is_staff_check(user):
+    # Checks that the user is an admin
     if not user.is_authenticated:
         return False
     return user.is_staff
@@ -169,6 +168,7 @@ class SignUpForm(UserCreationForm):
         model = User
         fields = ('username', 'first_name', 'last_name', 'email', 'gender', 'password1', 'password2')
 
+@user_passes_test(is_staff_check)
 def signup(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
@@ -722,7 +722,7 @@ class CreateGameView(CreateView):
         else:
             return render(self.request, 'create_game.html', {'form': form, 'message': 'Nome già in uso.'})
 
-    @method_decorator(login_required)
+    @method_decorator(user_passes_test(is_staff_check))
     def dispatch(self, *args, **kwargs):
         return super(CreateGameView, self).dispatch(*args, **kwargs)
 
@@ -1361,6 +1361,6 @@ class DumpView(GameView):
         dump_game(game, response)
         return response
     
-    @method_decorator(user_passes_test(is_GM_check))
+    @method_decorator(user_passes_test(is_staff_check))
     def dispatch(self, *args, **kwargs):
         return super(DumpView, self).dispatch(*args, **kwargs)
