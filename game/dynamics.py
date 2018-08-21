@@ -48,6 +48,7 @@ class Dynamics:
         self.db_event_queue = []
         self.simulating = False
         self.simulated = False
+        self.simulated_turn = None
         self.simulated_events = []
         self.events = []
         self.turns = []
@@ -94,13 +95,12 @@ class Dynamics:
         self.sasha_is_sleeping = False  # usually...
         self.playing_teams = []
         self.dying_teams = []
-        self.advocated_players = []
-        self.redirected_ballots = []
-        self.amnesia_target = None
-        self.hypnosis_ghost_target = None
         self.illusion = None
         self.wolves_agree = None
         self.necromancers_agree = None
+        self.vote_influences = []
+        self.electoral_frauds = []
+        self.sentence_modifications = []
         self.winners = None
         self.over = False
         self.upcoming_deaths = []
@@ -127,6 +127,7 @@ class Dynamics:
             player.protected_by_guard = False
             player.protected_by_keeper = False
             player.sequestrated = False
+            player.temp_dehypnotized = False
             player.just_dead = False
             player.just_ghostified = False
             player.just_transformed = False
@@ -723,10 +724,11 @@ class Dynamics:
         
         if self.simulating:
             # Remove useless state for following day
-            self.advocated_players = []
-            self.hypnosis_ghost_target = None
-            self.redirected_ballots = []
-            self.amnesia_target = None
+            self.sentence_modifications = []
+            self.vote_influences = []
+            self.electoral_frauds = []
+            for player in self.players:
+                player.temp_dehypnotized = False
         else:
             
             self._end_of_main_phase()
@@ -750,6 +752,7 @@ class Dynamics:
         assert self.upcoming_deaths == []
 
         winner, cause = self._compute_vote_winner()
+
         if winner is not None:
             event = PlayerDiesEvent(player=winner, cause=STAKE)
             self.generate_event(event)
@@ -762,13 +765,13 @@ class Dynamics:
 
         if not self.simulating:
             # Unrecord all data set during previous dawn
-            self.advocated_players = []
-            self.hypnosis_ghost_target = None
-            self.redirected_ballots = []
-            self.amnesia_target = None
+            self.sentence_modifications = []
+            self.vote_influences = []
+            self.electoral_frauds = []
 
-            # Unrecord all elect and vote events
+            # Unrecord all elect and vote events, and remove hypnotist immunity
             for player in self.players:
+                player.temp_dehypnotized = False
                 player.recorded_vote = None
                 player.recorded_elect = None
 
@@ -811,6 +814,11 @@ class Dynamics:
             return None
 
     def _compute_vote_winner(self):
+        # Compute vote results.
+        # Will check for additional effects, that must be functions
+        # taking and returning a dict of ballots (when editing votes)
+        # or a winner and a cause (when computing stake result)
+
         winner = None
         quorum_failed = False
 
@@ -820,36 +828,24 @@ class Dynamics:
         for player in self.get_alive_players():
             ballots[player.pk] = player.recorded_vote
 
-        # Apply Spettro dell'Ipnosi
-        if self.hypnosis_ghost_target is not None and self.hypnosis_ghost_target[0].alive and self.hypnosis_ghost_target[1].alive:
-            ballots[self.hypnosis_ghost_target[0].pk] = self.hypnosis_ghost_target[1]
+        # Apply effects that modify expressed vote.
+        for func in self.vote_influences:
+            ballots = func(ballots)
 
-        # Apply Spettro dell'Amnesia
-        if self.amnesia_target is not None and self.amnesia_target.alive:
-            ballots[self.amnesia_target.pk] = None
-
-        # Apply Ipnotista
-        def hypnotist_redirect(hypnotist):
-            if hypnotist.role.__class__.__name__ == 'Ipnotista': # TODO: sistemare per bene, magari mettendola sotto roles
-                for player in self.get_alive_players():
-                    if player.hypnotist is hypnotist and ballots[player.pk] is not ballots[hypnotist.pk] and \
-                    (self.hypnosis_ghost_target is None or player is not self.hypnosis_ghost_target[0]) and \
-                    player is not self.amnesia_target:
-                        ballots[player.pk] = ballots[hypnotist.pk]
-                        hypnotist_redirect(player)
-
+        # Apply effects of hypnotization. Should hopefully work
         for player in self.get_alive_players():
-            hypnotist_redirect(player)
+            hypnotized_players = set()
+            ancestor = player
+            while ancestor.hypnotist is not None and ancestor.hypnotist.alive and \
+                not ancestor.temp_dehypnotized and not ancestor.hypnotist in hypnotized_players:
+                hypnotized_players.add(ancestor)
+                ancestor = ancestor.hypnotist
+            for pl in hypnotized_players:
+                ballots[pl.pk] = ballots[ancestor.pk]
 
-        # Apply Scrutatore
-        for (target, scrutatore) in self.redirected_ballots:
-            if not scrutatore.alive:
-                continue
-            assert target is not None
-            assert scrutatore.role.__class__.__name__ == 'Scrutatore'
-            for player in self.get_alive_players():
-                if ballots[player.pk] is target:
-                    ballots[player.pk] = ballots[scrutatore.pk]
+        # Apply effects that change vote examination
+        for func in self.electoral_frauds:
+            ballots = func(ballots)
 
         # Check mayor vote
         for player in self.get_alive_players():
@@ -883,26 +879,25 @@ class Dynamics:
                 event = TallyAnnouncedEvent(voted=player, vote_num=tally_sheet[player.pk], type=VOTE)
                 self.generate_event(event)
 
-        # Abort the vote if the quorum wasn't reached
         if quorum_failed:
-            return None, MISSING_QUORUM
-
-        # Compute winners (or maybe loosers...)
-        tally_sheet = sorted(tally_sheet.items(),key=lambda x: x[1], reverse=True)
-        max_votes = tally_sheet[0][1]
-        winners = [x[0] for x in tally_sheet if x[1] == max_votes]
-        assert len(winners) > 0
-        if mayor_ballot is not None and mayor_ballot.pk in winners:
-            winner = mayor_ballot.pk
-        else:
-            winner = self.random.choice(winners)
-        winner_player = self.players_dict[winner]
-
-        # Check for protection by Avvocato del Diavolo
-        cause = None
-        if winner_player in self.advocated_players:
             winner_player = None
-            cause = ADVOCATE
+            cause = MISSING_QUORUM
+        else:
+            # Compute winners (or maybe loosers...)
+            tally_sheet = sorted(tally_sheet.items(),key=lambda x: x[1], reverse=True)
+            max_votes = tally_sheet[0][1]
+            winners = [x[0] for x in tally_sheet if x[1] == max_votes]
+            assert len(winners) > 0
+            if mayor_ballot is not None and mayor_ballot.pk in winners:
+                winner = mayor_ballot.pk
+            else:
+                winner = self.random.choice(winners)
+            winner_player = self.players_dict[winner]
+            cause = None
+
+        # Check for effects that modify sentence
+        for func in self.sentence_modifications:
+            winner_player, cause = func(winner_player, cause)
 
         return winner_player, cause
 

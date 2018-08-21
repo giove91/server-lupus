@@ -575,8 +575,13 @@ class Avvocato(Role):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        if self.recorded_target not in dynamics.advocated_players:
-            dynamics.advocated_players.append(self.recorded_target)
+        target = self.recorded_target.canonicalize()
+        def sentence_modification(winner, cause):
+            if winner is target:
+                return None, ADVOCATE
+            return winner, cause
+
+        dynamics.sentence_modifications.append(sentence_modification)
 
 
 class Diavolo(Role):
@@ -871,7 +876,16 @@ class Scrutatore(Role):
         return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
 
     def apply_dawn(self, dynamics):
-        dynamics.redirected_ballots.append((self.recorded_target, self.player))
+        target = self.recorded_target.canonicalize()
+
+        def fraud(ballots):
+            if target.alive and self.player.alive:
+                for voter, voted in ballots.items():
+                    if voted == target:
+                        ballots[voter] = ballots[self.player.pk]
+            return ballots
+
+        dynamics.electoral_frauds.append(fraud)
 
 class Spettro(Role):
     full_name = 'Spettro'
@@ -891,7 +905,7 @@ class Spettro(Role):
 
 class Amnesia(Spettro):
     full_name = 'Spettro dell\'Amnesia'
-    priority = MODIFY
+    priority = MODIFY + 1 # Must act after ipnosi
     frequency = EVERY_NIGHT
 
     def get_targets(self):
@@ -905,9 +919,16 @@ class Amnesia(Spettro):
 
     def apply_dawn(self, dynamics):
         assert self.has_power
+        target = self.recorded_target.canonicalize()
 
-        assert dynamics.amnesia_target is None
-        dynamics.amnesia_target = self.recorded_target.canonicalize()
+        def vote_influence(ballots):
+            if target.alive:
+                ballots[target.pk] = None
+
+            return ballots
+
+        target.temp_dehypnotized = True
+        dynamics.vote_influences.append(vote_influence)
 
 class Confusione(Spettro):
     full_name = 'Spettro della Confusione'
@@ -1007,9 +1028,17 @@ class Ipnosi(Spettro):
 
     def apply_dawn(self, dynamics):
         assert self.has_power
+        target = self.recorded_target.canonicalize()
+        target2 = self.recorded_target2.canonicalize()
 
-        assert dynamics.hypnosis_ghost_target is None
-        dynamics.hypnosis_ghost_target = (self.recorded_target, self.recorded_target2)
+        def vote_influence(ballots):
+            if target.alive and target2.alive:
+                ballots[target.pk] = target2
+
+            return ballots
+
+        target.temp_dehypnotized = True
+        dynamics.vote_influences.append(vote_influence)
 
 class Morte(Spettro):
     full_name = 'Spettro della Morte'
@@ -1115,6 +1144,8 @@ to be satisfied ("<" means "must act before"):
 
  * Messia must act before Negromante (resurrection has precedence over
    ghostification)
+
+ * Amnesia must act after Ipnosi (Amnesia will have the last word)
 
 KILLER
 Powers that kill (duh):

@@ -12,7 +12,7 @@ valid_roles = [Cacciatore, Contadino, Divinatore, Espansivo, Guardia,
     Sequestratore, Stregone]
 
 # Roles that can be assigned at game start
-starting_roles = [role for role in valid_roles]
+starting_roles = valid_roles
 
 # Roles that must be assigned at game start
 required_roles = [Lupo]
