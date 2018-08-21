@@ -72,8 +72,9 @@ class Game(models.Model):
     postgame_info = models.BooleanField(default=False)
     def __unicode__(self):
         return u"Game %d" % self.pk
-    name = models.CharField(max_length=32, verbose_name='Nome della partita')
-    description = models.CharField(max_length=64, verbose_name='Descrizione')
+    name = models.CharField(max_length=20, verbose_name='Nome univoco')
+    title = models.CharField(max_length=32, verbose_name='Titolo della partita')
+    description = models.CharField(max_length=1000, verbose_name='Descrizione')
 
     day_end_weekdays = models.PositiveSmallIntegerField(default=79, verbose_name='Sere in cui finisce il giorno')
 

@@ -13,7 +13,7 @@
     {% for g in games %}
         <tr>
             <td><a href="{% url 'game:status' game_name=g.name %}">
-                {{ g.description }}
+                {{ g.title }}
             </a></td>
             <td>{{ g.current_turn.turn_as_italian_string }}</td>
             <td>{{ g.mayor.full_name }}</td>

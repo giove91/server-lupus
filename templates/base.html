@@ -7,7 +7,11 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Realtime Lupus 7</title>
+    {% if game %}
+        <title>{{ game.title }}</title>
+    {% else %}
+        <title>Realtime Lupus</title>
+    {% endif %}
     <link rel="stylesheet" href="{% static "reset.css" %}" />
     <link rel="stylesheet" href="{% static "text.css" %}" />
     <link rel="stylesheet" href="{% static "960.css" %}" />
@@ -87,7 +91,7 @@
         <aside class="grid_3">
             {% if game is not None %}
                 <div class="nav-menu">
-                    <h1>{{ game.description }}</h1>
+                    <h1>Partita</h1>
                     <ul>
                     {% if player is None and not is_master and not game.started %}
                         <li><a href="{% url 'game:join' game_name=game.name %}">Unisciti al villaggio</a></li>

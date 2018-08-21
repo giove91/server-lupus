@@ -1,4 +1,4 @@
-<h1>Stato del villaggio</h1>
+<h1>{{ game.title }}</h1>
 
 <div class="info-block">
 
@@ -13,9 +13,7 @@
             come la durata delle varie fasi e alcuni strumenti per gestire lo svolgimento
             della partita.
         {% elif not game.started %}
-            Benvenuto in questo villaggio! Se vuoi partecipare, clicca su "Unisciti al
-            villaggio". Se invece vuoi lasciare la partita, trovi l'opzione "Abbandona
-            il villaggio" nello stesso posto.
+            {{ game.description }}
         {% endif %}
     {% endif %}
     {% if current_turn.phase == DAWN %}

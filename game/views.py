@@ -704,16 +704,22 @@ class AnnouncementsView(ListView):
 
 class CreateGameView(CreateView):
     model = Game
-    fields = ['name', 'description']
+    fields = ['name', 'title', 'description']
     template_name = 'create_game.html'
+
+    def get_form(self, form_class):
+        form = super(CreateGameView, self).get_form(form_class)
+        form.fields['description'].widget = forms.Textarea()
+        return form
 
     def form_valid(self, form):
         player = self.request.player
         user = self.request.user
 
         game_name = slugify(form.cleaned_data['name'])
+        title = form.cleaned_data['title']
         description = form.cleaned_data['description']
-        (game, created) = Game.objects.get_or_create(name=game_name, description=description)
+        (game, created) = Game.objects.get_or_create(name=game_name, title=title, description=description)
         if created:
             game.initialize(get_now())
             master = GameMaster(user=user,game=game)
