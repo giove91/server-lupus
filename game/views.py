@@ -707,8 +707,8 @@ class CreateGameView(CreateView):
     fields = ['name', 'title', 'description']
     template_name = 'create_game.html'
 
-    def get_form(self, form_class):
-        form = super(CreateGameView, self).get_form(form_class)
+    def get_form(self):
+        form = super(CreateGameView, self).get_form()
         form.fields['description'].widget = forms.Textarea()
         return form
 

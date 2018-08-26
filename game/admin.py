@@ -21,10 +21,10 @@ admin.site.register(User, UserAdmin)
 
 
 class GameAdmin(admin.ModelAdmin):
-    list_display = ('name', 'public', 'current_turn', 'mayor', 'postgame_info')
+    list_display = ('name', 'public', 'current_turn', 'postgame_info')
 
 class TurnAdmin(admin.ModelAdmin):
-    list_display = ('as_string', 'date', 'phase', 'begin', 'end')
+    list_display = ('game', 'as_string', 'date', 'phase', 'begin', 'end')
 
 class PlayerAdmin(admin.ModelAdmin):
     list_display = ('full_name', 'gender', 'team', 'role_name', 'aura', 'is_mystic', 'alive', 'active', 'can_use_power', 'can_vote', 'is_mayor', 'is_appointed_mayor')
