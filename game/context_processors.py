@@ -10,6 +10,7 @@ def context_player_and_game(request):
     return {
         'player': player,
         'game': game,
+        'master': request.master,
         'is_master': request.is_master
     }
 

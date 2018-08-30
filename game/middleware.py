@@ -36,15 +36,21 @@ class GameMiddleware(MiddlewareMixin):
             # Authenticated
             try:
                 master = GameMaster.objects.get(user=user,game=game)
-                request.is_master = True
+                request.master = master
             except GameMaster.DoesNotExist:
-                request.is_master = False
+                request.master = None
 
             try:
                 player = Player.objects.get(user=user,game=game).canonicalize()
             except Player.DoesNotExist:
                 player = None
-                
+
+            if request.master is not None:
+                # Check if the user want to act as game master
+                request.is_master = request.session.get('as_gm', None) or False
+            else:
+                request.is_master = False
+
             if request.is_master:
                 # The User is a Game Master, so she can become any Player
                 player_id = request.session.get('player_id', None)

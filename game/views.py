@@ -702,6 +702,16 @@ class AnnouncementsView(ListView):
         game = Game.get_running_game()
         return Announcement.objects.filter(game=game).filter(visible=True).order_by('-timestamp')
 
+@login_required
+def as_gm(request, game_name):
+    request.session['as_gm'] = True
+    return redirect('game:status', game_name=game_name)
+
+@login_required
+def as_normal_user(request, game_name):
+    request.session['as_gm'] = False
+    return redirect('game:status', game_name=game_name)
+
 class CreateGameView(CreateView):
     model = Game
     fields = ['name', 'title', 'description']

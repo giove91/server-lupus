@@ -272,6 +272,15 @@ label {
 	text-decoration: inherit;
 }
 
+.nav-menu.game-master ul li a::before {
+    content: '# ';
+}
+
+.nav-menu.game-master h1::before {
+    content: '# ';
+
+}
+
 .security-banner {
 	/*background-color: #ffffff;*/
 	margin-bottom: 10px;

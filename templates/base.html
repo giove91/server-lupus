@@ -89,11 +89,34 @@
         <div class="clear vertical-space"></div>
         
         <aside class="grid_3">
+        {% if is_master %}
+
+            <div class="nav-menu game-master">
+                <h1>Game Master</h1>
+                <ul>
+                    {% if current_turn.phase == CREATION %}
+                        <li><a href="{% url 'game:setup' game_name=game.name %}">Setup iniziale</a></li>
+                    {% endif %}
+                    <li><a href="{% url 'game:adminstatus' game_name=game.name %}">Tutte le informazioni</a></li>
+                    <li><a href="{% url 'game:pointofview' game_name=game.name %}">Punto di vista</a></li>
+                    <li><a href="{% url 'game:settings' game_name=game.name %}">Gestisci partita</a></li>
+                </ul>
+            </div>
+
+            <div class="nav-menu game-master">
+                <h1>GM</h1>
+                <ul>
+                    <li><a href="{% url 'game:as_normal_user' game_name=game.name %}">Lascia l'interfaccia</a></li>
+                </ul>
+            </div>
+
+        {% else %}
+
             {% if game is not None %}
                 <div class="nav-menu">
                     <h1>Partita</h1>
                     <ul>
-                    {% if player is None and not is_master and not game.started %}
+                    {% if player is None and master is None and not game.started %}
                         <li><a href="{% url 'game:join' game_name=game.name %}">Unisciti al villaggio</a></li>
                     {% endif %}
                     {% if player is not None and not game.started %}
@@ -113,7 +136,7 @@
                         {% endif %}
                         <li><a href="{% url 'game:comment' game_name=game.name %}">Commenti alla partita</a></li>
                     {% endif %}
-                    {% if is_master or player and game.started %}
+                    {% if master or player and game.started %}
                         <li><a href="{% url 'game:contacts' game_name=game.name %}">Elenco partecipanti</a></li>
                     {% endif %}
                 </ul>
@@ -129,29 +152,15 @@
                 </div>
             {% endif %}
 
-            {% if is_master %}
-                <div class="nav-menu">
-                    <h1>Game Master</h1>
-                    <ul>
-                        {% if current_turn.phase == CREATION %}
-                            <li><a href="{% url 'game:setup' game_name=game.name %}">Setup iniziale</a></li>
-                        {% endif %}
-                        <li><a href="{% url 'game:adminstatus' game_name=game.name %}">Tutte le informazioni</a></li>
-                        <li><a href="{% url 'game:pointofview' game_name=game.name %}">Punto di vista</a></li>
-                        <li><a href="{% url 'game:settings' game_name=game.name %}">Gestisci partita</a></li>
-                    </ul>
-                </div>
-            {% endif %}
-
-                <div class="nav-menu">
-                    <h1>Informazioni</h1>
-                    <ul>
-                        <li><a href="{% url 'ruleset' %}">Regolamento</a></li>
-                        <li><a href="{% url 'prototypes' %}">Prototipi</a></li>
-                        <li><a href="{% url 'credits' %}">Riconoscimenti</a></li>
-                        <li><a href="{% url 'trailer' %}">Trailer</a></li>
-                    </ul>
-                </div>
+            <div class="nav-menu">
+                <h1>Informazioni</h1>
+                <ul>
+                    <li><a href="{% url 'ruleset' %}">Regolamento</a></li>
+                    <li><a href="{% url 'prototypes' %}">Prototipi</a></li>
+                    <li><a href="{% url 'credits' %}">Riconoscimenti</a></li>
+                    <li><a href="{% url 'trailer' %}">Trailer</a></li>
+                </ul>
+            </div>
 
             {% if user.is_authenticated %}
                 <div class="nav-menu">
@@ -159,7 +168,19 @@
                     <ul>
                         <li><a href="{% url 'password_change' %}">Cambia password</a></li>
                     </ul>
+                </div>
             {% endif %}
+
+            {% if master is not None %}
+                <div class="nav-menu">
+                    <h1>GM</h1>
+                    <ul>
+                        <li><a href="{% url 'game:as_gm' game_name=game.name %}">Vai all'interfaccia</a></li>
+                    </ul>
+                </div>
+            {% endif %}
+
+        {% endif %}
 
             {% if user.is_staff %}
                 <div class="nav-menu">

@@ -24,6 +24,9 @@ urlpatterns = [
     path('join/', JoinGameView.as_view(), name='join'), # Aggiunge il giocatore
     path('leave/', LeaveGameView.as_view(), name='leave'), # Rimuove il giocatore
 
+    path('as_gm/', as_gm, name='as_gm'), # Assume i poteri da GM
+    path('as_normal_user/', as_normal_user, name='as_normal_user'), # Lascia i poteri da GM
+
     path('managemasters/', ManageGameMastersView.as_view(), name='managemasters'), # Aggiunge un master alla partita
     path('deletemaster/<int:pk>', DeleteGameMasterView.as_view(), name='deletemaster'), # Aggiunge un master alla partita
     path('setup/', SetupGameView.as_view(), name='setup'), # Prepara l'inizio
