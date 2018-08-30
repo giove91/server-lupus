@@ -189,7 +189,7 @@ label {
 	padding: 1px 5px 0px 5px;
 }
 
-#header-upper ul li:last-child {
+#header-upper .announcements {
 	background: #E4E5E8; 
 	color: #181818;
 }

@@ -336,7 +336,7 @@ class PersonalInfoView(GameView):
     def get(self, request):
         
         if request.player is None:
-            return redirect('pointofview')
+            return redirect('game:pointofview', game_name=request.game.name)
         
         if request.dynamics is None:
             return redirect('error')
@@ -472,7 +472,7 @@ class CommandView(GameView):
     
     def get(self, request):
         if request.player is None:
-            return redirect('pointofview')
+            return redirect('game:pointofview', game_name=request.game.name)
         
         if request.dynamics is None:
             return redirect('error')
@@ -1230,12 +1230,10 @@ class DeletePropositionView(GameView):
 
 class AdvanceTurnView(GameView):
     title = 'Turno successivo'
-    def get(self, request, next_phase):
+    def get(self, request):
         game = request.game
         current_turn = game.current_turn
-        prep = "alla " if next_phase == "night" else "all'" if next_phase == DAWN else "al "
-        if Turn.TURN_PHASES[current_turn.next_turn().phase].lower() != next_phase:
-            return redirect('game:status', game_name=game.name)
+        next_turn = current_turn.next_turn()
         if game.is_over:
             return render(request, 'command_not_allowed.html', {
                 'message': 'Non puoi avanzare al prossimo turno in quanto la partita è finita.',
@@ -1243,21 +1241,29 @@ class AdvanceTurnView(GameView):
             })
         else:
             return render(request, 'confirm.html', {
-                'message': 'Vuoi davvero avanzare %s%s?' % (prep, current_turn.next_turn().turn_as_italian_string()),
-                'title': self.title
+                'message': 'Vuoi davvero avanzare %s%s?' % (next_turn.preposition_to_as_italian_string(), next_turn.turn_as_italian_string()),
+                'title': self.title,
+                'turn_pk': current_turn.pk
             })
 
-    def post(self, request, next_phase):
+    def post(self, request):
         game = request.game
         with transaction.atomic():
             turn = game.get_current_turn(for_update=True)
-            if Turn.TURN_PHASES[turn.next_turn().phase].lower() != next_phase:
-                return redirect('game:status', game_name=game.name)
+            if turn.pk != int(request.POST['turn_pk']):
+                return redirect('game:adminstatus', game_name=game.name)
             if not game.is_over:
+                manual_advance = turn.end is None
                 turn.end = get_now()
                 turn.save()
-        game.get_dynamics().update()
-        return redirect('game:status', game_name=request.game.name)
+                game.get_dynamics().update()
+                new_turn = game.get_current_turn(for_update=True)
+                assert new_turn.phase == turn.next_turn().phase
+                if manual_advance:
+                    new_turn.end = None
+                    new_turn.save()
+
+        return redirect('game:adminstatus', game_name=request.game.name)
 
     @method_decorator(master_required)
     def dispatch(self, *args, **kwargs):
@@ -1363,7 +1369,7 @@ class CommentView(GameView):
         can_comment = self.can_comment(request)
         return render(request, 'comment.html', {'form': form, 'old_comments': old_comments, 'can_comment': can_comment, 'classified': True})
 
-    @method_decorator(login_required)
+    @method_decorator(player_required)
     def dispatch(self, *args, **kwargs):
         return super(CommentView, self).dispatch(*args, **kwargs)
 

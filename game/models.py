@@ -296,6 +296,14 @@ class Turn(models.Model):
             return u'Alba del giorno %s' % self.date
     turn_as_italian_string_property = property(turn_as_italian_string)
     
+    def preposition_to_as_italian_string(self):
+        if self.phase == CREATION or self.phase == NIGHT:
+            return u'alla '
+        elif self.phase == DAY or self.phase == SUNSET:
+            return u'al '
+        elif self.phase == DAWN:
+            return u'all\''
+    preposition_to_as_italian_string_property = property(preposition_to_as_italian_string)
     
     @staticmethod
     def get_or_create(game, date, phase, must_exist=False):

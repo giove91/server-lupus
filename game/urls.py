@@ -42,7 +42,7 @@ urlpatterns = [
     path('delete/', not_implemented, name='delete'), # Cancella la partita
     
     path('adminstatus/', AdminStatusView.as_view(), name='adminstatus'),
-    path('advanceturn/to_<str:next_phase>/', AdvanceTurnView.as_view(), name='advanceturn'),
+    path('advanceturn/', AdvanceTurnView.as_view(), name='advanceturn'),
     path('pointofview/', PointOfView.as_view(), name='pointofview'),
     path('dump/', DumpView.as_view(), name='dump'),
 ]
