@@ -3,7 +3,7 @@
 
 from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
-#from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from django.db.models import Q
 
@@ -11,7 +11,7 @@ from django.views import generic
 from django.views.generic.base import View
 from django.views.generic.base import TemplateView
 from django.views.generic import ListView
-from django.views.generic.edit import CreateView
+from django.views.generic.edit import CreateView, DeleteView, FormView
 
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
@@ -308,6 +308,17 @@ class GameView(View):
     def dispatch(self, request, game_name, *args, **kwargs):
         #Do not pass game_name to view, because it's handled by the middleware
         return super().dispatch(request, *args, **kwargs)
+
+class GameFormView(FormView):
+    # Pass game_name to success_url
+    def get_success_url(self):
+        return reverse(self.success_url, kwargs={'game_name': self.request.game.name})
+
+    # Pass game to form as kwarg
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({'game': self.request.game})
+        return kwargs
 
 # View of village status and public events
 class VillageStatusView(GameView):
@@ -1105,79 +1116,83 @@ class VillageCompositionView(GameView):
     def dispatch(self, *args, **kwargs):
         return super(VillageCompositionView, self).dispatch(*args, **kwargs)
 
-class SoothsayerForm(forms.Form):
+# View for inserting soothsayer propositions
+
+class DisambiguatedPlayerChoiceField(forms.ModelChoiceField):
+    model = Player
+    def label_from_instance(self, obj):
+        return obj.canonicalize().role.disambiguated_name
+
+class SoothsayerForm(forms.ModelForm):
+    class Meta:
+        model = SoothsayerModelEvent
+        fields = [ 'target', 'advertised_role' ]
+        labels = {
+            'target' : '',
+            'advertised_role' : 'ha il ruolo di'
+        }
+        field_classes = {
+            'target': DisambiguatedPlayerChoiceField
+        }
+        widgets = {
+            'advertised_role': forms.Select(choices=())
+        }
+
     def __init__(self, *args, **kwargs):
         self.game = kwargs.pop('game', None)
         super(SoothsayerForm, self).__init__(*args, **kwargs)
         dynamics = self.game.get_dynamics()
 
-        self.fields["target"] = forms.ChoiceField(
-            label='',
-            choices=tuple(sorted([(str(x.pk), x.role.disambiguated_name) for x in dynamics.players], key=lambda x:x[1])),
-            required = True
-        )
-        self.fields["advertised_role"] = forms.ChoiceField(
-            label="ha il ruolo di",
-            label_suffix='',
-            choices=tuple([(x.full_name,x.full_name) for x in dynamics.starting_roles]),
-            required = True
-        )
+        self.fields["target"].queryset = Player.objects.filter(game=self.game)
+        choices = [(x.full_name,x.full_name) for x in dynamics.starting_roles]
+        self.fields["advertised_role"].choices = choices
+        self.fields["advertised_role"].widget.choices = choices
 
-class SoothsayerView(GameView):
-    def get(self, request, pk):
-        game = request.game
-        soothsayer = Player.objects.get(game=game, pk=pk).canonicalize()
-        propositions = SoothsayerModelEvent.objects.filter(turn__game=game, soothsayer=soothsayer)
-        error = soothsayer.role.needs_soothsayer_propositions()
-        if not error:
-            return redirect('game:status', game_name=game.name)
-        form = SoothsayerForm(game=game)
+class SoothsayerView(GameFormView):
+    form_class = SoothsayerForm
+    template_name = 'soothsayer.html'
+    success_url = 'game:setup'
 
-        return render(request, 'soothsayer.html', {
-            'form': form,
-            'message': None,
-            'player': soothsayer,
-            'propositions': propositions,
-            'classified': True,
-            'error': error,
+    def get_soothsayer(self):
+        return Player.objects.get(game=self.request.game, pk=self.kwargs['pk']).canonicalize()
+
+    def get_propositions(self):
+        return SoothsayerModelEvent.objects.filter(turn__game=self.request.game, soothsayer=self.get_soothsayer())
+
+    def get_soothsayer_error(self):
+        return self.get_soothsayer().role.needs_soothsayer_propositions()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'soothsayer' : self.get_soothsayer(),
+            'propositions' : self.get_propositions(),
+            'classified' : True,
+            'error': self.get_soothsayer_error(),
             'KNOWS_ABOUT_SELF': KNOWS_ABOUT_SELF,
             'NUMBER_MISMATCH': NUMBER_MISMATCH,
             'TRUTH_MISMATCH': TRUTH_MISMATCH,
         })
+        return context
 
-    def post(self, request, pk):
-        game = request.game
-        form = SoothsayerForm(request.POST, game=game)
-        soothsayer = Player.objects.get(game=game, pk=pk).canonicalize()
-        if form.is_valid():
-            target = Player.objects.get(game=game, pk=form.cleaned_data['target']).canonicalize()
-            advertised_role = form.cleaned_data['advertised_role']
-            dynamics = game.get_dynamics()
-            event = SoothsayerModelEvent(
-                turn=dynamics.current_turn,
-                timestamp=get_now(),
-                soothsayer=soothsayer,
-                target=target,
-                advertised_role=advertised_role
-            )
-            dynamics.inject_event(event)
-            return redirect('game:setup', game_name=request.game.name)
-        else:
-            propositions = SoothsayerModelEvent.objects.filter(turn__game=game, soothsayer=soothsayer)
-            return render(request, 'soothsayer.html', {'form': form, 'message': 'Scelta non valida', 'propositions': propositions, 'classified': True})
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.timestamp = get_now()
+        self.object.soothsayer = self.get_soothsayer()
+        self.request.game.get_dynamics().inject_event(self.object)
+        return super().form_valid(form)
 
     @method_decorator(master_required)
     def dispatch(self, *args, **kwargs):
         return super(SoothsayerView, self).dispatch(*args, **kwargs)
 
-class DeleteSoothsayerView(GameView):
-    def get(self, request, pk):
-        obj = SoothsayerModelEvent.objects.get(pk=pk)
-        if request.is_master and request.game==obj.turn.game:
-            obj.delete()
-        request.game.kill_dynamics()
-        return redirect('game:setup', game_name=request.game.name)
+@method_decorator(master_required, name='dispatch')
+class DeleteSoothsayerView(DeleteView):
+    def get_queryset(self):
+        return SoothsayerModelEvent.objects.filter(turn__game=self.request.game)
 
+    def get_success_url(self):
+        return reverse('game:setup', kwargs={'game_name': self.request.game.name})
 
 class InitialPropositionsForm(forms.Form):
     proposition = forms.CharField(label='')
