@@ -11,7 +11,8 @@
         <ul>
         {% for prop in propositions %}
         <li>
-            <form method="get" action="{% url "game:deleteproposition" game_name=game.name pk=prop.pk %}">
+            <form method="post" action="{% url "game:deleteproposition" game_name=game.name pk=prop.pk %}">
+            {% csrf_token %}
             <label>{{ prop.text }}</label><input type="submit" value="Elimina">
             </form>
         </li>
@@ -24,7 +25,7 @@
         </form>
         </li>
         </ul>
-        <form method="get" action="{% url "game:advanceturn" game_name=game.name next_phase="night" %}">
+        <form method="get" action="{% url "game:advanceturn" game_name=game.name %}">
             <input type="submit" value="Termina prologo" />
         </form>
 

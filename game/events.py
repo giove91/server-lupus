@@ -347,7 +347,7 @@ class InitialPropositionEvent(Event):
     RELEVANT_PHASES = [CREATION]
     AUTOMATIC = False
     
-    text = models.TextField()
+    text = models.TextField(verbose_name='Testo')
 
     def to_dict(self):
         ret = Event.to_dict(self)

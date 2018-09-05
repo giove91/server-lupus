@@ -320,6 +320,16 @@ class GameFormView(FormView):
         kwargs.update({'game': self.request.game})
         return kwargs
 
+# Generic view for deleting an event (will respawn dynamics)
+class EventDeleteView(DeleteView):
+    def get_success_url(self):
+        return reverse(self.success_url, kwargs={'game_name': self.request.game.name})
+
+    def delete(self, request, *args, **kwargs):
+        response = super().delete(request, *args, **kwargs)
+        request.game.kill_dynamics()
+        return response
+
 # View of village status and public events
 class VillageStatusView(GameView):
     def get(self, request):
@@ -1066,6 +1076,7 @@ class SeedView(GameView):
     def dispatch(self, *args, **kwargs):
         return super(SeedView, self).dispatch(*args, **kwargs)
 
+# View for deciding Village Composition
 class VillageCompositionForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.game = kwargs.pop('game', None)
@@ -1089,35 +1100,32 @@ class VillageCompositionForm(forms.Form):
                 params = {'roles': count, 'players': len(dynamics.players)}
             )
 
-class VillageCompositionView(GameView):
-    def get(self, request):
-        game = request.game
-        form = VillageCompositionForm(game=game)
-        return render(request, 'composition.html', {'form': form, 'message': None, 'classified': True})
+@method_decorator(master_required, name='dispatch')
+class VillageCompositionView(GameFormView):
+    form_class = VillageCompositionForm
+    success_url = 'game:setup'
+    template_name = 'composition.html'
 
-    def post(self, request):
-        game = request.game
-        form = VillageCompositionForm(request.POST, game=game)
-        if form.is_valid():
-            dynamics = game.get_dynamics()
-            
-            roles = dynamics.starting_roles
-            for role in roles:
-                for i in range(form.cleaned_data[role.__name__]):
-                    event = AvailableRoleEvent(role_name = role.__name__)
-                    event.timestamp = get_now()
-                    dynamics.inject_event(event)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'classified' : True,
+        })
+        return context
 
-            return redirect('game:setup', game_name=game.name)
-        else:
-            return render(request, 'composition.html', {'form': form, 'message': 'Scelta non valida', 'classified': True})
+    def form_valid(self, form):
+        dynamics = self.request.game.get_dynamics()
+        roles = dynamics.starting_roles
+        for role in roles:
+            for i in range(form.cleaned_data[role.__name__]):
+                event = AvailableRoleEvent(role_name = role.__name__)
+                event.timestamp = get_now()
+                dynamics.inject_event(event)
 
-    @method_decorator(master_required)
-    def dispatch(self, *args, **kwargs):
-        return super(VillageCompositionView, self).dispatch(*args, **kwargs)
+        return super().form_valid(form)
+
 
 # View for inserting soothsayer propositions
-
 class DisambiguatedPlayerChoiceField(forms.ModelChoiceField):
     model = Player
     def label_from_instance(self, obj):
@@ -1187,62 +1195,48 @@ class SoothsayerView(GameFormView):
         return super(SoothsayerView, self).dispatch(*args, **kwargs)
 
 @method_decorator(master_required, name='dispatch')
-class DeleteSoothsayerView(DeleteView):
+class DeleteSoothsayerView(EventDeleteView):
+    success_url = 'game:setup'
     def get_queryset(self):
         return SoothsayerModelEvent.objects.filter(turn__game=self.request.game)
 
-    def get_success_url(self):
-        return reverse('game:setup', kwargs={'game_name': self.request.game.name})
 
-class InitialPropositionsForm(forms.Form):
-    proposition = forms.CharField(label='')
+# View for inserting Initial Propositions
+class InitialPropositionForm(forms.ModelForm):
+    class Meta:
+        model = InitialPropositionEvent
+        fields = ['text']
+        widgets = { 'text': forms.TextInput() }
 
-    def __init__(self, *args, **kwargs):
-        self.game = kwargs.pop('game', None)
-        super(InitialPropositionsForm, self).__init__(*args, **kwargs)
-        dynamics = self.game.get_dynamics()
+class InitialPropositionsView(CreateView):
+    form_class = InitialPropositionForm
+    template_name = 'propositions.html'
 
-class InitialPropositionsView(GameView):
-    def get(self, request):
-        game = request.game
-        propositions = InitialPropositionEvent.objects.filter(turn__game=game)
-        form = InitialPropositionsForm(game=game)
+    def get_propositions(self):
+        return InitialPropositionEvent.objects.filter(turn__game=self.request.game)
 
-        return render(request, 'propositions.html', {
-            'form': form,
-            'message': None,
-            'propositions':propositions,
-            'classified': True
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'propositions' : self.get_propositions(),
+            'classified' : True,
         })
+        return context
 
-    def post(self, request):
-        game = request.game
-        form = InitialPropositionsForm(request.POST, game=game)
-        if form.is_valid():
-            dynamics = game.get_dynamics()
-            event = InitialPropositionEvent(
-                turn=dynamics.current_turn,
-                timestamp=get_now(),
-                text=form.cleaned_data['proposition']
-            )
-            dynamics.inject_event(event)
-            return redirect('game:setup', game_name=request.game.name)
-        else:
-            propositions = InitialPropositionEvent.objects.filter(turn__game=game)
-            return render(request, 'propositions.html', {'form': form, 'message': 'Scelta non valida', 'propositions': propositions, 'classified': True})
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.timestamp = get_now()
+        self.request.game.get_dynamics().inject_event(self.object)
+        return redirect('game:setup', game_name=self.request.game.name)
 
-    @method_decorator(master_required)
-    def dispatch(self, *args, **kwargs):
-        return super(InitialPropositionsView, self).dispatch(*args, **kwargs)
+@method_decorator(master_required, name='dispatch')
+class DeletePropositionView(EventDeleteView):
+    success_url = 'game:setup'
+    def get_queryset(self):
+        return InitialPropositionEvent.objects.filter(turn__game=self.request.game)
 
 
-class DeletePropositionView(GameView):
-    def get(self, request, pk):
-        obj = InitialPropositionEvent.objects.get(pk=pk)
-        if request.is_master and request.game==obj.turn.game:
-            obj.delete()
-        return redirect('game:setup', game_name=request.game.name)
-
+# View for advancing turn
 class AdvanceTurnView(GameView):
     title = 'Turno successivo'
     def get(self, request):
