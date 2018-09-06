@@ -733,6 +733,70 @@ def as_normal_user(request, game_name):
     request.session['as_gm'] = False
     return redirect('game:status', game_name=game_name)
 
+# Generic view to confirm execution of command
+class ConfirmForm(forms.Form):
+    current_turn_pk = forms.IntegerField(widget=forms.HiddenInput)
+
+    def __init__(self, *args, **kwargs):
+        self.game = kwargs.pop('game', None)
+        self.current_turn = kwargs.pop('current_turn', None)
+        super().__init__(*args, **kwargs)
+        self.initial['current_turn_pk'] = self.current_turn.pk
+
+    def clean(self):
+        current_turn = self.game.get_current_turn(for_update=True)
+        cleaned_data = super().clean()
+        if current_turn.pk != cleaned_data.get('current_turn_pk'):
+            raise forms.ValidationError(
+                'L\'azione è stata annullata in quanto il turno corrente è cambiato.'
+            )
+
+class ConfirmView(GameFormView):
+    form_class = ConfirmForm
+    template_name = 'confirm.html'
+    message = None
+    title = None
+
+    def get_message(self):
+        return self.message
+
+    def get_title(self):
+        return self.title
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({
+            'current_turn': self.request.current_turn
+        })
+        return kwargs
+
+    def can_execute_action(self):
+        return True
+
+    def not_allowed():
+        return render(request, 'command_not_allowed.html', {'message': 'Non puoi eseguire questa azione.', 'title': self.title})
+
+    def get(self, *args, **kwargs):
+        if self.can_execute_action():
+            return super().get(*args, **kwargs)
+        else:
+            return self.not_allowed()
+
+    @transaction.atomic
+    def post(self, *args, **kwargs):
+        if self.can_execute_action():
+            return super().post(self, *args, **kwargs)
+        else:
+            return self.not_allowed()
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({
+            'message': self.get_message,
+            'title': self.get_title,
+        })
+        return context
+
 class CreateGameView(CreateView):
     model = Game
     fields = ['name', 'title', 'description']
@@ -959,45 +1023,70 @@ class DeleteGameMasterView(GameView):
             obj.delete()
         return redirect('game:managemasters', game_name=request.game.name)
 
+# View for advancing turn
+@method_decorator(master_required, name='dispatch')
+class AdvanceTurnView(ConfirmView):
+    title = 'Turno successivo'
+    success_url = 'game:status'
 
-class RollbackLastTurnView(GameView):
+    def get_message(self):
+        next_turn = self.request.current_turn.next_turn()
+        return 'Vuoi davvero avanzare %s%s?' % (next_turn.preposition_to_as_italian_string(), next_turn.turn_as_italian_string())
+
+    def can_execute_action(self):
+        return not self.request.game.is_over
+
+    def form_valid(self, form):
+        game = self.request.game
+        turn = game.get_current_turn(for_update=True)
+        # Check if turns were advancing manually
+        manual_advance = turn.end is None
+        turn.end = get_now()
+        turn.save()
+        game.get_dynamics().update()
+        new_turn = game.get_current_turn(for_update=True)
+        assert new_turn.phase == turn.next_turn().phase
+        if manual_advance:
+            new_turn.end = None
+            new_turn.save()
+
+        return super().form_valid(form)
+
+
+# View to return to previous turn
+@method_decorator(master_required, name='dispatch')
+class RollbackLastTurnView(ConfirmView):
     title = "Annulla ultimo turno"
-    def get(self, request):
-        return render(request, 'confirm.html', {
-            'message': 'Sei sicuro di voler tornare al turno precedente? Questo cancellerà definitivamente tutti gli eventi del turno corrente.',
-            'title': self.title })
+    message = 'Sei sicuro di voler tornare al turno precedente? Questo cancellerà definitivamente tutti gli eventi del turno corrente.'
+    success_url = 'game:status'
 
-    def post(self, request):
-        game = request.game
-        with transaction.atomic():
-            current_turn = game.get_current_turn(for_update=True)
-            prev_turn = Turn.objects.filter(game=game).exclude(pk=current_turn.pk).order_by('-date', '-phase').first()
-            if prev_turn is not None:
-                current_turn.delete()
-                prev_turn.end = None
-                prev_turn.save()
+    def form_valid(self, form):
+        game = self.request.game
+        current_turn = game.get_current_turn(for_update=True)
+        prev_turn = Turn.objects.filter(game=game).exclude(pk=current_turn.pk).order_by('-date', '-phase').first()
+        if prev_turn is not None:
+            current_turn.delete()
+            prev_turn.end = None
+            prev_turn.save()
         game.kill_dynamics()
-        return redirect('game:status', game_name=game.name)
+        return super().form_valid(form)
 
-    @method_decorator(master_required)
-    def dispatch(self, *args, **kwargs):
-        return super(RollbackLastTurnView, self).dispatch(*args, **kwargs)
 
-class RestartGameView(GameView):
-    def get(self, request):
-        return render(request, 'confirm.html', {'message': 'Sei sicuro di voler ricominciare la partita? Questa azione non può essere annullata.', 'title': 'Azzera partita'})
+# View to restart game
+@method_decorator(master_required, name='dispatch')
+class RestartGameView(ConfirmView):
+    message = 'Sei sicuro di voler ricominciare la partita? Questa azione non può essere annullata.'
+    title = 'Azzera partita'
+    success_url = 'game:status'
 
-    def post(self, request):
-        game = request.game
+    def form_valid(self, form):
+        game = self.request.game
         dynamics = game.get_dynamics()
         Turn.objects.filter(game=game).delete()
         game.kill_dynamics()
         game.initialize(get_now())
-        return redirect('game:status', game_name=game.name)
+        return super().form_valid(form)
 
-    @method_decorator(master_required)
-    def dispatch(self, *args, **kwargs):
-        return super(RestartGameView, self).dispatch(*args, **kwargs)
 
 class SetupGameView(GameView):
     def get(self, request):
@@ -1234,49 +1323,6 @@ class DeletePropositionView(EventDeleteView):
     success_url = 'game:setup'
     def get_queryset(self):
         return InitialPropositionEvent.objects.filter(turn__game=self.request.game)
-
-
-# View for advancing turn
-class AdvanceTurnView(GameView):
-    title = 'Turno successivo'
-    def get(self, request):
-        game = request.game
-        current_turn = game.current_turn
-        next_turn = current_turn.next_turn()
-        if game.is_over:
-            return render(request, 'command_not_allowed.html', {
-                'message': 'Non puoi avanzare al prossimo turno in quanto la partita è finita.',
-                'title': self.title
-            })
-        else:
-            return render(request, 'confirm.html', {
-                'message': 'Vuoi davvero avanzare %s%s?' % (next_turn.preposition_to_as_italian_string(), next_turn.turn_as_italian_string()),
-                'title': self.title,
-                'turn_pk': current_turn.pk
-            })
-
-    def post(self, request):
-        game = request.game
-        with transaction.atomic():
-            turn = game.get_current_turn(for_update=True)
-            if turn.pk != int(request.POST['turn_pk']):
-                return redirect('game:adminstatus', game_name=game.name)
-            if not game.is_over:
-                manual_advance = turn.end is None
-                turn.end = get_now()
-                turn.save()
-                game.get_dynamics().update()
-                new_turn = game.get_current_turn(for_update=True)
-                assert new_turn.phase == turn.next_turn().phase
-                if manual_advance:
-                    new_turn.end = None
-                    new_turn.save()
-
-        return redirect('game:adminstatus', game_name=request.game.name)
-
-    @method_decorator(master_required)
-    def dispatch(self, *args, **kwargs):
-        return super(AdvanceTurnView, self).dispatch(*args, **kwargs)
 
 
 

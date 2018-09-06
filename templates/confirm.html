@@ -10,10 +10,8 @@
         <p>
         <form method="post">
         {% csrf_token %}
-        {% if turn_pk %}
-            <input type="hidden" name="turn_pk" value="{{ turn_pk }}">
-        {% endif %}
-        <p><input type="submit" value="Conferma" /></p>
+        {{ form }}
+        <input type="submit" value="Conferma" /></p>
         </form>
         </p>
     </div>
