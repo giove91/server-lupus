@@ -1,4 +1,5 @@
 from datetime import datetime, time, timedelta
+from dateutil.parser import parse
 from threading import RLock
 import sys
 
@@ -39,16 +40,10 @@ def dump_game(game, fout):
     data = {'players': [],
             'turns': []}
     for player in Player.objects.filter(game=game).order_by('pk'):
-        data['players'].append({'username': player.user.username,
-                                'first_name': player.user.first_name,
-                                'last_name': player.user.last_name,
-                                'email': player.user.email,
-                                'password': player.user.password,
-                                'gender': player.user.profile.gender,
-                                })
+        data['players'].append(player.user.username)
 
     for turn in Turn.objects.filter(game=game).order_by('date', 'phase'):
-        turn_data = {'events': [], 'comments': []}
+        turn_data = {'begin': turn.begin.isoformat(), 'end': turn.end.isoformat(), 'events': [], 'comments': []}
         for event in Event.objects.filter(turn=turn).order_by('timestamp', 'pk'):
             event = event.as_child()
             if not event.AUTOMATIC:
@@ -231,6 +226,53 @@ class Game(models.Model):
         and, if necessary, create the new turn."""
         while self.current_turn.end is not None and get_now() >= self.current_turn.end:
             self.advance_turn()
+
+    # Loads current_game from json
+    def load_from_json(self, data):
+        Player.objects.filter(game=self).delete()
+        Turn.objects.filter(game=self).delete()
+        self.kill_dynamics()
+        for username in data['players']:
+            user = User.objects.get(username=username)
+            player = Player.objects.create(user=user, game=self)
+            player.save()
+
+        # Here we canonicalize the players, so this has to happen after
+        # all users and players have been inserted in the database;
+        # therefore, this loop cannot be merged with the previous one
+        players_map = {None: None}
+        for player in self.get_players():
+            assert player.user.username not in players_map
+            players_map[player.user.username] = player
+
+        # Now we're ready to reply turns and events
+        first_turn = True
+        for turn_data in data['turns']:
+            if not first_turn:
+                turn = turn.next_turn(must_exist=False)
+            else:
+                turn = Turn.first_turn(self)
+                first_turn = False
+
+            turn.begin = parse(turn_data['begin'])
+            turn.end = parse(turn_data['end'])
+            turn.save()
+            for event_data in turn_data['events']:
+                event = Event.from_dict(event_data, players_map)
+                event.turn = turn
+                event.save()
+            for comment_data in turn_data['comments']:
+                comment = Comment.from_dict(comment_data)
+                comment.turn = turn
+                comment.save()
+        try:
+            self.get_dynamics().update()
+        except:
+            self.kill_dynamics()
+            Turn.objects.filter(game=self).delete()
+            self.initialize(get_now())
+            raise
+
 
 # Delete the dynamics object when the game is deleted
 def game_pre_delete_callback(sender, instance, **kwargs):
@@ -631,6 +673,7 @@ class Event(KnowsChild):
         # The following line shouldn't be required
         #event.subclass = data['subclass']
         event.load_from_dict(data, players_map)
+        event.timestamp = parse(data['timestamp']) or get_now()
         return event
 
     def to_player_string(self, player):
@@ -677,6 +720,15 @@ class Comment(models.Model):
             'visible': self.visible,
         }
 
+    @staticmethod
+    def from_dict(data):
+        return Comment(
+            timestamp=parse(data['timestamp']),
+            user=User.objects.get(username=data['user']),
+            text=data['text'],
+            visible=data['visible'],
+            turn=None
+        )
 
 class PageRequest(models.Model):
     

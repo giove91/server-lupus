@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<main id="content" class="grid_13">
+    <h1>Carica partita da file</h1>
+    
+    <div class="info-block">
+        <p>Carica la partita da file JSON. <strong>Tutti i turni, gli eventi, e i giocatori di questa partita verranno eliminati.</strong></p>
+        <p>
+        <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Carica" /></p>
+        </form>
+        </p>
+    </div>
+</main>
+{% endblock %}
+

@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # coding=utf8
 
+import json
+
 from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
@@ -1141,6 +1143,29 @@ class RestartGameView(ConfirmView):
         game.initialize(get_now())
         return super().form_valid(form)
 
+# View per caricare da file
+class LoadGameForm(forms.Form):
+    json = forms.FileField()
+    def clean_file(self):
+        file = self.cleaned_data['json']
+        if file.content_type == 'application/json':
+            if file.size > 1048576:
+                raise forms.ValidationError('Massimo upload consentito 1MB.' % filesizeformat(file.size))
+        else:
+            raise forms.ValidationError('Tipo di file non supportato')
+
+@method_decorator(user_passes_test(is_staff_check), name='dispatch')
+class LoadGameView(FormView):
+    form_class = LoadGameForm
+    template_name = 'load_game.html'
+    def get_success_url(self):
+        return reverse('game:status', kwargs={'game_name': self.request.game.name})
+
+    def form_valid(self, form):
+        file = self.request.FILES['json']
+        game = self.request.game
+        game.load_from_json(json.load(file))
+        return super().form_valid(form)
 
 # View for redirecting to appropriate initial setup
 @method_decorator(master_required, name='dispatch')
@@ -1479,6 +1504,7 @@ class CommentView(FormView):
 
 
 # Dump view (for GM only)
+@method_decorator(user_passes_test(is_staff_check), name='dispatch')
 class DumpView(GameView):
     def get(self, request):
         game = request.game
@@ -1486,7 +1512,3 @@ class DumpView(GameView):
         response['Content-Disposition'] = 'attachment: filename="dump.json"'
         dump_game(game, response)
         return response
-    
-    @method_decorator(user_passes_test(is_staff_check))
-    def dispatch(self, *args, **kwargs):
-        return super(DumpView, self).dispatch(*args, **kwargs)

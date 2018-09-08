@@ -143,6 +143,10 @@
                         <li><a href="{% url 'game:rollbackturn' game_name=game.name %}">Turno precedente</a></li>
                     {% endif %}
                     <li><a href="{% url 'game:restart' game_name=game.name %}">Ricomincia</a></li>
+                    {% if user.is_staff %}
+                        <li><a href="{% url 'game:dump' game_name=game.name %}">Salva partita</a></li>
+                        <li><a href="{% url 'game:load' game_name=game.name %}">Carica partita</a></li>
+                    {% endif %}
                 </ul>
             </div>
 

@@ -40,8 +40,11 @@ urlpatterns = [
     path('soothsayer/<int:pk>/', SoothsayerView.as_view(), name='soothsayer'), # Cambia le frasi dei divinatori
     path('deletesoothsayer/<int:pk>/', DeleteSoothsayerView.as_view(), name='deletesoothsayer'), # Cancella una proposizione per il divinatore
     path('settings/', GameSettingsView.as_view(), name='settings'), # Cambia le impostazioni della partita
+
     path('rollbackturn/', RollbackLastTurnView.as_view(), name='rollbackturn'), # Riporta la partita alla fine del turno precedente, cancellando gli eventi di quello in corso.
     path('restart/', RestartGameView.as_view(), name='restart'), # Elimina tutti gli eventi e riapre le iscrizioni
+    path('load/', LoadGameView.as_view(), name='load'), # Elimina tutti gli eventi e carica da file
+    
     path('delete/', not_implemented, name='delete'), # Cancella la partita
     
     path('adminstatus/', AdminStatusView.as_view(), name='adminstatus'),
