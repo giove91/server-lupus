@@ -11,7 +11,7 @@ from django.views import generic
 from django.views.generic.base import View
 from django.views.generic.base import TemplateView
 from django.views.generic import ListView
-from django.views.generic.edit import CreateView, DeleteView, FormView
+from django.views.generic.edit import CreateView, DeleteView, FormView, UpdateView
 
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
@@ -706,6 +706,7 @@ class AppointView(CommandView):
         dynamics.inject_event(command)
         return True
 
+
 class ContactsView(GameView):
     def get(self, request):
         return render(request, 'contacts.html', {})
@@ -723,6 +724,8 @@ class AnnouncementsView(ListView):
         game = Game.get_running_game()
         return Announcement.objects.filter(game=game).filter(visible=True).order_by('-timestamp')
 
+
+# Views to acquire or release GM powers
 @login_required
 def as_gm(request, game_name):
     request.session['as_gm'] = True
@@ -773,8 +776,8 @@ class ConfirmView(GameFormView):
     def can_execute_action(self):
         return True
 
-    def not_allowed():
-        return render(request, 'command_not_allowed.html', {'message': 'Non puoi eseguire questa azione.', 'title': self.title})
+    def not_allowed(self):
+        return render(self.request, 'command_not_allowed.html', {'message': 'Non puoi eseguire questa azione.', 'title': self.title})
 
     def get(self, *args, **kwargs):
         if self.can_execute_action():
@@ -797,6 +800,8 @@ class ConfirmView(GameFormView):
         })
         return context
 
+
+# View for creating a new Game
 class CreateGameView(CreateView):
     model = Game
     fields = ['name', 'title', 'description']
@@ -827,6 +832,8 @@ class CreateGameView(CreateView):
     def dispatch(self, *args, **kwargs):
         return super(CreateGameView, self).dispatch(*args, **kwargs)
 
+
+# View for changing Game Settings
 class GameSettingsForm(forms.Form):
     WEEKDAYS = [(0,'Lunedì'), (1,'Martedì'), (2,'Mercoledì'), (3,'Giovedì'), (4,'Venerdì'), (5,'Sabato'), (6,'Domenica')]
     day_end_weekdays = forms.MultipleChoiceField(choices=WEEKDAYS, widget=forms.CheckboxSelectMultiple, label='Sere in cui finisce il giorno', required=True)
@@ -837,129 +844,91 @@ class GameSettingsForm(forms.Form):
     postgame_info = forms.BooleanField(label='Mostra tutte le informazioni al termine della partita', required=False)
     auto_advancing = forms.BooleanField(label='Abilita l\'avanzamento automatico per il turno corrente', required=False)
 
-class GameSettingsView(GameView):
-    def get(self, request):
-        player = request.player
-        game = request.game
-        next_phase = Turn.TURN_PHASES[game.current_turn.next_turn().phase].lower()
-        form = GameSettingsForm(initial={
-            'day_end_weekdays': game.get_day_end_weekdays(),
-            'day_end_time':game.day_end_time,
-            'night_end_time':game.night_end_time,
-            'half_phase_duration': game.half_phase_duration,
-            'public':game.public,
-            'postgame_info':game.postgame_info,
-            'auto_advancing':game.current_turn.end is not None,
+    def __init__(self, *args, **kwargs):
+        self.game = kwargs.pop('game', None)
+        super().__init__(*args, **kwargs)
+        self.initial.update({
+            'day_end_weekdays': self.game.get_day_end_weekdays(),
+            'day_end_time': self.game.day_end_time,
+            'night_end_time': self.game.night_end_time,
+            'half_phase_duration': self.game.half_phase_duration,
+            'public': self.game.public,
+            'postgame_info': self.game.postgame_info,
+            'auto_advancing': self.game.current_turn.end is not None,
         })
-        return render(request, 'settings.html', {'form': form, 'message': None, 'next_phase':next_phase, 'classified': True})
-    
-    def post(self, request):
-        game = request.game
-        form = GameSettingsForm(request.POST)
-        next_phase = Turn.TURN_PHASES[game.current_turn.next_turn().phase].lower()
 
-        if form.is_valid():
-            game.day_end_time = form.cleaned_data['day_end_time']
-            game.night_end_time = form.cleaned_data['night_end_time']
-            game.day_end_weekdays = sum([ 2**int(i) for i in form.cleaned_data['day_end_weekdays']])
-            game.half_phase_duration = form.cleaned_data['half_phase_duration']
-            game.public = form.cleaned_data['public']
-            game.postgame_info = form.cleaned_data['postgame_info']
-            game.save()
+@method_decorator(master_required, name='dispatch')
+class GameSettingsView(GameFormView):
+    form_class = GameSettingsForm
+    template_name = 'settings.html'
 
-            with transaction.atomic():
-                current_turn = game.get_current_turn(for_update=True)
-                if form.cleaned_data['auto_advancing'] and not game.is_over:
-                    current_turn.set_end(allow_retroactive_end=False)
-                else:
-                    current_turn.end = None
-                current_turn.save()
+    def form_valid(self, form):
+        game = self.request.game
+        game.day_end_time = form.cleaned_data['day_end_time']
+        game.night_end_time = form.cleaned_data['night_end_time']
+        game.day_end_weekdays = sum([ 2**int(i) for i in form.cleaned_data['day_end_weekdays']])
+        game.half_phase_duration = form.cleaned_data['half_phase_duration']
+        game.public = form.cleaned_data['public']
+        game.postgame_info = form.cleaned_data['postgame_info']
+        game.save()
 
-            game.kill_dynamics()
+        with transaction.atomic():
+            current_turn = game.get_current_turn(for_update=True)
+            if form.cleaned_data['auto_advancing'] and not game.is_over:
+                current_turn.set_end(allow_retroactive_end=False)
+            else:
+                current_turn.end = None
+            current_turn.save()
 
-            form = GameSettingsForm(initial={
-                'day_end_weekdays': game.get_day_end_weekdays(),
-                'day_end_time': game.day_end_time,
-                'night_end_time': game.night_end_time,
-                'half_phase_duration': game.half_phase_duration,
-                'public': game.public,
-                'postgame_info': game.postgame_info
-            })
-            return render(request, 'settings.html', {'form': form, 'message': 'Impostazioni aggiornate correttamente.', 'next_phase': next_phase })
-        else:
-            return render(request, 'settings.html', {'form': form, 'message': 'Scelta non valida.', 'next_phase': next_phase })
-    
-    @method_decorator(master_required)
-    def dispatch(self, *args, **kwargs):
-        return super(GameSettingsView, self).dispatch(*args, **kwargs)
+        game.kill_dynamics()
+        form = self.form_class(game=game)
+        return render(self.request, self.template_name, {'form': form, 'message': 'Impostazioni aggiornate correttamente.'})
 
-class JoinGameView(GameView):
+# View to join a game
+@method_decorator(login_required, name='dispatch')
+class JoinGameView(ConfirmView):
     title = 'Unisciti al villaggio'
-    def can_join(self, request):
-        game = request.game
+    success_url = 'game:status'
+
+    def get_message(self):
+        return 'Vuoi davvero partecipare a ' + self.request.game.title + '?'
+
+    def can_execute_action(self):
+        game = self.request.game
         dynamics = game.get_dynamics()
         dynamics.update()
-        return request.player is None and not request.is_master and not game.started
+        return self.request.player is None and not self.request.is_master and not game.started
 
-    def get(self, request):
-        if self.can_join(request):
-            return render(request, 'confirm.html', {
-                'title': self.title,
-                'message': 'Vuoi davvero partecipare a ' + request.game.description + '?'
-            })
-        else:
-            return render(request, 'command_not_allowed.html', {
-                'message': 'Non puoi unirti al villaggio.', 
-                'title': self.title
-            })
+    def form_valid(self, form):
+        game = self.request.game
+        user = self.request.user
+        player = Player.objects.create(game=self.request.game, user=self.request.user)
+        player.save()
+        # Kill dynamics to refresh players list
+        game.kill_dynamics()
+        return super().form_valid(form)
 
-    def post(self, request):
-        game = request.game
-        user = request.user
-        if self.can_join(request):
-            player = Player.objects.create(game=game, user=user)
-            player.save()
-            # Kill dynamics to refresh players list
-            game.kill_dynamics()
-        return redirect('game:status', game_name=request.game.name)
 
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(JoinGameView, self).dispatch(*args, **kwargs)
-
-class LeaveGameView(GameView):
+# ... and to leave it
+@method_decorator(login_required, name='dispatch')
+class LeaveGameView(ConfirmView):
     title = 'Abbandona il villaggio'
-    def can_leave(self, request):
-        game = request.game
-        dynamics = game.get_dynamics()
-        dynamics.update()
-        return request.player is not None and not game.started
+    message = 'Vuoi davvero abbandonare la partita?'
+    success_url = 'game:status'
 
-    def get(self, request):
-        if self.can_leave(request):
-            return render(request, 'confirm.html', {
-                'title': self.title,
-                'message': 'Vuoi davvero abbandonare la partita?'
-            })
-        else:
-            return render(request, 'command_not_allowed.html', {
-                'message': 'Non puoi abbandonare il villaggio.', 
-                'title': self.title
-            })
+    def can_execute_action(self):
+        self.request.game.get_dynamics().update()
+        return self.request.player is not None and not self.request.game.started
 
-    def post(self, request):
-        game = request.game
-        user = request.user
-        player = request.player
-        if self.can_leave(request):
-            player.canonicalize().delete()
-            # Kill dynamics to refresh players list
-            game.kill_dynamics()
-        return redirect('game:status', game_name=request.game.name)
+    def form_valid(self, form):
+        game = self.request.game
+        user = self.request.user
+        player = self.request.player
+        player.canonicalize().delete()
+        # Kill dynamics to refresh players list
+        game.kill_dynamics()
+        return super().form_valid(form)
 
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(LeaveGameView, self).dispatch(*args, **kwargs)
 
 
 class ManageGameMastersForm(forms.ModelForm):
