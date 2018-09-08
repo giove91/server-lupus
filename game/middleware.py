@@ -58,7 +58,7 @@ class GameMiddleware(MiddlewareMixin):
                 if player_id is not None:
                     # A Player was already saved
                     try:
-                        player = Player.objects.get(pk=player_id).canonicalize()
+                        player = Player.objects.get(pk=player_id, game=request.game).canonicalize()
                     except Player.DoesNotExist:
                         pass
 

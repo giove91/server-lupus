@@ -9,7 +9,7 @@ from django.db.models import Q
 
 from django.views import generic
 from django.views.generic.base import View
-from django.views.generic.base import TemplateView
+from django.views.generic.base import TemplateView, RedirectView
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView, DeleteView, FormView, UpdateView
 
@@ -53,16 +53,25 @@ def master_required(func):
     return decorator
 
 def player_required(func):
-    """Checks that the user is taking part in the current game. If s/he is not
-    a game master, s/he must have been accepted in the game (that is, the game must
-    be started)."""
+    """Checks that the user is logged as a player."""
     def decorator(request, *args, **kwargs):
-        if request.is_master or (request.player and request.game.started):
+        if request.player is not None:
             return func(request, *args, **kwargs)
         else:
-            return redirect('game:status',game_name=request.game.name)
+            return redirect('game:point_of_view',game_name=request.game.name)
 
     return decorator
+
+def player_or_master_required(func):
+    """Checks that the user is taking part in the current game."""
+    def decorator(request, *args, **kwargs):
+        if request.is_master or (request.player is not None and request.game.started):
+            return func(request, *args, **kwargs)
+        else:
+            return redirect('game:point_of_view',game_name=request.game.name)
+
+    return decorator
+
 
 def registrations_open(func):
     """Checks that the game is not started."""
@@ -84,61 +93,6 @@ def can_access_admin_view(func):
 
     return decorator
     
-def get_events(request, player):
-    # player can be a Player, 'admin' or 'public' (depending on the view)
-    game = request.game
-    dynamics = game.get_dynamics()
-    assert not dynamics.simulating
-    if player == 'admin':
-        turns = dynamics.turns
-        dynamics.update(simulation=True)
-        if dynamics.simulated_turn is not None and dynamics.simulated:
-            turns = turns + [dynamics.simulated_turn]
-    else:
-        turns = [turn for turn in dynamics.turns if turn.phase in [CREATION, DAWN, SUNSET]]
-    
-    if player == 'admin':
-        events = dynamics.events + dynamics.simulated_events
-    else:
-        events = dynamics.events
-
-    if player == 'admin':
-        comments = Comment.objects.filter(turn__game=game).filter(visible=True).order_by('timestamp')
-    else:
-        comments = []
-
-    result = dict([(turn, { 'standard': [], VOTE: {}, ELECT: {}, 'initial_propositions': [], 'soothsayer_propositions': [], 'comments': [] }) for turn in turns ])
-    for event in events:
-        message = event.to_player_string(player)
-        if message is not None:
-            assert event.turn in result.keys(), event.turn
-            result[event.turn]['standard'].append(message)
-        
-        if event.subclass == 'VoteAnnouncedEvent':
-            if event.voted not in result[event.turn][event.type]:
-                result[event.turn][event.type][event.voted] = { 'votes': 0, 'voters': [] }
-            
-            result[event.turn][event.type][event.voted]['voters'].append(event.voter)
-        
-        if event.subclass == 'TallyAnnouncedEvent':
-            if event.voted not in result[event.turn][event.type]:
-                # This shouldn't happen if VoteAnnounvedEvents come before TallyAnnouncedEvents
-                result[event.turn][event.type][event.voted] = { 'votes': 0, 'voters': [] }
-            
-            result[event.turn][event.type][event.voted]['votes'] = event.vote_num
-        
-        if event.subclass == 'InitialPropositionEvent':
-            result[event.turn]['initial_propositions'].append(event.text)
-        
-        if event.subclass == 'RoleKnowledgeEvent' and event.cause == SOOTHSAYER and event.player == player:
-            result[event.turn]['soothsayer_propositions'].append(event.to_soothsayer_proposition())
-    
-    for comment in comments:
-        result[comment.turn]['comments'].append(comment)
-    
-    ordered_result = [ (turn, result[turn]) for turn in turns ]
-    
-    return ordered_result
 
 def not_implemented(request):
     raise NotImplementedError("View not implemented")
@@ -308,13 +262,6 @@ class Weather:
     adjective = property(adjective)
 
 
-def get_weather(request):
-    stored_weather = request.session.get('weather', None)
-    weather = Weather(stored_weather)
-    uptodate = weather.get_data()
-    if not uptodate:
-        request.session['weather'] = weather.stored()
-    return weather
 
 class GameView(View):
     def dispatch(self, request, game_name, *args, **kwargs):
@@ -342,90 +289,132 @@ class EventDeleteView(DeleteView):
         request.game.kill_dynamics()
         return response
 
-# View of village status and public events
-class VillageStatusView(GameView):
-    def get(self, request):
-        
-        game = request.game
-        if game is None:
-            return redirect('home')
-        
-        if request.dynamics is None:
-            return redirect('error')
-        
-        events = get_events(request, 'public')
-        weather = get_weather(request)
-        
-        context = {
-            'events': events,
-            'weather': weather,
-            'display_time': False
-        }   
-        return render(request, 'public_info.html', context)
+# Generic view for showing events
+class EventListView(TemplateView):
+    classified = False
+    display_time = False
+    point_of_view = None
 
+    def get_point_of_view(self):
+        if self.point_of_view is None:
+            raise exceptions.ImproperlyConfigured("EventListView requires requires either a definition of 'point_of_view' or an implementation of 'get_point_of_view()'")
+        else:
+            return self.point_of_view
+
+    # Retrieve weather
+    def get_weather(self):
+        stored_weather = self.request.session.get('weather', None)
+        weather = Weather(stored_weather)
+        uptodate = weather.get_data()
+        if not uptodate:
+            self.request.session['weather'] = weather.stored()
+        return weather
+
+    # Retrieve events depending on the pov
+    def get_events(self):
+        game = self.request.game
+        player = self.get_point_of_view()
+        dynamics = game.get_dynamics()
+        assert dynamics is not None
+        assert not dynamics.failed
+        assert not dynamics.simulating
+        if player == 'admin':
+            turns = dynamics.turns
+            dynamics.update(simulation=True)
+            if dynamics.simulated_turn is not None and dynamics.simulated:
+                turns = turns + [dynamics.simulated_turn]
+        else:
+            turns = [turn for turn in dynamics.turns if turn.phase in [CREATION, DAWN, SUNSET]]
+
+        if player == 'admin':
+            events = dynamics.events + dynamics.simulated_events
+        else:
+            events = dynamics.events
+
+        if player == 'admin':
+            comments = Comment.objects.filter(turn__game=game).filter(visible=True).order_by('timestamp')
+        else:
+            comments = []
+
+        result = dict([(turn, { 'standard': [], VOTE: {}, ELECT: {}, 'initial_propositions': [], 'soothsayer_propositions': [], 'comments': [] }) for turn in turns ])
+        for event in events:
+            message = event.to_player_string(player)
+            if message is not None:
+                assert event.turn in result.keys(), event.turn
+                result[event.turn]['standard'].append(message)
+
+            if event.subclass == 'VoteAnnouncedEvent':
+                if event.voted not in result[event.turn][event.type]:
+                    result[event.turn][event.type][event.voted] = { 'votes': 0, 'voters': [] }
+
+                result[event.turn][event.type][event.voted]['voters'].append(event.voter)
+
+            if event.subclass == 'TallyAnnouncedEvent':
+                if event.voted not in result[event.turn][event.type]:
+                    # This shouldn't happen if VoteAnnounvedEvents come before TallyAnnouncedEvents
+                    result[event.turn][event.type][event.voted] = { 'votes': 0, 'voters': [] }
+
+                result[event.turn][event.type][event.voted]['votes'] = event.vote_num
+
+            if event.subclass == 'InitialPropositionEvent':
+                result[event.turn]['initial_propositions'].append(event.text)
+
+            if event.subclass == 'RoleKnowledgeEvent' and event.cause == SOOTHSAYER and event.player == player:
+                result[event.turn]['soothsayer_propositions'].append(event.to_soothsayer_proposition())
+
+        for comment in comments:
+            result[comment.turn]['comments'].append(comment)
+
+        ordered_result = [ (turn, result[turn]) for turn in turns ]
+
+        return ordered_result
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'events': self.get_events(),
+            'weather': self.get_weather(),
+            'classified': self.classified,
+            'display_time': self.display_time
+        })
+        return context
+
+# View of village status and public events
+class VillageStatusView(EventListView):
+    template_name = 'public_info.html'
+    point_of_view = 'public'
 
 # View of personal info and events
-class PersonalInfoView(GameView):
-    def get(self, request):
-        
-        if request.player is None:
-            return redirect('game:pointofview', game_name=request.game.name)
-        
-        if request.dynamics is None:
-            return redirect('error')
-        
-        player = request.player.canonicalize()
-        game = player.game
-        
-        events = get_events(request, player)
-        weather = get_weather(request)
-        
-        context = {
-            'events': events,
-            'weather': weather,
-            'classified': True,
-        }
-        
-        return render(request, 'personal_info.html', context)
-    
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(PersonalInfoView, self).dispatch(*args, **kwargs)
+@method_decorator(player_required, name='dispatch')
+class PersonalInfoView(EventListView):
+    template_name = 'personal_info.html'
+    classified = True
+
+    def get_point_of_view(self):
+        return self.request.player
 
 
 # View of all info (for GM only)
-class AdminStatusView(GameView):
-    def get(self, request):
-        events = get_events(request, 'admin')
-        weather = get_weather(request)
-        game = request.game
-
-        context = {
-            'events': events,
-            'weather': weather,
-            'classified': True,
-            'display_time': True
-        }
-
-        return render(request, 'public_info.html', context)
-
-    @method_decorator(can_access_admin_view)
-    def dispatch(self, *args, **kwargs):
-        return super(AdminStatusView, self).dispatch(*args, **kwargs)
+@method_decorator(can_access_admin_view, name='dispatch')
+class AdminStatusView(EventListView):
+    template_name = 'public_info.html'
+    point_of_view = 'admin'
+    classified = True
+    display_time = True
 
 
 # "Generic" form for submitting actions
 class CommandForm(forms.Form):
-    
+
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
         super(CommandForm, self).__init__(*args, **kwargs)
-        
+
         # Create form fields in the following order.
         for key in ['target', 'target2', 'target_ghost']:
             if key in fields.keys():
                 field = fields[key]
-                
+
                 if key == 'target' or key == 'target2':
                     choices = [ (None, '(Nessuno)') ]
                     choices.extend( [ (player.pk, player.full_name) for player in field['choices'] ] )
@@ -434,9 +423,9 @@ class CommandForm(forms.Form):
                     choices.extend( [ (power, POWER_NAMES[power]) for power in field['choices'] ] )
                 else:
                     raise Exception ('Unknown form field.')
-                
+
                 self.fields[key] = forms.ChoiceField(choices=choices, required=False, label=field['label'])
-                
+
                 if key == 'target' or key == 'target2':
                     if field['initial'] is not None:
                         self.fields[key].initial = field['initial'].pk
@@ -444,10 +433,10 @@ class CommandForm(forms.Form):
                         self.fields[key].initial = None
                 elif key == 'target_ghost':
                     self.fields[key].initial = field['initial']
-    
+
     def clean(self):
         cleaned_data = super(CommandForm, self).clean()
-        
+
         for key, field in self.fields.items():
             if key == 'target' or key == 'target2':
                 player_id = cleaned_data.get(key)
@@ -460,40 +449,39 @@ class CommandForm(forms.Form):
                         except Player.DoesNotExist:
                             raise forms.ValidationError('Player does not exist')
                         cleaned_data[key] = player
-        
+
         return cleaned_data
 
 
-
 class CommandView(GameView):
-    
+
     template_name = 'command.html'
-    
+
     def check(self, request):
         # Checks if the action can be done
         raise Exception ('Command not specified.')
-    
+
     def get_fields(self, request):
         # Returns a description of the fields required
         raise Exception ('Command not specified.')
-    
+
     def not_allowed(self, request):
         return render(request, 'command_not_allowed.html', {'message': 'Non puoi eseguire questa azione.', 'title': self.title, 'classified': True})
-    
+
     def submitted(self, request):
         return render(request, 'command_submitted.html', {'title': self.title, 'classified': True})
-    
+
     def save_command(self, request, cleaned_data):
         # Validates the form data and possibly saves the command, returning True in case of success and False otherwise
         raise Exception ('Command not specified.')
-    
+
     def post(self, request):
         if request.dynamics is None:
             return redirect('error')
-        
+
         if not self.check(request):
             return self.not_allowed(request)
-        
+
         form = CommandForm(request.POST, fields=self.get_fields(request))
         if form.is_valid():
             if self.save_command(request, form.cleaned_data):
@@ -502,17 +490,17 @@ class CommandView(GameView):
                 return render(request, 'command_not_allowed.html', {'message': 'La scelta effettuata non è valida.', 'classified': True})
         else:
             return render(request, self.template_name, {'form': form, 'classified': True})
-    
+
     def get(self, request):
         if request.player is None:
             return redirect('game:pointofview', game_name=request.game.name)
-        
+
         if request.dynamics is None:
             return redirect('error')
-        
+
         if not self.check(request):
             return self.not_allowed(request)
-        
+
         form = CommandForm(fields=self.get_fields(request))
         context = {
             'form': form,
@@ -521,7 +509,7 @@ class CommandView(GameView):
             'classified': True,
         }
         return render(request, self.template_name, context)
-    
+
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         return super(CommandView, self).dispatch(*args, **kwargs)
@@ -719,14 +707,9 @@ class AppointView(CommandView):
         return True
 
 
-class ContactsView(GameView):
-    def get(self, request):
-        return render(request, 'contacts.html', {})
-
-    @method_decorator(player_required)
-    def dispatch(self, *args, **kwargs):
-        return super(ContactsView, self).dispatch(*args, **kwargs)
-
+@method_decorator(player_required, name='dispatch')
+class ContactsView(TemplateView):
+    template_name = 'contacts.html'
 
 class AnnouncementsListView(ListView):
     model = Announcement
@@ -1159,31 +1142,27 @@ class RestartGameView(ConfirmView):
         return super().form_valid(form)
 
 
-class SetupGameView(GameView):
-    def get(self, request):
-        game = request.game
+# View for redirecting to appropriate initial setup
+@method_decorator(master_required, name='dispatch')
+class SetupGameView(RedirectView):
+    def get_redirect_url(self, *args,  **kwargs):
+        game = self.request.game
         dynamics = game.get_dynamics()
         dynamics.update()
 
         if game.current_turn.phase != CREATION:
-            return redirect('game:status', game_name=game.name)
+            self.pattern_name = 'game:status'
+        elif not game.started:
+            self.pattern_name = 'game:seed'
+        elif game.mayor is None:
+            self.pattern_name = 'game:composition'
+        elif dynamics.check_missing_soothsayer_propositions() is not None:
+            kwargs.update({'pk': dynamics.check_missing_soothsayer_propositions().pk})
+            self.pattern_name = 'game:soothsayer'
+        else:
+            self.pattern_name = 'game:propositions'
 
-        if not game.started:
-            return redirect('game:seed', game_name=game.name)
-
-        if game.mayor is None:
-            return redirect('game:composition', game_name=game.name)
-
-        soothsayer = dynamics.check_missing_soothsayer_propositions()
-        if soothsayer is not None:
-            return redirect('game:soothsayer', game_name=game.name, pk=soothsayer.pk)
-
-        return redirect('game:propositions', game_name=game.name)
-
-    @method_decorator(master_required)
-    def dispatch(self, *args, **kwargs):
-        return super(SetupGameView, self).dispatch(*args, **kwargs)
-
+        return super().get_redirect_url(*args, **kwargs)
 
 # View for changing game Seed
 class SeedForm(forms.Form):
@@ -1412,51 +1391,55 @@ class ChangePointOfViewForm(forms.Form):
         self.fields['player'].queryset = Player.objects.filter(game=game)
 
 # View for changing point of view (for GMs only)
-class PointOfView(GameView):
-    def get(self, request):
-        game = request.game
-        player = request.player
-        form = ChangePointOfViewForm(game=game, initial={'player': player})
-        return render(request, 'point_of_view.html', {'form': form, 'message': None, 'classified': True})
-    
-    def post(self, request):
-        game = request.game
-        player = request.player
-        form = ChangePointOfViewForm(request.POST, game=game)
-        
-        if form.is_valid():
-            player = form.cleaned_data['player']
-            if player is not None:
-                request.session['player_id'] = player.pk
-            else:
-                request.session['player_id'] = None
-            
-            # Metto il nuovo giocatore nella request corrente
-            request.player = player
-            
-            form2 = ChangePointOfViewForm(initial={'player': player})
-            return render(request, 'point_of_view.html', {'form': form, 'message': 'Punto di vista cambiato con successo', 'classified': True})
+@method_decorator(master_required, name='dispatch')
+class PointOfView(GameFormView):
+    form_class = ChangePointOfViewForm
+    template_name = 'point_of_view.html'
+    success_url = 'game:status'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({ 'classified': True })
+        return context
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial.update({ 'player': self.request.player })
+        return initial
+
+    def form_valid(self, form):
+        player = form.cleaned_data.get('player')
+        if player is not None:
+            self.request.session['player_id'] = player.pk
         else:
-            return render(request, 'point_of_view.html', {'form': form, 'message': 'Scelta non valida', 'classified': True})
-    
-    @method_decorator(master_required)
-    def dispatch(self, *args, **kwargs):
-        return super(PointOfView, self).dispatch(*args, **kwargs)
+            self.request.session['player_id'] = None
+
+        return super().form_valid(form)
 
 
-class CommentForm(forms.Form):
-    text = forms.CharField(widget=forms.Textarea, label='', max_length=4096)
+# View for writing comments
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['text']
+        labels = {'text': ''}
 
-class CommentView(GameView):
+@method_decorator(player_or_master_required, name='dispatch')
+class CommentView(FormView):
+    form_class = CommentForm
+    template_name = 'comment.html'
     max_comments_per_turn = 100
 
-    def can_comment(self, request):
+    def get_success_url(self):
+        return reverse('game:comment', kwargs={'game_name': self.request.game.name})
+
+    def can_comment(self):
         # Checks if the user can post a comment
-        user = request.user
-        game = request.game
+        user = self.request.user
+        game = self.request.game
         current_turn = game.current_turn
 
-        if request.is_master:
+        if self.request.is_master:
             return True
 
         try:
@@ -1469,36 +1452,30 @@ class CommentView(GameView):
         except IndexError:
             return True
 
-    def get(self, request):
-        user = request.user
-        game = request.game
-        form = CommentForm()
-        old_comments = Comment.objects.filter(user=user).filter(turn__game=game).filter(visible=True).order_by('-timestamp')
-        can_comment = self.can_comment(request)
-        return render(request, 'comment.html', {'form': form, 'old_comments': old_comments, 'can_comment': can_comment, 'classified': True})
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'old_comments': Comment.objects.filter(user=self.request.user)
+                    .filter(turn__game=self.request.game).filter(visible=True).order_by('-timestamp'),
+            'can_comment': self.can_comment(),
+            'classified': True
+        })
+        return context
 
-    def post(self, request):
-        form = CommentForm(request.POST)
-        user = request.user
-        game = request.game
+    def form_valid(self, form):
+        user = self.request.user
+        game = self.request.game
         current_turn = game.current_turn
 
-        if form.is_valid() and self.can_comment(request):
+        if self.can_comment():
             text = form.cleaned_data['text']
             last_comment = Comment.objects.filter(user=user).filter(turn__game=game).filter(visible=True).order_by('-timestamp').first()
             # Check against double post
-            if last_comment.text != text:
+            if last_comment is None or last_comment.text != text:
                 comment = Comment(turn=game.current_turn, user=user, text=text)
                 comment.save()
-            return redirect('game:comment', game_name=game.name)
 
-        old_comments = Comment.objects.filter(user=user).filter(turn__game=game).filter(visible=True).order_by('-timestamp')
-        can_comment = self.can_comment(request)
-        return render(request, 'comment.html', {'form': form, 'old_comments': old_comments, 'can_comment': can_comment, 'classified': True})
-
-    @method_decorator(player_required)
-    def dispatch(self, *args, **kwargs):
-        return super(CommentView, self).dispatch(*args, **kwargs)
+        return super().form_valid(form)
 
 
 # Dump view (for GM only)

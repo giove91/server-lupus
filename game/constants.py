@@ -50,6 +50,7 @@ TEAM_IT = {
     POPOLANI: 'Popolani',
     LUPI: 'Lupi',
     NEGROMANTI: 'Negromanti',
+    None: 'Nessuna'
 }
 
 # Auras
@@ -59,6 +60,7 @@ BLACK = 'B'
 AURA_IT = {
     WHITE: 'Bianca',
     BLACK: 'Nera',
+    None: 'Nessuna'
 }
 
 # Soothsayer errors
