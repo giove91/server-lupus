@@ -728,12 +728,13 @@ class ContactsView(GameView):
         return super(ContactsView, self).dispatch(*args, **kwargs)
 
 
-class AnnouncementsView(ListView):
+class AnnouncementsListView(ListView):
     model = Announcement
     template_name = 'announcements.html'
-    
+    context_object_name = 'announcements'
+
     def get_queryset(self):
-        game = Game.get_running_game()
+        game = self.request.game
         return Announcement.objects.filter(game=game).filter(visible=True).order_by('-timestamp')
 
 
@@ -1009,6 +1010,8 @@ class ManageGameMastersForm(forms.ModelForm):
             raise forms.ValidationError('L\'utente è già master della partita.')
         return cleaned_data
 
+
+@method_decorator(master_required, name='dispatch')
 class ManageGameMastersView(CreateView):
     form_class = ManageGameMastersForm
     template_name = 'manage_masters.html'
@@ -1036,18 +1039,60 @@ class ManageGameMastersView(CreateView):
         self.object.game = self.request.game
         return super().form_valid(form)
 
-    @method_decorator(master_required)
-    def dispatch(self, *args, **kwargs):
-        return super(ManageGameMastersView, self).dispatch(*args, **kwargs)
+
+@method_decorator(master_required, name='dispatch')
+class DeleteGameMasterView(DeleteView):
+    success_url = 'game:managemasters'
+    def get_queryset(self):
+        return GameMaster.objects.filter(game=self.request.game)
+
+# View for publishing a new announcement
+class PublishAnnouncementForm(forms.ModelForm):
+    class Meta:
+        model = Announcement
+        fields = ['text']
+        widgets = { 'text': forms.TextInput() }
+
+    def __init__(self, *args, **kwargs):
+        self.game = kwargs.pop('game', None)
+        super().__init__(*args, **kwargs)
 
 
-class DeleteGameMasterView(GameView):
-    def get(self, request, pk):
-        game = request.game
-        obj = GameMaster.objects.get(pk=pk)
-        if request.is_master and request.game==obj.game and len(game.masters) > 1:
-            obj.delete()
-        return redirect('game:managemasters', game_name=request.game.name)
+@method_decorator(master_required, name='dispatch')
+class PublishAnnouncementView(CreateView):
+    form_class = PublishAnnouncementForm
+    template_name = 'announcements.html'
+
+    def get_success_url(self):
+        return reverse( 'game:publishannouncement', kwargs={'game_name': self.request.game.name})
+
+    def get_announcements(self):
+        return Announcement.objects.filter(game=self.request.game)
+
+    def get_form_kwargs(self, **kwargs):
+        kwargs = super().get_form_kwargs(**kwargs)
+        kwargs.update({ 'game': self.request.game })
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'announcements': self.get_announcements()
+        })
+        return context
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.game = self.request.game
+        return super().form_valid(form)
+
+@method_decorator(master_required, name='dispatch')
+class DeleteAnnouncementView(DeleteView):
+    def get_success_url(self):
+        return reverse('game:publishannouncement', kwargs={'game_name': self.request.game.name})
+    def get_queryset(self):
+        return Announcement.objects.filter(game=self.request.game)
+
 
 # View for advancing turn
 @method_decorator(master_required, name='dispatch')

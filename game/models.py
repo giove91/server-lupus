@@ -643,7 +643,7 @@ class Announcement(models.Model):
     
     game = models.ForeignKey(Game, null=True, blank=True, default=None, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(default=datetime.now)
-    text = models.TextField()
+    text = models.TextField(verbose_name='Testo')
     visible = models.BooleanField(default=True)
     
     class Meta:

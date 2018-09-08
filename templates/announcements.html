@@ -6,11 +6,31 @@
 
     <h1>Annunci dei GM</h1>
     <div class="info-block">
-        {% for announcement in object_list %}
-            <p><strong>{{ announcement.timestamp|date:"d/m/Y H:i" }}</strong> {{ announcement.text }}</p>
+        <ul>
+        {% for announcement in announcements %}
+        <li>
+            {% if form %}
+                <form method="post" action="{% url "game:deleteannouncement" game_name=game.name pk=announcement.pk %}">
+                    {% csrf_token %}
+                    <label><strong>{{ announcement.timestamp|date:"d/m/Y H:i" }}</strong> {{ announcement.text }}</label>
+                    <input type="submit" value="Elimina">
+                </form>
+            {% else %}
+                <p><strong>{{ announcement.timestamp|date:"d/m/Y H:i" }}</strong> {{ announcement.text }}</p>
+            {% endif %}
+        </li>
         {% empty %}
-            <p>Non ci sono annunci.</p>
+            <li>Non ci sono annunci.</li>
         {% endfor %} 
+        {% if form %}
+            <li>
+            <form method="post" action="">
+                {% csrf_token %}
+                {{ form }}
+                <input type="submit" value="Aggiungi">
+            </form>
+            </li>
+        {% endif %}
     </div>
 
 </main>

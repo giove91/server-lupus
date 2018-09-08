@@ -130,7 +130,7 @@
                     {% endif %}
                     <li><a href="{% url 'game:settings' game_name=game.name %}">Impostazioni</a></li>
                     <li><a href="{% url 'game:managemasters' game_name=game.name %}">Gestione Master</a></li>
-                    <li><a href="">Annunci</a></li>
+                    <li><a href="{% url 'game:publishannouncement' game_name=game.name %}">Pubblica annuncio</a></li>
                     <li><a href="{% url 'game:comment' game_name=game.name %}">Commenti</a></li>
                 </ul>
             </div>

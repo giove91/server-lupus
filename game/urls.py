@@ -11,7 +11,7 @@ urlpatterns = [
     path('', RedirectView.as_view(url='status', permanent=False)),
     
     path('status/', VillageStatusView.as_view(), name='status'),
-    path('announcements/', AnnouncementsView.as_view(), name='announcements'),
+    path('announcements/', AnnouncementsListView.as_view(), name='announcements'),
     
     path('usepower/', UsePowerView.as_view(), name='usepower'),
     path('vote/', VoteView.as_view(), name='vote'),
@@ -29,7 +29,9 @@ urlpatterns = [
     path('as_normal_user/', as_normal_user, name='as_normal_user'), # Lascia i poteri da GM
 
     path('managemasters/', ManageGameMastersView.as_view(), name='managemasters'), # Aggiunge un master alla partita
-    path('deletemaster/<int:pk>', DeleteGameMasterView.as_view(), name='deletemaster'), # Aggiunge un master alla partita
+    path('deletemaster/<int:pk>', DeleteGameMasterView.as_view(), name='deletemaster'), # Toglie un master dalla partita
+    path('publishannouncement/', PublishAnnouncementView.as_view(), name='publishannouncement'), # Pubblica un annuncio
+    path('deleteannouncement/<int:pk>', DeleteAnnouncementView.as_view(), name='deleteannouncement'), # Cancella un annuncio
     path('setup/', SetupGameView.as_view(), name='setup'), # Prepara l'inizio
     path('seed/', SeedView.as_view(), name='seed'), # Cambia o crea il seed
     path('composition/', VillageCompositionView.as_view(), name='composition'), # Imposta la composizione del villaggio
