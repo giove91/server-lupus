@@ -64,6 +64,17 @@ def player_required(func):
 
     return decorator
 
+def registrations_open(func):
+    """Checks that the game is not started."""
+    def decorator(request, *args, **kwargs):
+        if request.game is not None and not request.game.started:
+            return func(request, *args, **kwargs)
+        else:
+            return redirect('game:status',game_name=request.game.name)
+
+    return decorator
+
+
 def can_access_admin_view(func):
     def decorator(request, *args, **kwargs):
         if request.is_master or (request.player and game.is_over and game.postgame_info):
@@ -187,6 +198,7 @@ def signup(request):
     else:
         form = SignUpForm()
     return render(request, 'registration/signup.html', {'form': form})
+
 
 def logout_view(request):
     logout(request)
@@ -929,8 +941,58 @@ class LeaveGameView(ConfirmView):
         game.kill_dynamics()
         return super().form_valid(form)
 
+# View for creating a new User and signing him to the Game
+class NewPlayerForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email']
+        labels = {
+            'username': 'Username',
+            'first_name': 'Nome',
+            'last_name': 'Cognome',
+            'email': 'E-mail'
+        }
+        help_texts = {
+            'username': ''
+        }
 
+    GENDERS = (
+        ('M','Maschio'), ('F','Femmina')
+    )
+    gender = forms.ChoiceField(label='Genere', choices=GENDERS)
 
+    def clean_username(self):
+        username = self.cleaned_data["username"]
+        try:
+            User.objects.get(username=username)
+        except User.DoesNotExist:
+            return username
+
+        raise forms.ValidationError("L'utente selezionato esiste già.")
+
+    def __init__(self, **kwargs):
+        self.game = kwargs.pop('game')
+        return super().__init__(**kwargs)
+
+@method_decorator([user_passes_test(is_staff_check), registrations_open], name='dispatch')
+class NewPlayerView(GameFormView):
+    form_class = NewPlayerForm
+    template_name = 'new_player.html'
+    success_url = 'game:status'
+
+    def form_valid(self, form):
+        user = form.save(commit=False)
+        user.password = User.objects.make_random_password()
+        user.save()
+        profile = Profile(user=user)
+        profile.gender = form.cleaned_data.get('gender')
+        profile.save()
+        player = Player(game=self.request.game, user=user)
+        player.save()
+        self.request.game.kill_dynamics()
+        return super().form_valid(form)
+
+# View to add or remove masters
 class ManageGameMastersForm(forms.ModelForm):
     user = forms.ModelChoiceField(queryset=User.objects.all(), to_field_name='username', widget=forms.TextInput())
     class Meta:

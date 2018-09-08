@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <main id="content" class="grid_13">
+    <h2>Aggiungi un nuovo account</h2>
+    <p>Crea un nuovo account e iscrivilo alla partita.
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}<br>
+      <button type="submit">Crea</button>
+    </form>
+  </main>
+{% endblock %}

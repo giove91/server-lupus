@@ -104,6 +104,9 @@
             <div class="nav-menu game-master">
                 <h1>Giocatori</h1>
                 <ul>
+                {% if user.is_staff and not game.started %}
+                    <li><a href="{% url 'game:newplayer' game_name=game.name %}">Nuovo giocatore</a></li>
+                {% endif %}
                 <li><a href="{% url 'game:pointofview' game_name=game.name %}">Punto di vista</a></li>
                 <li><a href="{% url 'game:personalinfo' game_name=game.name %}">Informazioni personali</a></li>
                 {% if current_turn.phase == DAY %}
@@ -126,6 +129,7 @@
                         <li><a href="{% url 'game:setup' game_name=game.name %}">Setup iniziale</a></li>
                     {% endif %}
                     <li><a href="{% url 'game:settings' game_name=game.name %}">Impostazioni</a></li>
+                    <li><a href="{% url 'game:managemasters' game_name=game.name %}">Gestione Master</a></li>
                     <li><a href="">Annunci</a></li>
                     <li><a href="{% url 'game:comment' game_name=game.name %}">Commenti</a></li>
                 </ul>
