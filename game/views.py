@@ -961,54 +961,49 @@ class LeaveGameView(GameView):
     def dispatch(self, *args, **kwargs):
         return super(LeaveGameView, self).dispatch(*args, **kwargs)
 
-class ManageGameMastersForm(forms.Form):
-    username = forms.CharField(label='')
+
+class ManageGameMastersForm(forms.ModelForm):
+    user = forms.ModelChoiceField(queryset=User.objects.all(), to_field_name='username', widget=forms.TextInput())
+    class Meta:
+        model = GameMaster
+        fields = ['user']
 
     def __init__(self, *args, **kwargs):
         self.game = kwargs.pop('game', None)
         super(ManageGameMastersForm, self).__init__(*args, **kwargs)
 
-class ManageGameMastersView(GameView):
-    def get(self, request):
-        game = request.game
-        masters = game.masters
-        form = ManageGameMastersForm(game=game)
+    def clean(self):
+        cleaned_data = super().clean()
+        if GameMaster.objects.filter(game=self.game, user=cleaned_data.get('user', None)).exists():
+            raise forms.ValidationError('L\'utente è già master della partita.')
+        return cleaned_data
 
-        return render(request, 'manage_masters.html', {
-            'form': form,
-            'message': None,
-            'masters':masters,
-            'classified': True
+class ManageGameMastersView(CreateView):
+    form_class = ManageGameMastersForm
+    template_name = 'manage_masters.html'
+
+    def get_success_url(self):
+        return reverse( 'game:managemasters', kwargs={'game_name': self.request.game.name})
+
+    def get_masters(self):
+        return GameMaster.objects.filter(game=self.request.game)
+
+    def get_form_kwargs(self, **kwargs):
+        kwargs = super().get_form_kwargs(**kwargs)
+        kwargs.update({ 'game': self.request.game })
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'masters': self.get_masters()
         })
+        return context
 
-    def post(self, request):
-        game = request.game
-        form = ManageGameMastersForm(request.POST, game=game)
-        masters = game.masters
-        if form.is_valid():
-            error = False
-            # Check user exists
-            try:
-                user = User.objects.get(username=form.cleaned_data['username'])
-            except User.DoesNotExist:
-                return render(request, 'manage_masters.html', {'form': form, 'message': 'L\'utente selezionato non esiste.', 'masters': masters, 'classified': True})
-
-            # Check s/he is not already a player
-            try:
-                _ = Player.objects.get(game=game,user=user)
-                return render(request, 'manage_masters.html', {'form': form, 'message': 'L\'utente selezionato è un giocatore della partita.', 'masters': masters, 'classified': True})
-            except Player.DoesNotExist:
-                pass
-
-            # Check s/he is not already a master
-            (master, created) = GameMaster.objects.get_or_create(game=game,user=user)
-            if created:
-                master.save()
-                return redirect('game:managemasters', game_name=game.name)
-            else:
-                return render(request, 'manage_masters.html', {'form': form, 'message': 'L\'utente selezionato è già un master della partita.', 'masters': masters, 'classified': True})
-        else:
-            return render(request, 'manage_masters.html', {'form': form, 'message': 'Scelta non valida..', 'masters': masters, 'classified': True})
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.game = self.request.game
+        return super().form_valid(form)
 
     @method_decorator(master_required)
     def dispatch(self, *args, **kwargs):
@@ -1113,6 +1108,8 @@ class SetupGameView(GameView):
     def dispatch(self, *args, **kwargs):
         return super(SetupGameView, self).dispatch(*args, **kwargs)
 
+
+# View for changing game Seed
 class SeedForm(forms.Form):
     excluded_players = forms.ModelMultipleChoiceField(
         queryset = Player.objects.all(),
@@ -1133,37 +1130,36 @@ class SeedForm(forms.Form):
         self.fields['excluded_players'].queryset = Player.objects.filter(game=game)
         assert(not game.started)
 
-class SeedView(GameView):
-    def get(self, request):
-        game = request.game
-        form = SeedForm(game=game)
-        return render(request, 'seed.html', {'form': form, 'message': None, 'classified': True})
+@method_decorator(master_required, name='dispatch')
+class SeedView(GameFormView):
+    form_class = SeedForm
+    success_url = 'game:setup'
+    template_name = 'seed.html'
 
-    def post(self, request):
-        game = request.game
-        form = SeedForm(request.POST, game=game)
-        if form.is_valid():
-            excluded_players = form.cleaned_data['excluded_players']
-            excluded_players.delete()
-            game.initialize(get_now())
-            dynamics = game.get_dynamics()
-            first_turn = dynamics.current_turn
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'classified' : True,
+        })
+        return context
 
-            event = SeedEvent(seed=str(form.cleaned_data['seed']))
-            event.timestamp = get_now()
-            dynamics.inject_event(event)
+    def form_valid(self, form):
+        game = self.request.game
+        excluded_players = form.cleaned_data['excluded_players']
+        excluded_players.delete()
+        game.initialize(get_now())
+        dynamics = game.get_dynamics()
 
-            event = SetRulesEvent(ruleset=form.cleaned_data['ruleset'])
-            event.timestamp = get_now()
-            dynamics.inject_event(event)
+        event = SeedEvent(seed=str(form.cleaned_data['seed']))
+        event.timestamp = get_now()
+        dynamics.inject_event(event)
 
-            return redirect('game:setup', game_name=game.name)
-        else:
-            return render(request, 'seed.html', {'form': form, 'message': 'Scelta non valida', 'classified': True})
+        event = SetRulesEvent(ruleset=form.cleaned_data['ruleset'])
+        event.timestamp = get_now()
+        dynamics.inject_event(event)
 
-    @method_decorator(master_required)
-    def dispatch(self, *args, **kwargs):
-        return super(SeedView, self).dispatch(*args, **kwargs)
+        return super().form_valid(form)
+
 
 # View for deciding Village Composition
 class VillageCompositionForm(forms.Form):
