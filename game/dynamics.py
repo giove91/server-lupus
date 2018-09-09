@@ -15,7 +15,7 @@ from .events import CommandEvent, VoteAnnouncedEvent, TallyAnnouncedEvent, \
 from .constants import *
 from .roles import *
 from .utils import get_now
-DEBUG_DYNAMICS = False
+DEBUG_DYNAMICS = True
 SIMULATE_NEXT_TURN = True
 FORCE_SIMULATION = False # Enable only while running tests
 RELAX_TIME_CHECKS = False
@@ -73,7 +73,7 @@ class Dynamics:
                 assert not event.AUTOMATIC, "Please delete automatic events from database using delete_automatic_events.py"
 
     def initialize_augmented_structure(self):
-        self.players = list(self.game.player_set.order_by('user__last_name', 'user__first_name', 'user__username'))
+        self.players = list(self.game.player_set.order_by('pk'))
         self.players_dict = {}
         self.random = None
         self.current_turn = None

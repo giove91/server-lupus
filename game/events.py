@@ -137,7 +137,7 @@ class SeedEvent(Event):
         return ret
 
     def load_from_dict(self, data, players_map):
-        self.seed = data['seed']
+        self.seed = str(data['seed'])
 
     def apply(self, dynamics):
         # We use Wichmann-Hill because it is a pure Python

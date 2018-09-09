@@ -1176,7 +1176,7 @@ class LoadGameView(FormView):
     def form_valid(self, form):
         file = self.request.FILES['json']
         game = self.request.game
-        game.load_from_json(json.load(file))
+        game.load_from_json(json.loads(file.read().decode("UTF-8")))
         return super().form_valid(form)
 
 # View for redirecting to appropriate initial setup

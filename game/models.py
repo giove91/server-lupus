@@ -252,47 +252,47 @@ class Game(models.Model):
         Player.objects.filter(game=self).delete()
         Turn.objects.filter(game=self).delete()
         self.kill_dynamics()
-        for username in data['players']:
-            user = User.objects.get(username=username)
-            player = Player.objects.create(user=user, game=self)
-            player.save()
-
-        # Here we canonicalize the players, so this has to happen after
-        # all users and players have been inserted in the database;
-        # therefore, this loop cannot be merged with the previous one
-        players_map = {None: None}
-        for player in self.get_players():
-            assert player.user.username not in players_map
-            players_map[player.user.username] = player
-
-        # Now we're ready to reply turns and events
-        first_turn = True
-        for turn_data in data['turns']:
-            if not first_turn:
-                turn = turn.next_turn(must_exist=False)
-            else:
-                turn = Turn.first_turn(self)
-                first_turn = False
-
-            turn.begin = parse(turn_data['begin'])
-            turn.end = parse(turn_data['end'])
-            turn.save()
-            for event_data in turn_data['events']:
-                event = Event.from_dict(event_data, players_map)
-                event.turn = turn
-                event.save()
-            for comment_data in turn_data['comments']:
-                comment = Comment.from_dict(comment_data)
-                comment.turn = turn
-                comment.save()
         try:
+            for username in data['players']:
+                user = User.objects.get(username=username)
+                player = Player.objects.create(user=user, game=self)
+                player.save()
+
+            # Here we canonicalize the players, so this has to happen after
+            # all users and players have been inserted in the database;
+            # therefore, this loop cannot be merged with the previous one
+            players_map = {None: None}
+            for player in self.get_players():
+                assert player.user.username not in players_map
+                players_map[player.user.username] = player
+
+            # Now we're ready to reply turns and events
+            first_turn = True
+            for turn_data in data['turns']:
+                if not first_turn:
+                    turn = turn.next_turn(must_exist=False)
+                else:
+                    turn = Turn.first_turn(self)
+                    first_turn = False
+
+                turn.begin = parse(turn_data['begin'])
+                turn.end = parse(turn_data['end'])
+                turn.save()
+                for event_data in turn_data['events']:
+                    event = Event.from_dict(event_data, players_map)
+                    event.turn = turn
+                    event.save()
+                for comment_data in turn_data['comments']:
+                    comment = Comment.from_dict(comment_data)
+                    comment.turn = turn
+                    comment.save()
+
             self.get_dynamics().update()
         except:
             self.kill_dynamics()
             Turn.objects.filter(game=self).delete()
             self.initialize(get_now())
             raise
-
 
 # Delete the dynamics object when the game is deleted
 def game_pre_delete_callback(sender, instance, **kwargs):
