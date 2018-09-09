@@ -281,6 +281,15 @@ class GameFormView(FormView):
         kwargs.update({'game': self.request.game})
         return kwargs
 
+    def can_execute_action(self):
+        return True
+
+    def dispatch(self, *args, **kwargs):
+        if self.can_execute_action():
+            return super().dispatch(*args, **kwargs)
+        else:
+            return render(self.request, 'command_not_allowed.html', {'message': 'Non puoi eseguire questa azione.', 'title': self.title, 'classified': True})
+
 # Generic view for deleting an event (will respawn dynamics)
 class EventDeleteView(DeleteView):
     def get_success_url(self):
@@ -1090,6 +1099,9 @@ class AdvanceTurnView(ConfirmView):
         return 'Vuoi davvero avanzare %s%s?' % (next_turn.preposition_to_as_italian_string(), next_turn.turn_as_italian_string())
 
     def can_execute_action(self):
+        game = self.request.game
+        if game.current_turn.phase == CREATION:
+            return game.started and game.mayor is not None and game.get_dynamics().check_missing_soothsayer_propositions() is None
         return not self.request.game.is_over
 
     def form_valid(self, form):
@@ -1440,6 +1452,45 @@ class PointOfView(GameFormView):
             self.request.session['player_id'] = None
 
         return super().form_valid(form)
+
+# View for forcing win
+class ForceVictoryForm(forms.ModelForm):
+    winners = forms.MultipleChoiceField(choices=(), widget=forms.CheckboxSelectMultiple(choices=()), label='Vincitori', required=False)
+    class Meta:
+        model = ForceVictoryEvent
+        fields = [ 'winners' ]
+
+    def __init__(self, *args, **kwargs):
+        self.game = kwargs.pop('game', None)
+        super().__init__(*args, **kwargs)
+        dynamics = self.game.get_dynamics()
+
+        choices = [(x,TEAM_IT[x]) for x in dynamics.starting_teams]
+        self.fields["winners"].choices = choices
+        self.fields["winners"].widget.choices = choices
+
+@method_decorator(master_required, name='dispatch')
+class ForceVictoryView(GameFormView):
+    form_class = ForceVictoryForm
+    template_name = 'force_victory.html'
+    title = 'Decreta vincitori'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'classified' : True,
+        })
+        return context
+
+    def can_execute_action(self):
+        return not self.request.game.is_over and self.request.game.started
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.timestamp = get_now()
+        self.request.game.get_dynamics().inject_event(self.object)
+
+        return render(self.request, 'command_submitted.html', {'classified': True})
 
 
 # View for writing comments

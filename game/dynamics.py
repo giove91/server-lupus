@@ -95,6 +95,7 @@ class Dynamics:
         self.sasha_is_sleeping = False  # usually...
         self.playing_teams = []
         self.dying_teams = []
+        self.recorded_winners = None
         self.illusion = None
         self.wolves_agree = None
         self.necromancers_agree = None
@@ -962,10 +963,9 @@ class Dynamics:
         self.dying_teams = []
 
         if winning_teams is not None and self.winners is None:
-            self.generate_event(VictoryEvent(popolani_win=POPOLANI in winning_teams,
-                                             lupi_win=LUPI in winning_teams,
-                                             negromanti_win=NEGROMANTI in winning_teams,
-                                             cause=NATURAL))
+            self.generate_event(VictoryEvent(winners=winning_teams, cause=NATURAL))
+        elif self.recorded_winners:
+            self.generate_event(VictoryEvent(winners=self.recorded_winners, cause=FORCED))
 
     def _perform_mayor_succession(self):
         new_mayor = not(self.mayor.alive and self.mayor.active)

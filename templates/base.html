@@ -141,6 +141,7 @@
                     {% if current_turn.phase != CREATION %}
                         <li><a href="{% url 'game:advanceturn' game_name=game.name %}">Turno successivo</a></li>
                         <li><a href="{% url 'game:rollbackturn' game_name=game.name %}">Turno precedente</a></li>
+                        <li><a href="{% url 'game:forcevictory' game_name=game.name %}">Decreta vincitori</a></li>
                     {% endif %}
                     <li><a href="{% url 'game:restart' game_name=game.name %}">Ricomincia</a></li>
                     {% if user.is_staff %}

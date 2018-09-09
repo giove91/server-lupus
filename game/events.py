@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django.db import models
-from .models import Event, Player
+from .models import Event, Player, CommaSepField
 from .roles import *
 from .constants import *
 from .utils import dir_dict, rev_dict
@@ -1277,33 +1277,27 @@ class ExileEvent(Event):
 
 
 class ForceVictoryEvent(Event):
-    RELEVANT_PHASES = [DAWN, SUNSET]
+    RELEVANT_PHASES = [DAWN, DAY, SUNSET, NIGHT]
     AUTOMATIC = False
 
-    popolani_win = models.BooleanField(default=None)
-    lupi_win = models.BooleanField(default=None)
-    negromanti_win = models.BooleanField(default=None)
+    winners = CommaSepField(max_length=10, default=[], null=True)
 
     def to_dict(self):
         ret = Event.to_dict(self)
         ret.update({
-                'popolani_win': self.popolani_win,
-                'lupi_win': self.lupi_win,
-                'negromanti_win': self.negromanti_win,
+                'winners': winners,
                 })
         return ret
 
     def load_from_dict(self, data, players_map):
-        self.popolani_win = data['popolani_win']
-        self.lupi_win = data['lupi_win']
-        self.negromanti_win = data['negromanti_win']
+        self.winners = data['winners']
 
     def apply(self, dynamics):
-        dynamics.generate_event(VictoryEvent(popolani_win=self.popolani_win,
-                                             lupi_win=self.lupi_win,
-                                             negromanti_win=self.negromanti_win,
-                                             cause=FORCED,
-                                             timestamp=self.timestamp))
+        if dynamics.current_turn.phase in [DAWN, SUNSET]:
+            if self.winners is not None:
+                dynamics.generate_event(VictoryEvent(winners=self.winners, cause=FORCED, timestamp=self.timestamp))
+        else:
+            dynamics.recorded_winners = self.winners
 
     def to_player_string(self, player):
         return None
@@ -1313,34 +1307,23 @@ class VictoryEvent(Event):
     RELEVANT_PHASES = [DAWN, SUNSET]
     AUTOMATIC = True
 
-    popolani_win = models.BooleanField(default=None)
-    lupi_win = models.BooleanField(default=None)
-    negromanti_win = models.BooleanField(default=None)
+    winners = CommaSepField(max_length=10, default=[])
+
     VICTORY_CAUSES = (
         (NATURAL, 'Natural'),
         (FORCED, 'Forced'),
         )
     cause = models.CharField(max_length=1, choices=VICTORY_CAUSES, default=None)
 
-    def get_winners(self):
-        winners = []
-        if self.popolani_win:
-            winners.append(POPOLANI)
-        if self.lupi_win:
-            winners.append(LUPI)
-        if self.negromanti_win:
-            winners.append(NEGROMANTI)
-        return winners
 
     def apply(self, dynamics):
-        winners = self.get_winners()
-        dynamics.winners = winners
+        dynamics.winners = self.winners
         dynamics.over = True
         dynamics.giove_is_happy = True
         dynamics.server_is_on_fire = True
     
     def to_player_string(self, player):
-        winners = self.get_winners()
+        winners = self.winners
         if len(winners) == 1:
             return u'<b>La partita si è conclusa con la vittoria della Fazione dei %s.</b>' % (TEAM_IT[winners[0]])
         elif len(winners) == 2:

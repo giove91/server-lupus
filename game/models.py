@@ -14,6 +14,26 @@ from .constants import *
 
 from .utils import advance_to_time, get_now
 
+class CommaSepField(models.CharField):
+    def from_db_value(self, value, expression, connection):
+        if value is None:
+            return value
+        return value.split(',')
+
+    def to_python(self, value):
+        if isinstance(value, list):
+            return value
+
+        if value is None:
+            return value
+
+        else:
+            return value.split(',')
+
+    def get_prep_value(self, value):
+        if value is None or value == []:
+            return None
+        return ','.join(value)
 
 class KnowsChild(models.Model):
     # Make a place to store the class name of the child

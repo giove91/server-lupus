@@ -49,6 +49,7 @@ urlpatterns = [
     
     path('adminstatus/', AdminStatusView.as_view(), name='adminstatus'),
     path('advanceturn/', AdvanceTurnView.as_view(), name='advanceturn'),
+    path('forcevictory/', ForceVictoryView.as_view(), name='forcevictory'),
     path('pointofview/', PointOfView.as_view(), name='pointofview'),
     path('dump/', DumpView.as_view(), name='dump'),
 ]

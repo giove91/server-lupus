@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<main id="content" class="grid_13">
+    <h1>Decreta vincitori</h1>
+    
+    <div class="info-block">
+        <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Conferma" /></p>
+        </form>
+        </p>
+    </div>
+</main>
+{% endblock %}
+

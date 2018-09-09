@@ -73,7 +73,7 @@ class PageRequestAdmin(admin.ModelAdmin):
     search_fields = ['user__username', 'user__first_name', 'user__last_name']
 
 class ForceVictoryEventAdmin(admin.ModelAdmin):
-    list_display = ('popolani_win', 'lupi_win', 'negromanti_win')
+    list_display = ('winners', )
 
 admin.site.register(Player, PlayerAdmin)
 admin.site.register(Event, EventAdmin)
