@@ -835,7 +835,7 @@ class CreateGameView(CreateView):
         else:
             return render(self.request, 'create_game.html', {'form': form, 'message': 'Nome già in uso.'})
 
-    @method_decorator(user_passes_test(is_staff_check))
+    @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         return super(CreateGameView, self).dispatch(*args, **kwargs)
 

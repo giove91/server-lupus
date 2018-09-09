@@ -14,7 +14,8 @@
         <ul>
         {% for m in masters %}
         <li>
-            <form method="get" action="{% url "game:deletemaster" game_name=game.name pk=m.pk %}">
+            <form method="post" action="{% url "game:deletemaster" game_name=game.name pk=m.pk %}">
+            {% csrf_token %}
             <label>{{ m.user.username }} ({{ m.full_name }})</label><input type="submit" value="Elimina">
             </form>
         </li>

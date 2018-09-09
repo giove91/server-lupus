@@ -65,7 +65,7 @@
                             {% if game %}
                                 <li><a href="{% url 'game:status' game_name=game.name  %}">Stato del villaggio</a></li>
                                 <li class="announcements"><a href="{% url 'game:announcements' game_name=game.name %}">Annunci dei GM</a></li>
-                            {% elif user.is_staff %}
+                            {% elif user.is_authenticated %}
                                 <li><a href="{% url 'creategame' %}">Crea nuovo villaggio</a></li>
                             {% endif %}
                         </ul>
