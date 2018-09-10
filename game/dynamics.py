@@ -15,7 +15,7 @@ from .events import CommandEvent, VoteAnnouncedEvent, TallyAnnouncedEvent, \
 from .constants import *
 from .roles import *
 from .utils import get_now
-DEBUG_DYNAMICS = True
+DEBUG_DYNAMICS = False
 SIMULATE_NEXT_TURN = True
 FORCE_SIMULATION = False # Enable only while running tests
 RELAX_TIME_CHECKS = False
@@ -984,7 +984,7 @@ class Dynamics:
                 assert self.appointed_mayor.alive and self.appointed_mayor.active
                 self.generate_event(SetMayorEvent(player=self.appointed_mayor, cause=SUCCESSION_CHOSEN))
             else:
-                candidates = self.get_alive_players()        
+                candidates = self.get_alive_players()
                 if len(candidates)>0:
                     self.generate_event(SetMayorEvent(player=self.random.choice(candidates), cause=SUCCESSION_RANDOM))
                 else:

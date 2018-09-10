@@ -9,11 +9,11 @@
     </tr>
     </thead>
     <tbody>
-    {% for voted, info in dictionary.items %}
+    {% for voted, info in dictionary.items|order_by_name:0 %}
         <tr>
             <td>{{ voted.full_name }}</td>
             <td>{{ info.votes }}</td>
-            <td>{{ info.voters|join_by_attr:"full_name" }}</td>
+            <td>{{ info.voters|order_by_name|join_by_attr:"full_name" }}</td>
         </tr>
     {% endfor %}
     </tbody>

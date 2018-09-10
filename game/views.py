@@ -18,6 +18,7 @@ from django.views.generic.edit import CreateView, DeleteView, FormView, UpdateVi
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.views import redirect_to_login
 from django.utils.decorators import method_decorator
 from django.utils.text import slugify
 from django.contrib.auth.decorators import user_passes_test
@@ -50,7 +51,7 @@ def master_required(func):
         if request.is_master:
             return func(request, *args, **kwargs)
         else:
-            return redirect('game:status',game_name=request.game.name)
+            return redirect_to_login(request.get_full_path())
 
     return decorator
 
@@ -88,10 +89,10 @@ def registrations_open(func):
 
 def can_access_admin_view(func):
     def decorator(request, *args, **kwargs):
-        if request.is_master or (request.player and game.is_over and game.postgame_info):
+        if request.is_master or ((request.player or request.master) and request.game.is_over and request.game.postgame_info):
             return func(request, *args, **kwargs)
         else:
-            return redirect('game:status',game_name=request.game.name)
+            return redirect_to_login(request.get_full_path())
 
     return decorator
     
@@ -809,6 +810,7 @@ class ConfirmView(GameFormView):
 
 
 # View for creating a new Game
+@method_decorator(user_passes_test(is_staff_check), name='dispatch')
 class CreateGameView(CreateView):
     model = Game
     fields = ['name', 'title', 'description']
@@ -834,10 +836,6 @@ class CreateGameView(CreateView):
             return redirect('game:settings', game_name=game_name)
         else:
             return render(self.request, 'create_game.html', {'form': form, 'message': 'Nome già in uso.'})
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(CreateGameView, self).dispatch(*args, **kwargs)
 
 
 # View for changing Game Settings
@@ -977,7 +975,6 @@ class NewPlayerView(GameFormView):
 
     def form_valid(self, form):
         user = form.save(commit=False)
-        user.password = User.objects.make_random_password()
         user.save()
         profile = Profile(user=user)
         profile.gender = form.cleaned_data.get('gender')

@@ -70,7 +70,7 @@ class CommandEvent(Event):
         self.player = players_map[data['player']]
         self.target = players_map[data['target']]
         self.target2 = players_map[data['target2']]
-        self.target_ghost = data['target_ghost']
+        self.target_ghost = rev_dict(POWER_NAMES.items())[data['target_ghost']]
         self.type = rev_dict(CommandEvent.ACTION_TYPES)[data['type']]
 
     def check_phase(self, dynamics=None, turn=None):

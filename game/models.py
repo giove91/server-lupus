@@ -133,6 +133,7 @@ class Game(models.Model):
         can change if players' data is changed)."""
         return self.get_dynamics().players
     players = property(get_players)
+
     def mayor(self):
         return self.get_dynamics().mayor
     mayor = property(mayor)
@@ -276,7 +277,7 @@ class Game(models.Model):
                     first_turn = False
 
                 turn.begin = parse(turn_data['begin'])
-                turn.end = parse(turn_data['end'])
+                turn.end = parse(turn_data['end']) if turn_data['end'] is not None else None
                 turn.save()
                 for event_data in turn_data['events']:
                     event = Event.from_dict(event_data, players_map)
