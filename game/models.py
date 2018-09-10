@@ -63,7 +63,7 @@ def dump_game(game, fout):
         data['players'].append(player.user.username)
 
     for turn in Turn.objects.filter(game=game).order_by('date', 'phase'):
-        turn_data = {'begin': turn.begin.isoformat(), 'end': turn.end.isoformat(), 'events': [], 'comments': []}
+        turn_data = {'begin': turn.begin.isoformat(), 'end': turn.end.isoformat() if turn.end is not None else None, 'events': [], 'comments': []}
         for event in Event.objects.filter(turn=turn).order_by('timestamp', 'pk'):
             event = event.as_child()
             if not event.AUTOMATIC:

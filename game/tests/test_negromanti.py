@@ -4530,9 +4530,7 @@ class GameTests(TestCase):
         self.assertFalse(contadino.alive)
         self.assertFalse(cacciatore.alive)
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, VictoryEvent)]
-        self.assertTrue(event.lupi_win)
-        self.assertFalse(event.popolani_win)
-        self.assertFalse(event.negromanti_win)
+        self.assertEqual(event.winners, [LUPI])
         self.assertEqual(event.cause, NATURAL)
 
     @record_name
