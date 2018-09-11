@@ -12,17 +12,15 @@ admin.autodiscover()
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('accounts/logout/', views.logout_view, name='logout'),
-    path('accounts/signup/', views.signup, name='signup'),
+    path('accounts/signup/', SignUpView.as_view(), name='signup'),
     path('accounts/', include('django.contrib.auth.urls')),
-    path('index/', home, name='home'),
+    path('index/', HomeView.as_view(), name='home'),
     path('', RedirectView.as_view(pattern_name='home', permanent=False)),
-    
-    path('ruleset/', ruleset, name='ruleset'),
-    path('credits/', credits, name='credits'),
-    path('trailer/', trailer, name='trailer'),
-    path('prototypes/', prototypes, name='prototypes'),
-    path('error/', errorpage, name='error'),
+    path('ruleset/', RulesetView.as_view(), name='ruleset'),
+    path('credits/', CreditsView.as_view(), name='credits'),
+    path('trailer/', TrailerView.as_view(), name='trailer'),
+    path('prototypes/', PrototypesView.as_view(), name='prototypes'),
+    path('error/', ErrorView.as_view(), name='error'),
 
     path('creategame/', CreateGameView.as_view(), name='creategame'),
 

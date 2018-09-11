@@ -41,17 +41,14 @@ def context_constants(request):
 
 def context_latest_announcement(request):
     game = request.game
-    try:
-        latest_announcement = Announcement.objects.filter(game=game).filter(visible=True).order_by('-timestamp')[0]
-    except IndexError:
-        latest_announcement = None
-    
-    # TODO: se servisse, fare in modo che vengano mostrati anche gli announcements con game=None
-    
-    return {
-        'latest_announcement': latest_announcement
-    }
 
+    return {
+        'latest_announcement': Announcement.objects
+            .filter(game=game)
+            .filter(visible=True)
+            .order_by('-timestamp')
+            .first()
+    }
 
 
 def context_lupus(request):
