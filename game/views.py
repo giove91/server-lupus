@@ -106,7 +106,7 @@ class PrototypesView(TemplateView):
 class ErrorView(TemplateView):
     template_name = 'error.html'
 
-@method_decorator(player_required, name='dispatch')
+@method_decorator(player_or_master_required, name='dispatch')
 class ContactsView(TemplateView):
     template_name = 'contacts.html'
 

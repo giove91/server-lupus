@@ -14,6 +14,8 @@ def master_required(func):
     def decorator(request, *args, **kwargs):
         if request.is_master:
             return func(request, *args, **kwargs)
+        elif request.user.is_authenticated:
+            return redirect('game:status',game_name=request.game.name)
         else:
             return redirect_to_login(request.get_full_path())
 
@@ -32,10 +34,12 @@ def player_required(func):
 def player_or_master_required(func):
     """Checks that the user is taking part in the current game."""
     def decorator(request, *args, **kwargs):
-        if request.is_master or (request.player is not None and request.game.started):
+        if request.master is not None or (request.player is not None and request.game.started):
             return func(request, *args, **kwargs)
+        elif request.user.is_authenticated:
+            return redirect('game:status',game_name=request.game.name)
         else:
-            return redirect('game:pointofview',game_name=request.game.name)
+            return redirect_to_login(request.get_full_path())
 
     return decorator
 
