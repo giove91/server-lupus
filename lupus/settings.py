@@ -170,6 +170,48 @@ if DEBUG:
     DEBUG_TOOLBAR_CONFIG = {
     }
 
+# Logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '\n{levelname} {asctime} {module} {process:d} {thread:d}\n{message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname:5} {asctime} {dynamics} | {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'error.log'),
+            'formatter': 'verbose'
+        },
+        'dynamics': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'dynamics.log'),
+            'formatter': 'simple'
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'game.dynamics': {
+            'handlers': ['dynamics'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
+
 # GeoIP
 # GEOIP_PATH = os.path.join(BASE_DIR, 'geoip')
 

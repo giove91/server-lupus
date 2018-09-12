@@ -37,6 +37,9 @@ class CommandEvent(Event):
     def __unicode__(self):
         return u"CommandEvent %d" % self.pk
 
+    def __repr__(self):
+        return u"%sEvent (%d) from %s" % (dict(self.ACTION_TYPES)[self.type], self.pk, self.player)
+
     def player_role(self):
         if self.player is not None:
             return self.player.canonicalize().role.full_name

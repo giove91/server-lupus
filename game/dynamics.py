@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import logging
 
 from django.db.models import Q
 
@@ -15,7 +16,7 @@ from .events import CommandEvent, VoteAnnouncedEvent, TallyAnnouncedEvent, \
 from .constants import *
 from .roles import *
 from .utils import get_now
-DEBUG_DYNAMICS = False
+
 SIMULATE_NEXT_TURN = True
 FORCE_SIMULATION = False # Enable only while running tests
 RELAX_TIME_CHECKS = False
@@ -28,16 +29,16 @@ ANCIENT_DATETIME = datetime(year=1970, month=1, day=1, tzinfo=REF_TZINFO)
 # events have to be deleted from the database
 SINGLE_MODE = False
 
-def set_debug_dynamics(value):
-    global DEBUG_DYNAMICS
-    DEBUG_DYNAMICS = value
+logger = logging.getLogger(__name__)
 
 class Dynamics:
+    def __repr__(self):
+        return hex(id(self))
 
     def __init__(self, game):
-        if DEBUG_DYNAMICS:
-            print("New dynamics spawned: %r" % (self), file=sys.stderr)
-            self.spawned_at = time.time()
+        self.logger = logging.LoggerAdapter(logger, {'dynamics': hex(id(self))})
+        self.logger.info("New dynamics for game %(game)s spawned!" % {'game':game.name, 'self':self})
+        self.spawned_at = time.time()
         self.game = game
         self.check_mode = False  # Not supported at the moment
         self.update_lock = RLock()
@@ -61,8 +62,7 @@ class Dynamics:
             for event in Event.objects.all():
                 event = event.as_child()
                 if event.AUTOMATIC:
-                    if DEBUG_DYNAMICS:
-                        print("Deleting event %r" % (event), file=sys.stderr)
+                    self.logger.info("Deleting event %r" % (event))
                     event.delete()
 
         # Otherwise expect that there are no automatic events in the
@@ -194,14 +194,13 @@ class Dynamics:
             except Exception:
                 self.failed = True
                 raise
-        if DEBUG_DYNAMICS and self.spawned_at:
-            print('First updating finished. Elapsed time: {0!r}'.format(time.time() - self.spawned_at))    
-            self.spawned_at = None   
+        if self.spawned_at:
+            self.logger.info('First updating finished. Elapsed time: %r' % (time.time() - self.spawned_at))
+            self.spawned_at = None
         
 
     def _pop_event_from_db(self):
-        if DEBUG_DYNAMICS:
-            print("current_turn: {0!r}; last_timestamp_in_turn: %r; last_pk_in_turn: {1!r}".format(self.current_turn, self.last_timestamp_in_turn, self.last_pk_in_turn), file=sys.stderr)
+        self.logger.debug("Searching db for events in %r after %s an with pk>%s", self.current_turn, self.last_timestamp_in_turn, self.last_pk_in_turn)
         if len(self.db_event_queue) > 0:
             return self.db_event_queue.pop(0).as_child()
             
@@ -228,8 +227,7 @@ class Dynamics:
         if self.current_turn is not None:
             queued_event = self._pop_event_from_queue()
             if queued_event is not None:
-                if DEBUG_DYNAMICS:
-                    print("Receiving event from queue", file=sys.stderr)
+                logger.debug("Receiving event %s from queue", queued_event)
                 if self.debug_event_bin is not None:
                     self.debug_event_bin.append(queued_event)
                 if SINGLE_MODE:
@@ -245,8 +243,7 @@ class Dynamics:
                     return False
                 event = self._pop_event_from_db()
                 if event is not None:
-                    if DEBUG_DYNAMICS:
-                        print("Receiving event from database", file=sys.stderr)
+                    self.logger.debug("Found event %r from database", event)
                     self._receive_event(event)
                     return True
 
@@ -303,8 +300,7 @@ class Dynamics:
         self.simulated_events = []
 
         # Debug print
-        if DEBUG_DYNAMICS:
-            print("Received turn %r" % (turn), file=sys.stderr)
+        self.logger.info("Received turn %r", turn)
 
         # Do some checks on it
         assert self.current_turn.begin is not None
@@ -414,10 +410,9 @@ class Dynamics:
         assert event.turn == self.current_turn
 
         # Debug prints
-        if DEBUG_DYNAMICS:
-            print("Received event %r of subclass %s, timed %s" % (event, event.subclass, event.timestamp), file=sys.stderr)
-            if isinstance(event, AvailableRoleEvent):
-                print("  Available role: %s" % (event.role_name), file=sys.stderr)
+        self.logger.info("Received event %r, timed %s", event, event.timestamp)
+        if isinstance(event, AvailableRoleEvent):
+            self.logger.info("  Available role: %s", event.role_name)
 
         # Do some check on the new event
         if not RELAX_TIME_CHECKS:
@@ -444,7 +439,9 @@ class Dynamics:
     def _process_event(self, event):
         self.simulated = False
         event.apply(self)
-        
+        if event.to_player_string('admin') is not None:
+            self.logger.debug("> %s",event.to_player_string('admin'))
+
     def _simulate_event(self, event):
         if event.CAN_BE_SIMULATED:
             event.apply(self)
@@ -474,8 +471,7 @@ class Dynamics:
         self.auto_event_queue.append(event)
 
     def _compute_entering_creation(self):
-        if DEBUG_DYNAMICS:
-            print("Computing creation", file=sys.stderr)
+        self.logger.debug("Computing creation")
 
     def _checks_after_creation(self):
         # You shall generate no events here!
@@ -504,8 +500,7 @@ class Dynamics:
         return None
 
     def _compute_entering_night(self):
-        if DEBUG_DYNAMICS:
-            print("Computing night", file=sys.stderr)
+        self.logger.debug("Computing night")
 
         # Before first night check that creation went ok
         first_night_date = FIRST_DATE
@@ -539,8 +534,7 @@ class Dynamics:
         min_score = len(critical_blockers) + 1
         minimizers = None
         for competitor in iter_competitors():
-            if DEBUG_DYNAMICS:
-                print("  competitor: " + repr(competitor), file=sys.stderr)
+            self.logger.debug("  competitor: %r", competitor)
             score = 0
             skip = False
             for src, success in iter(competitor.items()):
@@ -563,9 +557,8 @@ class Dynamics:
                     else:
                         score += 1
 
-            if DEBUG_DYNAMICS:
-                print("    skip: " + repr(skip), file=sys.stderr)
-                print("    score: " + repr(score), file=sys.stderr)
+            self.logger.debug("    skip: %r", skip)
+            self.logger.debug("    score: %r", score)
 
             # Finally, count the score of this competitor
             if not skip:
@@ -576,9 +569,8 @@ class Dynamics:
                     min_score = score
 
         # Choose a random minimizing competitor
-        if DEBUG_DYNAMICS:
-            print("minimizers: " + repr(minimizers), file=sys.stderr)
-            print("min_score: " + repr(min_score), file=sys.stderr)
+        self.logger.debug("  minimizers: %r", minimizers)
+        self.logger.debug("  min_score: %r", min_score)
         return self.random.choice(minimizers)
 
     def check_common_target(self, players, ghosts=False):
@@ -607,8 +599,7 @@ class Dynamics:
         return True
 
     def _compute_entering_dawn(self):
-        if DEBUG_DYNAMICS:
-            print("Computing dawn", file=sys.stderr)
+        self.logger.debug("Computing dawn")
 
         self.ghosts_created_last_night = False
 
@@ -638,10 +629,9 @@ class Dynamics:
             for y in ys:
                 rev_block_graph[y].append(x)
         blockers_success = self._solve_blockers(critical_blockers, block_graph, rev_block_graph)
-        if DEBUG_DYNAMICS:
-            print("block_graph:" + repr(block_graph), file=sys.stderr)
-            print("rev_block_graph:" + repr(rev_block_graph), file=sys.stderr)
-            print("blockers_success:" + repr(blockers_success), file=sys.stderr)
+        self.logger.debug("  block_graph: %r", block_graph)
+        self.logger.debug("  rev_block_graph: %r", rev_block_graph)
+        self.logger.debug("  blockers_success: %r", blockers_success)
 
         # Extend the success status to all players and compute who has
         # been sequestrated
@@ -657,9 +647,8 @@ class Dynamics:
                         powers_success[dst] = False
                     if self.players_dict[src].role.sequester:
                         sequestrated[dst] = True
-        if DEBUG_DYNAMICS:
-            print("powers_success: " + repr(powers_success), file=sys.stderr)
-            print("sequestrated: " + repr(sequestrated), file=sys.stderr)
+        self.logger.debug("  powers_success: %r", powers_success)
+        self.logger.debug("  sequestrated: %r", sequestrated)
 
         # Then compute the visit graph
         for player in self.get_active_players():
@@ -668,26 +657,20 @@ class Dynamics:
                     player.pk not in sequestrated:
                 player.visiting.append(player.role.recorded_target)
                 player.role.recorded_target.visitors.append(player)
-        if DEBUG_DYNAMICS:
-            print("visiting: " + repr(dict([(x, x.visiting) for x in self.get_active_players()])), file=sys.stderr)
-            print("visitors: " + repr(dict([(x, x.visitors) for x in self.get_active_players()])), file=sys.stderr)
+        self.logger.debug("  visiting: %r", dict([(x, x.visiting) for x in self.get_active_players()]))
+        self.logger.debug("  visitors: %r", dict([(x, x.visitors) for x in self.get_active_players()]))
 
         # Utility methods for later
         def apply_role(player):
             if player.role.recorded_target is None:
                 return
-            if DEBUG_DYNAMICS:
-                print("> Applying role %r for %r:" % (player, player.role), file=sys.stderr)
+            self.logger.debug("  > Applying role %r for %r:", player.role, player)
             success = powers_success[player.pk]
-            if DEBUG_DYNAMICS:
-                print(success, file=sys.stderr)
             if success:
                 success = player.role.pre_apply_dawn(self)
-                if DEBUG_DYNAMICS:
-                    print(success, file=sys.stderr)
+                self.logger.debug("    Success!" if success else "    Conditions for applying role not met!")
             else:
-                if DEBUG_DYNAMICS:
-                    print(success, file=sys.stderr)
+                self.logger.debug("    Power blocked!")
             event = PowerOutcomeEvent(player=player, success=success, sequestrated=player.pk in sequestrated, command=player.role.recorded_command)
             self.generate_event(event)
             if success:
@@ -735,12 +718,10 @@ class Dynamics:
             self._end_of_main_phase()
 
     def _compute_entering_day(self):
-        if DEBUG_DYNAMICS:
-            print("Computing day", file=sys.stderr)
+        self.logger.debug("Computing day")
 
     def _compute_entering_sunset(self):
-        if DEBUG_DYNAMICS:
-            print("Computing sunset", file=sys.stderr)
+        self.logger.debug("Computing sunset")
 
         new_mayor = self._compute_elected_mayor()
         if new_mayor is not None:
@@ -920,8 +901,7 @@ class Dynamics:
         # the other players
         self.random.shuffle(self.pending_disqualifications)
 
-        if DEBUG_DYNAMICS:
-            print("Computing disqualifications", file=sys.stderr)
+        self.logger.debug("Computing disqualifications")
 
         for disqualification in self.pending_disqualifications:
             event = ExileEvent(player=disqualification.player, cause=DISQUALIFICATION, disqualification=disqualification)
@@ -999,8 +979,7 @@ class Dynamics:
             assert self.mayor.alive and self.mayor.active
 
     def _end_of_main_phase(self):
-        if DEBUG_DYNAMICS:
-            print("Terminating main phase", file=sys.stderr)
+        self.logger.debug("Terminating main phase")
 
         assert self.mayor.alive and self.mayor.active
         if self.appointed_mayor is not None:

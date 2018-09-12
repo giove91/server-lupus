@@ -331,6 +331,9 @@ class Turn(models.Model):
     def __unicode__(self):
         return "%s %d" % (Turn.TURN_PHASES[self.phase], self.date)
     as_string = property(__unicode__)
+
+    def __repr__(self):
+        return "%s %d" % (Turn.TURN_PHASES[self.phase], self.date)
     
     def __hash__(self):
         # Custom hash function, working for non-saved objects
@@ -496,6 +499,9 @@ class Player(models.Model):
     gender = property(get_gender)
     
     def __str__(self):
+        return u"%s %s" % (self.user.first_name, self.user.last_name)
+
+    def __repr__(self):
         return u"%s (%s %s)" % (self.user.username, self.user.first_name, self.user.last_name)
     
     # Returns 'o' or 'a' depending on the player's gender
@@ -669,10 +675,16 @@ class Event(KnowsChild):
 
     def __unicode__(self):
         if self.pk is not None:
-            return u"Event %d" % self.pk
+            return u"%s %d" % (self.subclass, self.pk)
         else:
-            return u"Event without pk"
+            return u"%s without pk" % self.subclass
     event_name = property(__unicode__)
+
+    def __repr__(self):
+        if self.pk is not None:
+            return u"%s %d" % (self.subclass, self.pk)
+        else:
+            return u"%s" % self.subclass
 
     def is_automatic(self):
         return self.as_child().AUTOMATIC
