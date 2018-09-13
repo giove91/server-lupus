@@ -6,7 +6,7 @@ import logging
 from django.db.models import Q
 
 from threading import RLock
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 
 from .models import Event, Turn
@@ -21,6 +21,7 @@ SIMULATE_NEXT_TURN = True
 FORCE_SIMULATION = False # Enable only while running tests
 RELAX_TIME_CHECKS = False
 ANCIENT_DATETIME = datetime(year=1970, month=1, day=1, tzinfo=REF_TZINFO)
+UPDATE_INTERVAL = timedelta(seconds=1)
 
 # When SINGLE_MODE is set, at most one dynamics can act concurrently
 # on the same game; when SINGLE_MODE is not set automatic events won't
@@ -57,12 +58,12 @@ class Dynamics:
 
         self.initialize_augmented_structure()
 
-        # If in single mode, delete all automatic events
+        """# If in single mode, delete all automatic events
         if SINGLE_MODE:
             for event in Event.objects.all():
                 event = event.as_child()
                 if event.AUTOMATIC:
-                    self.logger.info("Deleting event %r" % (event))
+                    self.logger.debug("Deleting event %r" % (event))
                     event.delete()
 
         # Otherwise expect that there are no automatic events in the
@@ -71,6 +72,7 @@ class Dynamics:
             for event in Event.objects.all():
                 event = event.as_child()
                 assert not event.AUTOMATIC, "Please delete automatic events from database using delete_automatic_events.py"
+        """
 
     def initialize_augmented_structure(self):
         self.players = list(self.game.player_set.order_by('pk'))
@@ -80,6 +82,7 @@ class Dynamics:
         self.prev_turn = None
         self.last_timestamp_in_turn = None
         self.last_pk_in_turn = None
+        self.last_update = ANCIENT_DATETIME
         self.mayor = None
         self.appointed_mayor = None
         self.pre_simulation_mayor = None
@@ -181,6 +184,11 @@ class Dynamics:
         return player.apparent_team
     
     def update(self, simulation=False):
+        # If dynamics was updated recently, don't try again to save time
+        if self.last_update + UPDATE_INTERVAL > get_now():
+            return
+
+        self.last_update = get_now()
         with self.update_lock:
             try:
                 if self._updating:
@@ -351,6 +359,7 @@ class Dynamics:
             self.simulated = True
             return
         self.simulating = True
+        self.logger.info("Simulating turn %s", self.simulated_turn)
         self.simulated_events = []
         # Copy random status
         random_state = self.random.getstate()
@@ -412,7 +421,7 @@ class Dynamics:
         # Debug prints
         self.logger.info("Received event %r, timed %s", event, event.timestamp)
         if isinstance(event, AvailableRoleEvent):
-            self.logger.info("  Available role: %s", event.role_name)
+            self.logger.debug("  Available role: %s", event.role_name)
 
         # Do some check on the new event
         if not RELAX_TIME_CHECKS:

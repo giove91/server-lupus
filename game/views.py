@@ -712,7 +712,6 @@ class GameSettingsView(GameFormView):
                 current_turn.end = None
             current_turn.save()
 
-        game.kill_dynamics()
         form = self.form_class(game=game)
         return render(self.request, self.template_name, {'form': form, 'message': 'Impostazioni aggiornate correttamente.'})
 
