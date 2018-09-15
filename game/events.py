@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django.db import models
-from .models import Event, Player, CommaSepField
+from .models import Event, Player, StringsSetField
 from .roles import *
 from .constants import *
 from .utils import dir_dict, rev_dict
@@ -32,7 +32,8 @@ class CommandEvent(Event):
     
     target = models.ForeignKey(Player, null=True, blank=True, related_name='+',on_delete=models.CASCADE)
     target2 = models.ForeignKey(Player, null=True, blank=True, related_name='+',on_delete=models.CASCADE)
-    target_ghost = models.CharField(max_length=1, choices=POWER_NAMES.items(), null=True, blank=True)
+    target_role_name = models.TextField(null=True, blank=True)
+    target_role_bisection = StringsSetField(null=True, blank=True)
     
     def __unicode__(self):
         return u"CommandEvent %d" % self.pk
@@ -42,19 +43,19 @@ class CommandEvent(Event):
 
     def player_role(self):
         if self.player is not None:
-            return self.player.canonicalize().role.full_name
+            return self.player.canonicalize().role.name
         else:
             return None
 
     def target_role(self):
         if self.target is not None:
-            return self.target.canonicalize().role.full_name
+            return self.target.canonicalize().role.name
         else:
             return None
 
     def target2_role(self):
         if self.target2 is not None:
-            return self.target2.canonicalize().role.full_name
+            return self.target2.canonicalize().role.name
         else:
             return None
 
@@ -64,7 +65,8 @@ class CommandEvent(Event):
                 'player': self.player.user.username,
                 'target': self.target.user.username if self.target is not None else None,
                 'target2': self.target2.user.username if self.target2 is not None else None,
-                'target_ghost': POWER_NAMES[self.target_ghost] if self.target_ghost is not None else None,
+                'target_role_name': self.target_role_name if self.target_role_name is not None else None,
+                'target_role_bisection': list(self.target_role_bisection) if self.target_role_bisection is not None else None,
                 'type': dict(CommandEvent.ACTION_TYPES)[self.type],
                 })
         return ret
@@ -73,7 +75,8 @@ class CommandEvent(Event):
         self.player = players_map[data['player']]
         self.target = players_map[data['target']]
         self.target2 = players_map[data['target2']]
-        self.target_ghost = rev_dict(POWER_NAMES.items())[data['target_ghost']]
+        self.target_role_name = data['target_role_name']
+        self.target_role_bisection = set(data['target_role_bisection'])
         self.type = rev_dict(CommandEvent.ACTION_TYPES)[data['type']]
 
     def check_phase(self, dynamics=None, turn=None):
@@ -96,7 +99,8 @@ class CommandEvent(Event):
         if self.type == APPOINT:
             assert self.player.is_mayor()
             assert self.target2 is None
-            assert self.target_ghost is None
+            assert self.target_role_name is None
+            assert self.target_role_bisection is None
             if self.target is not None:
                 assert self.player.pk != self.target.pk
                 assert self.target.alive
@@ -109,7 +113,8 @@ class CommandEvent(Event):
             if self.target is not None:
                 assert self.target.alive
             assert self.target2 is None
-            assert self.target_ghost is None
+            assert self.target_role_name is None
+            assert self.target_role_bisection is None
             if self.type == VOTE:
                 self.player.recorded_vote = self.target
             elif self.type == ELECT:
@@ -168,11 +173,29 @@ class SetRulesEvent(Event):
         self.ruleset = data['ruleset']
 
     def apply(self, dynamics):
-        roles = import_module('game.roles.' + self.ruleset)
-        dynamics.roles_list = roles.roles_list
-        dynamics.required_roles = roles.required_roles.copy()
-        dynamics.starting_roles = roles.starting_roles
-        dynamics.starting_teams = roles.starting_teams
+        rules = import_module('game.roles.' + self.ruleset)
+        dynamics.rules = rules
+
+class SpectralSequenceEvent(Event):
+    RELEVANT_PHASES = [CREATION]
+    AUTOMATIC = False
+
+    # Sequence is stored like a number, where the nth 
+    sequence = models.IntegerField()
+
+    def to_dict(self):
+        ret = Event.to_dict(self)
+        ret.update({
+                'sequence': [(self.sequence >> i) & 1 for i in range(self.sequence.bit_length())],
+                })
+        return ret
+
+    def load_from_dict(self, data, players_map):
+        self.sequence = sum([x*2**i for i, x in enumerate(data[sequence])])
+
+    def apply(self, dynamics):
+        dynamics.spectral_sequence = [bool((self.sequence >> i) & 1) for i in range(self.sequence.bit_length())]
+
 
 class AvailableRoleEvent(Event):
     RELEVANT_PHASES = [CREATION]
@@ -203,8 +226,8 @@ class AvailableRoleEvent(Event):
 
             given_roles = {}
             for player_pk, role_name in zip(players_pks, dynamics.available_roles):
-                full_role_name = dynamics.roles_list[role_name].full_name
-                event = SetRoleEvent(player=dynamics.players_dict[player_pk], role_name=role_name, full_role_name=full_role_name)
+                role_name = dynamics.rules.roles_list[role_name].name
+                event = SetRoleEvent(player=dynamics.players_dict[player_pk], role_name=role_name)
                 dynamics.generate_event(event)
                 given_roles[player_pk] = role_name
 
@@ -218,7 +241,7 @@ class AvailableRoleEvent(Event):
             knowledge_classes = {}
             knowledge_classes_rev = {}
             for player in dynamics.players:
-                role_class = dynamics.roles_list[given_roles[player.pk]]
+                role_class = dynamics.rules.roles_list[given_roles[player.pk]]
                 knowledge_class = role_class.knowledge_class
                 if knowledge_class is not None:
                     if not knowledge_class in knowledge_classes:
@@ -231,7 +254,7 @@ class AvailableRoleEvent(Event):
                 knowledge_class = knowledge_classes[knowledge_classes_rev[player.pk]]
                 for target in knowledge_class:
                     if target.pk != player.pk:
-                        event = RoleKnowledgeEvent(player=player, target=target, full_role_name=dynamics.roles_list[given_roles[target.pk]].full_name, cause=KNOWLEDGE_CLASS)
+                        event = RoleKnowledgeEvent(player=player, target=target, role_name=dynamics.rules.roles_list[given_roles[target.pk]].name, cause=KNOWLEDGE_CLASS)
                         dynamics.generate_event(event)
 
 
@@ -241,10 +264,9 @@ class SetRoleEvent(Event):
 
     player = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
     role_name = models.CharField(max_length=200)
-    full_role_name = models.CharField(max_length=200)
 
     def apply(self, dynamics):
-        role_class = dynamics.roles_list[self.role_name]
+        role_class = dynamics.rules.roles_list[self.role_name]
         player = self.player.canonicalize()
         role = role_class(player)
         # Assign a label to disambiguate players with the same role
@@ -266,9 +288,9 @@ class SetRoleEvent(Event):
 
     def to_player_string(self, player):
         if player == self.player:
-            return u'Ti è stato assegnato il ruolo di %s.' % self.full_role_name
+            return u'Ti è stato assegnato il ruolo di %s.' % self.role_name
         elif player == 'admin':
-            return u'A%s %s è stato assegnato il ruolo di %s.' % ('d' if self.player.full_name[0] in ['A','E','I','O','U', 'a', 'e', 'i', 'o', 'u'] else '', self.player.full_name, self.full_role_name)
+            return u'A%s %s è stato assegnato il ruolo di %s.' % ('d' if self.player.full_name[0] in ['A','E','I','O','U', 'a', 'e', 'i', 'o', 'u'] else '', self.player.full_name, self.role_name)
         else:
             return None
 
@@ -442,7 +464,7 @@ class TransformationEvent(Event):
 
     player = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
     target = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
-    full_role_name = models.CharField(max_length=200, default=None)
+    role_name = models.CharField(max_length=200, default=None)
 
     TRANSFORMATION_CAUSES = (
         (TRANSFORMIST, 'Transformist'),
@@ -473,7 +495,7 @@ class TransformationEvent(Event):
         if target.role.ghost:
             new_role_class = target.role_class_before_ghost
             assert new_role_class is not None
-        assert self.full_role_name == new_role_class.full_name
+        assert self.role_name == new_role_class.name
         assert new_role_class.team == self.player.team
 
         # Instantiate new role class and copy attributes
@@ -487,14 +509,14 @@ class TransformationEvent(Event):
     def to_player_string(self, player):
         if self.cause == TRANSFORMIST:
             if player == self.player:
-                return u'Dopo aver utilizzato il tuo potere su %s hai assunto il ruolo di %s.' % (self.target.full_name, self.full_role_name)
+                return u'Dopo aver utilizzato il tuo potere su %s hai assunto il ruolo di %s.' % (self.target.full_name, self.role_name)
             elif player == 'admin':
-                return u'%s ha utilizzato il proprio potere di Trasformista su %s assumendo il ruolo di %s.' % (self.player.full_name, self.target.full_name, self.full_role_name)
+                return u'%s ha utilizzato il proprio potere di Trasformista su %s assumendo il ruolo di %s.' % (self.player.full_name, self.target.full_name, self.role_name)
         elif self.cause == NECROPHILIAC:
             if player == self.player:
-                return u'Dopo aver utilizzato il tuo potere su %s hai assunto il ruolo di %s.' % (self.target.full_name, self.full_role_name)
+                return u'Dopo aver utilizzato il tuo potere su %s hai assunto il ruolo di %s.' % (self.target.full_name, self.role_name)
             elif player == 'admin':
-                return u'%s ha utilizzato il proprio potere di Necrofilo su %s assumendo il ruolo di %s.' % (self.player.full_name, self.target.full_name, self.full_role_name)
+                return u'%s ha utilizzato il proprio potere di Necrofilo su %s assumendo il ruolo di %s.' % (self.player.full_name, self.target.full_name, self.role_name)
         else:
             raise Exception ('Unknown cause for TransformationEvent')
 
@@ -511,7 +533,7 @@ class CorruptionEvent(Event):
         assert player.is_mystic and player.aura == WHITE
 
         # Change role in Negromante
-        player.role = dynamics.roles_list['Negromante'](player)
+        player.role = dynamics.rules.roles_list['Negromante'](player)
         player.team = NEGROMANTI
 
     def to_player_string(self, player):
@@ -585,6 +607,8 @@ class PlayerDiesEvent(Event):
         player.just_dead = False
         
         player.role.post_death(dynamics)
+        # Trigger generic post_death code
+        dynamics.rules.post_death(dynamics, player)
 
     def to_player_string(self, player):
         oa = self.player.oa
@@ -623,7 +647,7 @@ class SoothsayerModelEvent(Event):
         self.soothsayer = players_map[data['soothsayer']]
 
     def apply(self, dynamics):
-        event = RoleKnowledgeEvent(player=self.soothsayer, target=self.target, full_role_name=self.advertised_role, cause=SOOTHSAYER)
+        event = RoleKnowledgeEvent(player=self.soothsayer, target=self.target, role_name=self.advertised_role, cause=SOOTHSAYER)
         dynamics.generate_event(event)
 
 class RoleKnowledgeEvent(Event):
@@ -632,7 +656,7 @@ class RoleKnowledgeEvent(Event):
 
     player = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
     target = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
-    full_role_name = models.CharField(max_length=200, default=None)
+    role_name = models.CharField(max_length=200, default=None)
     KNOWLEDGE_CAUSE_TYPES = (
         (SOOTHSAYER, 'Soothsayer'),
         (EXPANSIVE, 'Expansive'),
@@ -705,13 +729,13 @@ class RoleKnowledgeEvent(Event):
             assert False
 
         if self.cause in [EXPANSIVE, GHOST, PHANTOM, HYPNOTIST_DEATH, KNOWLEDGE_CLASS]:
-            assert self.target.canonicalize().role.full_name == self.full_role_name
+            assert self.target.canonicalize().role.name == self.role_name
     
     
     def to_player_string(self, player):
         toa = self.target.oa
         poa = self.player.oa
-        role = self.full_role_name
+        role = self.role_name
         
         if self.cause == SOOTHSAYER:
             if player == 'admin':
@@ -785,7 +809,7 @@ class RoleKnowledgeEvent(Event):
     
     def to_soothsayer_proposition(self):
         assert self.cause == SOOTHSAYER
-        return u'%s ha il ruolo di %s.' % (self.target.full_name, self.full_role_name)
+        return u'%s ha il ruolo di %s.' % (self.target.full_name, self.role_name)
 
 class AuraKnowledgeEvent(Event):
     RELEVANT_PHASES = [DAWN]
@@ -1024,7 +1048,8 @@ class GhostificationEvent(Event):
     AUTOMATIC = True
 
     player = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
-    ghost = models.CharField(max_length=1, choices=POWER_NAMES.items(), default=None)
+    ghost = models.CharField(max_length=25, default=None)
+
     GHOSTIFICATION_CAUSES = (
         (NECROMANCER, 'Necromancer'),
         (PHANTOM, 'Phantom'),
@@ -1056,30 +1081,30 @@ class GhostificationEvent(Event):
         player.role_class_before_ghost = player.role.__class__
 
         # Real ghostification
-        player.role = dynamics.roles_list[POWER_NAMES[self.ghost]](player)
+        player.role = dynamics.rules.roles_list[self.ghost](player)
         player.team = NEGROMANTI
 
     def to_player_string(self, player):
         oa = self.player.oa
-        power = POWER_NAMES[self.ghost]
-        
+        power = self.ghost
+
         if self.cause == NECROMANCER:
             if player == self.player:
-                return u'Credevi che i giochi fossero fatti? Pensavi che la morte fosse un evento definitivo? Certo che no! Come nelle migliori soap opera, non c\'è pace neanche dopo la sepoltura. Sei stat%s risvegliat%s come Spettro, e ti è stato assegnato il seguente potere soprannaturale: %s.' % (oa, oa, power)
+                return u'Credevi che i giochi fossero fatti? Pensavi che la morte fosse un evento definitivo? Certo che no! Come nelle migliori soap opera, non c\'è pace neanche dopo la sepoltura. Sei stat%s risvegliat%s come %s.' % (oa, oa, power)
             elif player == 'admin':
-                return u'%s è stat%s risvegliat%s come Spettro con il seguente potere soprannaturale: %s.' % (self.player.full_name, oa, oa, power)
+                return u'%s è stat%s risvegliat%s come %s.' % (self.player.full_name, oa, oa, power)
         
         elif self.cause == PHANTOM:
             if player == self.player:
-                return u'La sopraggiunta morte ti dà un senso di beatitudine. Sei diventat%s uno Spettro, e possiedi ora il seguente potere soprannaturale: %s.' % (oa, power)
+                return u'La sopraggiunta morte ti dà un senso di beatitudine. Sei diventat%s uno %s.' % (oa, power)
             elif player == 'admin':
-                return u'Il Fantasma %s è divenuto uno Spettro con il seguente potere soprannaturale: %s' % (self.player.full_name, power)
+                return u'Il Fantasma %s è divenuto uno %s' % (self.player.full_name, power)
         
         elif self.cause == HYPNOTIST_DEATH:
             if player == self.player:
-                return u'Sei diventat%s uno Spettro, e possiedi ora il seguente potere soprannaturale: %s.' % (oa, power)
+                return u'Sei diventat%s uno %s.' % (oa, power)
             elif player == 'admin':
-                return u'L\'Ipnotista %s è divenuto uno Spettro con il seguente potere soprannaturale: %s' % (self.player.full_name, power)
+                return u'L\'Ipnotista %s è divenuto uno %s' % (self.player.full_name, power)
         
         else:
             raise Exception ('Unknown cause for GhostificationEvent')
@@ -1131,13 +1156,13 @@ class PowerOutcomeEvent(Event):
     def to_player_string(self, player):
         target = self.command.target
         target2 = self.command.target2
-        target_ghost = self.command.target_ghost
+        target_role_name = self.command.target_role_name
         oa = self.player.oa
 
         def role_description(role, rcbf):
-            desc = role.full_name
+            desc = role.name
             if role.ghost:
-                desc += ', ex %s' % (rcbf.full_name)
+                desc += ', ex %s' % (rcbf.name)
             return desc
 
         player_role = role_description(self.player.role, self.player.role_class_before_ghost)
@@ -1283,17 +1308,17 @@ class ForceVictoryEvent(Event):
     RELEVANT_PHASES = [DAWN, DAY, SUNSET, NIGHT]
     AUTOMATIC = False
 
-    winners = CommaSepField(max_length=10, default=[], null=True)
+    winners = StringsSetField(max_length=10, default={}, null=True)
 
     def to_dict(self):
         ret = Event.to_dict(self)
         ret.update({
-                'winners': winners,
+                'winners': list(winners),
                 })
         return ret
 
     def load_from_dict(self, data, players_map):
-        self.winners = data['winners']
+        self.winners = set(data['winners'])
 
     def apply(self, dynamics):
         if dynamics.current_turn.phase in [DAWN, SUNSET]:
@@ -1310,7 +1335,7 @@ class VictoryEvent(Event):
     RELEVANT_PHASES = [DAWN, SUNSET]
     AUTOMATIC = True
 
-    winners = CommaSepField(max_length=10, default=[])
+    winners = StringsSetField(max_length=10, default={})
 
     VICTORY_CAUSES = (
         (NATURAL, 'Natural'),

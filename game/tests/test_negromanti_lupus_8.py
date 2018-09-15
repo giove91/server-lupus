@@ -21,8 +21,10 @@ from datetime import timedelta, datetime, time
 from .test_utils import create_game, delete_auto_users, create_users, create_game_from_dump, test_advance_turn, record_name
 
 def create_test_game(seed, roles, sequence):
-	game = create_game(seed, 'negromanti_lupus_8', roles)
-    game.inject_event(SpectralSequenceEvent(sequence=sequence))
+    game = create_game(seed, 'negromanti_lupus_8', roles)
+    game.get_dynamics().inject_event(SpectralSequenceEvent(sequence=sum([x*2**i for i, x in enumerate(sequence)])
+, timestamp=get_now()))
+    return game
 
 class GameTests(TestCase):
 
@@ -33,7 +35,7 @@ class GameTests(TestCase):
         # Save a dump of the test game
         if 'game' in self.__dict__:
             with open(os.path.join('test_dumps', '%s.json' % (self._name)), 'w') as fout:
-                dump_game(self.game, fout)
+                pass #dump_game(self.game, fout)
 
         # Destroy the leftover dynamics without showing the slightest
         # sign of mercy
@@ -41,20 +43,20 @@ class GameTests(TestCase):
 
     @record_name
     def test_diavolo_and_visione(self):
-        roles = [ Contadino, Veggente, Lupo, Diavolo, Negromante ]
-        self.game = create_test_game(2204, roles)
+        roles = [ Guardia, Veggente, Lupo, Diavolo, Negromante ]
+        self.game = create_test_game(2204, roles, [True])
         self.assertEqual(self.game.current_turn.phase, CREATION)
         dynamics = self.game.get_dynamics()
         players = self.game.get_players()
 
         [diavolo] = [x for x in players if isinstance(x.role, Diavolo)]
-        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+        [guardia] = [x for x in players if isinstance(x.role, Guardia)]
         [veggente] = [x for x in players if isinstance(x.role, Veggente)]
 
         test_advance_turn(self.game)
 
         # Test diavolo and kill veggente
-        dynamics.inject_event(CommandEvent(player=diavolo, type=USEPOWER, target=contadino, target_roles_set = {"Divinatore", "Contadino"}))
+        dynamics.inject_event(CommandEvent(player=diavolo, type=USEPOWER, target=guardia, target_roles_set = {"Divinatore", "Guardia del corpo"}))
         dynamics.inject_event(CommandEvent(player=lupo, type=USEPOWER, target=veggente))
 
         dynamics.debug_event_bin = []
@@ -64,7 +66,7 @@ class GameTests(TestCase):
         self.assertEqual(event.player, diavolo)
         self.assertEqual(event.cause, DEVIL)
         self.assertEqual(event.response, True)
-        self.assertEqual(event.roles_set, {"Contadino", "Divinatore"})
+        self.assertEqual(event.roles_set, {"Guardia del corpo", "Divinatore"})
 
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
 
@@ -78,7 +80,7 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
 
         # Retest diavolo and make visione
-        dynamics.inject_event(CommandEvent(player=diavolo, type=USEPOWER, target=contadino, target_roles_set = {"Negromante", "Lupo", "Veggente"}))
+        dynamics.inject_event(CommandEvent(player=diavolo, type=USEPOWER, target=guardia, target_roles_set = {"Negromante", "Lupo", "Veggente"}))
         dynamics.inject_event(CommandEvent(player=negromante, type=USEPOWER, target=veggente, target_ghost = VISIONE))
 
         dynamics.debug_event_bin = []
@@ -100,10 +102,11 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
 
         # Now test visione
-        dynamics.inject_event(CommandEvent(player=visione, type=USEPOWER, target=contadino, target_roles_set = {"Negromante", "Lupo", "Veggente", "Contadino"}))
+        dynamics.inject_event(CommandEvent(player=visione, type=USEPOWER, target=guardia, target_roles_set = {"Negromante", "Lupo", "Veggente", "Guardia del corpo"}))
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleSetKnowledgeEvent)]
         self.assertEqual(event.player, veggente)
+        self.assertEqual(event.target, guardia)
         self.assertEqual(event.cause, VISION_GHOST)
         self.assertEqual(event.response, True)
-        self.assertEqual(event.roles_set, {"Contadino", "Lupo", "Negromante", "Veggente"})
+        self.assertEqual(event.roles_set, {"Guardia del corpo", "Lupo", "Negromante", "Veggente"})
 

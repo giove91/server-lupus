@@ -1063,14 +1063,14 @@ class VillageCompositionForm(forms.Form):
         dynamics = self.game.get_dynamics()
         assert self.game.started and self.game.mayor is None
 
-        for role in dynamics.starting_roles:
+        for role in dynamics.rules.starting_roles:
             self.fields[role.__name__] = forms.IntegerField(label=role.full_name, min_value=0, initial=0)
 
     def clean(self):
         dynamics = self.game.get_dynamics()
         cleaned_data = super().clean()
         count = 0
-        for role in dynamics.starting_roles:
+        for role in dynamics.rules.starting_roles:
             count += cleaned_data.get(role.__name__)
 
         if count != len(dynamics.players):
@@ -1094,7 +1094,7 @@ class VillageCompositionView(GameFormView):
 
     def form_valid(self, form):
         dynamics = self.request.game.get_dynamics()
-        roles = dynamics.starting_roles
+        roles = dynamics.rules.starting_roles
         for role in roles:
             for i in range(form.cleaned_data[role.__name__]):
                 event = AvailableRoleEvent(role_name = role.__name__)
@@ -1131,7 +1131,7 @@ class SoothsayerForm(forms.ModelForm):
         dynamics = self.game.get_dynamics()
 
         self.fields["target"].queryset = Player.objects.filter(game=self.game)
-        choices = [(x.full_name,x.full_name) for x in dynamics.starting_roles]
+        choices = [(x.full_name,x.full_name) for x in dynamics.rules.starting_roles]
         self.fields["advertised_role"].choices = choices
         self.fields["advertised_role"].widget.choices = choices
 
@@ -1267,7 +1267,7 @@ class ForceVictoryForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         dynamics = self.game.get_dynamics()
 
-        choices = [(x,TEAM_IT[x]) for x in dynamics.starting_teams]
+        choices = [(x,TEAM_IT[x]) for x in dynamics.rules.starting_teams]
         self.fields["winners"].choices = choices
         self.fields["winners"].widget.choices = choices
 

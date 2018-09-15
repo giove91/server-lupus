@@ -45,7 +45,7 @@ def create_game(seed, ruleset, roles):
     game.get_dynamics().inject_event(event)
 
     for i in range(len(game.get_dynamics().players)):
-        event = AvailableRoleEvent(role_name=roles[i%len(roles)].__name__)
+        event = AvailableRoleEvent(role_name=roles[i%len(roles)].name)
         event.timestamp = first_turn.begin
         game.get_dynamics().inject_event(event)
 

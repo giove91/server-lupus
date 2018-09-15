@@ -93,6 +93,7 @@ class Dynamics:
         self.death_ghost_just_created = False
         self.ghosts_created_last_night = False
         self.used_ghost_powers = set()
+        self.spectral_sequence = None
         self.giove_is_happy = False
         self.server_is_on_fire = False  # so far...
         self.sasha_is_sleeping = False  # usually...
@@ -183,9 +184,9 @@ class Dynamics:
     def get_apparent_team(self, player):
         return player.apparent_team
     
-    def update(self, simulation=False):
+    def update(self, simulation=False, lazy=False):
         # If dynamics was updated recently, don't try again to save time
-        if self.last_update + UPDATE_INTERVAL > get_now():
+        if lazy and self.last_update + UPDATE_INTERVAL > get_now():
             return
 
         self.last_update = get_now()
@@ -460,6 +461,8 @@ class Dynamics:
         assert not event.AUTOMATIC
         assert self.current_turn.phase in event.RELEVANT_PHASES
         event.turn = self.current_turn
+        if event.timestamp is None:
+            event.timestamp = get_now()
         event.save()
         
         if self.debug_event_bin is not None:
@@ -487,12 +490,13 @@ class Dynamics:
 
         # Check that all teams are represented
         self.playing_teams = self._count_alive_teams()
-        assert sorted(self.playing_teams) == sorted(self.starting_teams)
+        assert sorted(self.playing_teams) == sorted(self.rules.starting_teams)
+        required_roles = self.rules.required_roles.copy()
         for player in self.players:
             assert not player.role.needs_soothsayer_propositions()
-            if player.role.__class__ in self.required_roles:
-                self.required_roles.remove(player.role.__class__)
-        assert len(self.required_roles) == 0
+            if player.role.__class__ in required_roles:
+                required_roles.remove(player.role.__class__)
+        assert len(required_roles) == 0
 
     def check_missing_soothsayer_propositions(self):
         """Check that the soothsayer received revelations according to
@@ -582,28 +586,24 @@ class Dynamics:
         self.logger.debug("  min_score: %r", min_score)
         return self.random.choice(minimizers)
 
-    def check_common_target(self, players, ghosts=False):
+    def check_common_target(self, players):
         target = None
         target_ghost = None
         for player in players:
             role = player.role
             if role.recorded_target is not None:
-                if ghosts:
-                    assert role.recorded_target_ghost is not None
                 # Ignore sequestrated lupi
                 if role.player.sequestrated:
                     continue
                 if target is None:
                     target = role.recorded_target
-                    if ghosts:
-                        target_ghost = role.recorded_target_ghost
+                    target_role_name = role.recorded_target_role_name
                 elif target.pk != role.recorded_target.pk:
                     return False
-                elif ghosts and target_ghost != role.recorded_target_ghost:
+                elif target_role_name != role.recorded_target_role_name:
                     return False
             else:
-                if ghosts:
-                    assert role.recorded_target_ghost is None
+                assert role.recorded_target_role_name is None
 
         return True
 

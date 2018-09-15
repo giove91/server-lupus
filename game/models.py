@@ -14,24 +14,24 @@ from .constants import *
 
 from .utils import advance_to_time, get_now
 
-class CommaSepField(models.CharField):
+class StringsSetField(models.TextField):
     def from_db_value(self, value, expression, connection):
         if value is None:
             return value
-        return value.split(',')
+        return set(value.split(','))
 
     def to_python(self, value):
-        if isinstance(value, list):
+        if isinstance(value, set):
             return value
 
         if value is None:
             return value
 
         else:
-            return value.split(',')
+            return set(value.split(','))
 
     def get_prep_value(self, value):
-        if value is None or value == []:
+        if value is None:
             return None
         return ','.join(value)
 
@@ -157,7 +157,7 @@ class Game(models.Model):
                     from .dynamics import Dynamics
                     _dynamics_map[self.pk] = Dynamics(self)
         dynamics = _dynamics_map[self.pk]
-        dynamics.update()
+        dynamics.update(lazy=True)
         if not dynamics.failed:
             return dynamics
         else:
@@ -220,6 +220,7 @@ class Game(models.Model):
         first_turn.set_first_begin_end(begin)
         first_turn.save()
         assert first_turn.phase == CREATION
+        self.get_dynamics().update()
 
     def advance_turn(self, current_turn=None):
         """Advance to next turn. If current_turn is passed, the turn

@@ -18,4 +18,4 @@ starting_roles = [role for role in valid_roles if not role.ghost]
 # Roles that must be assigned at game start
 required_roles = [Lupo, Negromante]
 
-roles_list = dict([(x.__name__, x) for x in valid_roles])
+roles_list = dict([(x.name, x) for x in valid_roles])
