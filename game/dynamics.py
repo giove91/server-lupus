@@ -236,7 +236,7 @@ class Dynamics:
         if self.current_turn is not None:
             queued_event = self._pop_event_from_queue()
             if queued_event is not None:
-                logger.debug("Receiving event %s from queue", queued_event)
+                self.logger.debug("Receiving event %s from queue", queued_event)
                 if self.debug_event_bin is not None:
                     self.debug_event_bin.append(queued_event)
                 if SINGLE_MODE:

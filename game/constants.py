@@ -117,7 +117,8 @@ HYPNOTIST_DEATH = 'H'
 # Role knowledge causes (PHANTOM clashes with the ghostification cause
 # and so must set to the same value --- curse insufficient namespace
 # separation! Same for HYPNOTIST_DEATH)
-SOOTHSAYER = 'S'
+SOOTHSAYER_PROPOSITION = 'P'
+SOOTHSAYER = 'S' # His night power
 EXPANSIVE = 'E'
 KNOWLEDGE_CLASS = 'C'
 GHOST = 'G'

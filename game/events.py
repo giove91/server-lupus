@@ -99,7 +99,7 @@ class CommandEvent(Event):
         if self.type == APPOINT:
             assert self.player.is_mayor()
             assert self.target2 is None
-            assert self.target_role_name is None
+            assert self.target_role_name is None, self.target_role_name
             assert self.target_role_bisection is None
             if self.target is not None:
                 assert self.player.pk != self.target.pk
@@ -647,7 +647,7 @@ class SoothsayerModelEvent(Event):
         self.soothsayer = players_map[data['soothsayer']]
 
     def apply(self, dynamics):
-        event = RoleKnowledgeEvent(player=self.soothsayer, target=self.target, role_name=self.advertised_role, cause=SOOTHSAYER)
+        event = RoleKnowledgeEvent(player=self.soothsayer, target=self.target, role_name=self.advertised_role, cause=SOOTHSAYER_PROPOSITION)
         dynamics.generate_event(event)
 
 class RoleKnowledgeEvent(Event):
@@ -659,6 +659,7 @@ class RoleKnowledgeEvent(Event):
     role_name = models.CharField(max_length=200, default=None)
     KNOWLEDGE_CAUSE_TYPES = (
         (SOOTHSAYER, 'Soothsayer'),
+        (SOOTHSAYER_PROPOSITION, 'SoothsayerProposition'),
         (EXPANSIVE, 'Expansive'),
         (KNOWLEDGE_CLASS, 'KnowledgeClass'),
         # GHOST: a new Spettro (possibly a former Fantasma) is made
@@ -679,7 +680,8 @@ class RoleKnowledgeEvent(Event):
     cause = models.CharField(max_length=1, choices=KNOWLEDGE_CAUSE_TYPES, default=None)
 
     REAL_RELEVANT_PHASES = {
-        SOOTHSAYER: [CREATION],
+        SOOTHSAYER: [DAWN],
+        SOOTHSAYER_PROPOSITION: [CREATION],
         KNOWLEDGE_CLASS: [CREATION],
         EXPANSIVE: [DAWN],
         GHOST: [DAWN, SUNSET],
@@ -695,7 +697,7 @@ class RoleKnowledgeEvent(Event):
     def apply(self, dynamics):
         assert dynamics.current_turn.phase in RoleKnowledgeEvent.REAL_RELEVANT_PHASES[self.cause]
 
-        if self.cause == SOOTHSAYER:
+        if self.cause == SOOTHSAYER or self.cause == SOOTHSAYER_PROPOSITION:
             assert self.player.canonicalize().role.__class__.__name__ == 'Divinatore'
 
         elif self.cause == EXPANSIVE:
@@ -728,7 +730,7 @@ class RoleKnowledgeEvent(Event):
         elif self.cause == HYPNOTIST_DEATH:
             assert False
 
-        if self.cause in [EXPANSIVE, GHOST, PHANTOM, HYPNOTIST_DEATH, KNOWLEDGE_CLASS]:
+        if self.cause in [SOOTHSAYER, EXPANSIVE, GHOST, PHANTOM, HYPNOTIST_DEATH, KNOWLEDGE_CLASS]:
             assert self.target.canonicalize().role.name == self.role_name
     
     
@@ -737,7 +739,7 @@ class RoleKnowledgeEvent(Event):
         poa = self.player.oa
         role = self.role_name
         
-        if self.cause == SOOTHSAYER:
+        if self.cause == SOOTHSAYER_PROPOSITION:
             if player == 'admin':
                 return u'Il Divinatore %s riceve la frase: "%s"' % (self.player.full_name, self.to_soothsayer_proposition())
         
@@ -777,6 +779,12 @@ class RoleKnowledgeEvent(Event):
                 return u'Scopri che %s ha il ruolo di %s.' % (self.target.full_name, role)
             elif player == 'admin':
                 return u'Il Diavolo %s scopre che %s ha il ruolo di %s.' % (self.player.full_name, self.target.full_name, role)
+
+        elif self.cause == SOOTHSAYER:
+            if player == self.player:
+                return u'Scopri che %s ha il ruolo di %s.' % (self.target.full_name, role)
+            elif player == 'admin':
+                return u'Il Divinatore %s scopre che %s ha il ruolo di %s.' % (self.player.full_name, self.target.full_name, role)
         
         elif self.cause == MEDIUM:
             if player == self.player:
@@ -808,8 +816,42 @@ class RoleKnowledgeEvent(Event):
         return None
     
     def to_soothsayer_proposition(self):
-        assert self.cause == SOOTHSAYER
+        assert self.cause == SOOTHSAYER_PROPOSITION
         return u'%s ha il ruolo di %s.' % (self.target.full_name, self.role_name)
+
+class NegativeRoleKnowledgeEvent(Event):
+    RELEVANT_PHASES = [CREATION, DAWN, SUNSET]
+    AUTOMATIC = True
+
+    player = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
+    target = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
+    role_name = models.CharField(max_length=200, default=None)
+    KNOWLEDGE_CAUSE_TYPES = (
+        (SOOTHSAYER, 'Soothsayer'),
+    )
+    cause = models.CharField(max_length=1, choices=KNOWLEDGE_CAUSE_TYPES, default=None)
+
+    REAL_RELEVANT_PHASES = {
+        SOOTHSAYER: [DAWN],
+    }
+
+    def apply(self, dynamics):
+        assert dynamics.current_turn.phase in NegativeRoleKnowledgeEvent.REAL_RELEVANT_PHASES[self.cause]
+        assert self.player.canonicalize().role.__class__.__name__ == 'Divinatore'
+
+    def to_player_string(self, player):
+        toa = self.target.oa
+        poa = self.player.oa
+        role = self.role_name
+
+        if player == self.player:
+            return u'Scopri che %s non ha il ruolo di %s.' % (self.target.full_name, role)
+        elif player == 'admin':
+            return u'Il Divinatore %s scopre che %s non ha il ruolo di %s.' % (self.player.full_name, self.target.full_name, role)
+
+        return None
+
+
 
 class AuraKnowledgeEvent(Event):
     RELEVANT_PHASES = [DAWN]
@@ -1351,7 +1393,7 @@ class VictoryEvent(Event):
         dynamics.server_is_on_fire = True
     
     def to_player_string(self, player):
-        winners = self.winners
+        winners = list(self.winners)
         if len(winners) == 1:
             return u'<b>La partita si è conclusa con la vittoria della Fazione dei %s.</b>' % (TEAM_IT[winners[0]])
         elif len(winners) == 2:
