@@ -851,6 +851,41 @@ class NegativeRoleKnowledgeEvent(Event):
 
         return None
 
+class RoleBisectionKnowledgeEvent(Event):
+    RELEVANT_PHASES = [CREATION, DAWN, SUNSET]
+    AUTOMATIC = True
+
+    player = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
+    target = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
+    role_bisection = StringsSetField(default=None)
+    KNOWLEDGE_CAUSE_TYPES = (
+        (DEVIL, 'Diavolo'),
+        (VISION_GHOST, 'VisionGhost'),
+    )
+    cause = models.CharField(max_length=1, choices=KNOWLEDGE_CAUSE_TYPES, default=None)
+    response = models.BooleanField(default=False)
+
+    REAL_RELEVANT_PHASES = {
+        DEVIL: [DAWN],
+        VISION_GHOST: [DAWN],
+    }
+
+    def apply(self, dynamics):
+        assert dynamics.current_turn.phase in RoleBisectionKnowledgeEvent.REAL_RELEVANT_PHASES[self.cause]
+        assert (self.target.role.name in self.role_bisection) == self.response
+
+    def to_player_string(self, player):
+        toa = self.target.oa
+        poa = self.player.oa
+        roles = ", ".join(sorted(list(self.role_bisection)))
+
+        if player == self.player:
+            return u'Scopri che %s %s ha il ruolo tra i seguenti: %s.' % (self.target.full_name, u"non " if not self.response else u"", roles)
+        elif player == 'admin':
+            return u'%s scopre che %s %s ha il ruolo tra i seguenti: %s.' % (self.player.full_name, self.target.full_name, u"non " if not self.response else u"", roles)
+
+        return None
+
 
 
 class AuraKnowledgeEvent(Event):
@@ -1096,6 +1131,7 @@ class GhostificationEvent(Event):
         (NECROMANCER, 'Necromancer'),
         (PHANTOM, 'Phantom'),
         (HYPNOTIST_DEATH, 'HypnotistDeath'),
+        (SPECTRAL_SEQUENCE, 'SpectralSequence'),
         )
     cause = models.CharField(max_length=1, choices=GHOSTIFICATION_CAUSES, default=None)
 
@@ -1135,6 +1171,12 @@ class GhostificationEvent(Event):
                 return u'Credevi che i giochi fossero fatti? Pensavi che la morte fosse un evento definitivo? Certo che no! Come nelle migliori soap opera, non c\'è pace neanche dopo la sepoltura. Sei stat%s risvegliat%s come %s.' % (oa, oa, power)
             elif player == 'admin':
                 return u'%s è stat%s risvegliat%s come %s.' % (self.player.full_name, oa, oa, power)
+
+        elif self.cause == SPECTRAL_SEQUENCE:
+            if player == self.player:
+                return u'Credevi che i giochi fossero fatti? Pensavi che la morte fosse un evento definitivo? Certo che no! Come nelle migliori soap opera, non c\'è pace neanche dopo la sepoltura. Ti sei risvegliat%s come %s.' % (oa, power)
+            elif player == 'admin':
+                return u'%s si è risvegliat%s come %s.' % (self.player.full_name, oa, power)
         
         elif self.cause == PHANTOM:
             if player == self.player:
@@ -1175,6 +1217,51 @@ class GhostificationFailedEvent(Event):
             return u'Il Fantasma %s non diventa uno Spettro per mancanza di poteri soprannaturali.' % self.player.full_name
         else:
             return None
+
+class GhostSwitchEvent(Event):
+    RELEVANT_PHASES = [DAWN]
+    AUTOMATIC = True
+
+    player = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
+    ghost = models.CharField(max_length=25, default=None)
+
+    GHOSTIFICATION_CAUSES = (
+        (NECROMANCER, 'Necromancer'),
+        )
+    cause = models.CharField(max_length=1, choices=GHOSTIFICATION_CAUSES, default=None)
+
+    def apply(self, dynamics):
+        player = self.player.canonicalize()
+
+        assert not player.alive
+        assert self.ghost not in dynamics.used_ghost_powers
+        assert self.player.role.ghost
+        #assert not(dynamics.death_ghost_created and self.cause == HYPNOTIST_DEATH and not dynamics.death_ghost_just_created), (dynamics.death_ghost_created, dynamics.death_ghost_just_created, self.cause)
+        #assert not(self.cause == HYPNOTIST_DEATH and self.ghost != IPNOSI)
+        #assert not(self.cause != HYPNOTIST_DEATH and self.ghost == IPNOSI)
+        #assert not(self.ghost == IPNOSI and [player2 for player2 in dynamics.get_alive_players() if isinstance(player2.role, Ipnotista) and player2.team == NEGROMANTI] != [])
+
+        # Update global status
+        dynamics.used_ghost_powers.add(self.ghost)
+        dynamics.used_ghost_powers.remove(self.player.role.name)
+
+        # Power switch!
+        player.role = dynamics.rules.roles_list[self.ghost](player)
+
+    def to_player_string(self, player):
+        oa = self.player.oa
+        power = self.ghost
+
+        if self.cause == NECROMANCER:
+            if player == self.player:
+                return u'Il tuo potere soprannaturale è cambiato!. Sei diventat%s ora uno come %s.' % (oa, power)
+            elif player == 'admin':
+                return u'%s è stat%s trasformat%s in uno %s.' % (self.player.full_name, oa, oa, power)
+
+        else:
+            raise Exception ('Unknown cause for GhostSwitchEvent')
+        
+        return None
 
 
 class PowerOutcomeEvent(Event):

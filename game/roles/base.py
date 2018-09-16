@@ -143,7 +143,7 @@ class Role(object):
         if targets_role_bisection is None:
             assert event.target_role_bisection is None
         else:
-            assert event.target_role_bisection is None or event.target_role_bisection.issubset(targets_roles)
+            assert event.target_role_bisection is None or event.target_role_bisection.issubset(targets_role_bisection)
 
         # Record targets and command
         self.recorded_target = event.target

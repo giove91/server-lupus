@@ -11,7 +11,7 @@ from django.utils import timezone
 from django.test import TestCase
 
 from game.models import *
-from game.roles.negromanti import *
+from game.roles.negromanti_lupus_8 import *
 from game.events import *
 from game.constants import *
 from game.utils import get_now, advance_to_time
@@ -50,28 +50,34 @@ class GameTests(TestCase):
         players = self.game.get_players()
 
         [diavolo] = [x for x in players if isinstance(x.role, Diavolo)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
         [guardia] = [x for x in players if isinstance(x.role, Guardia)]
         [veggente] = [x for x in players if isinstance(x.role, Veggente)]
+        [lupo] = [x for x in players if isinstance(x.role, Lupo)]
 
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
         test_advance_turn(self.game)
 
         # Test diavolo and kill veggente
-        dynamics.inject_event(CommandEvent(player=diavolo, type=USEPOWER, target=guardia, target_roles_set = {"Divinatore", "Guardia del corpo"}))
+        dynamics.inject_event(CommandEvent(player=diavolo, type=USEPOWER, target=guardia, target_role_bisection = {Divinatore.name, Guardia.name}))
         dynamics.inject_event(CommandEvent(player=lupo, type=USEPOWER, target=veggente))
 
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
 
-        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleSetKnowledgeEvent)]
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleBisectionKnowledgeEvent)]
         self.assertEqual(event.player, diavolo)
         self.assertEqual(event.cause, DEVIL)
         self.assertEqual(event.response, True)
-        self.assertEqual(event.roles_set, {"Guardia del corpo", "Divinatore"})
+        self.assertEqual(event.role_bisection, {"Guardia del corpo", "Divinatore"})
 
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
 
         self.assertEqual(event.player, veggente)
-        self.assertEqual(event.ghost, VOID)
+        self.assertEqual(event.ghost, Delusione.name)
         self.assertEqual(veggente.team, NEGROMANTI)
         self.assertTrue(veggente.is_mystic)
 
@@ -80,33 +86,37 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
 
         # Retest diavolo and make visione
-        dynamics.inject_event(CommandEvent(player=diavolo, type=USEPOWER, target=guardia, target_roles_set = {"Negromante", "Lupo", "Veggente"}))
-        dynamics.inject_event(CommandEvent(player=negromante, type=USEPOWER, target=veggente, target_ghost = VISIONE))
+        dynamics.inject_event(CommandEvent(player=diavolo, type=USEPOWER, target=guardia, target_role_bisection = {"Negromante", "Lupo", "Veggente"}))
+        dynamics.inject_event(CommandEvent(player=negromante, type=USEPOWER, target=veggente, target_role_name = Visione.name))
 
         dynamics.debug_event_bin = []
         test_advance_turn(self.game)
 
-        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleSetKnowledgeEvent)]
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleBisectionKnowledgeEvent)]
         self.assertEqual(event.player, diavolo)
         self.assertEqual(event.cause, DEVIL)
         self.assertEqual(event.response, False)
-        self.assertEqual(event.roles_set, {"Lupo", "Negromante", "Veggente"})
+        self.assertEqual(event.role_bisection, {"Lupo", "Negromante", "Veggente"})
 
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostSwitchEvent)]
-        self.assertEqual(event.player, visione)
+        self.assertEqual(event.player, veggente)
         self.assertEqual(event.cause, NECROMANCER)
-        self.assertEqual(event.ghost, VISIONE)
+        self.assertEqual(event.ghost, Visione.name)
 
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
 
         # Now test visione
-        dynamics.inject_event(CommandEvent(player=visione, type=USEPOWER, target=guardia, target_roles_set = {"Negromante", "Lupo", "Veggente", "Guardia del corpo"}))
-        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleSetKnowledgeEvent)]
+        dynamics.inject_event(CommandEvent(player=veggente, type=USEPOWER, target=guardia, target_role_bisection = {"Negromante", "Lupo", "Veggente", "Guardia del corpo"}))
+
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleBisectionKnowledgeEvent)]
         self.assertEqual(event.player, veggente)
         self.assertEqual(event.target, guardia)
         self.assertEqual(event.cause, VISION_GHOST)
         self.assertEqual(event.response, True)
-        self.assertEqual(event.roles_set, {"Guardia del corpo", "Lupo", "Negromante", "Veggente"})
+        self.assertEqual(event.role_bisection, {"Guardia del corpo", "Lupo", "Negromante", "Veggente"})
 
