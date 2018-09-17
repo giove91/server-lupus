@@ -10,7 +10,7 @@ class Divinatore(Divinatore):
     priority = QUERY
 
     def get_targets(self):
-        return {player for player in self.player.game.get_active_players() if player.pk != self.player.pk}
+        return {player for player in self.player.game.get_alive_players() if player.pk != self.player.pk}
 
     def get_targets_role_name(self):
         return {x.name for x in self.player.game.get_dynamics().rules.valid_roles if not x.ghost}
@@ -35,6 +35,19 @@ class Divinatore(Divinatore):
             return TRUTH_MISMATCH
 
         return False
+
+class Alcolista(Rinnegato):
+    frequency = EVERY_NIGHT
+    priority = QUERY_INFLUENCE # Mah
+
+    def get_targets(self):
+        return {player for player in self.player.game.get_active_players() if player.pk != self.player.pk}
+
+    def pre_apply_dawn(self, dynamics):
+        return False # Lol
+
+    def apply_dawn(self, dynamics):
+        pass #out
 
 class Diavolo(Diavolo):
     def get_targets_role_bisection(self):
@@ -104,7 +117,7 @@ class Amnesia(Amnesia):
 # Roles that can appear in The Game
 valid_roles = [Cacciatore, Contadino, Divinatore, Esorcista, Espansivo, Guardia,
     Investigatore, Mago, Massone, Messia, Sciamano, Stalker, Trasformista, Veggente,
-    Voyeur, Lupo, Assassino, Avvocato, Diavolo, Fattucchiera, Rinnegato, Necrofilo,
+    Voyeur, Lupo, Assassino, Avvocato, Diavolo, Fattucchiera, Alcolista, Necrofilo,
     Sequestratore, Stregone, Negromante, Fantasma,
     Amnesia, Confusione, Delusione, Illusione, Morte, Occultamento, Visione]
 

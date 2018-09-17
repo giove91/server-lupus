@@ -374,3 +374,64 @@ class GameTests(TestCase):
 
         self.assertEqual(event.target, lupo1)
         self.assertEqual(event.role_name, Contadino.name)
+
+    @record_name
+    def test_alcolista(self):
+        roles = [ Guardia, Veggente, Stalker, Lupo, Alcolista, Negromante ]
+        self.game = create_test_game(2204, roles, [True])
+        self.assertEqual(self.game.current_turn.phase, CREATION)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [alcolista] = [x for x in players if isinstance(x.role, Alcolista)]
+        [lupo] = [x for x in players if isinstance(x.role, Lupo)]
+        [stalker] = [x for x in players if isinstance(x.role, Stalker)]
+        [guardia] = [x for x in players if isinstance(x.role, Guardia)]
+
+        test_advance_turn(self.game)
+
+        self.assertTrue(alcolista.can_use_power())
+        dynamics.inject_event(CommandEvent(player=alcolista, type=USEPOWER, target=lupo))
+        dynamics.inject_event(CommandEvent(player=stalker, type=USEPOWER, target=alcolista))
+
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        # Fail
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) if event.player == alcolista]
+        self.assertFalse(event.success)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, MovementKnowledgeEvent)]
+        self.assertEqual(event.target, alcolista)
+        self.assertEqual(event.target2, lupo)
+
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        self.assertTrue(alcolista.can_use_power())
+        dynamics.inject_event(CommandEvent(player=alcolista, type=USEPOWER, target=stalker))
+        dynamics.inject_event(CommandEvent(player=lupo, type=USEPOWER, target=guardia))
+
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        # Fail again
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) if event.player == alcolista]
+        self.assertFalse(event.success)
+
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        self.assertTrue(alcolista.can_use_power())
+        self.assertFalse(guardia.alive)
+        dynamics.inject_event(CommandEvent(player=alcolista, type=USEPOWER, target=guardia))
+
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        # And again
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) if event.player == alcolista]
+        self.assertFalse(event.success)
+
