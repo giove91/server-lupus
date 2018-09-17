@@ -63,12 +63,19 @@ class Delusione(Spettro):
     frequency = NEVER
     priority = USELESS
 
+class Amnesia(Amnesia):
+    frequency = EVERY_OTHER_NIGHT
+    priority = MODIFY
+
+    def apply_dawn(self, dynamics):
+        self.recorded_target.has_permanent_amnesia = True
+
 # Roles that can appear in The Game
 valid_roles = [Cacciatore, Contadino, Divinatore, Esorcista, Espansivo, Guardia,
     Investigatore, Mago, Massone, Messia, Sciamano, Stalker, Trasformista, Veggente,
     Voyeur, Lupo, Assassino, Avvocato, Diavolo, Fattucchiera, Rinnegato, Necrofilo,
     Sequestratore, Stregone, Negromante, Fantasma,
-    Confusione, Corruzione, Delusione, Illusione, Morte, Occultamento, Visione]
+    Amnesia, Confusione, Delusione, Illusione, Morte, Occultamento, Visione]
 
 # Roles that can be assigned at game start
 starting_roles = [role for role in valid_roles if not role.ghost]
@@ -82,7 +89,7 @@ needs_spectral_sequence = True
 
 def post_death(dynamics, player):
     if player.team == POPOLANI and len(dynamics.spectral_sequence) > 0:
-        if dynamics.spectral_sequence.pop():
+        if dynamics.spectral_sequence.pop(0):
             from ..events import GhostificationEvent
             dynamics.generate_event(GhostificationEvent(player=player, ghost=Delusione.name, cause=SPECTRAL_SEQUENCE))
 

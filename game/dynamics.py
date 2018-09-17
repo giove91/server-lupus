@@ -138,6 +138,7 @@ class Dynamics:
             player.just_transformed = False
             player.just_resurrected = False
             player.hypnotist = None
+            player.has_permanent_amnesia = None
             player.has_confusion = False
 
     def get_active_players(self):
@@ -822,6 +823,12 @@ class Dynamics:
         # Apply effects that modify expressed vote.
         for func in self.vote_influences:
             ballots = func(ballots)
+
+        # Apply effect of permanent_amnesia.
+
+        for player in self.get_alive_players():
+            if player.has_permanent_amnesia:
+                ballots[player.pk] = None
 
         # Apply effects of hypnotization. Should hopefully work
         for player in self.get_alive_players():

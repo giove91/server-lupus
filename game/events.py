@@ -1139,7 +1139,7 @@ class GhostificationEvent(Event):
         player = self.player.canonicalize()
 
         assert not player.alive
-        assert self.ghost not in dynamics.used_ghost_powers
+        assert self.ghost not in dynamics.used_ghost_powers or self.ghost == 'Spettro'
         assert not(dynamics.death_ghost_created and self.cause == NECROMANCER)
         #assert not(dynamics.death_ghost_created and self.cause == HYPNOTIST_DEATH and not dynamics.death_ghost_just_created), (dynamics.death_ghost_created, dynamics.death_ghost_just_created, self.cause)
         assert not(self.cause == HYPNOTIST_DEATH and not isinstance(player.role, Ipnotista))
