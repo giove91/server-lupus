@@ -6741,12 +6741,10 @@ class GameTests(TestCase):
         dynamics.debug_event_bin = []
         
         # Inserting Soothsayer propositions
-        ref_timestamp = self.game.current_turn.begin
-        dynamics.inject_event(SoothsayerModelEvent(target=cacciatore, advertised_role=Veggente.name, soothsayer=divinatore, timestamp=ref_timestamp))
-        dynamics.inject_event(SoothsayerModelEvent(target=negromante1, advertised_role=Negromante.name, soothsayer=divinatore, timestamp=ref_timestamp))
-        dynamics.inject_event(SoothsayerModelEvent(target=lupo1, advertised_role=Contadino.name, soothsayer=divinatore, timestamp=ref_timestamp))
-        dynamics.inject_event(SoothsayerModelEvent(target=contadino, advertised_role=Contadino.name, soothsayer=divinatore, timestamp=ref_timestamp))
-        
+        dynamics.inject_event(SoothsayerModelEvent(target=cacciatore, advertised_role=Veggente.name, soothsayer=divinatore, timestamp=get_now()))
+        dynamics.inject_event(SoothsayerModelEvent(target=negromante1, advertised_role=Negromante.name, soothsayer=divinatore, timestamp=get_now()))
+        dynamics.inject_event(SoothsayerModelEvent(target=lupo1, advertised_role=Contadino.name, soothsayer=divinatore, timestamp=get_now()))
+        dynamics.inject_event(SoothsayerModelEvent(target=contadino, advertised_role=Contadino.name, soothsayer=divinatore, timestamp=get_now()))
         # Check
         events = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
         self.assertEqual(len(events), 4)

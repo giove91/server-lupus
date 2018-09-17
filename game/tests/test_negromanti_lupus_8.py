@@ -302,3 +302,75 @@ class GameTests(TestCase):
         self.assertTrue(event.voted == guardia)
         self.assertTrue(guardia.alive)
 
+    @record_name
+    def test_divinatore(self):
+        roles = [ Cacciatore, Negromante, Negromante, Lupo, Lupo, Contadino, Divinatore ]
+        self.game = create_test_game(1, roles, [])
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [cacciatore] = [x for x in players if isinstance(x.role, Cacciatore)]
+        [lupo1, lupo2] = [x for x in players if isinstance(x.role, Lupo)]
+        [negromante1, negromante2] = [x for x in players if isinstance(x.role, Negromante)]
+        [divinatore] = [x for x in players if isinstance(x.role, Divinatore)]
+        [contadino] = [x for x in players if isinstance(x.role, Contadino)]
+        
+        dynamics.debug_event_bin = []
+
+        # Inserting Soothsayer propositions
+        ref_timestamp = get_now()
+        dynamics.inject_event(SoothsayerModelEvent(target=cacciatore, advertised_role=Veggente.name, soothsayer=divinatore, timestamp=ref_timestamp))
+        dynamics.inject_event(SoothsayerModelEvent(target=negromante1, advertised_role=Guardia.name, soothsayer=divinatore, timestamp=ref_timestamp))
+        dynamics.inject_event(SoothsayerModelEvent(target=lupo1, advertised_role=Contadino.name, soothsayer=divinatore, timestamp=ref_timestamp))
+        dynamics.inject_event(SoothsayerModelEvent(target=contadino, advertised_role=Contadino.name, soothsayer=divinatore, timestamp=ref_timestamp))
+        
+        # Check
+        events = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
+        self.assertEqual(len(events), 4)
+        for e in events:
+            self.assertEqual(e.player, divinatore)
+        
+        info = [(e.target, e.role_name) for e in events]
+        self.assertTrue((negromante1, Guardia.name) in info)
+        self.assertTrue((cacciatore, Veggente.name) in info)
+        self.assertTrue((lupo1, Contadino.name) in info)
+        self.assertTrue((contadino, Contadino.name) in info)
+
+        test_advance_turn(self.game)
+
+        # Test power
+        dynamics.inject_event(CommandEvent(player=divinatore, type=USEPOWER, target=lupo1, target_role_name=Lupo.name))
+
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
+        [] = [event for event in dynamics.debug_event_bin if isinstance(event, NegativeRoleKnowledgeEvent)]
+
+        self.assertEqual(event.target, lupo1)
+        self.assertEqual(event.role_name, Lupo.name)
+
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        # Not every night...
+        self.assertFalse(divinatore.can_use_power())
+
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        # Test again
+
+        dynamics.inject_event(CommandEvent(player=divinatore, type=USEPOWER, target=lupo1, target_role_name=Contadino.name))
+
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        [] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, NegativeRoleKnowledgeEvent)]
+
+        self.assertEqual(event.target, lupo1)
+        self.assertEqual(event.role_name, Contadino.name)

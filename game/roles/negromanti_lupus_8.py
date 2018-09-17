@@ -5,6 +5,37 @@ from ..constants import *
 
 starting_teams = [POPOLANI, LUPI, NEGROMANTI]
 
+class Divinatore(Divinatore):
+    frequency = EVERY_OTHER_NIGHT
+    priority = QUERY
+
+    def get_targets(self):
+        return {player for player in self.player.game.get_active_players() if player.pk != self.player.pk}
+
+    def get_targets_role_name(self):
+        return {x.name for x in self.player.game.get_dynamics().rules.valid_roles if not x.ghost}
+
+    def apply_dawn(self, dynamics):
+        if self.recorded_target.role.name == self.recorded_target_role_name:
+            from ..events import RoleKnowledgeEvent
+            dynamics.generate_event(RoleKnowledgeEvent(target=self.recorded_target, player=self.player, role_name=self.recorded_target_role_name, cause=SOOTHSAYER))
+        else:
+            from ..events import NegativeRoleKnowledgeEvent
+            dynamics.generate_event(NegativeRoleKnowledgeEvent(target=self.recorded_target, player=self.player, role_name=self.recorded_target_role_name, cause=SOOTHSAYER))
+
+    def needs_soothsayer_propositions(self):
+        from ..events import SoothsayerModelEvent
+        events = SoothsayerModelEvent.objects.filter(soothsayer=self.player)
+        if len([ev for ev in events if ev.target == ev.soothsayer]) > 0:
+            return KNOWS_ABOUT_SELF
+        if len(events) != 4:
+            return NUMBER_MISMATCH
+        truths = [ev.target.canonicalize().role.name == ev.advertised_role for ev in events]
+        if not (False in truths) or not (True in truths):
+            return TRUTH_MISMATCH
+
+        return False
+
 class Diavolo(Diavolo):
     def get_targets_role_bisection(self):
         return {x.name for x in self.player.game.get_dynamics().rules.valid_roles if not x.ghost}
