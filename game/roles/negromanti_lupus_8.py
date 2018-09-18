@@ -16,7 +16,7 @@ class Divinatore(Divinatore):
         return {x.name for x in self.player.game.get_dynamics().rules.valid_roles if not x.ghost}
 
     def apply_dawn(self, dynamics):
-        if self.recorded_target.role.name == self.recorded_target_role_name:
+        if dynamics.get_apparent_role(self.recorded_target).name == self.recorded_target_role_name:
             from ..events import RoleKnowledgeEvent
             dynamics.generate_event(RoleKnowledgeEvent(target=self.recorded_target, player=self.player, role_name=self.recorded_target_role_name, cause=SOOTHSAYER))
         else:
@@ -37,6 +37,7 @@ class Divinatore(Divinatore):
         return False
 
 class Alcolista(Rinnegato):
+    name = 'Alcolista'
     frequency = EVERY_NIGHT
     priority = QUERY_INFLUENCE # Mah
 
@@ -63,9 +64,24 @@ class Diavolo(Diavolo):
                 player=self.player,
                 target=self.recorded_target,
                 role_bisection=self.recorded_target_role_bisection,
-                response=self.recorded_target.role.name in self.recorded_target_role_bisection,
+                response=dynamics.get_apparent_role(self.recorded_target).name in self.recorded_target_role_bisection,
                 cause=DEVIL
         ))
+
+class Fattucchiera(Fattucchiera):
+    def get_targets(self):
+        return {player for player in self.player.game.get_active_players() if player.pk != self.player.pk}
+
+    def get_targets_role_name(self):
+        return {x.name for x in self.player.game.get_dynamics().rules.valid_roles if not x.ghost}
+
+    def apply_dawn(self, dynamics):
+        role = dynamics.rules.roles_list[self.recorded_target_role_name]
+        target = self.recorded_target.canonicalize()
+        target.apparent_aura = role.aura
+        target.apparent_mystic = role.is_mystic
+        target.apparent_role = role
+        target.apparent_team = role.team
 
 class Visione(Visione):
     def get_targets_role_bisection(self):
@@ -81,7 +97,7 @@ class Visione(Visione):
                 player=self.player,
                 target=self.recorded_target,
                 role_bisection=self.recorded_target_role_bisection,
-                response=self.recorded_target.role.name in self.recorded_target_role_bisection,
+                response=dynamics.get_apparent_role(self.recorded_target).name in self.recorded_target_role_bisection,
                 cause=VISION_GHOST
         ))
 
@@ -113,6 +129,24 @@ class Amnesia(Amnesia):
 
     def apply_dawn(self, dynamics):
         self.recorded_target.has_permanent_amnesia = True
+
+class Confusione(Confusione):
+    def get_targets(self):
+        return {player for player in self.player.game.get_active_players() if player.pk != self.player.pk}
+
+    def get_targets2(self):
+        return None
+
+    def get_targets_role_name(self):
+        return {x.name for x in self.player.game.get_dynamics().rules.valid_roles if not x.ghost}
+
+    def apply_dawn(self, dynamics):
+        role = dynamics.rules.roles_list[self.recorded_target_role_name]
+        target.apparent_aura = role.aura
+        target.apparent_mystic = role.is_mystic
+        target.apparent_role = role
+        target.apparent_team = role.team
+
 
 # Roles that can appear in The Game
 valid_roles = [Cacciatore, Contadino, Divinatore, Esorcista, Espansivo, Guardia,

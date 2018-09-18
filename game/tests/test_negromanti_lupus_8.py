@@ -435,3 +435,137 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) if event.player == alcolista]
         self.assertFalse(event.success)
 
+    @record_name
+    def test_fattucchiera_and_confusione(self):
+        roles = [ Guardia, Veggente, Lupo, Fattucchiera, Divinatore, Mago, Diavolo, Negromante ]
+        self.game = create_test_game(2204, roles, [True])
+        self.assertEqual(self.game.current_turn.phase, CREATION)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [diavolo] = [x for x in players if isinstance(x.role, Diavolo)]
+        [divinatore] = [x for x in players if isinstance(x.role, Divinatore)]
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [guardia] = [x for x in players if isinstance(x.role, Guardia)]
+        [veggente] = [x for x in players if isinstance(x.role, Veggente)]
+        [lupo] = [x for x in players if isinstance(x.role, Lupo)]
+        [fattucchiera] = [x for x in players if isinstance(x.role, Fattucchiera)]
+        [mago] = [x for x in players if isinstance(x.role, Mago)]
+
+        # Inserting Soothsayer propositions
+        ref_timestamp = get_now()
+        dynamics.inject_event(SoothsayerModelEvent(target=negromante, advertised_role=Veggente.name, soothsayer=divinatore, timestamp=ref_timestamp))
+        dynamics.inject_event(SoothsayerModelEvent(target=negromante, advertised_role=Guardia.name, soothsayer=divinatore, timestamp=ref_timestamp))
+        dynamics.inject_event(SoothsayerModelEvent(target=lupo, advertised_role=Contadino.name, soothsayer=divinatore, timestamp=ref_timestamp))
+        dynamics.inject_event(SoothsayerModelEvent(target=lupo, advertised_role=Lupo.name, soothsayer=divinatore, timestamp=ref_timestamp))
+
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        # Make party at lupo's home
+        dynamics.inject_event(CommandEvent(player=lupo, type=USEPOWER, target=guardia))
+        dynamics.inject_event(CommandEvent(player=veggente, type=USEPOWER, target=lupo))
+        dynamics.inject_event(CommandEvent(player=diavolo, type=USEPOWER, target=lupo, target_role_bisection={'Veggente', 'Messia', 'Stalker'}))
+        dynamics.inject_event(CommandEvent(player=mago, type=USEPOWER, target=lupo))
+        dynamics.inject_event(CommandEvent(player=divinatore, type=USEPOWER, target=lupo, target_role_name='Messia'))
+        dynamics.inject_event(CommandEvent(player=fattucchiera, type=USEPOWER, target=lupo, target_role_name='Messia'))
+
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent) if event.player == divinatore]
+        self.assertEqual(event.target, lupo)
+        self.assertEqual(event.role_name, Messia.name)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleBisectionKnowledgeEvent) if event.player == diavolo]
+        self.assertEqual(event.target, lupo)
+        self.assertTrue(event.response)
+        self.assertEqual(event.role_bisection, {Veggente.name, Messia.name, Stalker.name})
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, AuraKnowledgeEvent) if event.player == veggente]
+        self.assertEqual(event.target, lupo)
+        self.assertEqual(event.aura, WHITE)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, MysticityKnowledgeEvent) if event.player == mago]
+        self.assertEqual(event.target, lupo)
+        self.assertTrue(event.is_mystic)
+
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        self.assertTrue(fattucchiera.can_use_power())
+        self.assertFalse(divinatore.can_use_power())
+
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        # Make another party, but don't invite Fattucchiera
+        dynamics.inject_event(CommandEvent(player=negromante, type=USEPOWER, target=guardia, target_role_name=Confusione.name))
+        dynamics.inject_event(CommandEvent(player=veggente, type=USEPOWER, target=lupo))
+        dynamics.inject_event(CommandEvent(player=diavolo, type=USEPOWER, target=lupo, target_role_bisection={'Veggente', 'Messia', 'Stalker'}))
+        dynamics.inject_event(CommandEvent(player=mago, type=USEPOWER, target=lupo))
+        dynamics.inject_event(CommandEvent(player=divinatore, type=USEPOWER, target=lupo, target_role_name='Messia'))
+
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        # Check that lupo has been sgamato
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, NegativeRoleKnowledgeEvent) if event.player == divinatore]
+        self.assertEqual(event.target, lupo)
+        self.assertEqual(event.role_name, Messia.name)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleBisectionKnowledgeEvent) if event.player == diavolo]
+        self.assertEqual(event.target, lupo)
+        self.assertFalse(event.response)
+        self.assertEqual(event.role_bisection, {Veggente.name, Messia.name, Stalker.name})
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, AuraKnowledgeEvent) if event.player == veggente]
+        self.assertEqual(event.target, lupo)
+        self.assertEqual(event.aura, BLACK)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, MysticityKnowledgeEvent) if event.player == mago]
+        self.assertEqual(event.target, lupo)
+        self.assertFalse(event.is_mystic)
+
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        # Now confusione sneaks in
+        dynamics.inject_event(CommandEvent(player=veggente, type=USEPOWER, target=lupo))
+        dynamics.inject_event(CommandEvent(player=diavolo, type=USEPOWER, target=lupo, target_role_bisection={'Veggente', 'Messia', 'Stalker'}))
+        dynamics.inject_event(CommandEvent(player=mago, type=USEPOWER, target=lupo))
+        dynamics.inject_event(CommandEvent(player=divinatore, type=USEPOWER, target=lupo, target_role_name='Messia'))
+        dynamics.inject_event(CommandEvent(player=fattucchiera, type=USEPOWER, target=lupo, target_role_name='Messia'))
+
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        # Now lupo is the new Messia (again)
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent) if event.player == divinatore]
+        self.assertEqual(event.target, lupo)
+        self.assertEqual(event.role_name, Messia.name)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleBisectionKnowledgeEvent) if event.player == diavolo]
+        self.assertEqual(event.target, lupo)
+        self.assertTrue(event.response)
+        self.assertEqual(event.role_bisection, {Veggente.name, Messia.name, Stalker.name})
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, AuraKnowledgeEvent) if event.player == veggente]
+        self.assertEqual(event.target, lupo)
+        self.assertEqual(event.aura, WHITE)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, MysticityKnowledgeEvent) if event.player == mago]
+        self.assertEqual(event.target, lupo)
+        self.assertTrue(event.is_mystic)
+

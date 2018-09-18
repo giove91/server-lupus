@@ -730,7 +730,7 @@ class RoleKnowledgeEvent(Event):
         elif self.cause == HYPNOTIST_DEATH:
             assert False
 
-        if self.cause in [SOOTHSAYER, EXPANSIVE, GHOST, PHANTOM, HYPNOTIST_DEATH, KNOWLEDGE_CLASS]:
+        if self.cause in [EXPANSIVE, GHOST, PHANTOM, HYPNOTIST_DEATH, KNOWLEDGE_CLASS]:
             assert self.target.canonicalize().role.name == self.role_name
     
     
@@ -872,7 +872,7 @@ class RoleBisectionKnowledgeEvent(Event):
 
     def apply(self, dynamics):
         assert dynamics.current_turn.phase in RoleBisectionKnowledgeEvent.REAL_RELEVANT_PHASES[self.cause]
-        assert (self.target.role.name in self.role_bisection) == self.response
+        assert (dynamics.get_apparent_role(self.target).name in self.role_bisection) == self.response
 
     def to_player_string(self, player):
         toa = self.target.oa
