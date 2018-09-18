@@ -538,8 +538,6 @@ class Lupo(Role):
     def apply_dawn(self, dynamics):
         assert dynamics.wolves_agree
 
-        # Assert checks in pre_dawn_apply(), just to be sure
-        assert not isinstance(self.recorded_target.role, Negromante)
         assert not self.recorded_target.protected_by_guard
 
         if not self.recorded_target.just_dead:

@@ -36,6 +36,26 @@ class Divinatore(Divinatore):
 
         return False
 
+class Lupo(Lupo):
+    # Lupi can kill everybody! Yay!
+    def pre_apply_dawn(self, dynamics):
+        if dynamics.wolves_agree is None:
+            dynamics.wolves_agree = dynamics.check_common_target([x for x in dynamics.get_alive_players() if isinstance(x.role, Lupo)])
+
+        if dynamics.wolves_agree:
+            # Check protection by Guardia
+            if self.recorded_target.protected_by_guard:
+                return False
+
+        else:
+            # Check if wolves tried to strike, but they didn't agree
+            if self.recorded_target is not None:
+                return False
+
+        return True
+
+
+
 class Alcolista(Rinnegato):
     name = 'Alcolista'
     frequency = EVERY_NIGHT
@@ -103,6 +123,13 @@ class Visione(Visione):
 
 class Negromante(Negromante):
     priority = MODIFY
+    has_power = True
+
+    def can_use_power(self):
+        if not self.player.alive:
+            return self.has_power
+
+        return True
 
     def get_targets_role_name(self):
         valid_powers = {Amnesia, Confusione, Illusione, Morte, Occultamento, Visione}
@@ -112,11 +139,22 @@ class Negromante(Negromante):
         return available_powers
 
     def pre_apply_dawn(self, dynamics):
-        return self.recorded_target.role.ghost
+        if self.player.alive:
+            return self.recorded_target.role.ghost
+        else:
+            return True
 
     def apply_dawn(self, dynamics):
-        from ..events import GhostSwitchEvent
-        dynamics.generate_event(GhostSwitchEvent(player=self.recorded_target, ghost=self.recorded_target_role_name, cause=NECROMANCER))
+        if self.recorded_target.role.ghost:
+            from ..events import GhostSwitchEvent
+            dynamics.generate_event(GhostSwitchEvent(player=self.recorded_target, ghost=self.recorded_target_role_name, cause=NECROMANCER))
+        else:
+            assert not self.player.alive
+            from ..events import GhostificationEvent
+            dynamics.generate_event(GhostificationEvent(player=self.recorded_target, ghost=self.recorded_target_role_name, cause=NECROMANCER))
+
+        if not self.player.alive:
+            self.has_power = False
 
 class Delusione(Spettro):
     # Spettro yet to be initialized (or who has lost his power).

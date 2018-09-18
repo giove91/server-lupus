@@ -569,3 +569,72 @@ class GameTests(TestCase):
         self.assertEqual(event.target, lupo)
         self.assertTrue(event.is_mystic)
 
+    @record_name
+    def test_negromante(self):
+        roles = [ Contadino, Contadino, Contadino, Contadino, Contadino, Lupo, Negromante, Negromante ]
+        self.game = create_test_game(1, roles, [False, True, False, True, True])
+        self.assertEqual(self.game.current_turn.phase, CREATION)
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [c1, c2, c3, c4, c5] = [x for x in players if isinstance(x.role, Contadino)]
+        [lupo] = [x for x in players if isinstance(x.role, Lupo)]
+        [negromante, _] = [x for x in players if isinstance(x.role, Negromante)]
+
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        # Kill contadino 1: no spettri for negromante today!
+        dynamics.inject_event(CommandEvent(player=lupo, type=USEPOWER, target=c1))
+
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        self.assertEqual(c1.team, POPOLANI)
+
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        # Negromante cannot do anything, so while he fails lupo kills him
+        dynamics.inject_event(CommandEvent(player=lupo, type=USEPOWER, target=negromante))
+        dynamics.inject_event(CommandEvent(player=negromante, type=USEPOWER, target=c1, target_role_name = Amnesia.name))
+
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        [] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostSwitchEvent)]
+        [] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) if event.player == negromante]
+
+        self.assertFalse(event.success)
+        self.assertEqual(c1.team, POPOLANI)
+        self.assertFalse(negromante.alive)
+
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        # Now negromante is dead, and he's stronger than ever!
+        dynamics.inject_event(CommandEvent(player=negromante, type=USEPOWER, target=c1, target_role_name=Amnesia.name))
+
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
+        [] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostSwitchEvent)]
+
+        self.assertEqual(event.player, c1)
+        self.assertEqual(event.ghost, Amnesia.name)
+        self.assertEqual(c1.team, NEGROMANTI)
+        self.assertTrue(isinstance(c1.role, Amnesia))
+
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        # ... or not
+        self.assertFalse(negromante.can_use_power())
