@@ -103,23 +103,6 @@ class Fattucchiera(Fattucchiera):
         target.apparent_role = role
         target.apparent_team = role.team
 
-class Visione(Visione):
-    def get_targets_role_bisection(self):
-        return {x.name for x in self.player.game.get_dynamics().rules.valid_roles if not x.ghost}
-
-    def pre_apply_dawn(self, dynamics):
-        # Will not fail on Lupi
-        return True
-
-    def apply_dawn(self, dynamics):
-        from ..events import RoleBisectionKnowledgeEvent
-        dynamics.generate_event(RoleBisectionKnowledgeEvent(
-                player=self.player,
-                target=self.recorded_target,
-                role_bisection=self.recorded_target_role_bisection,
-                response=dynamics.get_apparent_role(self.recorded_target).name in self.recorded_target_role_bisection,
-                cause=VISION_GHOST
-        ))
 
 class Negromante(Negromante):
     priority = MODIFY
@@ -185,6 +168,43 @@ class Confusione(Confusione):
         target.apparent_role = role
         target.apparent_team = role.team
 
+class Illusione(Illusione):
+    def apply_dawn(self, dynamics):
+        assert self.has_power
+
+        assert self.recorded_target2.alive
+
+        # Visiting: Stalker illusion, we have to replace the
+        # original location
+        self.recorded_target2.visiting = [self.recorded_target]
+
+        # Visitors: Voyeur illusion, we have to add to the
+        # original list
+        if self.recorded_target2 not in self.recorded_target.visitors:
+            self.recorded_target.visitors.append(self.recorded_target2)
+
+        if self.recorded_target2.role.recorded_target is not None and self.recorded_target2 in self.recorded_target2.role.recorded_target.visitors:
+            self.recorded_target2.role.recorded_target.visitors.remove(self.recorded_target2)
+
+        dynamics.illusion = (self.recorded_target2, self.recorded_target)
+    
+class Visione(Visione):
+    def get_targets_role_bisection(self):
+        return {x.name for x in self.player.game.get_dynamics().rules.valid_roles if not x.ghost}
+
+    def pre_apply_dawn(self, dynamics):
+        # Will not fail on Lupi
+        return True
+
+    def apply_dawn(self, dynamics):
+        from ..events import RoleBisectionKnowledgeEvent
+        dynamics.generate_event(RoleBisectionKnowledgeEvent(
+                player=self.player,
+                target=self.recorded_target,
+                role_bisection=self.recorded_target_role_bisection,
+                response=dynamics.get_apparent_role(self.recorded_target).name in self.recorded_target_role_bisection,
+                cause=VISION_GHOST
+        ))
 
 # Roles that can appear in The Game
 valid_roles = [Cacciatore, Contadino, Divinatore, Esorcista, Espansivo, Guardia,
