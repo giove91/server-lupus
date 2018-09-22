@@ -423,7 +423,7 @@ class Dynamics:
         # Debug prints
         self.logger.info("Received event %r, timed %s", event, event.timestamp)
         if isinstance(event, AvailableRoleEvent):
-            self.logger.debug("  Available role: %s", event.role_name)
+            self.logger.debug("  Available role: %s", event.role_class.name)
 
         # Do some check on the new event
         if not RELAX_TIME_CHECKS:
@@ -478,8 +478,8 @@ class Dynamics:
         if event.timestamp is None:
             event.timestamp = self.last_timestamp_in_turn
 
+        event.fill_subclass()
         event.clean_fields()
-
         if self.simulating:
             self.simulated_events.append(event)
         
@@ -493,13 +493,13 @@ class Dynamics:
 
         # Check that all teams are represented
         self.playing_teams = self._count_alive_teams()
-        assert sorted(self.playing_teams) == sorted(self.rules.starting_teams)
-        required_roles = self.rules.required_roles.copy()
+        assert sorted(self.playing_teams) == sorted(self.rules.teams)
+        for role in self.valid_roles:
+            if role.required:
+                assert role in {x.role.__class__ for x in self.players}
+
         for player in self.players:
             assert not player.role.needs_soothsayer_propositions()
-            if player.role.__class__ in required_roles:
-                required_roles.remove(player.role.__class__)
-        assert len(required_roles) == 0
 
     def check_missing_soothsayer_propositions(self):
         """Check that the soothsayer received revelations according to
@@ -600,13 +600,13 @@ class Dynamics:
                     continue
                 if target is None:
                     target = role.recorded_target
-                    target_role_name = role.recorded_target_role_name
+                    role_class = role.recorded_role_class
                 elif target.pk != role.recorded_target.pk:
                     return False
-                elif target_role_name != role.recorded_target_role_name:
+                elif role_class != role.recorded_role_class:
                     return False
             else:
-                assert role.recorded_target_role_name is None
+                assert role.recorded_role_class is None
 
         return True
 

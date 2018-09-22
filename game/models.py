@@ -26,6 +26,9 @@ class StringsSetField(models.TextField):
         if isinstance(value, set):
             return value
 
+        if isinstance(value, list):
+            return set(value)
+
         if value is None:
             return value
 
@@ -110,6 +113,10 @@ class KnowsChild(models.Model):
     def save(self, *args, **kwargs):
         self.fill_subclass()
         super(KnowsChild, self).save(*args, **kwargs)
+
+    def clean_fields(self, *args, **kwargs):
+        self.fill_subclass()
+        super(KnowsChild, self).clean_fields(*args, **kwargs)
 
 
 def dump_game(game, fout):

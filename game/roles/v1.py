@@ -1,21 +1,121 @@
 from .base import *
 from ..constants import *
 
-# Define variable used for the game
+class Rules(Rules):
+    pass
 
-starting_teams = [POPOLANI, LUPI, NEGROMANTI]
+class Cacciatore(Cacciatore):
+    pass
 
-# Roles that can appear in The Game
-valid_roles = [Cacciatore, Contadino, Custode, Divinatore, Esorcista, Espansivo, Guardia,
-    Investigatore, Mago, Massone, Messia, Sciamano, Stalker, Trasformista, Veggente,
-    Voyeur, Lupo, Assassino, Avvocato, Diavolo, Fattucchiera, Rinnegato, Necrofilo,
-    Sequestratore, Stregone, Negromante, Fantasma, Ipnotista, Medium, Scrutatore,
-    Amnesia, Confusione, Corruzione, Illusione, Ipnosi, Morte, Occultamento, Visione]
+class Contadino(Contadino):
+    pass
 
-# Roles that can be assigned at game start
-starting_roles = [role for role in valid_roles if not role.ghost]
+class Custode(Custode):
+    pass
 
-# Roles that must be assigned at game start
-required_roles = [Lupo, Negromante]
+class Divinatore(Divinatore):
+    pass
 
-roles_list = dict([(x.name, x) for x in valid_roles])
+class Esorcista(Esorcista):
+    pass
+
+class Espansivo(Espansivo):
+    pass
+
+class Guardia(Guardia):
+    pass
+
+class Investigatore(Investigatore):
+    pass
+
+class Mago(Mago):
+    pass
+
+class Massone(Massone):
+    pass
+
+class Messia(Messia):
+    pass
+
+class Sciamano(Sciamano):
+    pass
+
+class Stalker(Stalker):
+    pass
+
+class Trasformista(Trasformista):
+    pass
+
+class Veggente(Veggente):
+    pass
+
+class Voyeur(Voyeur):
+    pass
+
+class Lupo(Lupo):
+    required = True
+
+class Assassino(Assassino):
+    pass
+
+class Avvocato(Avvocato):
+    pass
+
+class Diavolo(Diavolo):
+    pass
+
+class Fattucchiera(Fattucchiera):
+    pass
+
+class Rinnegato(Rinnegato):
+    pass
+
+class Necrofilo(Necrofilo):
+    pass
+
+class Sequestratore(Sequestratore):
+    pass
+
+class Stregone(Stregone):
+    pass
+
+class Negromante(Negromante):
+    required = True
+
+class Fantasma(Fantasma):
+    # We must refer to the correct definitions of the powers
+    def get_valid_powers(self):
+        return {Amnesia, Confusione, Illusione, Ipnosi, Occultamento, Visione}
+
+class Ipnotista(Ipnotista):
+    pass
+
+class Medium(Medium):
+    pass
+
+class Scrutatore(Scrutatore):
+    pass
+
+class Amnesia(Amnesia):
+    pass
+
+class Confusione(Confusione):
+    pass
+
+class Corruzione(Corruzione):
+    on_mystic_only = True
+
+class Illusione(Illusione):
+    pass
+
+class Ipnosi(Ipnosi):
+    pass
+
+class Morte(Morte):
+    on_mystic_only = True
+
+class Occultamento(Occultamento):
+    pass
+
+class Visione(Visione):
+    pass

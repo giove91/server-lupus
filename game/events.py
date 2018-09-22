@@ -2,10 +2,11 @@
 
 from django.db import models
 from .models import Event, Player, StringsSetField, RoleField, MultipleRoleField
-from .roles import *
+from .roles.base import Role
 from .constants import *
 from .utils import dir_dict, rev_dict
 from importlib import import_module
+from inspect import isclass
 
 class CommandEvent(Event):
     # A command submitted by a player
@@ -65,7 +66,7 @@ class CommandEvent(Event):
                 'player': self.player.user.username,
                 'target': self.target.user.username if self.target is not None else None,
                 'target2': self.target2.user.username if self.target2 is not None else None,
-                'role_class': self.role_class if self.role_class is not None else None,
+                'role_class': str(self.role_class) if self.role_class is not None else None,
                 'multiple_role_class': list(self.multiple_role_class) if self.multiple_role_class is not None else None,
                 'type': dict(CommandEvent.ACTION_TYPES)[self.type],
                 })
@@ -175,6 +176,7 @@ class SetRulesEvent(Event):
     def apply(self, dynamics):
         module = import_module('game.roles.' + self.ruleset)
         dynamics.rules = module.Rules()
+        dynamics.valid_roles = {getattr(module, k) for k in dir(module) if isclass(getattr(module, k)) and issubclass(getattr(module, k), Role)}
         dynamics.ruleset = self.ruleset
 
 class SpectralSequenceEvent(Event):
@@ -208,7 +210,7 @@ class AvailableRoleEvent(Event):
     def to_dict(self):
         ret = Event.to_dict(self)
         ret.update({
-                'role_class': self.role_class,
+                'role_class': str(self.role_class),
                 })
         return ret
 
@@ -230,7 +232,7 @@ class AvailableRoleEvent(Event):
             for player_pk, role_class in zip(players_pks, dynamics.available_roles):
                 event = SetRoleEvent(player=dynamics.players_dict[player_pk], role_class=role_class)
                 dynamics.generate_event(event)
-                given_roles[player_pk] = role
+                given_roles[player_pk] = role_class
 
             event = SetMayorEvent()
             event.player = dynamics.players_dict[mayor]
@@ -255,7 +257,7 @@ class AvailableRoleEvent(Event):
                 knowledge_class = knowledge_classes[knowledge_classes_rev[player.pk]]
                 for target in knowledge_class:
                     if target.pk != player.pk:
-                        event = RoleKnowledgeEvent(player=player, target=target, role=given_roles[target.pk], cause=KNOWLEDGE_CLASS)
+                        event = RoleKnowledgeEvent(player=player, target=target, role_class=given_roles[target.pk], cause=KNOWLEDGE_CLASS)
                         dynamics.generate_event(event)
 
 
@@ -268,14 +270,14 @@ class SetRoleEvent(Event):
 
     def apply(self, dynamics):
         player = self.player.canonicalize()
-        role = self.role(player)
+        role = self.role_class(player)
         # Assign a label to disambiguate players with the same role
         try:
             dynamics.assignements_per_role[self.role_class] += 1
         except KeyError:
             dynamics.assignements_per_role[self.role_class] = 1
         if dynamics.available_roles.count(self.role_class) > 1:
-            player_role.disambiguation_label = chr(ord('A') + dynamics.assignements_per_role[self.role_class] - 1)
+            role.disambiguation_label = chr(ord('A') + dynamics.assignements_per_role[self.role_class] - 1)
 
         player.role = role
         player.team = role.team
@@ -300,7 +302,7 @@ class SetMayorEvent(Event):
     AUTOMATIC = True
     CAN_BE_SIMULATED = False
 
-    player = models.ForeignKey(Player, null=True, related_name='+',on_delete=models.CASCADE)
+    player = models.ForeignKey(Player, null=True, blank=True, related_name='+',on_delete=models.CASCADE)
 
     SET_MAYOR_CAUSES = (
         (BEGINNING, 'Beginning'),
@@ -533,7 +535,8 @@ class CorruptionEvent(Event):
         assert player.is_mystic and player.aura == WHITE
 
         # Change role in Negromante
-        player.role = dynamics.rules.roles_list['Negromante'](player)
+        [role_class] = [x for x in dynamics.valid_roles if x.necromancer]
+        player.role = role_class(player)
         player.team = NEGROMANTI
 
     def to_player_string(self, player):
@@ -636,7 +639,7 @@ class SoothsayerModelEvent(Event):
         ret = Event.to_dict(self)
         ret.update({
             'target': self.target.user.username,
-            'advertised_role': self.advertised_role,
+            'advertised_role': str(self.advertised_role),
             'soothsayer': self.soothsayer.user.username,
         })
         return ret
@@ -651,7 +654,7 @@ class SoothsayerModelEvent(Event):
 
     def to_player_string(self, player):
         if player == 'admin':
-            return u'Il Divinatore %s riceve la frase: "%s"' % (self.player.full_name, self.to_soothsayer_proposition())
+            return u'Il Divinatore %s riceve la frase: "%s"' % (self.soothsayer.full_name, self.to_soothsayer_proposition())
 
     def to_soothsayer_proposition(self):
         return u'%s ha il ruolo di %s.' % (self.target.full_name, self.advertised_role.name)
