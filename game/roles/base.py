@@ -1,4 +1,3 @@
-from ..models import KnowsChild, Player
 from ..constants import *
 
 import sys
@@ -47,17 +46,17 @@ class Role(object):
         self.last_target = None
         self.recorded_target = None
         self.recorded_target2 = None
-        self.recorded_target_role_name = None
-        self.recorded_target_role_bisection = None
+        self.recorded_role_class = None
+        self.recorded_multiple_role_class = None
         self.recorded_command = None
 
     def __unicode__(self):
-        return u"%s" % self.name
+        return u"%s.%s" % (self.module, self.name)
 
     @staticmethod
-    def get_from_name(role_name):
-        [role_class] = [x for x in Role.__subclasses__() if x.__name__ == role_name]
-        return role_class
+    def get_from_string(role_id_str):
+        package, class_name = role_id_str.split('.')
+        return getattr(import_module('.' + package), class_name)
 
     def get_disambiguated_name(self):
         if self.disambiguation_label is not None:
@@ -92,12 +91,12 @@ class Role(object):
         '''Returns the list of possible second targets.'''
         return None
     
-    def get_targets_role_name(self):
-        '''Returns a set of possible role targets.'''
+    def get_targets_role_class(self):
+        '''Returns a set of possible role class targets.'''
         return None
 
-    def get_targets_role_bisection(self):
-        '''Returns a set of possible role targets for bisection.'''
+    def get_targets_multiple_role_class(self):
+        '''Returns a set of possible multiple role class targets.'''
         return None
 
 
@@ -132,24 +131,24 @@ class Role(object):
         else:
             assert event.target2 is None or event.target2 in targets2
 
-        # Check target_role_name and target_role_bisection validity
-        targets_roles = self.get_targets_role_name()
-        targets_role_bisection = self.get_targets_role_bisection()
-        if targets_roles is None:
-            assert event.target_role_name is None
+        # Check target_role_class and target_multiple_role_class validity
+        targets_role_class = self.get_targets_role_class()
+        targets_multiple_role_class = self.get_targets_multiple_role_class()
+        if targets_role_class is None:
+            assert event.role_class is None
         else:
-            assert event.target_role_name is None or event.target_role_name in targets_roles
+            assert event.role_class is None or event.role_class in targets_role_class
 
-        if targets_role_bisection is None:
-            assert event.target_role_bisection is None
+        if targets_multiple_role_class is None:
+            assert event.multiple_role_class is None
         else:
-            assert event.target_role_bisection is None or event.target_role_bisection.issubset(targets_role_bisection)
+            assert event.multiple_role_class is None or event.multiple_role_class.issubset(targets_multiple_role_class)
 
         # Record targets and command
         self.recorded_target = event.target
         self.recorded_target2 = event.target2
-        self.recorded_target_role_name = event.target_role_name
-        self.recorded_target_role_bisection = event.target_role_bisection
+        self.recorded_role_class = event.role_class
+        self.recorded_multiple_role_class = event.multiple_role_class
         self.recorded_command = event
 
     def pre_apply_dawn(self, dynamics):
@@ -294,7 +293,7 @@ class Espansivo(Role):
 
     def apply_dawn(self, dynamics):
         from ..events import RoleKnowledgeEvent
-        dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=self.name, cause=EXPANSIVE))
+        dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_class=self, cause=EXPANSIVE))
 
 
 class Guardia(Role):
@@ -455,7 +454,7 @@ class Trasformista(Role):
         if self.recorded_target.role.ghost:
             new_role_class = self.recorded_target.role_class_before_ghost
         assert new_role_class.team == POPOLANI
-        dynamics.generate_event(TransformationEvent(player=self.player, target=self.recorded_target, role_name=new_role_class.name, cause=TRANSFORMIST))
+        dynamics.generate_event(TransformationEvent(player=self.player, target=self.recorded_target, role_class=new_role_class, cause=TRANSFORMIST))
         self.player.just_transformed = True
 
 
@@ -614,7 +613,7 @@ class Diavolo(Role):
 
     def apply_dawn(self, dynamics):
         from ..events import RoleKnowledgeEvent
-        dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, role_name=dynamics.get_apparent_role(self.recorded_target).name, cause=DEVIL))
+        dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, role_class=dynamics.get_apparent_role(self.recorded_target), cause=DEVIL))
 
 
 class Fattucchiera(Role):
@@ -656,8 +655,8 @@ class Necrofilo(Role):
         from ..events import TransformationEvent, RoleKnowledgeEvent
         new_role_class = self.recorded_target.role.__class__
         assert new_role_class.team == LUPI
-        dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=self.name, cause=NECROPHILIAC))
-        dynamics.generate_event(TransformationEvent(player=self.player, target=self.recorded_target, role_name=new_role_class.name, cause=NECROPHILIAC))
+        dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_class=self, cause=NECROPHILIAC))
+        dynamics.generate_event(TransformationEvent(player=self.player, target=self.recorded_target, role_class=new_role_class, cause=NECROPHILIAC))
 
 
 class Rinnegato(Role):
@@ -736,10 +735,9 @@ class Negromante(Role):
     def get_targets(self):
         return [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk]
 
-    def get_targets_role_name(self):
-        valid_powers = {Amnesia, Confusione, Corruzione, Illusione, Ipnosi, Morte, Occultamento, Visione}
+    def get_targets_role_class(self):
+        powers = {Amnesia, Confusione, Corruzione, Illusione, Ipnosi, Morte, Occultamento, Visione}
         dynamics = self.player.game.get_dynamics()
-        powers = {x.name for x in valid_powers}
         available_powers = powers - dynamics.used_ghost_powers
         return available_powers
 
@@ -766,7 +764,7 @@ class Negromante(Role):
                 return False
 
             # MORTE and CORRUZIONE must be applied on mystic
-            if self.recorded_target_role_name in [Corruzione.name, Morte.name] and not self.recorded_target.is_mystic:
+            if self.recorded_role_class in {Corruzione, Morte} and not self.recorded_target.is_mystic:
                 return False
 
         else:
@@ -788,7 +786,7 @@ class Negromante(Role):
 
         if not self.recorded_target.just_ghostified:
             assert not self.recorded_target.role.ghost
-            dynamics.generate_event(GhostificationEvent(player=self.recorded_target, ghost=self.recorded_target_role_name, cause=NECROMANCER))
+            dynamics.generate_event(GhostificationEvent(player=self.recorded_target, ghost=self.recorded_role_class, cause=NECROMANCER))
             self.recorded_target.just_ghostified = True
 
         else:
@@ -796,7 +794,7 @@ class Negromante(Role):
             # we must not check the following during simulation
             assert self.recorded_target.role.ghost or dynamics.simulating
 
-        dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=Negromante.name, cause=GHOST))
+        dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role=Negromante, cause=GHOST))
 
     def post_death(self, dynamics):
         if [player for player in dynamics.get_alive_players() if isinstance(player.role, self.__class__)] == []:
@@ -811,21 +809,21 @@ class Fantasma(Role):
 
 
     def post_death(self, dynamics):
-        valid_powers = [Amnesia, Confusione, Illusione, Ipnosi, Occultamento, Visione]
-        available_powers = {x.name for x in valid_powers} - dynamics.used_ghost_powers
+        powers = {Amnesia, Confusione, Illusione, Ipnosi, Occultamento, Visione}
+        available_powers = powers - dynamics.used_ghost_powers
         if len(available_powers) >= 1:
-            power = dynamics.random.choice(sorted(list(available_powers)))
+            power = dynamics.random.choice(sorted(available_powers))
             from ..events import RoleKnowledgeEvent, GhostificationEvent
             dynamics.generate_event(GhostificationEvent(player=self.player, cause=PHANTOM, ghost=power))
             for negromante in dynamics.players:
                 if isinstance(negromante.role, Negromante):
                     dynamics.generate_event(RoleKnowledgeEvent(player=self.player,
                                                                target=negromante,
-                                                               role_name=Negromante.name,
+                                                               role=Negromante,
                                                                cause=GHOST))
                     dynamics.generate_event(RoleKnowledgeEvent(player=negromante,
                                                                target=self.player,
-                                                               role_name=dynamics.rules.roles_list[power].name,
+                                                               role=power,
                                                                cause=PHANTOM))
         else:
             from ..events import GhostificationFailedEvent
@@ -869,7 +867,7 @@ class Medium(Role):
 
     def apply_dawn(self, dynamics):
         from ..events import RoleKnowledgeEvent
-        dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, role_name=dynamics.get_apparent_role(self.recorded_target).name, cause=MEDIUM))
+        dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, role=dynamics.get_apparent_role(self.recorded_target), cause=MEDIUM))
 
 
 class Scrutatore(Role):
@@ -992,7 +990,7 @@ class Corruzione(Spettro):
 
         from ..events import CorruptionEvent, RoleKnowledgeEvent
         dynamics.generate_event(CorruptionEvent(player=self.recorded_target))
-        dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_name=self.name, cause=CORRUPTION))
+        dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role=self, cause=CORRUPTION))
 
 class Illusione(Spettro):
     name = 'Spettro dell\'Illusione'
@@ -1120,7 +1118,7 @@ class Visione(Spettro):
         assert self.has_power
 
         from ..events import RoleKnowledgeEvent
-        dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, role_name=dynamics.get_apparent_role(self.recorded_target).name, cause=VISION_GHOST))
+        dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, role=dynamics.get_apparent_role(self.recorded_target), cause=VISION_GHOST))
 
 
 '''

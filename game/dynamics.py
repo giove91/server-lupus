@@ -478,6 +478,8 @@ class Dynamics:
         if event.timestamp is None:
             event.timestamp = self.last_timestamp_in_turn
 
+        event.clean_fields()
+
         if self.simulating:
             self.simulated_events.append(event)
         

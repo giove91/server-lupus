@@ -118,7 +118,6 @@ SPECTRAL_SEQUENCE = 'S'
 # Role knowledge causes (PHANTOM clashes with the ghostification cause
 # and so must set to the same value --- curse insufficient namespace
 # separation! Same for HYPNOTIST_DEATH)
-SOOTHSAYER_PROPOSITION = 'R'
 SOOTHSAYER = 'S' # His night power
 EXPANSIVE = 'E'
 KNOWLEDGE_CLASS = 'C'

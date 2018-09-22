@@ -11,7 +11,7 @@ from django.utils import timezone
 from django.test import TestCase
 
 from game.models import *
-from game.roles.negromanti import *
+from game.roles.v1 import *
 from game.events import *
 from game.constants import *
 from game.utils import get_now, advance_to_time
@@ -21,7 +21,7 @@ from datetime import timedelta, datetime, time
 from .test_utils import create_game, delete_auto_users, create_users, create_game_from_dump, test_advance_turn, record_name
 
 def create_test_game(seed, roles):
-	return create_game(seed, 'negromanti', roles)
+	return create_game(seed, 'v1', roles)
 
 class GameTests(TestCase):
 

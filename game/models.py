@@ -2,6 +2,7 @@ from datetime import datetime, time, timedelta
 from dateutil.parser import parse
 from threading import RLock
 import sys
+from inspect import isclass
 
 from django.db import models, IntegrityError, transaction
 from django import forms
@@ -13,12 +14,13 @@ from django.conf import settings
 from .constants import *
 
 from .utils import advance_to_time, get_now
+from .roles.base import Role
 
 class StringsSetField(models.TextField):
     def from_db_value(self, value, expression, connection):
         if value is None:
             return value
-        return set(value.split(','))
+        return {x for x in value.split(',') if x != ''}
 
     def to_python(self, value):
         if isinstance(value, set):
@@ -28,18 +30,74 @@ class StringsSetField(models.TextField):
             return value
 
         else:
-            return set(value.split(','))
+            return {x for x in value.split(',') if x != ''}
 
     def get_prep_value(self, value):
         if value is None:
             return None
         return ','.join(value)
 
+class RoleField(models.TextField):
+    def from_db_value(self, value, expression, connection):
+        if value is None:
+            return value
+        return Role.get_from_string(value)
+
+    def to_python(self, value):
+        if value is None:
+            return value
+
+        if isclass(value) and issubclass(value, Role):
+            return value
+
+        if issubclass(value.__class__, Role):
+            return value.__class__
+
+        else:
+            return Role.get_from_string(value)
+
+    def get_prep_value(self, value):
+        if value is None:
+            return None
+        if isinstance(value, str):
+            return value
+        module = value.__module__.split('.')[-1]
+        return "%s.%s" % (module, value.__name__)
+
+class MultipleRoleField(models.TextField):
+    def from_db_value(self, value, expression, connection):
+        if value is None:
+            return value
+        return {Role.get_from_string(x) for x in value.split(',') if x != ''}
+
+    def to_python(self, value):
+        if value is None:
+            return value
+
+        if isinstance(value, set):
+            retval = {}
+            for x in value:
+                if isclass(x) and issubclass(x, Role):
+                    retval.add(x)
+                elif issubclass(x.__class__, Role):
+                    retval.add(x.__class__)
+                else:
+                    retval.add(Role.get_from_string(x))
+            return retval
+        else:
+            return {Role.get_from_string(x) for x in value.split(',') if x != ''}
+
+    def get_prep_value(self, value):
+        if value is None:
+            return None
+        module = x.__module__.split('.')[-1]
+        return ','.join(["%s.%s" % (x.__module__.split('.')[-1], x.__name__) for x in value])
+
 class KnowsChild(models.Model):
     # Make a place to store the class name of the child
     # (copied almost entirely from http://blog.headspin.com/?p=474)
     subclass = models.CharField(max_length=200)
- 
+
     class Meta:
         abstract = True
  
