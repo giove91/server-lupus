@@ -1,9 +1,25 @@
 from .base import *
 from ..constants import *
 
-# Define variable used for the game
+class Rules(Rules):
+    needs_spectral_sequence = True
 
-starting_teams = [POPOLANI, LUPI, NEGROMANTI]
+    @staticmethod
+    def post_death(dynamics, player):
+        if player.team == POPOLANI and len(dynamics.spectral_sequence) > 0:
+            if dynamics.spectral_sequence.pop(0):
+                from ..events import GhostificationEvent
+                dynamics.generate_event(GhostificationEvent(player=player, ghost=Delusione, cause=SPECTRAL_SEQUENCE))
+
+##############
+#  POPOLANI  #
+##############
+
+class Cacciatore(Cacciatore):
+    pass
+
+class Contadino(Contadino):
+    pass
 
 class Divinatore(Divinatore):
     frequency = EVERY_OTHER_NIGHT
@@ -12,16 +28,16 @@ class Divinatore(Divinatore):
     def get_targets(self):
         return {player for player in self.player.game.get_alive_players() if player.pk != self.player.pk}
 
-    def get_targets_role_name(self):
-        return {x.name for x in self.player.game.get_dynamics().rules.valid_roles if not x.ghost}
+    def get_targets_role_class(self):
+        return {x for x in self.player.game.get_dynamics().valid_roles if not x.ghost}
 
     def apply_dawn(self, dynamics):
-        if dynamics.get_apparent_role(self.recorded_target).name == self.recorded_target_role_name:
+        if dynamics.get_apparent_role(self.recorded_target) == self.recorded_role_class:
             from ..events import RoleKnowledgeEvent
-            dynamics.generate_event(RoleKnowledgeEvent(target=self.recorded_target, player=self.player, role_name=self.recorded_target_role_name, cause=SOOTHSAYER))
+            dynamics.generate_event(RoleKnowledgeEvent(target=self.recorded_target, player=self.player, role_class=self.recorded_role_class, cause=SOOTHSAYER))
         else:
             from ..events import NegativeRoleKnowledgeEvent
-            dynamics.generate_event(NegativeRoleKnowledgeEvent(target=self.recorded_target, player=self.player, role_name=self.recorded_target_role_name, cause=SOOTHSAYER))
+            dynamics.generate_event(NegativeRoleKnowledgeEvent(target=self.recorded_target, player=self.player, role_class=self.recorded_role_class, cause=SOOTHSAYER))
 
     def needs_soothsayer_propositions(self):
         from ..events import SoothsayerModelEvent
@@ -30,13 +46,55 @@ class Divinatore(Divinatore):
             return KNOWS_ABOUT_SELF
         if len(events) != 4:
             return NUMBER_MISMATCH
-        truths = [ev.target.canonicalize().role.name == ev.advertised_role for ev in events]
+        truths = [isinstance(ev.target.canonicalize().role, ev.advertised_role) for ev in events]
         if not (False in truths) or not (True in truths):
             return TRUTH_MISMATCH
 
         return False
 
+class Esorcista(Esorcista):
+    pass
+
+class Espansivo(Espansivo):
+    pass
+
+class Guardia(Guardia):
+    pass
+
+class Investigatore(Investigatore):
+    pass
+
+class Mago(Mago):
+    pass
+
+class Massone(Massone):
+    pass
+
+class Messia(Messia):
+    pass
+
+class Sciamano(Sciamano):
+    pass
+
+class Stalker(Stalker):
+    pass
+
+class Trasformista(Trasformista):
+    pass
+
+class Veggente(Veggente):
+    pass
+
+class Voyeur(Voyeur):
+    pass
+
+##############
+#    LUPI    #
+##############
+
 class Lupo(Lupo):
+    required = True
+
     # Lupi can kill everybody! Yay!
     def pre_apply_dawn(self, dynamics):
         if dynamics.wolves_agree is None:
@@ -54,7 +112,44 @@ class Lupo(Lupo):
 
         return True
 
+class Assassino(Assassino):
+    pass
 
+class Avvocato(Avvocato):
+    pass
+
+class Diavolo(Diavolo):
+    def get_targets_multiple_role_class(self):
+        return {x for x in self.player.game.get_dynamics().valid_roles if not x.ghost}
+
+    def pre_apply_dawn(self, dynamics):
+        # Will not fail on Negromenti
+        return True
+
+    def apply_dawn(self, dynamics):
+        from ..events import MultipleRoleKnowledgeEvent
+        dynamics.generate_event(MultipleRoleKnowledgeEvent(
+                player=self.player,
+                target=self.recorded_target,
+                multiple_role_class=self.recorded_multiple_role_class,
+                response=dynamics.get_apparent_role(self.recorded_target) in self.recorded_multiple_role_class,
+                cause=DEVIL
+        ))
+
+class Fattucchiera(Fattucchiera):
+    def get_targets(self):
+        return {player for player in self.player.game.get_active_players() if player.pk != self.player.pk}
+
+    def get_targets_role_class(self):
+        return {x for x in self.player.game.get_dynamics().valid_roles if not x.ghost}
+
+    def apply_dawn(self, dynamics):
+        role = self.recorded_role_class
+        target = self.recorded_target.canonicalize()
+        target.apparent_aura = role.aura
+        target.apparent_mystic = role.is_mystic
+        target.apparent_role = role
+        target.apparent_team = role.team
 
 class Alcolista(Rinnegato):
     name = 'Alcolista'
@@ -70,43 +165,23 @@ class Alcolista(Rinnegato):
     def apply_dawn(self, dynamics):
         pass #out
 
-class Diavolo(Diavolo):
-    def get_targets_role_bisection(self):
-        return {x.name for x in self.player.game.get_dynamics().rules.valid_roles if not x.ghost}
+class Necrofilo(Necrofilo):
+    pass
 
-    def pre_apply_dawn(self, dynamics):
-        # Will not fail on Negromenti
-        return True
+class Sequestratore(Sequestratore):
+    pass
 
-    def apply_dawn(self, dynamics):
-        from ..events import RoleBisectionKnowledgeEvent
-        dynamics.generate_event(RoleBisectionKnowledgeEvent(
-                player=self.player,
-                target=self.recorded_target,
-                role_bisection=self.recorded_target_role_bisection,
-                response=dynamics.get_apparent_role(self.recorded_target).name in self.recorded_target_role_bisection,
-                cause=DEVIL
-        ))
+class Stregone(Stregone):
+    pass
 
-class Fattucchiera(Fattucchiera):
-    def get_targets(self):
-        return {player for player in self.player.game.get_active_players() if player.pk != self.player.pk}
-
-    def get_targets_role_name(self):
-        return {x.name for x in self.player.game.get_dynamics().rules.valid_roles if not x.ghost}
-
-    def apply_dawn(self, dynamics):
-        role = dynamics.rules.roles_list[self.recorded_target_role_name]
-        target = self.recorded_target.canonicalize()
-        target.apparent_aura = role.aura
-        target.apparent_mystic = role.is_mystic
-        target.apparent_role = role
-        target.apparent_team = role.team
-
+##############
+# NEGROMANTI #
+##############
 
 class Negromante(Negromante):
     priority = MODIFY
     has_power = True
+    required = True
 
     def can_use_power(self):
         if not self.player.alive:
@@ -114,10 +189,9 @@ class Negromante(Negromante):
 
         return True
 
-    def get_targets_role_name(self):
-        valid_powers = {Amnesia, Confusione, Illusione, Morte, Occultamento, Visione}
+    def get_targets_role_class(self):
+        powers = {Amnesia, Confusione, Illusione, Morte, Occultamento, Visione}
         dynamics = self.player.game.get_dynamics()
-        powers = {x.name for x in valid_powers}
         available_powers = powers - dynamics.used_ghost_powers
         return available_powers
 
@@ -130,19 +204,25 @@ class Negromante(Negromante):
     def apply_dawn(self, dynamics):
         if self.recorded_target.role.ghost:
             from ..events import GhostSwitchEvent
-            dynamics.generate_event(GhostSwitchEvent(player=self.recorded_target, ghost=self.recorded_target_role_name, cause=NECROMANCER))
+            dynamics.generate_event(GhostSwitchEvent(player=self.recorded_target, ghost=self.recorded_role_class, cause=NECROMANCER))
         else:
             assert not self.player.alive
             from ..events import GhostificationEvent
-            dynamics.generate_event(GhostificationEvent(player=self.recorded_target, ghost=self.recorded_target_role_name, cause=NECROMANCER))
+            dynamics.generate_event(GhostificationEvent(player=self.recorded_target, ghost=self.recorded_role_class, cause=NECROMANCER))
 
         if not self.player.alive:
             self.has_power = False
+
+class Fantasma(Fantasma):
+    # We must refer to the correct definitions of the powers
+    def get_valid_powers(self):
+        return {Amnesia, Confusione, Illusione, Ipnosi, Occultamento, Visione}
 
 class Delusione(Spettro):
     # Spettro yet to be initialized (or who has lost his power).
     frequency = NEVER
     priority = USELESS
+    allow_duplicates = True
 
 class Amnesia(Amnesia):
     frequency = EVERY_OTHER_NIGHT
@@ -158,11 +238,11 @@ class Confusione(Confusione):
     def get_targets2(self):
         return None
 
-    def get_targets_role_name(self):
-        return {x.name for x in self.player.game.get_dynamics().rules.valid_roles if not x.ghost}
+    def get_targets_role_class(self):
+        return {x for x in self.player.game.get_dynamics().valid_roles if not x.ghost}
 
     def apply_dawn(self, dynamics):
-        role = dynamics.rules.roles_list[self.recorded_target_role_name]
+        role = self.recorded_role_class
         target.apparent_aura = role.aura
         target.apparent_mystic = role.is_mystic
         target.apparent_role = role
@@ -187,46 +267,24 @@ class Illusione(Illusione):
             self.recorded_target2.role.recorded_target.visitors.remove(self.recorded_target2)
 
         dynamics.illusion = (self.recorded_target2, self.recorded_target)
-    
+
+class Occultamento(Occultamento):
+    pass
+
 class Visione(Visione):
-    def get_targets_role_bisection(self):
-        return {x.name for x in self.player.game.get_dynamics().rules.valid_roles if not x.ghost}
+    def get_targets_multiple_role_class(self):
+        return {x for x in self.player.game.get_dynamics().valid_roles if not x.ghost}
 
     def pre_apply_dawn(self, dynamics):
         # Will not fail on Lupi
         return True
 
     def apply_dawn(self, dynamics):
-        from ..events import RoleBisectionKnowledgeEvent
-        dynamics.generate_event(RoleBisectionKnowledgeEvent(
+        from ..events import MultipleRoleKnowledgeEvent
+        dynamics.generate_event(MultipleRoleKnowledgeEvent(
                 player=self.player,
                 target=self.recorded_target,
-                role_bisection=self.recorded_target_role_bisection,
-                response=dynamics.get_apparent_role(self.recorded_target).name in self.recorded_target_role_bisection,
+                multiple_role_class=self.recorded_multiple_role_class,
+                response=dynamics.get_apparent_role(self.recorded_target) in self.recorded_multiple_role_class,
                 cause=VISION_GHOST
         ))
-
-# Roles that can appear in The Game
-valid_roles = [Cacciatore, Contadino, Divinatore, Esorcista, Espansivo, Guardia,
-    Investigatore, Mago, Massone, Messia, Sciamano, Stalker, Trasformista, Veggente,
-    Voyeur, Lupo, Assassino, Avvocato, Diavolo, Fattucchiera, Alcolista, Necrofilo,
-    Sequestratore, Stregone, Negromante, Fantasma,
-    Amnesia, Confusione, Delusione, Illusione, Morte, Occultamento, Visione]
-
-# Roles that can be assigned at game start
-starting_roles = [role for role in valid_roles if not role.ghost]
-
-# Roles that must be assigned at game start
-required_roles = [Lupo, Negromante]
-
-roles_list = dict([(x.name, x) for x in valid_roles])
-
-needs_spectral_sequence = True
-
-def post_death(dynamics, player):
-    if player.team == POPOLANI and len(dynamics.spectral_sequence) > 0:
-        if dynamics.spectral_sequence.pop(0):
-            from ..events import GhostificationEvent
-            dynamics.generate_event(GhostificationEvent(player=player, ghost=Delusione.name, cause=SPECTRAL_SEQUENCE))
-
-

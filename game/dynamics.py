@@ -176,11 +176,7 @@ class Dynamics:
         return player.apparent_mystic
     
     def get_apparent_role(self, player):
-        # If role is Spettro, return only Spettro
-        if player.apparent_role.ghost:
-            return player.apparent_role.__base__
-        else:
-            return player.apparent_role
+        return player.apparent_role
     
     def get_apparent_team(self, player):
         return player.apparent_team
@@ -621,7 +617,7 @@ class Dynamics:
         for player in self.get_active_players():
             player.apparent_aura = player.aura
             player.apparent_mystic = player.is_mystic
-            player.apparent_role = player.role.__class__
+            player.apparent_role = player.role.__class__ if not player.role.ghost else player.role_class_before_ghost
             player.apparent_team = player.team
             player.visiting = []
             player.visitors = []

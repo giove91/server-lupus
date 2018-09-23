@@ -848,9 +848,9 @@ class NegativeRoleKnowledgeEvent(Event):
         role_name = self.role_class.name
 
         if player == self.player:
-            return u'Scopri che %s non ha il ruolo di %s.' % (self.target.full_name, role_class)
+            return u'Scopri che %s non ha il ruolo di %s.' % (self.target.full_name, role_name)
         elif player == 'admin':
-            return u'Il Divinatore %s scopre che %s non ha il ruolo di %s.' % (self.player.full_name, self.target.full_name, role_class)
+            return u'Il Divinatore %s scopre che %s non ha il ruolo di %s.' % (self.player.full_name, self.target.full_name, role_name)
 
         return None
 
@@ -880,7 +880,7 @@ class MultipleRoleKnowledgeEvent(Event):
     def to_player_string(self, player):
         toa = self.target.oa
         poa = self.player.oa
-        roles = ", ".join(sorted([x.name for x in self.multiple_roles]))
+        roles = ", ".join(sorted([x.name for x in self.multiple_role_class]))
 
         if player == self.player:
             return u'Scopri che %s %s ha il ruolo tra i seguenti: %s.' % (self.target.full_name, u"non " if not self.response else u"", roles)

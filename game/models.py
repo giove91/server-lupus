@@ -78,7 +78,7 @@ class MultipleRoleField(models.TextField):
             return value
 
         if isinstance(value, set):
-            retval = {}
+            retval = set()
             for x in value:
                 if isclass(x) and issubclass(x, Role):
                     retval.add(x)
@@ -93,7 +93,6 @@ class MultipleRoleField(models.TextField):
     def get_prep_value(self, value):
         if value is None:
             return None
-        module = x.__module__.split('.')[-1]
         return ','.join(["%s.%s" % (x.__module__.split('.')[-1], x.__name__) for x in value])
 
 class KnowsChild(models.Model):

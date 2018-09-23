@@ -1536,7 +1536,8 @@ class GameTests(TestCase):
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, RoleKnowledgeEvent)]
         self.assertEqual(event.player, medium)
         self.assertEqual(event.target, contadino)
-        self.assertEqual(event.role_class, Spettro)
+        self.assertEqual(event.role_class, Contadino)
+        self.assertTrue(isinstance(contadino.role, Visione))
 
     @record_name
     def test_diavolo_on_negromante_faction(self): # Lupus7 new
