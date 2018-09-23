@@ -1446,7 +1446,7 @@ class ForceVictoryEvent(Event):
     def to_dict(self):
         ret = Event.to_dict(self)
         ret.update({
-                'winners': list(winners),
+                'winners': list(self.winners),
                 })
         return ret
 
