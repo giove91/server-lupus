@@ -64,8 +64,7 @@ class RoleField(models.TextField):
             return None
         if isinstance(value, str):
             return value
-        module = value.__module__.split('.')[-1]
-        return "%s.%s" % (module, value.__name__)
+        return value.as_string()
 
 class MultipleRoleField(models.TextField):
     def from_db_value(self, value, expression, connection):

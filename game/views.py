@@ -1013,8 +1013,8 @@ class SeedForm(forms.Form):
     )
     seed = forms.IntegerField(required=True, label='Seed')
     RULESETS = [
-        ('classic', 'Variante classica con due fazioni'),
-        ('negromanti', 'Variante con la fazione dei negromanti')
+        ('v1', 'Tre fazioni, regole di Lupus 7'),
+        ('v2', 'Tre fazioni, regole di Lupus 8')
     ]
     ruleset = forms.ChoiceField(choices=RULESETS, label='Regolamento')
 
@@ -1061,17 +1061,20 @@ class VillageCompositionForm(forms.Form):
         self.game = kwargs.pop('game', None)
         super(VillageCompositionForm, self).__init__(*args, **kwargs)
         dynamics = self.game.get_dynamics()
+        teams = dynamics.rules.teams
         assert self.game.started and self.game.mayor is None
 
-        for role in dynamics.rules.starting_roles:
-            self.fields[role.__name__] = forms.IntegerField(label=role.full_name, min_value=0, initial=0)
+        for role in sorted(dynamics.valid_roles, key=lambda x: (teams.index(x.team), x.name)):
+            if not role.ghost:
+                self.fields[role.__name__] = forms.IntegerField(label=role.name, min_value=0, initial=0)
 
     def clean(self):
         dynamics = self.game.get_dynamics()
         cleaned_data = super().clean()
         count = 0
-        for role in dynamics.rules.starting_roles:
-            count += cleaned_data.get(role.__name__)
+        for role in dynamics.valid_roles:
+            if not role.ghost:
+                count += cleaned_data.get(role.__name__)
 
         if count != len(dynamics.players):
             raise forms.ValidationError(
@@ -1094,10 +1097,10 @@ class VillageCompositionView(GameFormView):
 
     def form_valid(self, form):
         dynamics = self.request.game.get_dynamics()
-        roles = dynamics.rules.starting_roles
+        roles = [x for x in dynamics.valid_roles if not x.ghost]
         for role in roles:
             for i in range(form.cleaned_data[role.__name__]):
-                event = AvailableRoleEvent(role_name = role.__name__)
+                event = AvailableRoleEvent(role_class=role)
                 event.timestamp = get_now()
                 dynamics.inject_event(event)
 
@@ -1131,7 +1134,7 @@ class SoothsayerForm(forms.ModelForm):
         dynamics = self.game.get_dynamics()
 
         self.fields["target"].queryset = Player.objects.filter(game=self.game)
-        choices = [(x.full_name,x.full_name) for x in dynamics.rules.starting_roles]
+        choices = [(x.as_string(), x.name) for x in dynamics.valid_roles if not x.ghost]
         self.fields["advertised_role"].choices = choices
         self.fields["advertised_role"].widget.choices = choices
 

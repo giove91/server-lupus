@@ -29,7 +29,7 @@
         <li>
             <form method="post" action="{% url "game:deletesoothsayer" game_name=game.name pk=prop.pk %}">
             {% csrf_token %}
-            <label>{{ prop.target.canonicalize.role.disambiguated_name }} ha il ruolo di {{ prop.advertised_role }}</label><input type="submit" value="Elimina">
+            <label>{{ prop.target.canonicalize.role.disambiguated_name }} ha il ruolo di {{ prop.advertised_role.name }}</label><input type="submit" value="Elimina">
             </form>
         </li>
         {% endfor %}

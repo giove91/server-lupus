@@ -13,6 +13,7 @@ class Rules():
         pass
 
 class Role(object):
+    do_not_call_in_templates = True
     name = 'Generic role'
     disambiguation_label = None
     team = None
@@ -61,6 +62,11 @@ class Role(object):
         self.recorded_role_class = None
         self.recorded_multiple_role_class = None
         self.recorded_command = None
+
+    @classmethod
+    def as_string(cls):
+        module = cls.__module__.split('.')[-1]
+        return u"%s.%s" % (module, cls.__name__)
 
     def __unicode__(self):
         return u"%s.%s" % (self.module, self.name)

@@ -176,7 +176,7 @@ class SetRulesEvent(Event):
     def apply(self, dynamics):
         module = import_module('game.roles.' + self.ruleset)
         dynamics.rules = module.Rules()
-        dynamics.valid_roles = {getattr(module, k) for k in dir(module) if isclass(getattr(module, k)) and issubclass(getattr(module, k), Role)}
+        dynamics.valid_roles = {getattr(module, k) for k in dir(module) if isclass(getattr(module, k)) and issubclass(getattr(module, k), Role) and getattr(module, k).__module__ == 'game.roles.' + self.ruleset}
         dynamics.ruleset = self.ruleset
 
 class SpectralSequenceEvent(Event):
