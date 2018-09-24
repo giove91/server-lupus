@@ -137,6 +137,7 @@ class Diavolo(Diavolo):
         ))
 
 class Fattucchiera(Fattucchiera):
+    message_role = 'Fallo apparire come:'
     def get_targets(self):
         return {player for player in self.player.game.get_active_players() if player.pk != self.player.pk}
 

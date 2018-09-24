@@ -474,11 +474,12 @@ class Dynamics:
         if event.timestamp is None:
             event.timestamp = self.last_timestamp_in_turn
 
-        event.fill_subclass()
-        event.clean_fields()
         if self.simulating:
             self.simulated_events.append(event)
-        
+        else:
+            event.fill_subclass()
+            event.clean_fields()
+
         self.auto_event_queue.append(event)
 
     def _compute_entering_creation(self):

@@ -8,6 +8,11 @@
         <form action="{% url url_name game_name=game.name%}" method="post">
         {% csrf_token %}
         {{ form.as_p }}
+        <script type="text/javascript">$('#id_multiple_role_class').multiSelect({
+            selectableOptgroup: true,
+            selectableHeader: "<div class='custom-header'>Ruoli disponibili</div>",
+            selectionHeader: "<div class='custom-header'>Ruoli selezionati</div>"
+        })</script>
         <p><input type="submit" value="Invia" /></p>
         </form>
     </div>

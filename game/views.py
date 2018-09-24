@@ -31,6 +31,7 @@ from game.events import *
 from game.utils import get_now
 from game.decorators import *
 from game.weather import Weather
+from game.widgets import MultiSelect
 from datetime import datetime, timedelta
 
 
@@ -278,28 +279,46 @@ class CommandForm(forms.Form):
         super(CommandForm, self).__init__(*args, **kwargs)
 
         # Create form fields in the following order.
-        for key in ['target', 'target2', 'target_ghost']:
+        for key in ['target', 'target2', 'role_class', 'multiple_role_class']:
             if key in fields.keys():
                 field = fields[key]
 
                 if key == 'target' or key == 'target2':
                     choices = [ (None, '(Nessuno)') ]
                     choices.extend( [ (player.pk, player.full_name) for player in field['choices'] ] )
-                elif key == 'target_ghost':
-                    choices = [ (None, '(Nessuno)') ]
-                    choices.extend( [ (power, POWER_NAMES[power]) for power in field['choices'] ] )
+                elif key == 'role_class' or key == 'multiple_role_class':
+                    if key == 'role_class':
+                        choices = [ (None, '(Nessuno)') ]
+                    else:
+                        choices = []
+                    teams_found = set()
+                    # Create optgroups per team
+                    for team in TEAM_IT.keys():
+                         if team in [x.team for x in field['choices']]:
+                            choices.extend([(TEAM_IT[team], [(role_class.as_string(), role_class.name) for role_class in field['choices'] if role_class.team == team])])
                 else:
                     raise Exception ('Unknown form field.')
 
-                self.fields[key] = forms.ChoiceField(choices=choices, required=False, label=field['label'])
+                if key == 'multiple_role_class':
+                    self.fields[key] = forms.MultipleChoiceField(choices=choices, required=False, label=field['label'], widget=MultiSelect)
+                else:
+                    self.fields[key] = forms.ChoiceField(choices=choices, required=False, label=field['label'])
 
                 if key == 'target' or key == 'target2':
                     if field['initial'] is not None:
                         self.fields[key].initial = field['initial'].pk
                     else:
                         self.fields[key].initial = None
-                elif key == 'target_ghost':
-                    self.fields[key].initial = field['initial']
+                elif key == 'role_class':
+                    if field['initial'] is not None:
+                        self.fields[key].initial = field['initial'].as_string()
+                    else:
+                        self.fields[key].initial = None
+                elif key == 'multiple_role_class':
+                    if field['initial'] is not None:
+                        self.fields[key].initial = [x.as_string() for x in field['initial']]
+                    else:
+                        self.fields[key].initial = None
 
     def clean(self):
         cleaned_data = super(CommandForm, self).clean()
@@ -379,19 +398,27 @@ class UsePowerView(CommandView):
         
         targets = role.get_targets()
         targets2 = role.get_targets2()
-        targets_ghost = role.get_targets_ghost()
+        role_classes = role.get_targets_role_class()
+        multiple_role_classes = role.get_targets_multiple_role_class()
         
         initial = role.recorded_target
         initial2 = role.recorded_target2
-        initial_ghost = role.recorded_target_ghost
+        initial_role_class = role.recorded_role_class
+        initial_multiple_role_class = role.recorded_multiple_role_class
         
         fields = {}
+
+
         if targets is not None:
             fields['target'] = {'choices': targets, 'initial': initial, 'label': role.message}
         if targets2 is not None:
             fields['target2'] = {'choices': targets2, 'initial': initial2, 'label': role.message2}
-        if targets_ghost is not None:
-            fields['target_ghost'] = {'choices': targets_ghost, 'initial': initial_ghost, 'label': role.message_ghost}
+        if role_classes is not None:
+            role_classes = sorted(role_classes, key=lambda x: x.name)
+            fields['role_class'] = {'choices': role_classes, 'initial': initial_role_class, 'label': role.message_role}
+        if multiple_role_classes is not None:
+            multiple_role_classes = sorted(multiple_role_classes, key=lambda x: x.name)
+            fields['multiple_role_class'] = {'choices': multiple_role_classes, 'initial': initial_multiple_role_class, 'label': ''}
         
         return fields
     
@@ -401,12 +428,14 @@ class UsePowerView(CommandView):
         
         targets = role.get_targets()
         targets2 = role.get_targets2()
-        targets_ghost = role.get_targets_ghost()
+        role_classes = role.get_targets_role_class()
+        multiple_role_classes = role.get_targets_multiple_role_class()
         
         target = cleaned_data['target']
         target2 = None
-        target_ghost = None
-        
+        role_class = None
+        multiple_role_class = None
+
         if target == '':
             target = None
         
@@ -422,21 +451,36 @@ class UsePowerView(CommandView):
                 # unless target is None (which means that the power will not be used)
                 return False
         
-        if targets_ghost is not None:
-            target_ghost = cleaned_data['target_ghost']
-            if target_ghost == '':
-                target_ghost = None
-            if not target_ghost in targets_ghost and target is not None:
-                # If target_ghost is not valid (or None), make the command not valid
+        if role_classes is not None:
+            role_class = cleaned_data['role_class']
+            if role_class == '':
+                role_class = None
+            else:
+                role_class = Role.get_from_string(role_class)
+            if not role_class in role_classes and target is not None:
+                # If role_class is not valid (or None), make the command not valid
+                # unless target is None (which means that the power will not be used)
+                return False
+
+        if multiple_role_classes is not None:
+            multiple_role_class = cleaned_data['multiple_role_class']
+            if role_class == '':
+                multiple_role_class = None
+            else:
+                multiple_role_class = {Role.get_from_string(x) for x in multiple_role_class}
+
+            if not multiple_role_class.issubset(multiple_role_classes) and target is not None:
+                # If role_class is not valid (or None), make the command not valid
                 # unless target is None (which means that the power will not be used)
                 return False
         
         # If target is None, then the other fields are set to None
         if target is None:
             target2 = None
-            target_ghost = None
+            role_class = None
+            multiple_role_class = None
         
-        command = CommandEvent(player=player, type=USEPOWER, target=target, target2=target2, target_ghost=target_ghost, turn=player.game.current_turn, timestamp=get_now())
+        command = CommandEvent(player=player, type=USEPOWER, target=target, target2=target2, role_class=role_class, multiple_role_class=multiple_role_class, turn=player.game.current_turn, timestamp=get_now())
         if not command.check_phase(turn=self.request.current_turn):
             return False
         dynamics = self.request.player.game.get_dynamics()
