@@ -684,6 +684,7 @@ class RoleKnowledgeEvent(Event):
         # just transformed to Spettro dell'Ipnosi
         (HYPNOTIST_DEATH, 'HypnotistDeath'),
         (DEVIL, 'Devil'),
+        (DETECTIVE, 'Detective'),
         (VISION_GHOST, 'Vision'),
         (MEDIUM, 'Medium'),
         (CORRUPTION, 'Corruption'),
@@ -699,6 +700,7 @@ class RoleKnowledgeEvent(Event):
         PHANTOM: [DAWN, SUNSET],
         HYPNOTIST_DEATH: [DAWN, SUNSET],
         DEVIL: [DAWN],
+        DETECTIVE: [DAWN],
         MEDIUM: [DAWN],
         VISION_GHOST: [DAWN],
         NECROPHILIAC: [DAWN],
@@ -733,6 +735,10 @@ class RoleKnowledgeEvent(Event):
         elif self.cause == DEVIL:
             assert self.player.canonicalize().role.__class__.__name__ == 'Diavolo'
             assert self.target.canonicalize().alive
+
+        elif self.cause == DETECTIVE:
+            assert self.player.canonicalize().role.__class__.__name__ == 'Investigatore'
+            assert not self.target.canonicalize().alive
 
         elif self.cause == MEDIUM:
             assert self.player.canonicalize().role.__class__.__name__ == 'Medium'
@@ -786,6 +792,12 @@ class RoleKnowledgeEvent(Event):
                 return u'Scopri che %s ha il ruolo di %s.' % (self.target.full_name, role_name)
             elif player == 'admin':
                 return u'Il Diavolo %s scopre che %s ha il ruolo di %s.' % (self.player.full_name, self.target.full_name, role_name)
+
+        elif self.cause == DETECTIVE:
+            if player == self.player:
+                return u'Scopri che %s ha il ruolo di %s.' % (self.target.full_name, role_name)
+            elif player == 'admin':
+                return u'L\'Investigatore %s scopre che %s ha il ruolo di %s.' % (self.player.full_name, self.target.full_name, role_name)
 
         elif self.cause == SOOTHSAYER:
             if player == self.player:

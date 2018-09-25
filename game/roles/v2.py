@@ -15,9 +15,6 @@ class Rules(Rules):
 #  POPOLANI  #
 ##############
 
-class Cacciatore(Cacciatore):
-    pass
-
 class Contadino(Contadino):
     pass
 
@@ -62,7 +59,11 @@ class Guardia(Guardia):
     pass
 
 class Investigatore(Investigatore):
-    pass
+    frequency = EVERY_OTHER_NIGHT
+
+    def apply_dawn(self, dynamics):
+        from ..events import RoleKnowledgeEvent
+        dynamics.generate_event(RoleKnowledgeEvent(player=self.player, target=self.recorded_target, role_class=dynamics.get_apparent_role(self.recorded_target), cause=DETECTIVE))
 
 class Mago(Mago):
     pass

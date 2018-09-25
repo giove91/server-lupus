@@ -132,7 +132,7 @@ CORRUPTION = 'O'
 
 # Aura knowledge causes
 SEER = 'S'
-DETECTIVE = 'D'
+DETECTIVE = 'I'
 
 # Misticity knowledge causes
 MAGE = 'M'
