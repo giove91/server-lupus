@@ -80,6 +80,30 @@ class Sciamano(Sciamano):
 class Stalker(Stalker):
     pass
 
+class Spia(Role):
+    name = 'Spia'
+    aura = WHITE
+    team = POPOLANI
+    priority = QUERY
+    frequency = EVERY_NIGHT
+    can_act_first_night = False
+
+    def get_targets(self):
+        return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
+
+    def apply_dawn(self, dynamics):
+        from ..events import VoteKnowledgeEvent, VoteAnnouncedEvent
+        votes = [event for event in dynamics.events if
+            isinstance(event, VoteAnnouncedEvent) and
+            event.voter == self.recorded_target and
+            event.type == VOTE and
+            event.turn == dynamics.current_turn.prev_turn().prev_turn()
+        ]
+        assert len(votes) <= 1
+        if votes:
+            dynamics.generate_event(VoteKnowledgeEvent(player=self.player, voter=self.recorded_target, voted=votes[0].voted, cause=SPY))
+
+
 class Trasformista(Trasformista):
     pass
 

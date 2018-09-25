@@ -241,7 +241,8 @@ class EventListView(TemplateView):
             'events': self.get_events(),
             'weather': self.get_weather(),
             'classified': self.classified,
-            'display_time': self.display_time
+            'display_time': self.display_time,
+            'display_votes': self.dynamics.rules.display_votes or self.get_point_of_view == 'admin'
         })
         return context
 

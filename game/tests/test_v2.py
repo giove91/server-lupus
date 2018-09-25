@@ -844,3 +844,40 @@ class GameTests(TestCase):
         self.assertEqual(event.role_class, Guardia)
         self.assertTrue(isinstance(guardia.role, Delusione))
         self.assertEqual(guardia.team, NEGROMANTI)
+
+    @record_name
+    def test_spia(self):
+        roles = [ Negromante, Lupo, Lupo, Messia, Guardia, Spia, Contadino, Voyeur, Investigatore ]
+        self.game = create_test_game(1, roles, [])
+        dynamics = self.game.get_dynamics()
+        players = self.game.get_players()
+
+        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
+        [lupo, _] = [x for x in players if isinstance(x.role, Lupo)]
+        [messia] = [x for x in players if isinstance(x.role, Messia)]
+        [guardia] = [x for x in players if isinstance(x.role, Guardia)]
+        [investigatore] = [x for x in players if isinstance(x.role, Investigatore)]
+        [spia] = [x for x in players if isinstance(x.role, Spia)]
+
+        # Vote
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        dynamics.inject_event(CommandEvent(type=VOTE, player=messia, target=guardia, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=guardia, target=negromante, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=negromante, target=lupo, timestamp=get_now()))
+        dynamics.inject_event(CommandEvent(type=VOTE, player=lupo, target=messia, timestamp=get_now()))
+
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        
+        # Now spy
+        dynamics.inject_event(CommandEvent(type=USEPOWER, player=spia, target=guardia, timestamp=get_now()))
+
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, VoteKnowledgeEvent)]
+        self.assertEqual(event.voter, guardia)
+        self.assertEqual(event.voted, negromante)

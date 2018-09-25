@@ -996,6 +996,30 @@ class TeamKnowledgeEvent(Event):
             return u'%s scopre che %s appartiene alla Fazione dei %s.' % (self.player.full_name, self.target.full_name, team)
         return None
 
+class VoteKnowledgeEvent(Event):
+    RELEVANT_PHASES = [DAWN]
+    AUTOMATIC = True
+
+    player = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
+    voter = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
+    voted = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
+    KNOWLEDGE_CAUSE_TYPES = (
+        (SPY, 'Spy'),
+        )
+    cause = models.CharField(max_length=1, choices=KNOWLEDGE_CAUSE_TYPES, default=None)
+
+    def apply(self, dynamics):
+        pass
+    
+    def to_player_string(self, player):
+
+        if player == self.player:
+            return u'Scopri che ieri %s ha votato %s.' % (self.voted.full_name, self.voted.full_name)
+        elif player == 'admin':
+            return u'%s scopre che ieri %s ha votato %s.' % (self.player.full_name, self.voted.full_name, self.voted.full_name)
+        else:
+            return None
+
 
 class MovementKnowledgeEvent(Event):
     RELEVANT_PHASES = [DAWN]

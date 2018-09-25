@@ -140,6 +140,9 @@ MAGE = 'M'
 # Team knowledge causes
 # None!
 
+# VoteKnowledge causes
+SPY = 'S'
+
 # Movement knowledge causes
 STALKER = 'S'
 VOYEUR = 'V'

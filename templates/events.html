@@ -42,7 +42,7 @@
             <p>Il sole tramonta dietro le colline, e ciascuno si ritira silenziosamente in casa propria.</p>
         {% endif %}
         
-        {% if turn.phase == SUNSET %}
+        {% if turn.phase == SUNSET and display_votes %}
             
             <h3>Votazione per il rogo</h3>
             {% include "votation_details.html" with dictionary=values|key:VOTE only %}
