@@ -183,6 +183,7 @@ class Negromante(Negromante):
     priority = MODIFY
     has_power = True
     required = True
+    message_role = 'Assegna il seguente potere soprannaturale:'
 
     def can_use_power(self):
         if not self.player.alive:

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django.db import models
-from .models import Event, Player, StringsSetField, RoleField, MultipleRoleField
+from .models import Event, Player, StringsSetField, RoleField, MultipleRoleField, BooleanArrayField
 from .roles.base import Role
 from .constants import *
 from .utils import dir_dict, rev_dict
@@ -186,20 +186,20 @@ class SpectralSequenceEvent(Event):
 
     # Sequence is stored like a number, where the nth bit determines if the nth death
     # is ghostified
-    sequence = models.IntegerField()
+    sequence = BooleanArrayField()
 
     def to_dict(self):
         ret = Event.to_dict(self)
         ret.update({
-                'sequence': [(self.sequence >> i) & 1 for i in range(self.sequence.bit_length())],
+                'sequence': self.sequence,
                 })
         return ret
 
     def load_from_dict(self, data, players_map):
-        self.sequence = sum([x*2**i for i, x in enumerate(data[sequence])])
+        self.sequence = data[sequence]
 
     def apply(self, dynamics):
-        dynamics.spectral_sequence = [bool((self.sequence >> i) & 1) for i in range(self.sequence.bit_length())]
+        dynamics.spectral_sequence = self.sequence
 
 
 class AvailableRoleEvent(Event):
@@ -1261,7 +1261,7 @@ class GhostSwitchEvent(Event):
 
         if self.cause == NECROMANCER:
             if player == self.player:
-                return u'Il tuo potere soprannaturale è cambiato!. Sei diventat%s ora uno come %s.' % (oa, power)
+                return u'Il tuo potere soprannaturale è cambiato! Sei diventat%s ora uno %s.' % (oa, power)
             elif player == 'admin':
                 return u'%s è stat%s trasformat%s in uno %s.' % (self.player.full_name, oa, oa, power)
 

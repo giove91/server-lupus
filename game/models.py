@@ -16,6 +16,28 @@ from .constants import *
 from .utils import advance_to_time, get_now
 from .roles.base import Role
 
+class BooleanArrayField(models.IntegerField):
+    def from_db_value(self, value, expression, connection):
+        if value is None:
+            return value
+        return [bool((value >> i) & 1) for i in range(value.bit_length())]
+
+    def to_python(self, value):
+        if isinstance(value, list):
+            return value
+        elif value is None:
+            return value
+        elif isinstance(value, int):
+            return [bool((value >> i) & 1) for i in range(value.bit_length())]
+        else:
+            raise TypeError("BooleanArray requires an int or a list of booleans")
+
+    def get_prep_value(self, value):
+        if value is None:
+            return None
+        return sum([x*2**i for i, x in enumerate(value)])
+    
+
 class StringsSetField(models.TextField):
     def from_db_value(self, value, expression, connection):
         if value is None:
@@ -154,10 +176,7 @@ class Game(models.Model):
     title = models.CharField(max_length=32, verbose_name='Titolo della partita')
     description = models.CharField(max_length=1000, verbose_name='Descrizione')
 
-    day_end_weekdays = models.PositiveSmallIntegerField(default=79, verbose_name='Sere in cui finisce il giorno')
-
-    def get_day_end_weekdays(self):
-        return [ i for i in range(7) if (self.day_end_weekdays >> i) & 1]
+    day_end_weekdays = BooleanArrayField(default=[1,1,1,1,0,0,1], verbose_name='Sere in cui finisce il giorno')
 
     night_end_time = models.TimeField(default=time(8), null=True, verbose_name='Ora dell\'alba')
     day_end_time = models.TimeField(default=time(22), null=True, verbose_name='Ora del tramonto')
@@ -488,7 +507,7 @@ class Turn(models.Model):
             # If the game has already ended, the turn will be endless
             self.end = None
         elif self.phase in FULL_PHASES:
-            allowed_weekdays = self.game.get_day_end_weekdays() if self.phase == DAY else None
+            allowed_weekdays = [i for i,x in enumerate(self.game.day_end_weekdays) if x] if self.phase == DAY else None
             self.end = advance_to_time(self.begin, self.game.get_phase_end_time(self.phase), allowed_weekdays=allowed_weekdays)
         elif self.phase in HALF_PHASES:
             self.end = self.begin + timedelta(seconds=self.game.half_phase_duration)

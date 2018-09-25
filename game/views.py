@@ -291,11 +291,14 @@ class CommandForm(forms.Form):
                         choices = [ (None, '(Nessuno)') ]
                     else:
                         choices = []
-                    teams_found = set()
                     # Create optgroups per team
-                    for team in TEAM_IT.keys():
-                         if team in [x.team for x in field['choices']]:
+                    teams_found = [t for t in TEAM_IT.keys() if t in [x.team for x in field['choices']]]
+                    for team in teams_found:
+                        if len(teams_found) > 1:
                             choices.extend([(TEAM_IT[team], [(role_class.as_string(), role_class.name) for role_class in field['choices'] if role_class.team == team])])
+                        else:
+                            choices.extend([(role_class.as_string(), role_class.name) for role_class in field['choices']])
+
                 else:
                     raise Exception ('Unknown form field.')
 
@@ -724,7 +727,7 @@ class GameSettingsForm(forms.Form):
         self.game = kwargs.pop('game', None)
         super().__init__(*args, **kwargs)
         self.initial.update({
-            'day_end_weekdays': self.game.get_day_end_weekdays(),
+            'day_end_weekdays': [i for i,x in enumerate(self.game.day_end_weekdays) if x],
             'day_end_time': self.game.day_end_time,
             'night_end_time': self.game.night_end_time,
             'half_phase_duration': self.game.half_phase_duration,
@@ -742,7 +745,7 @@ class GameSettingsView(GameFormView):
         game = self.request.game
         game.day_end_time = form.cleaned_data['day_end_time']
         game.night_end_time = form.cleaned_data['night_end_time']
-        game.day_end_weekdays = sum([ 2**int(i) for i in form.cleaned_data['day_end_weekdays']])
+        game.day_end_weekdays = [str(i) in form.cleaned_data['day_end_weekdays'] for i in range(7)]
         game.half_phase_duration = form.cleaned_data['half_phase_duration']
         game.public = form.cleaned_data['public']
         game.postgame_info = form.cleaned_data['postgame_info']
@@ -1039,6 +1042,8 @@ class SetupGameView(RedirectView):
             self.pattern_name = 'game:seed'
         elif game.mayor is None:
             self.pattern_name = 'game:composition'
+        elif dynamics.check_missing_spectral_sequence():
+            self.pattern_name = 'game:spectralsequence'
         elif dynamics.check_missing_soothsayer_propositions() is not None:
             kwargs.update({'pk': dynamics.check_missing_soothsayer_propositions().pk})
             self.pattern_name = 'game:soothsayer'
@@ -1225,6 +1230,35 @@ class DeleteSoothsayerView(EventDeleteView):
     success_url = 'game:setup'
     def get_queryset(self):
         return SoothsayerModelEvent.objects.filter(turn__game=self.request.game)
+
+# View for inserting Spectral Sequence
+class SpectralSequenceForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        self.game = kwargs.pop('game', None)
+        super().__init__(*args, **kwargs)
+
+    sequence = forms.MultipleChoiceField(
+            widget=forms.CheckboxSelectMultiple(), 
+            choices = tuple((i, 'Morto %s' % (i+1)) for i in range(20)),
+            label='Popolani da rendere spettri:'
+    )
+
+class SpectralSequenceView(FormView):
+    form_class = SpectralSequenceForm
+    template_name = 'spectral_sequence.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'classified' : True,
+        })
+        return context
+
+    def form_valid(self, form):
+        deaths = [int(i) for i in form.cleaned_data.get('sequence')]
+        event = SpectralSequenceEvent(sequence=[i in deaths for i in range(len(deaths))], timestamp=get_now())
+        self.request.game.get_dynamics().inject_event(event)
+        return redirect('game:setup', game_name=self.request.game.name)
 
 
 # View for inserting Initial Propositions

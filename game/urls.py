@@ -35,6 +35,7 @@ urlpatterns = [
     path('setup/', SetupGameView.as_view(), name='setup'), # Prepara l'inizio
     path('seed/', SeedView.as_view(), name='seed'), # Cambia o crea il seed
     path('composition/', VillageCompositionView.as_view(), name='composition'), # Imposta la composizione del villaggio
+    path('spectralsequence/', SpectralSequenceView.as_view(), name='spectralsequence'), # Imposta la successione spettrale
     path('propositions/', InitialPropositionsView.as_view(), name='propositions'), # Pubblica le proposizioni iniziali
     path('deleteproposition/<int:pk>/', DeletePropositionView.as_view(), name='deleteproposition'), # Cancella una proposizione iniziale
     path('soothsayer/<int:pk>/', SoothsayerView.as_view(), name='soothsayer'), # Cambia le frasi dei divinatori

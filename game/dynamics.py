@@ -498,6 +498,14 @@ class Dynamics:
         for player in self.players:
             assert not player.role.needs_soothsayer_propositions()
 
+        assert not self.check_missing_spectral_sequence()
+
+    def check_missing_spectral_sequence(self):
+        """Check if the spectral sequence is requested, and if so check if it's
+        been provided.
+        """
+        return self.rules.needs_spectral_sequence and self.spectral_sequence is None
+
     def check_missing_soothsayer_propositions(self):
         """Check that the soothsayer received revelations according to
         the rules.

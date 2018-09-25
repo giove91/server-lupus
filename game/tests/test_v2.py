@@ -22,8 +22,7 @@ from .test_utils import create_game, delete_auto_users, create_users, create_gam
 
 def create_test_game(seed, roles, sequence):
     game = create_game(seed, 'v2', roles)
-    game.get_dynamics().inject_event(SpectralSequenceEvent(sequence=sum([x*2**i for i, x in enumerate(sequence)]),
-             timestamp=get_now()))
+    game.get_dynamics().inject_event(SpectralSequenceEvent(sequence=sequence, timestamp=get_now()))
     return game
 
 class GameTests(TestCase):
@@ -123,7 +122,7 @@ class GameTests(TestCase):
 
     @record_name
     def test_spectral_succession(self):
-        roles = [ Contadino, Contadino, Contadino, Contadino, Contadino, Lupo, Negromante ]
+        roles = [ Contadino, Contadino, Contadino, Contadino, Contadino, Lupo, Diavolo, Negromante ]
         self.game = create_test_game(1, roles, [True, False, True, True])
         self.assertEqual(self.game.current_turn.phase, CREATION)
         dynamics = self.game.get_dynamics()
@@ -131,6 +130,7 @@ class GameTests(TestCase):
 
         [c1, c2, c3, c4, c5] = [x for x in players if isinstance(x.role, Contadino)]
         [lupo] = [x for x in players if isinstance(x.role, Lupo)]
+        [diavolo] = [x for x in players if isinstance(x.role, Diavolo)]
 
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -166,6 +166,21 @@ class GameTests(TestCase):
 
         self.assertEqual(c2.team, POPOLANI)
         self.assertFalse(c2.role.ghost)
+
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+        test_advance_turn(self.game)
+
+        # Kill diavolo - nothing happens
+        dynamics.inject_event(CommandEvent(player=lupo, type=USEPOWER, target=diavolo))
+
+        dynamics.debug_event_bin = []
+        test_advance_turn(self.game)
+
+        [] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
+
+        self.assertEqual(diavolo.team, LUPI)
+        self.assertFalse(diavolo.role.ghost)
 
         test_advance_turn(self.game)
         test_advance_turn(self.game)
