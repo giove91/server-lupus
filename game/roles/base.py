@@ -8,6 +8,7 @@ class Rules():
     teams = [POPOLANI, LUPI, NEGROMANTI]
     needs_spectral_sequence = False
     show_votes = True
+    mayor = True
 
     @staticmethod
     def post_death(dynamics, player):

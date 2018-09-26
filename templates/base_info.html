@@ -7,7 +7,7 @@
         
         {% block personal_info %}{% endblock %}
         
-        {% include "status.html" with display_mayor=True %}
+        {% include "status.html" with display_mayor=display_mayor %}
         
         {% block events_title %}{% endblock %}
 	    {% include "events.html" %}

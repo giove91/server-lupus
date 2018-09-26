@@ -3,6 +3,8 @@ from ..constants import *
 
 class Rules(Rules):
     needs_spectral_sequence = True
+    display_votes = False
+    mayor = False
 
     @staticmethod
     def post_death(dynamics, player):

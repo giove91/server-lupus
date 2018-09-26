@@ -237,12 +237,20 @@ class EventListView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        if hasattr(self.request.dynamics, 'rules'):
+            display_votes = self.request.dynamics.rules.display_votes or self.get_point_of_view == 'admin',
+            display_mayor = self.request.dynamics.rules.mayor
+        else:
+            display_votes = False
+            display_mayor = False
+
         context.update({
             'events': self.get_events(),
             'weather': self.get_weather(),
             'classified': self.classified,
             'display_time': self.display_time,
-            'display_votes': self.dynamics.rules.display_votes or self.get_point_of_view == 'admin'
+            'display_votes': display_votes,
+            'display_mayor': display_mayor
         })
         return context
 
@@ -536,7 +544,7 @@ class ElectView(CommandView):
     url_name = 'game:elect'
     
     def can_execute_action(self):
-        return self.request.player is not None and self.request.player.can_vote()
+        return self.request.player is not None and self.request.player.can_vote() and self.request.dynamics.rules.mayor
     
     def get_fields(self):
         player = self.request.player
@@ -573,7 +581,7 @@ class AppointView(CommandView):
     url_name = 'game:appoint'
     
     def can_execute_action(self):
-        return self.request.player is not None and self.request.player.is_mayor() and self.request.game is not None and (self.request.game.current_turn.phase in [DAY, NIGHT])
+        return self.request.player is not None and self.request.player.is_mayor() and self.request.dynamics.rules.mayor and (self.request.game.current_turn.phase in [DAY, NIGHT])
     
     def get_fields(self):
         player = self.request.player
