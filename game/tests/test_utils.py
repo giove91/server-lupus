@@ -3,6 +3,9 @@ from game.models import *
 from game.events import *
 from game.constants import *
 from game.utils import get_now, advance_to_time
+import re
+
+from inspect import isclass
 
 def delete_auto_users():
     for user in User.objects.all():
@@ -111,3 +114,67 @@ def record_name(f):
         return f(self)
 
     return g
+
+class GameTest():
+    seed = 1
+
+    def setUp(self):
+        ruleset = re.findall(r"game\.tests\.test_(.*)", self.__module__)[0]
+        self.game = create_game(self.seed, ruleset, self.roles)
+        self.dynamics = self.game.get_dynamics()
+        if self.spectral_sequence is not None:
+            self.dynamics.inject_event(SpectralSequenceEvent(sequence=self.spectral_sequence, timestamp=get_now()))
+
+        self.players = self.game.get_players()
+        for player in self.players:
+            name = (player.role.__class__.__name__ + ('_' + player.role.disambiguation_label if player.role.disambiguation_label else '')).lower()
+            setattr(self, name, player)
+        self.advance_turn()
+
+    def tearDown(self):
+        # Save a dump of the test game
+        # if 'game' in self.__dict__:
+            #with open(os.path.join('test_dumps', '%s.json' % (self._name)), 'w') as fout:
+                #pass #dump_game(self.game, fout)
+
+        # Destroy the leftover dynamics without showing the slightest
+        # sign of mercy
+        kill_all_dynamics()
+
+    def advance_turn(self, phase=None):
+        self.dynamics.debug_event_bin = []
+        stop = False
+        self.assertTrue(phase in {None, DAWN, SUNSET, NIGHT, DAY})
+        while not stop:
+            turn = self.game.current_turn
+            turn.end = get_now()
+            turn.save()
+            self.dynamics.update()
+            stop = phase is None or self.game.current_turn.phase == phase
+
+    def usepower(self, player, target, **kwargs):
+        self.dynamics.inject_event(CommandEvent(player=player, type=USEPOWER, target=target, **kwargs))
+
+    def vote(self, player, target):
+        self.dynamics.inject_event(CommandEvent(type=VOTE, player=player, target=target, timestamp=get_now()))
+
+    def get_events(self, event_class, **kwargs):
+        events = [event for event in self.dynamics.debug_event_bin if isinstance(event, event_class)]
+        for k,v in kwargs.items():
+            events = [event for event in events if getattr(event, k) == v]
+
+        return events
+
+    def check_phase(self, phase):
+        self.assertEqual(self.game.current_turn.phase, phase)
+
+    def check_event(self, event, checks={}, **kwargs):
+        if isclass(event):
+            if checks is None:
+                self.assertEqual(len(self.get_events(event, **kwargs)), '\n%s was generated when it was not meant to.' % event.__name__)
+                return
+            else:
+                [event] = self.get_events(event, **kwargs)
+
+        for k, v in checks.items():
+            self.assertEqual(getattr(event, k), v, "\n%s's attribute %s is not what would be expected." % (event.__class__.__name__, k))

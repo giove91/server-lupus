@@ -18,12 +18,72 @@ from game.utils import get_now, advance_to_time
 
 from datetime import timedelta, datetime, time
 
-from .test_utils import create_game, delete_auto_users, create_users, create_game_from_dump, test_advance_turn, record_name
+from .test_utils import create_game, delete_auto_users, create_users, create_game_from_dump, test_advance_turn, record_name, GameTest
 
 def create_test_game(seed, roles, sequence):
     game = create_game(seed, 'v2', roles)
     game.get_dynamics().inject_event(SpectralSequenceEvent(sequence=sequence, timestamp=get_now()))
     return game
+
+class TestDiavoloAndVisione(GameTest, TestCase):
+    roles = [ Guardia, Veggente, Lupo, Diavolo, Negromante ]
+    spectral_sequence = [True]
+
+    def test(self):
+        self.advance_turn(NIGHT)
+
+        # Test diavolo and kill veggente
+        self.usepower(self.diavolo, self.guardia, multiple_role_class={Divinatore, Guardia})
+        self.usepower(self.lupo, self.veggente)
+        self.advance_turn()
+
+        self.check_event(MultipleRoleKnowledgeEvent, {
+            'player': self.diavolo,
+            'cause': DEVIL,
+            'response': True,
+            'multiple_role_class': {Guardia, Divinatore}
+        })
+
+        self.check_event(GhostificationEvent, {
+            'player': self.veggente,
+            'ghost': Delusione
+        })
+
+        self.assertTrue(self.veggente.is_mystic)
+        self.assertEqual(self.veggente.team, NEGROMANTI)
+        self.advance_turn(NIGHT)
+
+        # Retest diavolo and make visione
+        self.usepower(self.diavolo, self.guardia, multiple_role_class={Negromante, Lupo, Veggente})
+        self.usepower(self.negromante, self.veggente, role_class=Visione)
+        self.advance_turn()
+
+        self.check_event(MultipleRoleKnowledgeEvent, {
+            'player': self.diavolo,
+            'cause': DEVIL,
+            'response': False,
+            'multiple_role_class': {Lupo, Negromante, Veggente}
+        })
+
+        self.check_event(GhostSwitchEvent, {
+            'player': self.veggente,
+            'cause': NECROMANCER,
+            'ghost': Visione,
+        })
+
+        self.advance_turn(NIGHT)
+
+        #Now test visione
+        self.usepower(self.veggente, self.guardia, multiple_role_class = {Negromante, Veggente, Lupo, Guardia})
+        self.advance_turn()
+
+        self.check_event(MultipleRoleKnowledgeEvent, {
+            'player': self.veggente,
+            'target': self.guardia,
+            'cause': VISION_GHOST,
+            'response': True,
+            'multiple_role_class': {Guardia, Lupo, Negromante, Veggente, Contadino}
+        })
 
 class GameTests(TestCase):
 
@@ -39,86 +99,6 @@ class GameTests(TestCase):
         # Destroy the leftover dynamics without showing the slightest
         # sign of mercy
         kill_all_dynamics()
-
-    @record_name
-    def test_diavolo_and_visione(self):
-        roles = [ Guardia, Veggente, Lupo, Diavolo, Negromante ]
-        self.game = create_test_game(2204, roles, [True])
-        self.assertEqual(self.game.current_turn.phase, CREATION)
-        dynamics = self.game.get_dynamics()
-        players = self.game.get_players()
-
-        [diavolo] = [x for x in players if isinstance(x.role, Diavolo)]
-        [negromante] = [x for x in players if isinstance(x.role, Negromante)]
-        [guardia] = [x for x in players if isinstance(x.role, Guardia)]
-        [veggente] = [x for x in players if isinstance(x.role, Veggente)]
-        [lupo] = [x for x in players if isinstance(x.role, Lupo)]
-
-        test_advance_turn(self.game)
-        test_advance_turn(self.game)
-        test_advance_turn(self.game)
-        test_advance_turn(self.game)
-        test_advance_turn(self.game)
-
-        # Test diavolo and kill veggente
-        dynamics.inject_event(CommandEvent(player=diavolo, type=USEPOWER, target=guardia, multiple_role_class = {Divinatore, Guardia}))
-        dynamics.inject_event(CommandEvent(player=lupo, type=USEPOWER, target=veggente))
-
-        dynamics.debug_event_bin = []
-        test_advance_turn(self.game)
-
-        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, MultipleRoleKnowledgeEvent)]
-        self.assertEqual(event.player, diavolo)
-        self.assertEqual(event.cause, DEVIL)
-        self.assertEqual(event.response, True)
-        self.assertEqual(event.multiple_role_class, {Guardia, Divinatore})
-
-        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostificationEvent)]
-
-        self.assertEqual(event.player, veggente)
-        self.assertEqual(event.ghost, Delusione)
-        self.assertEqual(veggente.team, NEGROMANTI)
-        self.assertTrue(veggente.is_mystic)
-
-        test_advance_turn(self.game)
-        test_advance_turn(self.game)
-        test_advance_turn(self.game)
-
-        # Retest diavolo and make visione
-        dynamics.inject_event(CommandEvent(player=diavolo, type=USEPOWER, target=guardia, multiple_role_class = {Negromante, Lupo, Veggente}))
-        dynamics.inject_event(CommandEvent(player=negromante, type=USEPOWER, target=veggente, role_class = Visione))
-
-        dynamics.debug_event_bin = []
-        test_advance_turn(self.game)
-
-        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, MultipleRoleKnowledgeEvent)]
-        self.assertEqual(event.player, diavolo)
-        self.assertEqual(event.cause, DEVIL)
-        self.assertEqual(event.response, False)
-        self.assertEqual(event.multiple_role_class, {Lupo, Negromante, Veggente})
-
-        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, GhostSwitchEvent)]
-        self.assertEqual(event.player, veggente)
-        self.assertEqual(event.cause, NECROMANCER)
-        self.assertEqual(event.ghost, Visione)
-
-        test_advance_turn(self.game)
-        test_advance_turn(self.game)
-        test_advance_turn(self.game)
-
-        # Now test visione
-        dynamics.inject_event(CommandEvent(player=veggente, type=USEPOWER, target=guardia, multiple_role_class = {Negromante, Lupo, Veggente, Guardia}))
-
-        dynamics.debug_event_bin = []
-        test_advance_turn(self.game)
-
-        [event] = [event for event in dynamics.debug_event_bin if isinstance(event, MultipleRoleKnowledgeEvent)]
-        self.assertEqual(event.player, veggente)
-        self.assertEqual(event.target, guardia)
-        self.assertEqual(event.cause, VISION_GHOST)
-        self.assertEqual(event.response, True)
-        self.assertEqual(event.multiple_role_class, {Guardia, Lupo, Negromante, Veggente})
-
 
     @record_name
     def test_spectral_succession(self):
