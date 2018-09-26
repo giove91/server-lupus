@@ -126,10 +126,16 @@ class GameTest():
             self.dynamics.inject_event(SpectralSequenceEvent(sequence=self.spectral_sequence, timestamp=get_now()))
 
         self.players = self.game.get_players()
+        need_soothsayer = False
         for player in self.players:
             name = (player.role.__class__.__name__ + ('_' + player.role.disambiguation_label if player.role.disambiguation_label else '')).lower()
             setattr(self, name, player)
-        self.advance_turn()
+            need_soothsayer = need_soothsayer or player.role.needs_soothsayer_propositions()
+
+        if not need_soothsayer:
+            self.advance_turn()
+        else:
+            self.dynamics.debug_event_bin = []
 
     def tearDown(self):
         # Save a dump of the test game
@@ -158,6 +164,9 @@ class GameTest():
     def vote(self, player, target):
         self.dynamics.inject_event(CommandEvent(type=VOTE, player=player, target=target, timestamp=get_now()))
 
+    def soothsayer_proposition(self, soothsayer, target, advertised_role):
+        self.dynamics.inject_event(SoothsayerModelEvent(soothsayer=soothsayer, target=target, advertised_role=advertised_role, timestamp=get_now()))
+
     def get_events(self, event_class, **kwargs):
         events = [event for event in self.dynamics.debug_event_bin if isinstance(event, event_class)]
         for k,v in kwargs.items():
@@ -171,10 +180,13 @@ class GameTest():
     def check_event(self, event, checks={}, **kwargs):
         if isclass(event):
             if checks is None:
-                self.assertEqual(len(self.get_events(event, **kwargs)), '\n%s was generated when it was not meant to.' % event.__name__)
+                self.assertEqual(len(self.get_events(event, **kwargs)), 0, '\n%s was generated when it was not meant to.' % event.__name__)
                 return
             else:
-                [event] = self.get_events(event, **kwargs)
+                events = self.get_events(event, **kwargs)
+                self.assertEqual(len(events), 1, 'Expected exactly one %s, but %s were generated.' % (event.__name__, len(events)))
+                [event] = events
 
         for k, v in checks.items():
             self.assertEqual(getattr(event, k), v, "\n%s's attribute %s is not what would be expected." % (event.__class__.__name__, k))
+
