@@ -350,6 +350,50 @@ class TestVotingPowers(GameTest, TestCase):
         self.check_event(VoteAnnouncedEvent, None, voter=self.guardia)
         self.assertTrue(self.guardia.alive)
 
+    def test_assoluzione(self):
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.contadino)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.negromante, self.contadino, role_class=Assoluzione)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.contadino, self.negromante)
+        self.usepower(self.spia, self.veggente)
+        self.advance_turn(DAY)
+
+        self.vote(self.veggente, self.negromante)
+        self.vote(self.lupo, self.negromante)
+        self.vote(self.spia, self.negromante)
+        self.vote(self.messia, self.negromante)
+        self.vote(self.esorcista, self.negromante)
+        self.vote(self.fattucchiera, self.negromante)
+        self.vote(self.negromante, self.lupo)
+        self.advance_turn()
+
+        self.check_event(StakeFailedEvent, {'cause': MISSING_QUORUM})
+        self.check_event(VoteAnnouncedEvent, {'voter': self.negromante, 'voted': self.lupo}
+        self.check_event(VoteKnowledgeEvent, {'player': self.spia, 'voter': self.veggente, 'voted': None})
+        self.assertTrue(self.negromante.alive)
+        self.advance_turn(NIGHT)
+
+        self.assertFalse(self.contadino.can_use_power())
+        self.usepower(self.spia, self.veggente)
+        self.advance_turn(DAY)
+
+        self.vote(self.veggente, self.negromante)
+        self.vote(self.lupo, self.negromante)
+        self.vote(self.spia, self.negromante)
+        self.vote(self.messia, self.negromante)
+        self.vote(self.esorcista, self.negromante)
+        self.vote(self.fattucchiera, self.negromante)
+        self.vote(self.negromante, self.lupo)
+        self.advance_turn()
+
+        self.check_event(PlayerDiesEvent, {'player': self.negromante})
+        self.check_event(VoteKnowledgeEvent, {'player': self.spia, 'voter': self.veggente, 'voted': self.negromante})
+
 
 class TestRoleKnowledge(GameTest, TestCase):
     roles = [ Negromante, Lupo, Contadino, Divinatore, Investigatore, Espansivo, Diavolo, Fattucchiera]
