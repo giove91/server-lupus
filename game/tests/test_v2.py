@@ -451,7 +451,7 @@ class TestRoleKnowledge(GameTest, TestCase):
         self.check_event(RoleKnowledgeEvent, {'player': self.investigatore, 'target': self.contadino, 'role_class': Contadino})
         self.assertTrue(isinstance(self.contadino.role, Amnesia))
 
-    def test_confusione(self):
+    def test_divinatore_and_investigatore_with_confusione(self):
         self.advance_turn(NIGHT)
         self.advance_turn(NIGHT)
 
@@ -483,6 +483,99 @@ class TestRoleKnowledge(GameTest, TestCase):
         self.advance_turn()
 
         self.check_event(RoleKnowledgeEvent, {'player': self.investigatore, 'target': self.espansivo, 'role_class': Espansivo})
+
+class TestTrasformista(GameTest, TestCase):
+    roles = [Contadino, Massone, Massone, Trasformista, Messia, Lupo, Fattucchiera, Negromante]
+    spectral_sequence = [True]
+
+    def test_trasformista_on_massone(self):
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.massone_a)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.trasformista, self.massone_a)
+        self.advance_turn()
+
+        self.check_event(TransformationEvent, {'player': self.trasformista, 'target': self.massone_a, 'role_class': Massone})
+        self.assertIsInstance(self.trasformista.role, Massone)
+        self.check_event(RoleKnowledgeEvent, None) # Doesn't know other massoni
+
+        self.advance_turn(NIGHT)
+        self.assertFalse(self.trasformista.can_use_power())
+
+    def test_trasformista_on_fake_messia(self):
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.contadino)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.trasformista, self.contadino)
+        self.usepower(self.fattucchiera, self.contadino, role_class=Divinatore)
+        self.advance_turn()
+
+        self.check_event(TransformationEvent, {'player': self.trasformista, 'target': self.contadino, 'role_class': Messia})
+        self.assertIsInstance(trasformista.role, Messia)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.trasformista, self.contadino)
+        self.advance_turn()
+
+        # Reiso Deddo
+        self.check_event(PlayerResurrectsEvent, {'player': self.contadino})
+        self.assertTrue(self.contadino.alive)
+        self.advance_turn(NIGHT)
+
+        self.assertFalse(self.trasformista.can_use_power())
+
+    def test_trasformista_on_fake_trasformista(self):
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.contadino)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.trasformista, self.contadino)
+        self.usepower(self.fattucchiera, self.contadino, role_class=Trasformista)
+        self.advance_turn()
+
+        self.check_event(TransformationEvent, {'player': self.trasformista, 'target': self.contadino, 'role_class': Trasformista})
+        self.assertIsInstance(trasformista.role, Trasformista)
+        self.advance_turn(NIGHT)
+
+        # Repeat
+        self.usepower(self.trasformista, self.contadino)
+        self.usepower(self.fattucchiera, self.contadino, role_class=Trasformista)
+        self.advance_turn()
+
+        self.check_event(TransformationEvent, {'player': self.trasformista, 'target': self.contadino, 'role_class': Trasformista})
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.trasformista, self.contadino)
+        self.advance_turn()
+
+        self.check_event(TransformationEvent, {'player': self.trasformista, 'target': self.contadino, 'role_class': Contadino})
+        self.assertIsInstance(trasformista.role, Contadino)
+        self.advance_turn(NIGHT)
+
+        self.assertFalse(self.trasformista.can_use_power())
+
+    def trasformista_on_fake_lupo(self):
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.contadino)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.trasformista, self.contadino)
+        self.usepower(self.fattucchiera, self.contadino, role_class=Lupo)
+        self.advance_turn()
+
+        self.check_event(PowerOutcomeEvent, {'success': False}, player=self.trasformista)
+        self.check_event(TrasformationEvent, None)
+        self.assertIsInstance(self.trasformista.role, Trasformista)
+        self.advance_turn(NIGHT)
+
+        # Since he failed, he can retry
+        self.assertTrue(trasformista.can_use_power())
 
 class TestAlcolista(GameTest, TestCase):
     roles = [ Guardia, Veggente, Stalker, Lupo, Alcolista, Negromante ]
