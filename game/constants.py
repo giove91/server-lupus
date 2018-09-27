@@ -129,6 +129,7 @@ HYPNOTIST_DEATH = 'H'
 MEDIUM = 'M'
 NECROPHILIAC = 'N'
 CORRUPTION = 'O'
+SPECTRAL_SEQUENCE = 'Q'
 
 # Aura knowledge causes
 SEER = 'S'

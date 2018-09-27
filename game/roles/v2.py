@@ -272,6 +272,7 @@ class Confusione(Confusione):
 
     def apply_dawn(self, dynamics):
         role = self.recorded_role_class
+        target = self.recorded_target
         target.apparent_aura = role.aura
         target.apparent_mystic = role.is_mystic
         target.apparent_role = role

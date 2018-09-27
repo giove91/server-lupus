@@ -704,7 +704,8 @@ class RoleKnowledgeEvent(Event):
         MEDIUM: [DAWN],
         VISION_GHOST: [DAWN],
         NECROPHILIAC: [DAWN],
-        CORRUPTION: [DAWN]
+        CORRUPTION: [DAWN],
+        SPECTRAL_SEQUENCE: [DAWN, SUNSET]
         }
 
     def apply(self, dynamics):
