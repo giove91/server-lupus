@@ -164,6 +164,17 @@ class GameTest():
     def vote(self, player, target):
         self.dynamics.inject_event(CommandEvent(type=VOTE, player=player, target=target, timestamp=get_now()))
 
+    def mass_vote(self, votes, expected):
+        if self.dynamics.current_turn.phase != DAY:
+            self.advance_turn(DAY)
+        for voter, voted in enumerate(votes):
+            self.vote(self.players[voter], self.players[voted])
+        self.advance_turn()
+        if expected is None:
+            self.check_event(StakeFailedEvent, {'cause': MISSING_QUORUM})
+        else:
+            self.check_event(PlayerDiesEvent, {'cause': STAKE, 'player': self.players[expected]})
+
     def soothsayer_proposition(self, soothsayer, target, advertised_role):
         self.dynamics.inject_event(SoothsayerModelEvent(soothsayer=soothsayer, target=target, advertised_role=advertised_role, timestamp=get_now()))
 

@@ -18,12 +18,26 @@ from game.utils import get_now, advance_to_time
 
 from datetime import timedelta, datetime, time
 
-from .test_utils import create_game, delete_auto_users, create_users, create_game_from_dump, test_advance_turn, record_name, GameTest
+from .test_utils import GameTest
 
-def create_test_game(seed, roles, sequence):
-    game = create_game(seed, 'v2', roles)
-    game.get_dynamics().inject_event(SpectralSequenceEvent(sequence=sequence, timestamp=get_now()))
-    return game
+class TestQuorum(GameTest, TestCase):
+    roles = [Contadino, Contadino, Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Lupo, Negromante]
+    spectral_sequence = []
+
+    def test_auto_vote(self):
+        self.mass_vote([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], None)
+
+    def test_quorum(self):
+        self.mass_vote([0, 0, 0, 0, 0, 0], 0)
+
+    def test_almost_quorum(self):
+        self.mass_vote([0, 0, 0, 0, 0], None)
+
+    def test_fifty_fifty(self):
+        self.mass_vote([0, 1, 0, 1, 0, 1, 0, 1, 0, 1], None)
+
+    def test_sixty_forty(self):
+        self.mass_vote([0, 1, 0, 1, 0, 1, 0, 1, 0, 0], 0)
 
 class TestDiavoloAndVisione(GameTest, TestCase):
     roles = [ Guardia, Veggente, Lupo, Diavolo, Negromante ]
@@ -202,7 +216,6 @@ class TestSpectralSequence(GameTest, TestCase):
         self.advance_turn(NIGHT)
         self.assertFalse(self.negromante_a.can_use_power())
 
-    @record_name
     def test_negromanti_make_same_spettro(self):
         self.advance_turn(NIGHT)
 
