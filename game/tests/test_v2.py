@@ -394,6 +394,83 @@ class TestVotingPowers(GameTest, TestCase):
         self.check_event(PlayerDiesEvent, {'player': self.negromante})
         self.check_event(VoteKnowledgeEvent, {'player': self.spia, 'voter': self.veggente, 'voted': self.negromante})
 
+    def test_diffamazione(self):
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.contadino)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.negromante, self.contadino, role_class=Diffamazione)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.contadino, self.veggente)
+        self.advance_turn(SUNSET)
+
+        self.check_event(PlayerDiesEvent, {'player': self.veggente, 'cause': STAKE})
+        votes = self.get_events(VoteAnnouncedEvent)
+        self.assertEqual(len(votes), 9)
+        for vote in votes:
+            self.check_event(vote, {'voted': self.veggente})
+
+    def test_diffamazione_and_assoluzione(self):
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.contadino)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.negromante, self.contadino, role_class=Diffamazione)
+        self.usepower(self.lupo, self.veggente)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.negromante, self.veggente, role_class=Assoluzione)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.contadino, self.lupo)
+        self.usepower(self.veggente, self.negromante)
+        self.advance_turn(DAY)
+
+        self.burn(self.negromante)
+        self.advance_turn()
+
+        self.check_event(PlayerDiesEvent, {'player': self.lupo, 'cause': STAKE})
+        votes = self.get_events(VoteAnnouncedEvent)
+        self.assertEqual(len(votes), 9)
+        for vote in votes:
+            self.check_event(vote, {'voted': self.lupo})
+
+        self.advance_turn()
+
+        self.usepower(self.spia, self.guardia)
+        self.advance_turn()
+
+        self.check_event(VoteKnowledgeEvent, {'voter': self.guardia, 'voted': self.lupo, 'player': self.spia})
+
+    def test_amnesia_and_diffamazione(self):
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.contadino)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.negromante, self.contadino, role_class=Diffamazione)
+        self.usepower(self.lupo, self.veggente)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.negromante, self.veggente, role_class=Amnesia)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.veggente, self.guardia)
+        self.usepower(self.contadino, self.lupo)
+        self.advance_turn(DAY)
+
+        self.auto_vote()
+        self.advance_turn()
+
+        votes = self.get_events(VoteAnnouncedEvent, voted=self.lupo)
+        self.assertEqual(len(votes), 2)
+
+        self.check_event(VoteAnnouncedEvent, {'voted': self.lupo}, voter=self.guardia)
+        
+        
 
 class TestRoleKnowledge(GameTest, TestCase):
     roles = [ Negromante, Lupo, Contadino, Divinatore, Investigatore, Espansivo, Diavolo, Fattucchiera]
@@ -717,6 +794,13 @@ class TestTelepatia(GameTest, TestCase):
         event = event.perceived_event.as_child()
         self.assertIsInstance(event, AuraKnowledgeEvent)
         self.check_event(event, {'player': self.veggente, 'target': self.lupo, 'aura': BLACK, 'cause': SEER})
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.veggente, self.diavolo)
+        self.assertFalse(self.contadino.can_use_power())
+        self.advance_turn()
+
+        self.check_event(TelepathyEvent, None)
 
     def test_telepatia_on_mago(self):
         self.usepower(self.veggente, self.lupo)

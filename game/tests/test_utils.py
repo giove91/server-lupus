@@ -202,3 +202,10 @@ class GameTest():
         for k, v in checks.items():
             self.assertEqual(getattr(event, k), v, "\n%s's attribute %s is not what would be expected." % (event.__class__.__name__, k))
 
+    def burn(self, victim):
+        for player in self.game.get_alive_players():
+            self.vote(player, victim)
+
+    def autovote(self):
+        for player in self.game.get_alive_players():
+            self.vote(player, player)
