@@ -373,7 +373,7 @@ class TestVotingPowers(GameTest, TestCase):
         self.advance_turn()
 
         self.check_event(StakeFailedEvent, {'cause': MISSING_QUORUM})
-        self.check_event(VoteAnnouncedEvent, {'voter': self.negromante, 'voted': self.lupo}
+        self.check_event(VoteAnnouncedEvent, {'voter': self.negromante, 'voted': self.lupo})
         self.check_event(VoteKnowledgeEvent, {'player': self.spia, 'voter': self.veggente, 'voted': None})
         self.assertTrue(self.negromante.alive)
         self.advance_turn(NIGHT)
@@ -683,3 +683,88 @@ class TestMovements(GameTest, TestCase):
         self.advance_turn()
 
         self.check_event(MovementKnowledgeEvent, {'player': self.voyeur, 'target': self.stregone, 'target2': self.voyeur})
+
+
+class TestTelepatia(GameTest, TestCase):
+    roles = [Contadino, Veggente, Mago, Stalker, Voyeur, Espansivo, Lupo, Diavolo, Alcolista, Negromante]
+    spectral_sequence = [True]
+
+    def setUp(self):
+        # Automatically make Telepatia
+        super().setUp()
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.contadino)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.negromante, self.contadino, role_class=Telepatia)
+        self.advance_turn(NIGHT)
+
+    def test_telepatia_on_veggente(self):
+        self.usepower(self.veggente, self.lupo)
+        self.usepower(self.mago, self.lupo)
+        self.usepower(self.contadino, self.veggente)
+        self.advance_turn()
+
+        [event1, event2] = self.get_events(TelepathyEvent)
+        self.check_event(event1, {'player': self.contadino})
+        event = event.perceived_event.as_child()
+        self.assertIsInstance(event, PowerOutcomeEvent)
+        self.check_event(event, {'player': self.veggente, 'success': True})
+        self.assertEqual(event.command.target, self.lupo)
+
+        self.check_event(event2, {'player': self.contadino})
+        event = event.perceived_event.as_child()
+        self.assertIsInstance(event, AuraKnowledgeEvent)
+        self.check_event(event, {'player': self.veggente, 'target': self.lupo, 'aura': BLACK, 'cause': SEER})
+
+    def test_telepatia_on_mago(self):
+        self.usepower(self.veggente, self.lupo)
+        self.usepower(self.mago, self.lupo)
+        self.usepower(self.contadino, self.mago)
+        self.advance_turn()
+
+        [_, event] = self.get_events(TelepathyEvent)
+        self.check_event(event, {'player': self.contadino})
+        event = event.perceived_event.as_child()
+        self.assertIsInstance(event, MysticityKnowledgeEvent)
+        self.check_event(event, {'player': self.veggente, 'target': self.lupo, 'mysticity': False, 'cause': MAGE})
+
+    def test_telepatia_on_alcolista(self):
+        self.usepower(self.alcolista, self.veggente)
+        self.usepower(self.contadino, self.alcolista)
+        self.advance_turn()
+
+        [event] = self.get_events(TelepathyEvent)
+        self.check_event(event, {'player': self.contadino})
+        event = event.perceived_event.as_child()
+        self.check_event(event, {'player': self.alcolista, 'success': False, 'sequestrated': False})
+        self.assertEqual(event.command.target, self.veggente)
+
+    def telepatia_on_non_moving_player(self):
+        self.usepower(self.contadino, self.alcolista)
+        self.advance_turn()
+
+        self.check_event(TelepathyEvent, None)
+
+    def telepatia_on_expansived_player(self):
+        self.usepower(self.contadino, self.lupo)
+        self.usepower(self.espansivo, self.lupo)
+        self.advance_turn()
+
+        [event] = self.get_events(TelepathyEvent)
+        self.check_event(event, {'player': self.contadino})
+        event = event.perceived_event.as_child()
+        self.assertIsInstance(event, RoleKnowledgeEvent)
+        self.check_event(event, {'player': self.lupo, 'target': self.espansivo, 'role_class': Espansivo, 'cause': EXPANSIVE})
+
+    def test_telepatia_on_diavolo(self):
+        self.usepower(self.diavolo, self,veggente)
+        self.usepower(self.contadino, self.diavolo, role_class={Veggente, Stalker})
+        self.advance_turn()
+
+        [_, event] = self.get_events(TelepathyEvent)
+        self.check_event(event, {'player': self.contadino})
+        event = event.perceived_event.as_child()
+        self.assertIsInstance(event, MultipleRoleKnowledgeEvent)
+        self.check_event(event, {'player': self.diavolo, 'target': self.veggente, 'repsonse': True, 'multiple_role_class': {Stalker, Veggente}, 'cause': DEVIL})

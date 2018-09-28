@@ -119,6 +119,7 @@ class GameTest():
     seed = 1
 
     def setUp(self):
+        kill_all_dynamics()
         ruleset = re.findall(r"game\.tests\.test_(.*)", self.__module__)[0]
         self.game = create_game(self.seed, ruleset, self.roles)
         self.dynamics = self.game.get_dynamics()
