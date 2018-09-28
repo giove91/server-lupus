@@ -1398,6 +1398,26 @@ class DisqualificationEvent(Event):
         else:
             return None
 
+class TelepathyEvent(Event):
+    RELEVANT_PHASES = [DAWN]
+    AUTOMATIC = True
+
+    player = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
+    perceived_event = models.ForeignKey(Event, related_name='+', on_delete=models.CASCADE)
+
+    def apply(self, dynamics):
+        pass
+
+    def to_player_string(self, player):
+        event = self.perceived_event
+
+        if player == self.player:
+            return u'%s scopre: %s' % (event.player, event.to_player_string(event.player))
+        elif player == 'admin':
+            return u'Lo Spettro della Telepatia %s percepisce che %s ha scoperto: %s' % (self.player, event.player, event.to_player_string(event.player))
+        else:
+            return None
+
 
 class FreeTextEvent(Event):
     RELEVANT_PHASES = [CREATION, NIGHT, DAWN, SUNSET, DAY]

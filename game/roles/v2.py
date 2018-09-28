@@ -219,7 +219,7 @@ class Negromante(Negromante):
         return True
 
     def get_targets_role_class(self):
-        powers = {Amnesia, Confusione, Illusione, Morte, Occultamento, Visione}
+        powers = {Amnesia, Confusione, Illusione, Morte, Occultamento, Telepatia}
         dynamics = self.player.game.get_dynamics()
         available_powers = powers - dynamics.used_ghost_powers
         return available_powers
@@ -301,20 +301,18 @@ class Illusione(Illusione):
 class Occultamento(Occultamento):
     pass
 
-class Visione(Visione):
-    def get_targets_multiple_role_class(self):
-        return {x for x in self.player.game.get_dynamics().valid_roles if not x.ghost}
+class Telepatia(Spettro):
+    priority = EVENT_INFLUENCE
+    frequency = EVERY_OTHER_NIGHT
 
-    def pre_apply_dawn(self, dynamics):
-        # Will not fail on Lupi
-        return True
+    def get_targets(self):
+        return {player for player in self.player.game.get_alive_players() if player.pk != self.player.pk}
 
     def apply_dawn(self, dynamics):
-        from ..events import MultipleRoleKnowledgeEvent
-        dynamics.generate_event(MultipleRoleKnowledgeEvent(
-                player=self.player,
-                target=self.recorded_target,
-                multiple_role_class=self.recorded_multiple_role_class,
-                response=dynamics.get_apparent_role(self.recorded_target) in self.recorded_multiple_role_class,
-                cause=VISION_GHOST
-        ))
+        def trigger(event):
+            if hasattr(event, 'player') and event.player == self.recorded_target:
+                from ..events import TelepathyEvent
+                dynamics.generate_event(TelepathyEvent(player=self.player, perceived_event=event))
+
+        dynamics.post_event_triggers.append(trigger)
+

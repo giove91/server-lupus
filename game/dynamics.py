@@ -105,6 +105,7 @@ class Dynamics:
         self.necromancers_agree = None
         self.vote_influences = []
         self.electoral_frauds = []
+        self.post_event_triggers = []
         self.sentence_modifications = []
         self.winners = None
         self.over = False
@@ -476,11 +477,10 @@ class Dynamics:
 
         if self.simulating:
             self.simulated_events.append(event)
-        else:
-            event.fill_subclass()
-            event.clean_fields()
 
         self.auto_event_queue.append(event)
+        for trigger in self.post_event_triggers:
+            trigger(event)
 
     def _compute_entering_creation(self):
         self.logger.debug("Computing creation")
@@ -1024,3 +1024,4 @@ class Dynamics:
         self.death_ghost_just_created = False
         self.upcoming_deaths = []
         self.pending_disqualifications = []
+        self.post_event_triggers = []
