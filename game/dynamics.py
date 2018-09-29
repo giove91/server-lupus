@@ -934,11 +934,11 @@ class Dynamics:
             pass
 
     def _count_alive_teams(self):
-        teams = []
+        teams = set()
 
         for player in self.get_alive_players():
             if player.team not in teams:
-                teams.append(player.team)
+                teams.add(player.team)
 
         return teams
 

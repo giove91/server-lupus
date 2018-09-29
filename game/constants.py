@@ -87,6 +87,11 @@ KILLER = 60
 POST_MORTEM = 70
 USELESS = 80
 
+# Power targets
+ALIVE = 'A'
+DEAD = 'D'
+EVERYBODY = 'E'
+
 # Commands
 USEPOWER = 'P'
 VOTE = 'V'

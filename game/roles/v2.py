@@ -23,12 +23,8 @@ class Contadino(Contadino):
 class Divinatore(Divinatore):
     frequency = EVERY_OTHER_NIGHT
     priority = QUERY
-
-    def get_targets(self):
-        return {player for player in self.player.game.get_alive_players() if player.pk != self.player.pk}
-
-    def get_targets_role_class(self):
-        return {x for x in self.player.game.get_dynamics().valid_roles if not x.ghost}
+    targets = ALIVE
+    targets_role_class = ALIVE
 
     def apply_dawn(self, dynamics):
         if dynamics.get_apparent_role(self.recorded_target) == self.recorded_role_class:
@@ -89,9 +85,7 @@ class Spia(Role):
     priority = QUERY
     frequency = EVERY_NIGHT
     can_act_first_night = False
-
-    def get_targets(self):
-        return [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk]
+    targets = ALIVE
 
     def apply_dawn(self, dynamics):
         from ..events import VoteKnowledgeEvent, VoteAnnouncedEvent
@@ -146,8 +140,7 @@ class Avvocato(Avvocato):
     pass
 
 class Diavolo(Diavolo):
-    def get_targets_multiple_role_class(self):
-        return {x for x in self.player.game.get_dynamics().valid_roles if not x.ghost}
+    targets_multiple_role_class = ALIVE
 
     def pre_apply_dawn(self, dynamics):
         # Will not fail on Negromenti
@@ -165,11 +158,8 @@ class Diavolo(Diavolo):
 
 class Fattucchiera(Fattucchiera):
     message_role = 'Fallo apparire come:'
-    def get_targets(self):
-        return {player for player in self.player.game.get_active_players() if player.pk != self.player.pk}
-
-    def get_targets_role_class(self):
-        return {x for x in self.player.game.get_dynamics().valid_roles if not x.ghost}
+    targets = EVERYBODY
+    targets_role_class = ALIVE
 
     def apply_dawn(self, dynamics):
         role = self.recorded_role_class
@@ -183,9 +173,7 @@ class Alcolista(Rinnegato):
     name = 'Alcolista'
     frequency = EVERY_NIGHT
     priority = QUERY_INFLUENCE # Mah
-
-    def get_targets(self):
-        return {player for player in self.player.game.get_active_players() if player.pk != self.player.pk}
+    targets = EVERYBODY
 
     def pre_apply_dawn(self, dynamics):
         return False # Lol
@@ -260,15 +248,13 @@ class Amnesia(Amnesia):
     def apply_dawn(self, dynamics):
         self.recorded_target.has_permanent_amnesia = True
 
+class Assoluzione(Spettro):
+    pass
+
 class Confusione(Confusione):
-    def get_targets(self):
-        return {player for player in self.player.game.get_active_players() if player.pk != self.player.pk}
-
-    def get_targets2(self):
-        return None
-
-    def get_targets_role_class(self):
-        return {x for x in self.player.game.get_dynamics().valid_roles if not x.ghost}
+    targets = EVERYBODY
+    targets2 = None
+    targets_role_class = ALIVE
 
     def apply_dawn(self, dynamics):
         role = self.recorded_role_class
@@ -304,9 +290,7 @@ class Occultamento(Occultamento):
 class Telepatia(Spettro):
     priority = EVENT_INFLUENCE
     frequency = EVERY_OTHER_NIGHT
-
-    def get_targets(self):
-        return {player for player in self.player.game.get_alive_players() if player.pk != self.player.pk}
+    targets = ALIVE
 
     def apply_dawn(self, dynamics):
         def trigger(event):
