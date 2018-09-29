@@ -98,7 +98,8 @@ class Spia(Role):
         assert len(votes) <= 1
         if votes:
             dynamics.generate_event(VoteKnowledgeEvent(player=self.player, voter=self.recorded_target, voted=votes[0].voted, cause=SPY))
-
+        else:
+            dynamics.generate_event(VoteKnowledgeEvent(player=self.player, voter=self.recorded_target, voted=None, cause=SPY))
 
 class Trasformista(Trasformista):
     pass
@@ -207,7 +208,7 @@ class Negromante(Negromante):
         return True
 
     def get_targets_role_class(self):
-        powers = {Amnesia, Confusione, Illusione, Morte, Occultamento, Telepatia}
+        powers = {Amnesia, Assoluzione, Confusione, Diffamazione, Illusione, Morte, Occultamento, Telepatia}
         dynamics = self.player.game.get_dynamics()
         available_powers = powers - dynamics.used_ghost_powers
         return available_powers
@@ -249,7 +250,41 @@ class Amnesia(Amnesia):
         self.recorded_target.has_permanent_amnesia = True
 
 class Assoluzione(Spettro):
-    pass
+    name = "Spettro dell'Assoluzione"
+    priority = MODIFY
+    frequency = EVERY_OTHER_NIGHT
+    targets = ALIVE
+
+    def apply_dawn(self, dynamics):
+        target = self.recorded_target.canonicalize()
+
+        def vote_influence(ballots):
+            for voter, voted in ballots.items():
+                if voted == target:
+                    ballots[voter] = None
+
+            return ballots
+
+        dynamics.vote_influences.append(vote_influence)
+
+class Diffamazione(Spettro):
+    name = "Spettro della Diffamazione"
+    priority = MODIFY
+    frequency = EVERY_NIGHT
+    targets = ALIVE
+
+    def apply_dawn(self, dynamics):
+        assert self.has_power
+        target = self.recorded_target.canonicalize()
+
+        def fraud(ballots):
+            if target.alive:
+                for voter, voted in ballots.items():
+                    if voted is None:
+                        ballots[voter] = target
+            return ballots
+
+        dynamics.electoral_frauds.append(fraud)
 
 class Confusione(Confusione):
     targets = EVERYBODY

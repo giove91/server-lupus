@@ -360,9 +360,9 @@ class TestVotingPowers(GameTest, TestCase):
         self.advance_turn(NIGHT)
 
         self.usepower(self.contadino, self.negromante)
-        self.usepower(self.spia, self.veggente)
         self.advance_turn(DAY)
 
+        # Assoluzione is in place
         self.vote(self.veggente, self.negromante)
         self.vote(self.lupo, self.negromante)
         self.vote(self.spia, self.negromante)
@@ -374,14 +374,17 @@ class TestVotingPowers(GameTest, TestCase):
 
         self.check_event(StakeFailedEvent, {'cause': MISSING_QUORUM})
         self.check_event(VoteAnnouncedEvent, {'voter': self.negromante, 'voted': self.lupo})
-        self.check_event(VoteKnowledgeEvent, {'player': self.spia, 'voter': self.veggente, 'voted': None})
         self.assertTrue(self.negromante.alive)
         self.advance_turn(NIGHT)
 
         self.assertFalse(self.contadino.can_use_power())
         self.usepower(self.spia, self.veggente)
+        self.advance_turn()
+
+        self.check_event(VoteKnowledgeEvent, {'player': self.spia, 'voter': self.veggente, 'voted': None})
         self.advance_turn(DAY)
 
+        # Now assoluzione should be gone
         self.vote(self.veggente, self.negromante)
         self.vote(self.lupo, self.negromante)
         self.vote(self.spia, self.negromante)
@@ -392,6 +395,11 @@ class TestVotingPowers(GameTest, TestCase):
         self.advance_turn()
 
         self.check_event(PlayerDiesEvent, {'player': self.negromante})
+        self.advance_turn()
+
+        self.usepower(self.spia, self.veggente)
+        self.advance_turn()
+
         self.check_event(VoteKnowledgeEvent, {'player': self.spia, 'voter': self.veggente, 'voted': self.negromante})
 
     def test_diffamazione(self):
@@ -434,7 +442,7 @@ class TestVotingPowers(GameTest, TestCase):
 
         self.check_event(PlayerDiesEvent, {'player': self.lupo, 'cause': STAKE})
         votes = self.get_events(VoteAnnouncedEvent)
-        self.assertEqual(len(votes), 9)
+        self.assertEqual(len(votes), 8)
         for vote in votes:
             self.check_event(vote, {'voted': self.lupo})
 
@@ -462,15 +470,13 @@ class TestVotingPowers(GameTest, TestCase):
         self.usepower(self.contadino, self.lupo)
         self.advance_turn(DAY)
 
-        self.auto_vote()
+        self.autovote()
         self.advance_turn()
 
         votes = self.get_events(VoteAnnouncedEvent, voted=self.lupo)
         self.assertEqual(len(votes), 2)
 
         self.check_event(VoteAnnouncedEvent, {'voted': self.lupo}, voter=self.guardia)
-        
-        
 
 class TestRoleKnowledge(GameTest, TestCase):
     roles = [ Negromante, Lupo, Contadino, Divinatore, Investigatore, Espansivo, Diavolo, Fattucchiera]

@@ -1003,7 +1003,7 @@ class VoteKnowledgeEvent(Event):
 
     player = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
     voter = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
-    voted = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
+    voted = models.ForeignKey(Player, related_name='+', null=True, on_delete=models.CASCADE)
     KNOWLEDGE_CAUSE_TYPES = (
         (SPY, 'Spy'),
         )
@@ -1015,9 +1015,15 @@ class VoteKnowledgeEvent(Event):
     def to_player_string(self, player):
 
         if player == self.player:
-            return u'Scopri che ieri %s ha votato %s.' % (self.voted.full_name, self.voted.full_name)
+            if self.voted is None:
+                return u'Scopri che ieri %s non ha votato nessuno.' % (self.voter.full_name)
+            else:
+                return u'Scopri che ieri %s ha votato %s.' % (self.voter.full_name, self.voted.full_name)
         elif player == 'admin':
-            return u'%s scopre che ieri %s ha votato %s.' % (self.player.full_name, self.voted.full_name, self.voted.full_name)
+            if self.voted is None:
+                return u'%s scopre che ieri %s non ha votato nessuno.' % (self.player.full_name, self.voter.full_name)
+            else:
+                return u'%s scopre che ieri %s ha votato %s.' % (self.player.full_name, self.voter.full_name, self.voted.full_name)
         else:
             return None
 
