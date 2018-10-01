@@ -161,7 +161,7 @@ class Role(object):
     def apply_usepower(self, dynamics, event):
         # First checks
         assert event.player.pk == self.player.pk
-        assert self.can_use_power(), (event, event.player, event.player.role)
+        assert self.can_use_power(), "Il %s %s ha tentato di usare il suo potere quando non poteva farlo." % (event.player.role.name, event.player.full_name)
 
         # Check target validity
         targets = self.get_targets()

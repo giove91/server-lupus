@@ -39,6 +39,82 @@ class TestQuorum(GameTest, TestCase):
     def test_sixty_forty(self):
         self.mass_vote([0, 1, 0, 1, 0, 1, 0, 1, 0, 0], 0)
 
+
+class TestFailures(GameTest, TestCase):
+    roles = [Contadino, Stalker, Messia, Trasformista, Lupo, Assassino, Sequestratore, Stregone, Negromante]
+    spectral_sequence = [True]
+
+    def test_sorcered_stalker(self):
+        self.usepower(self.stalker, self.lupo)
+        self.usepower(self.stregone, self.lupo)
+        self.advance_turn()
+
+        self.check_event(PowerOutcomeEvent, {'success': False}, player=self.stalker)
+        self.advance_turn(NIGHT)
+
+        self.assertTrue(self.stalker.can_use_power())
+
+    def test_sequestered_stalker(self):
+        self.usepower(self.stalker, self.lupo)
+        self.usepower(self.sequestratore, self.stalker)
+        self.advance_turn()
+
+        self.check_event(PowerOutcomeEvent, {'success': False}, player=self.stalker)
+        self.advance_turn(NIGHT)
+
+        self.assertTrue(self.stalker.can_use_power())
+
+    def test_sequestered_assassin(self):
+        self.assertFalse(self.assassino.can_use_power())
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.assassino, self.lupo)
+        self.usepower(self.sequestratore, self.assassino)
+        self.advance_turn()
+
+        self.check_event(PowerOutcomeEvent, {'success': False}, player=self.assassino)
+        self.advance_turn(NIGHT)
+
+        self.assertTrue(self.assassino.can_use_power())
+
+    def test_sequestered_messia(self):
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.contadino)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.messia, self.contadino)
+        self.usepower(self.sequestratore, self.messia)
+        self.advance_turn()
+
+        self.check_event(PowerOutcomeEvent, {'success': False}, player=self.messia)
+        self.assertFalse(self.contadino.alive)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.messia, self.contadino)
+        self.advance_turn()
+
+        self.assertTrue(self.contadino.alive)
+
+    def test_sequestered_trasformista(self):
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.contadino)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.trasformista, self.contadino)
+        self.usepower(self.sequestratore, self.trasformista)
+        self.advance_turn()
+
+        self.check_event(PowerOutcomeEvent, {'success': False}, player=self.trasformista)
+        self.assertIsInstance(self.trasformista.role, Trasformista)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.trasformista, self.contadino)
+        self.advance_turn()
+
+        self.assertIsInstance(self.trasformista.role, Contadino)
+
 class TestDiavoloAndVisione(GameTest, TestCase):
     roles = [ Guardia, Veggente, Lupo, Diavolo, Negromante ]
     spectral_sequence = [True]
