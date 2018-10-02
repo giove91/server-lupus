@@ -489,20 +489,10 @@ class TransformationEvent(Event):
         else:
             raise Exception ('Unknown cause for TransformationEvent')
 
-        # Check that power is not una tantum or that role is powerless
-        if player.role.__class__.__name__ == 'Trasformista':
-            assert target.role.frequency not in [NEVER, ONCE_A_GAME]
-
-        # Take original role class if the target is a ghost
-        new_role_class = target.role.__class__
-        if target.role.ghost:
-            new_role_class = target.role_class_before_ghost
-            assert new_role_class is not None
-        assert self.role_class == new_role_class
-        assert new_role_class.team == self.player.team
+        assert self.role_class.team == self.player.team
 
         # Instantiate new role class and copy attributes
-        player.role = new_role_class(player)
+        player.role = self.role_class(player)
         player.aura = target.aura
         player.is_mystic = target.is_mystic
 

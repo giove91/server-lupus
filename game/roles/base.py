@@ -472,9 +472,7 @@ class Trasformista(Role):
 
     def apply_dawn(self, dynamics):
         from ..events import TransformationEvent
-        new_role_class = self.recorded_target.role.__class__
-        if self.recorded_target.role.ghost:
-            new_role_class = self.recorded_target.role_class_before_ghost
+        new_role_class = dynamics.get_apparent_role(self.recorded_target)
         assert new_role_class.team == POPOLANI
         dynamics.generate_event(TransformationEvent(player=self.player, target=self.recorded_target, role_class=new_role_class, cause=TRANSFORMIST))
         self.player.just_transformed = True

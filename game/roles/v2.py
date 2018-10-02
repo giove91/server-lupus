@@ -103,7 +103,8 @@ class Spia(Role):
             dynamics.generate_event(VoteKnowledgeEvent(player=self.player, voter=self.recorded_target, voted=None, cause=SPY))
 
 class Trasformista(Trasformista):
-    pass
+    def pre_apply_dawn(self, dynamics):
+        return dynamics.get_apparent_role(self.recorded_target).team == POPOLANI
 
 class Veggente(Veggente):
     pass
