@@ -1330,6 +1330,8 @@ class PowerOutcomeEvent(Event):
         if self.success or not dynamics.rules.forgiving_failures:
             player.role.last_usage = dynamics.prev_turn
             player.role.last_target = self.command.target.canonicalize()
+            if player.role.frequency == EVERY_OTHER_NIGHT:
+                player.cooldown = True
 
     def to_player_string(self, player):
         target = self.command.target

@@ -6,7 +6,6 @@ class Rules(Rules):
     display_votes = False
     mayor = False
     forgiving_failures = True
-    power_frequency_restrictions = FORWARD
 
     @staticmethod
     def post_death(dynamics, player):

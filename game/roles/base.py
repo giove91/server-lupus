@@ -13,9 +13,6 @@ class Rules():
     ''' Determines if a failure should count as power usage for powers with reduced frequency. '''
     forgiving_failures = False
 
-    ''' Determines if a power with frequency EVERY_OTHER_NIGHT can't act the following or the previous night. '''
-    power_frequency_restrictions = BACKWARD
-
     @staticmethod
     def post_death(dynamics, player):
         pass
@@ -98,24 +95,22 @@ class Role(object):
     disambiguated_name = property(get_disambiguated_name)
 
     def can_use_power(self):
-        if self.player.game.get_dynamics().rules.power_frequency_restrictions == BACKWARD:
-            frequency = self.frequency
-        else:
-            frequency = self.player.last_power_frequency
-
         if not self.ghost and not self.player.alive:
             return False
 
         if not self.can_act_first_night and self.player.game.current_turn.full_days_from_start() == 0:
             return False
 
-        if frequency == NEVER:
+        if self.player.cooldown:
             return False
-        elif frequency == EVERY_NIGHT or frequency is None:
+
+        if self.frequency == NEVER:
+            return False
+        elif self.frequency == EVERY_NIGHT:
             return True
-        elif frequency == EVERY_OTHER_NIGHT:
+        elif self.frequency == EVERY_OTHER_NIGHT:
             return self.last_usage is None or self.days_from_last_usage() >= 2
-        elif frequency == ONCE_A_GAME:
+        elif self.frequency == ONCE_A_GAME:
             return self.last_usage is None
         else:
             raise Exception("Invalid frequency value")
