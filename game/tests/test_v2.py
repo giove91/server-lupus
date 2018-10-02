@@ -42,7 +42,7 @@ class TestQuorum(GameTest, TestCase):
 
 class TestFailures(GameTest, TestCase):
     roles = [Contadino, Stalker, Messia, Trasformista, Lupo, Assassino, Sequestratore, Stregone, Negromante]
-    spectral_sequence = [True]
+    spectral_sequence = []
 
     def test_sorcered_stalker(self):
         self.usepower(self.stalker, self.lupo)

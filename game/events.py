@@ -1329,9 +1329,10 @@ class PowerOutcomeEvent(Event):
         assert self.command.target is not None
 
         player = self.player.canonicalize()
-        player.role.last_usage = dynamics.prev_turn
-        player.role.last_target = self.command.target.canonicalize()
-    
+        if self.success or not dynamics.rules.forgiving_failures:
+            player.role.last_usage = dynamics.prev_turn
+            player.role.last_target = self.command.target.canonicalize()
+
     def to_player_string(self, player):
         target = self.command.target
         oa = self.player.oa

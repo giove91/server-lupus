@@ -9,6 +9,7 @@ class Rules():
     needs_spectral_sequence = False
     show_votes = True
     mayor = True
+    forgiving_failures = False
 
     @staticmethod
     def post_death(dynamics, player):
