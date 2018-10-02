@@ -360,6 +360,33 @@ class TestSpectralSequence(GameTest, TestCase):
         # And he can again
         self.assertTrue(self.contadino_a.can_use_power())
 
+    def test_morte_can_act_no_more(self):
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.contadino_a)
+        self.advance_turn(NIGHT)
+
+        # Make Spettro della morte
+        self.usepower(self.negromante_a, self.contadino_a, role_class=Morte)
+        self.advance_turn(NIGHT)
+
+        # Use power and then change
+        self.usepower(self.contadino_a, self.diavolo)
+        self.usepower(self.negromante_a, self.contadino_a, role_class=Confusione)
+        self.advance_turn()
+
+        self.check_event(PowerOutcomeEvent, {'success': True}, player=self.contadino_a)
+        self.check_event(PlayerDiesEvent, {'player': self.diavolo})
+        self.check_event(GhostSwitchEvent, None)
+        self.check_event(PowerOutcomeEvent, {'success': False}, player=self.negromante_a)
+        self.assertIsInstance(self.contadino_a, Delusione)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.negromante_a, self.contadino_a, role_class=Confusione)
+        self.advance_turn()
+
+        self.check_event(PowerOutcomeEvent, {'success': False}, player=self.negromante_a)
+
 class TestVotingPowers(GameTest, TestCase):
     roles = [ Contadino, Guardia, Veggente, Spia, Messia, Esorcista, Lupo, Stregone, Fattucchiera, Negromante]
     spectral_sequence = [True, True, True]

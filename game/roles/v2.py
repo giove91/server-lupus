@@ -210,7 +210,7 @@ class Stregone(Stregone):
 ##############
 
 class Negromante(Negromante):
-    priority = MODIFY
+    priority = POST_MORTEM
     has_power = True
     required = True
     message_role = 'Assegna il seguente potere soprannaturale:'
