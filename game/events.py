@@ -670,6 +670,7 @@ class RoleKnowledgeEvent(Event):
         # PHANTOM: a Negromante is made aware of the Fantasma just
         # transformed to Ghost
         (PHANTOM, 'Phantom'),
+        (SPECTRAL_SEQUENCE, 'SpectralSequence'),
         # HYPNOTIST_DEATH: a Negromante is made aware of the Ipnotista
         # just transformed to Spettro dell'Ipnosi
         (HYPNOTIST_DEATH, 'HypnotistDeath'),
@@ -765,6 +766,13 @@ class RoleKnowledgeEvent(Event):
                 return u'Percepisci che %s era un Fantasma: dopo la morte è diventat%s uno Spettro.' % (self.target.full_name, toa)
             elif player == 'admin':
                 return u'Il Negromante %s viene a sapere che il Fantasma %s è diventato uno Spettro.' % (self.player.full_name, self.target.full_name)
+
+        elif self.cause == SPECTRAL_SEQUENCE:
+            # self.player is a Necromancer, self.target has just become a Ghost
+            if player == self.player:
+                return u'Percepisci che %s è diventat%s uno Spettro.' % (self.target.full_name, toa)
+            elif player == 'admin':
+                return u'Il Negromante %s viene a sapere che %s è diventato uno Spettro.' % (self.player.full_name, self.target.full_name)
 
         elif self.cause == CORRUPTION:
             if player == self.player:

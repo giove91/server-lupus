@@ -6,13 +6,25 @@ class Rules(Rules):
     display_votes = False
     mayor = False
     forgiving_failures = True
+    power_frequency_restrictions = FORWARD
 
     @staticmethod
     def post_death(dynamics, player):
         if player.team == POPOLANI and len(dynamics.spectral_sequence) > 0:
             if dynamics.spectral_sequence.pop(0):
-                from ..events import GhostificationEvent
+                from ..events import GhostificationEvent, RoleKnowledgeEvent
                 dynamics.generate_event(GhostificationEvent(player=player, ghost=Delusione, cause=SPECTRAL_SEQUENCE))
+                for negromante in dynamics.players:
+                    if negromante.role.necromancer:
+                        dynamics.generate_event(RoleKnowledgeEvent(player=player,
+                                                                   target=negromante,
+                                                                   role_class=negromante.role.__class__,
+                                                                   cause=GHOST))
+                        dynamics.generate_event(RoleKnowledgeEvent(player=negromante,
+                                                                   target=player,
+                                                                   role_class=Delusione,
+                                                                   cause=SPECTRAL_SEQUENCE))
+
 
 ##############
 #  POPOLANI  #

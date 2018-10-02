@@ -76,6 +76,10 @@ EVERY_OTHER_NIGHT = 2
 ONCE_A_GAME = 3
 EXCEPT_THE_FIRST = 4
 
+# Power frequency restrictions
+FORWARD = 'F'
+BACKWARD = 'B'
+
 # Power priorities
 EVENT_INFLUENCE = 0
 BLOCK = 10
@@ -167,3 +171,4 @@ TEAM_DEFEAT = 'T'
 # Victory causes
 NATURAL = 'N'
 FORCED = 'F'
+

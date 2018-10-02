@@ -7117,7 +7117,7 @@ class GameTests(TestCase):
             killedplayers.add(dead)
         
         # Check that all possible couples died at least once
-        self.assertEqual(len(killedplayers), 3)
+        self.assertGreaterEqual(len(killedplayers), 3, killedplayers)
         
     @record_name
     def test_confusione(self): # Update Lupus7

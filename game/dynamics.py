@@ -141,6 +141,7 @@ class Dynamics:
             player.hypnotist = None
             player.has_permanent_amnesia = None
             player.has_confusion = False
+            player.last_power_frequency = None
 
     def get_active_players(self):
         """Players are guaranteed to be sorted in a canonical order,
