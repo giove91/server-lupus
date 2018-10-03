@@ -871,10 +871,6 @@ class Dynamics:
             tally_sheet[ballot.pk] += 1
             votes_num += 1
 
-        # Check that at least half of the alive people voted
-        if votes_num * 2 < len(self.get_alive_players()):
-            quorum_failed = True
-
         # Send vote announcements
         for player in self.get_alive_players():
             for target in [target for target in self.get_alive_players() if target == ballots[player.pk]]:
@@ -887,13 +883,19 @@ class Dynamics:
                 event = TallyAnnouncedEvent(voted=player, vote_num=tally_sheet[player.pk], type=VOTE)
                 self.generate_event(event)
 
+        # Compute winners (or maybe loosers...)
+        tally_sheet = sorted(tally_sheet.items(),key=lambda x: x[1], reverse=True)
+        max_votes = tally_sheet[0][1]
+
+        if self.rules.strict_quorum:
+            quorum_failed = max_votes * 2 <= len(self.get_alive_players())
+        else:
+            quorum_failed = votes_num * 2 < len(self.get_alive_players())
+
         if quorum_failed:
             winner_player = None
             cause = MISSING_QUORUM
         else:
-            # Compute winners (or maybe loosers...)
-            tally_sheet = sorted(tally_sheet.items(),key=lambda x: x[1], reverse=True)
-            max_votes = tally_sheet[0][1]
             winners = [x[0] for x in tally_sheet if x[1] == max_votes]
             assert len(winners) > 0
             if mayor_ballot is not None and mayor_ballot.pk in winners:

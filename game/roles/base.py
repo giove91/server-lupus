@@ -9,6 +9,7 @@ class Rules():
     needs_spectral_sequence = False
     show_votes = True
     mayor = True
+    strict_quorum = False
 
     ''' Determines if a failure should count as power usage for powers with reduced frequency. '''
     forgiving_failures = False
