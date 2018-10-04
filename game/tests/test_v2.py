@@ -908,6 +908,10 @@ class TestMovements(GameTest, TestCase):
         self.check_event(MovementKnowledgeEvent, {'player': self.sequestratore, 'target': self.alcolista, 'target2': None})
         self.check_event(NoMovementKnowledgeEvent, {'player': self.stalker, 'target': self.alcolista})
 
+class TestTelepatia(GameTest, TestCase):
+    roles = [Contadino, Veggente, Mago, Stalker, Voyeur, Espansivo, Lupo, Diavolo, Alcolista, Negromante]
+    spectral_sequence = [True]
+
     def setUp(self):
         # Automatically make Telepatia
         super().setUp()
