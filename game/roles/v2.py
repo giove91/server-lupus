@@ -328,7 +328,7 @@ class Illusione(Illusione):
     allow_target2_same_as_target = False
 
     def get_targets2(self):
-        ret = super().get_targets2()
+        ret = self.player.game.get_dynamics().get_active_players()
         ret.append(None)
         return ret
 

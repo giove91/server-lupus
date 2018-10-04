@@ -115,16 +115,13 @@ class TestFailures(GameTest, TestCase):
 
         self.assertIsInstance(self.trasformista.role, Contadino)
 
-class TestDiavoloAndVisione(GameTest, TestCase):
+class TestMultipleRoleKnowledge(GameTest, TestCase):
     roles = [ Guardia, Veggente, Lupo, Diavolo, Negromante ]
     spectral_sequence = [True]
 
-    def test(self):
-        self.advance_turn(NIGHT)
-
-        # Test diavolo and kill veggente
+    def test_diavolo(self):
+        # Test diavolo
         self.usepower(self.diavolo, self.guardia, multiple_role_class={Divinatore, Guardia})
-        self.usepower(self.lupo, self.veggente)
         self.advance_turn()
 
         self.check_event(MultipleRoleKnowledgeEvent, {
@@ -134,18 +131,10 @@ class TestDiavoloAndVisione(GameTest, TestCase):
             'multiple_role_class': {Guardia, Divinatore}
         })
 
-        self.check_event(GhostificationEvent, {
-            'player': self.veggente,
-            'ghost': Delusione
-        })
-
-        self.assertTrue(self.veggente.is_mystic)
-        self.assertEqual(self.veggente.team, NEGROMANTI)
         self.advance_turn(NIGHT)
 
-        # Retest diavolo and make visione
+        # Retest
         self.usepower(self.diavolo, self.guardia, multiple_role_class={Negromante, Lupo, Veggente})
-        self.usepower(self.negromante, self.veggente, role_class=Visione)
         self.advance_turn()
 
         self.check_event(MultipleRoleKnowledgeEvent, {
@@ -153,26 +142,6 @@ class TestDiavoloAndVisione(GameTest, TestCase):
             'cause': DEVIL,
             'response': False,
             'multiple_role_class': {Lupo, Negromante, Veggente}
-        })
-
-        self.check_event(GhostSwitchEvent, {
-            'player': self.veggente,
-            'cause': NECROMANCER,
-            'ghost': Visione,
-        })
-
-        self.advance_turn(NIGHT)
-
-        #Now test visione
-        self.usepower(self.veggente, self.guardia, multiple_role_class = {Negromante, Veggente, Lupo, Guardia})
-        self.advance_turn()
-
-        self.check_event(MultipleRoleKnowledgeEvent, {
-            'player': self.veggente,
-            'target': self.guardia,
-            'cause': VISION_GHOST,
-            'response': True,
-            'multiple_role_class': {Guardia, Lupo, Negromante, Veggente}
         })
 
 class TestSpectralSequence(GameTest, TestCase):
@@ -908,6 +877,13 @@ class TestMovements(GameTest, TestCase):
         self.check_event(MovementKnowledgeEvent, {'player': self.sequestratore, 'target': self.alcolista, 'target2': None})
         self.check_event(NoMovementKnowledgeEvent, {'player': self.stalker, 'target': self.alcolista})
 
+    def test_illusione_on_self(self):
+        self.usepower(self.contadino, self.guardia, target2=self.contadino)
+        self.usepower(self.stalker, self.guardia)
+        self.advance_turn()
+
+        self.check_event(MovementKnowledgeEvent, {'player': self.stalker, 'target': self.guardia, 'target2': self.contadino})
+
 class TestTelepatia(GameTest, TestCase):
     roles = [Contadino, Veggente, Mago, Stalker, Voyeur, Espansivo, Lupo, Diavolo, Alcolista, Negromante]
     spectral_sequence = [True]
@@ -968,7 +944,7 @@ class TestTelepatia(GameTest, TestCase):
         [event] = self.get_events(TelepathyEvent)
         self.check_event(event, {'player': self.contadino})
         event = event.perceived_event
-        self.check_event(event, {'player': self.alcolista, 'success': False, 'sequestrated': False})
+        self.check_event(event, {'player': self.alcolista, 'success': False})
         self.assertEqual(event.command.target, self.veggente)
 
     def telepatia_on_non_moving_player(self):
