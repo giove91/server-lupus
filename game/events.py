@@ -1036,18 +1036,19 @@ class MovementKnowledgeEvent(Event):
     # (for the Voyeur)
     player = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
     target = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
-    target2 = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
+    target2 = models.ForeignKey(Player, related_name='+', null=True, on_delete=models.CASCADE)
     KNOWLEDGE_CAUSE_TYPES = (
         (STALKER, 'Stalker'),
         (VOYEUR, 'Voyeur'),
+        (KIDNAPPER, 'Kidnapper'),
         )
     cause = models.CharField(max_length=1, choices=KNOWLEDGE_CAUSE_TYPES, default=None)
 
     def apply(self, dynamics):
-        assert self.target.pk != self.target2.pk
+        assert (self.target2 is None) == (self.cause == KIDNAPPER)
     
     def to_player_string(self, player):
-        if self.cause == STALKER:
+        if self.cause == STALKER or self.cause == KIDNAPPER:
             moving_player = self.target
             destination = self.target2
         elif self.cause == VOYEUR:
@@ -1057,9 +1058,9 @@ class MovementKnowledgeEvent(Event):
             raise Exception ('Unknown cause')
         
         if player == self.player:
-            return u'Scopri che stanotte %s si è recat%s da %s.' % (moving_player.full_name, moving_player.oa, destination.full_name)
+            return u'Scopri che stanotte %s si è recat%s da %s.' % (moving_player.full_name, moving_player.oa, destination.full_name if destination is not None else "qualche parte")
         elif player == 'admin':
-            return u'%s scopre che stanotte %s si è recat%s da %s.' % (self.player.full_name, moving_player.full_name, moving_player.oa, destination.full_name)
+            return u'%s scopre che stanotte %s si è recat%s da %s.' % (self.player.full_name, moving_player.full_name, moving_player.oa, destination.full_name  if destination is not None else "qualche parte")
         else:
             return None
 
@@ -1076,6 +1077,7 @@ class NoMovementKnowledgeEvent(Event):
     KNOWLEDGE_CAUSE_TYPES = (
         (STALKER, 'Stalker'),
         (VOYEUR, 'Voyeur'),
+        (KIDNAPPER, 'Kidnapper'),
         )
     cause = models.CharField(max_length=1, choices=KNOWLEDGE_CAUSE_TYPES, default=None)
 
@@ -1084,7 +1086,7 @@ class NoMovementKnowledgeEvent(Event):
     
     def to_player_string(self, player):
         if player == self.player:
-            if self.cause == STALKER:
+            if self.cause == STALKER or self.cause == KIDNAPPER:
                 return u'Scopri che stanotte %s non si è recat%s da nessuna parte.' % (self.target.full_name, self.target.oa)
             elif self.cause == VOYEUR:
                 return u'Scopri che stanotte nessun personaggio si è recato da %s.' % (self.target.full_name)
@@ -1092,7 +1094,7 @@ class NoMovementKnowledgeEvent(Event):
                 raise Exception ('Unknown cause')
         
         elif player == 'admin':
-            if self.cause == STALKER:
+            if self.cause == STALKER or self.cause == KIDNAPPER:
                 return u'%s scopre che stanotte %s non si è recat%s da nessuna parte.' % (self.player.full_name, self.target.full_name, self.target.oa)
             elif self.cause == VOYEUR:
                 return u'%s scopre che stanotte nessun personaggio si è recato da %s.' % (self.player.full_name, self.target.full_name)

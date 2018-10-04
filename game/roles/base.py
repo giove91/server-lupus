@@ -48,6 +48,9 @@ class Role(object):
     targets_role_class = None
     targets_multiple_role_class = None
 
+    ''' Allow to choose as target and target2 the same player. '''
+    allow_target2_same_as_target = True
+
     ''' Whether the role can act the first night of play (usually True, except for killers. '''
     can_act_first_night = True
 
@@ -668,7 +671,6 @@ class Sequestratore(Role):
     aura = BLACK
     knowledge_class = 2
     critical_blocker = True
-    sequester = True
     priority = BLOCK
     frequency = EVERY_NIGHT
     targets = ALIVE

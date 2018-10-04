@@ -200,7 +200,16 @@ class Necrofilo(Necrofilo):
     pass
 
 class Sequestratore(Sequestratore):
-    pass
+    def apply_dawn(self, dynamics):
+        super().apply_dawn(dynamics)
+        if self.recorded_target.movement in dynamics.movements:
+            dynamics.movements.remove(self.recorded_target.movement)
+
+        from ..events import MovementKnowledgeEvent, NoMovementKnowledgeEvent
+        if self.recorded_target.movement is None or self.recorded_target.movement.dst is None:
+            dynamics.generate_event(NoMovementKnowledgeEvent(player=self.player, target=self.recorded_target, cause=KIDNAPPER))
+        else:
+            dynamics.generate_event(MovementKnowledgeEvent(player=self.player, target=self.recorded_target, target2=None, cause=KIDNAPPER))
 
 class Stregone(Stregone):
     pass
@@ -314,16 +323,28 @@ class Confusione(Confusione):
         target.apparent_team = role.team
 
 class Illusione(Illusione):
+    targets = ALIVE
+    targets2 = EVERYBODY
+    allow_target2_same_as_target = False
+
+    def get_targets2(self):
+        ret = super().get_targets2()
+        ret.append(None)
+        return ret
+
     def apply_dawn(self, dynamics):
         assert self.has_power
-        assert self.recorded_target2.alive
+        assert self.recorded_target != self.recorded_target2
+        assert self.recorded_target.alive
 
         from ..dynamics import Movement
-        illusion = Movement(src=self.recorded_target, dst=self.recorded_target2)
-        assert self.recorded_target2.movement != illusion
+        if self.recorded_target.movement in dynamics.movements:
+            dynamics.movements.remove(self.recorded_target.movement)
 
-        dynamics.movements.remove(self.recorded_target.movement)
-        dynamics.movements.append(illusion)
+        if self.recorded_target2 is not None:
+            illusion = Movement(src=self.recorded_target, dst=self.recorded_target2)
+            assert self.recorded_target2.movement != illusion
+            dynamics.movements.append(illusion)
 
 class Occultamento(Occultamento):
     pass

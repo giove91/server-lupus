@@ -155,6 +155,7 @@ STALKER = 'S'
 VOYEUR = 'V'
 KEEPER = 'K'
 GUARD = 'G'
+KIDNAPPER = 'D'
 
 # Transformation causes
 NECROPHILIAC = 'N'

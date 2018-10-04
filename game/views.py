@@ -294,7 +294,7 @@ class CommandForm(forms.Form):
 
                 if key == 'target' or key == 'target2':
                     choices = [ (None, '(Nessuno)') ]
-                    choices.extend( [ (player.pk, player.full_name) for player in field['choices'] ] )
+                    choices.extend( [ (player.pk, player.full_name) for player in field['choices'] if player is not None ] )
                 elif key == 'role_class' or key == 'multiple_role_class':
                     if key == 'role_class':
                         choices = [ (None, '(Nessuno)') ]
@@ -461,6 +461,8 @@ class UsePowerView(CommandView):
             if not target2 in targets2 and target is not None:
                 # If target2 is not valid (or None), make the command not valid
                 # unless target is None (which means that the power will not be used)
+                return False
+            if not role.allow_target2_same_as_target and target2 == target:
                 return False
         
         if role_classes is not None:

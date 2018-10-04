@@ -867,7 +867,7 @@ class TestMovements(GameTest, TestCase):
         self.advance_turn(NIGHT)
 
     def test_voyeur_with_illusione(self):
-        self.usepower(self.contadino, self.lupo, target2=self.guardia)
+        self.usepower(self.contadino, self.lupo, target2=None)
         self.usepower(self.voyeur, self.stregone)
         self.usepower(self.lupo, self.stregone)
         self.advance_turn()
@@ -883,10 +883,30 @@ class TestMovements(GameTest, TestCase):
 
         self.check_event(MovementKnowledgeEvent, {'player': self.voyeur, 'target': self.stregone, 'target2': self.voyeur})
 
+    def test_sequestratore(self):
+        # Sequestratore on moving player
+        self.usepower(self.sequestratore, self.alcolista)
+        self.usepower(self.alcolista, self.sequestratore)
+        self.advance_turn()
 
-class TestTelepatia(GameTest, TestCase):
-    roles = [Contadino, Veggente, Mago, Stalker, Voyeur, Espansivo, Lupo, Diavolo, Alcolista, Negromante]
-    spectral_sequence = [True]
+        self.check_event(MovementKnowledgeEvent, {'player': self.sequestratore, 'target': self.alcolista, 'target2': None})
+        self.advance_turn(NIGHT)
+
+        # Sequestratore on non moving player
+        self.usepower(self.sequestratore, self.alcolista)
+        self.advance_turn()
+
+        self.check_event(NoMovementKnowledgeEvent, {'player': self.sequestratore, 'target': self.alcolista})
+
+    def test_sequestratore_with_illusione(self):
+        self.usepower(self.contadino, self.alcolista, target2=None)
+        self.usepower(self.stalker, self.alcolista)
+        self.usepower(self.sequestratore, self.alcolista)
+        self.usepower(self.alcolista, self.negromante)
+        self.advance_turn()
+
+        self.check_event(MovementKnowledgeEvent, {'player': self.sequestratore, 'target': self.alcolista, 'target2': None})
+        self.check_event(NoMovementKnowledgeEvent, {'player': self.stalker, 'target': self.alcolista})
 
     def setUp(self):
         # Automatically make Telepatia
