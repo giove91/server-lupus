@@ -1048,7 +1048,15 @@ class MovementKnowledgeEvent(Event):
         assert (self.target2 is None) == (self.cause == KIDNAPPER)
     
     def to_player_string(self, player):
-        if self.cause == STALKER or self.cause == KIDNAPPER:
+        if self.cause == KIDNAPPER:
+            if player == self.player:
+                return u'Scopri che stanotte %s stava cercando di agire.' % (self.target.full_name)
+            elif player == 'admin':
+                return u'%s scopre che stanotte %s stava cercando di agire.' % (self.player.full_name, self.target.full_name)
+            else:
+                return None
+
+        if self.cause == STALKER:
             moving_player = self.target
             destination = self.target2
         elif self.cause == VOYEUR:
@@ -1056,11 +1064,10 @@ class MovementKnowledgeEvent(Event):
             destination = self.target
         else:
             raise Exception ('Unknown cause')
-        
         if player == self.player:
-            return u'Scopri che stanotte %s si è recat%s da %s.' % (moving_player.full_name, moving_player.oa, destination.full_name if destination is not None else "qualche parte")
+            return u'Scopri che stanotte %s si è recat%s da %s.' % (moving_player.full_name, moving_player.oa, destination.full_name)
         elif player == 'admin':
-            return u'%s scopre che stanotte %s si è recat%s da %s.' % (self.player.full_name, moving_player.full_name, moving_player.oa, destination.full_name  if destination is not None else "qualche parte")
+            return u'%s scopre che stanotte %s si è recat%s da %s.' % (self.player.full_name, moving_player.full_name, moving_player.oa, destination.full_name)
         else:
             return None
 
@@ -1086,16 +1093,20 @@ class NoMovementKnowledgeEvent(Event):
     
     def to_player_string(self, player):
         if player == self.player:
-            if self.cause == STALKER or self.cause == KIDNAPPER:
+            if self.cause == STALKER:
                 return u'Scopri che stanotte %s non si è recat%s da nessuna parte.' % (self.target.full_name, self.target.oa)
+            elif self.cause == KIDNAPPER:
+                return u'Scopri che stanotte %s non stava cercando di agire.' % (self.target.full_name)
             elif self.cause == VOYEUR:
                 return u'Scopri che stanotte nessun personaggio si è recato da %s.' % (self.target.full_name)
             else:
                 raise Exception ('Unknown cause')
         
         elif player == 'admin':
-            if self.cause == STALKER or self.cause == KIDNAPPER:
+            if self.cause == STALKER:
                 return u'%s scopre che stanotte %s non si è recat%s da nessuna parte.' % (self.player.full_name, self.target.full_name, self.target.oa)
+            if self.cause == KIDNAPPER:
+                return u'%s scopre che stanotte %s non stava cercando di agire.' % (self.player.full_name, self.target.full_name)
             elif self.cause == VOYEUR:
                 return u'%s scopre che stanotte nessun personaggio si è recato da %s.' % (self.player.full_name, self.target.full_name)
             else:
