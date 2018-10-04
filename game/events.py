@@ -1319,7 +1319,6 @@ class PowerOutcomeEvent(Event):
     player = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
     command = models.OneToOneField(CommandEvent, on_delete=models.CASCADE)
     success = models.BooleanField(default=False)
-    sequestrated = models.BooleanField(default=False)
 
     def apply(self, dynamics):
         assert self.command.type == USEPOWER
@@ -1358,12 +1357,7 @@ class PowerOutcomeEvent(Event):
                 return u'Ti risvegli confus%s e stordit%s: l\'unica cosa di cui sei cert%s è di non essere riuscit%s ad utilizzare il tuo potere su %s, questa notte.' % (oa, oa, oa, oa, target.full_name)
             
             elif player == 'admin':
-                string = u'%s (%s) non è riuscit%s ad utilizzare il proprio potere su %s (%s) ' % (self.player.full_name, player_role, oa, target.full_name, target_role)
-                if self.sequestrated:
-                    string += '(sequestrat%s).' % oa
-                else:
-                    string += '(non sequestrat%s).' %oa
-                return string
+                return '%s (%s) non è riuscit%s ad utilizzare il proprio potere su %s (%s).' % (self.player.full_name, player_role, oa, target.full_name, target_role)
 
 
 class DisqualificationEvent(Event):

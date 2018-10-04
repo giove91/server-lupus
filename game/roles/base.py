@@ -55,10 +55,6 @@ class Role(object):
     so it must be handled with care to avoid paradoxes that can set the server on fire. '''
     critical_blocker = False
 
-    ''' When the following is True, player blocked by this role will not be seen by roles
-    that query movements, such as Voyeur and Stalker. '''
-    sequester = False
-
     ''' Roles in the same knowledge class will be aware of each other at game start. '''
     knowledge_class = None
 
@@ -273,7 +269,7 @@ class Custode(Role):
 
     def apply_dawn(self, dynamics):
         self.recorded_target.protected_by_keeper = True
-        visitors = [visitor for visitor in self.recorded_target.visitors if visitor.pk not in [self.player.pk, self.recorded_target.pk] or dynamics.illusion == (self.player, self.recorded_target)]
+        visitors = {mov.src for mov in dynamics.movements if mov.dst == self.recorded_target and mov != self.player.movement}
         from ..events import QuantitativeMovementKnowledgeEvent
         dynamics.generate_event(QuantitativeMovementKnowledgeEvent(player=self.player, target=self.recorded_target, visitors=len(visitors), cause=KEEPER))
 
@@ -351,7 +347,7 @@ class Guardia(Role):
 
     def apply_dawn(self, dynamics):
         self.recorded_target.protected_by_guard = True
-        visitors = [visitor for visitor in self.recorded_target.visitors if visitor.pk not in [self.player.pk, self.recorded_target.pk] or dynamics.illusion == (self.player, self.recorded_target)]
+        visitors = {mov.src for mov in dynamics.movements if mov.dst == self.recorded_target and mov != self.player.movement}
         from ..events import QuantitativeMovementKnowledgeEvent
         dynamics.generate_event(QuantitativeMovementKnowledgeEvent(player=self.player, target=self.recorded_target,visitors=len(visitors), cause=GUARD))
 
@@ -445,16 +441,12 @@ class Stalker(Role):
 
     def apply_dawn(self, dynamics):
         from ..events import MovementKnowledgeEvent, NoMovementKnowledgeEvent
-        gen_set = set()
-        gen_num = 0
-        for visiting in self.recorded_target.visiting:
-            if visiting.pk != self.recorded_target.pk:
-                dynamics.generate_event(MovementKnowledgeEvent(player=self.player, target=self.recorded_target, target2=visiting, cause=STALKER))
-                gen_set.add(visiting.pk)
-                gen_num += 1
-        assert len(gen_set) <= 1
-        assert len(gen_set) == gen_num
-        if gen_num == 0:
+        dsts = [mov.dst for mov in dynamics.movements if mov.src == self.recorded_target and mov != self.player.movement]
+
+        if dsts:
+            # Sees last generated movement
+            dynamics.generate_event(MovementKnowledgeEvent(player=self.player, target=self.recorded_target, target2=dsts[-1], cause=STALKER))
+        else:
             # Generate NoMovementKnowledgeEvent
             dynamics.generate_event(NoMovementKnowledgeEvent(player=self.player, target=self.recorded_target, cause=STALKER))
 
@@ -508,18 +500,14 @@ class Voyeur(Role):
 
     def apply_dawn(self, dynamics):
         from ..events import MovementKnowledgeEvent, NoMovementKnowledgeEvent
-        gen_set = set()
-        gen_num = 0
-        for visitor in self.recorded_target.visitors:
-            if visitor.pk != self.recorded_target.pk and (visitor.pk != self.player.pk or dynamics.illusion == (self.player, self.recorded_target)):
-                dynamics.generate_event(MovementKnowledgeEvent(player=self.player, target=self.recorded_target, target2=visitor, cause=VOYEUR))
-                gen_set.add(visitor.pk)
-                gen_num += 1
-        assert len(gen_set) == gen_num
-        if gen_num == 0:
+        srcs = {mov.src for mov in dynamics.movements if mov.dst == self.recorded_target and mov != self.player.movement}
+
+        if srcs:
+            for src in srcs:
+                dynamics.generate_event(MovementKnowledgeEvent(player=self.player, target=self.recorded_target, target2=src, cause=VOYEUR))
+        else:
             # Generate NoMovementKnowledgeEvent
             dynamics.generate_event(NoMovementKnowledgeEvent(player=self.player, target=self.recorded_target, cause=VOYEUR))
-
 
 # Fazione dei Lupi
 
@@ -580,7 +568,7 @@ class Assassino(Role):
     def apply_dawn(self, dynamics):
         from ..events import PlayerDiesEvent
         assert self.recorded_target is not None
-        visitors = [x for x in self.recorded_target.visitors if x.pk != self.player.pk and x.role.recorded_target == self.recorded_target and not x.sequestrated]
+        visitors = [mov.src for mov in dynamics.movements if mov != self.player.movement and mov.src.movement == mov and mov.dst == self.recorded_target]
         if len(visitors) > 0:
             victim = dynamics.random.choice(visitors)
             if not victim.just_dead:
@@ -692,8 +680,8 @@ class Sequestratore(Role):
             return []
 
     def apply_dawn(self, dynamics):
-        self.recorded_target.sequestrated = True
-        pass
+        if self.recorded_target.movement in dynamics.movements:
+            dynamics.movements.remove(self.recorded_target.movement)
 
 
 class Stregone(Role):
@@ -989,19 +977,12 @@ class Illusione(Spettro):
 
     def apply_dawn(self, dynamics):
         assert self.has_power
-
         assert self.recorded_target2.alive
 
-        # Visiting: Stalker illusion, we have to replace the
-        # original location
-        self.recorded_target2.visiting = [self.recorded_target]
-
-        # Visitors: Voyeur illusion, we have to add to the
-        # original list
-        if self.recorded_target2 not in self.recorded_target.visitors:
-            self.recorded_target.visitors.append(self.recorded_target2)
-
-        dynamics.illusion = (self.recorded_target2, self.recorded_target)
+        from ..dynamics import Movement
+        illusion = Movement(src=self.recorded_target2, dst=self.recorded_target)
+        assert self.recorded_target2.movement != illusion
+        dynamics.movements.append(illusion)
 
 class Ipnosi(Spettro):
     name = 'Spettro dell\'Ipnosi'

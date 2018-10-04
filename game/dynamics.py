@@ -14,7 +14,6 @@ from .events import CommandEvent, VoteAnnouncedEvent, TallyAnnouncedEvent, \
     SetMayorEvent, PlayerDiesEvent, PowerOutcomeEvent, StakeFailedEvent, \
     ExileEvent, VictoryEvent, AvailableRoleEvent, RoleKnowledgeEvent
 from .constants import *
-from .roles import *
 from .utils import get_now
 
 SIMULATE_NEXT_TURN = True
@@ -31,6 +30,13 @@ UPDATE_INTERVAL = timedelta(seconds=1)
 SINGLE_MODE = False
 
 logger = logging.getLogger(__name__)
+
+class Movement:
+    def __repr__(self):
+        return "%r (%r) => %r (%r) %s" % (self.src, self.src.role.name, self.dst, self.dst.role.name, "[Illusione]" if self != self.src.movement else "")
+    def __init__(self, src, dst):
+        self.src = src
+        self.dst = dst
 
 class Dynamics:
     def __repr__(self):
@@ -111,6 +117,7 @@ class Dynamics:
         self.over = False
         self.upcoming_deaths = []
         self.pending_disqualifications = []
+        self.movements = []
         for player in self.players:
             self.players_dict[player.pk] = player
             player.team = None
@@ -128,11 +135,8 @@ class Dynamics:
             player.apparent_aura = None
             player.apparent_role = None
             player.apparent_team = None
-            player.visiting = None
-            player.visitors = None
             player.protected_by_guard = False
             player.protected_by_keeper = False
-            player.sequestrated = False
             player.temp_dehypnotized = False
             player.just_dead = False
             player.just_ghostified = False
@@ -601,9 +605,6 @@ class Dynamics:
         for player in players:
             role = player.role
             if role.recorded_target is not None:
-                # Ignore sequestrated lupi
-                if role.player.sequestrated:
-                    continue
                 if target is None:
                     target = role.recorded_target
                     role_class = role.recorded_role_class
@@ -629,8 +630,7 @@ class Dynamics:
             player.apparent_mystic = player.is_mystic
             player.apparent_role = player.role.__class__ if not player.role.ghost else player.role_class_before_ghost
             player.apparent_team = player.team
-            player.visiting = []
-            player.visitors = []
+            player.movement = None
             # Restore cooldown for EVERY_OTHER_NIGHT powers
             player.cooldown = False
 
@@ -653,11 +653,9 @@ class Dynamics:
         self.logger.debug("  rev_block_graph: %r", rev_block_graph)
         self.logger.debug("  blockers_success: %r", blockers_success)
 
-        # Extend the success status to all players and compute who has
-        # been sequestrated
+        # Extend the success status to all players
         powers_success = dict([(x.pk, True) for x in self.players])
         powers_success.update(blockers_success)
-        sequestrated = {}
         for src, success in iter(blockers_success.items()):
             if success:
                 for dst in block_graph[src]:
@@ -665,20 +663,15 @@ class Dynamics:
                         assert not powers_success[dst]
                     else:
                         powers_success[dst] = False
-                    if self.players_dict[src].role.sequester:
-                        sequestrated[dst] = True
         self.logger.debug("  powers_success: %r", powers_success)
-        self.logger.debug("  sequestrated: %r", sequestrated)
 
         # Then compute the visit graph
         for player in self.get_active_players():
-            if player.role.recorded_target is not None and \
-                    not player.role.ghost and \
-                    player.pk not in sequestrated:
-                player.visiting.append(player.role.recorded_target)
-                player.role.recorded_target.visitors.append(player)
-        self.logger.debug("  visiting: %r", dict([(x, x.visiting) for x in self.get_active_players()]))
-        self.logger.debug("  visitors: %r", dict([(x, x.visitors) for x in self.get_active_players()]))
+            if player.role.recorded_target is not None and not player.role.ghost:
+                mov = Movement(src=player, dst=player.role.recorded_target)
+                self.movements.append(mov)
+                player.movement = mov
+        self.logger.debug("  movements: %r", dict([(x.src, x.dst) for x in self.movements]))
 
         # Utility methods for later
         def apply_role(player):
@@ -691,7 +684,7 @@ class Dynamics:
                 self.logger.debug("    Success!" if success else "    Conditions for applying role not met!")
             else:
                 self.logger.debug("    Power blocked!")
-            event = PowerOutcomeEvent(player=player, success=success, sequestrated=player.pk in sequestrated, command=player.role.recorded_command)
+            event = PowerOutcomeEvent(player=player, success=success, command=player.role.recorded_command)
             self.generate_event(event)
             if success:
                 player.role.apply_dawn(self)
@@ -708,7 +701,7 @@ class Dynamics:
         # Unset (nearly) all temporary status
         self.wolves_agree = None
         self.necromancers_agree = None
-        self.illusion = None
+        self.movements = []
         for player in self.players:
             if not self.simulating:
                 player.role.unrecord_targets()
@@ -716,11 +709,9 @@ class Dynamics:
             player.apparent_mystic = None
             player.apparent_role = None
             player.apparent_team = None
-            player.visiting = None
-            player.visitors = None
             player.protected_by_guard = False
             player.protected_by_keeper = False
-            player.sequestrated = False
+            player.movement = None
             player.just_ghostified = False
             player.just_transformed = False
             player.just_resurrected = False

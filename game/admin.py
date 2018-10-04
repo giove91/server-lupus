@@ -64,7 +64,7 @@ class RoleKnowledgeEventAdmin(admin.ModelAdmin):
 
 class PowerOutcomeEventAdmin(admin.ModelAdmin):
     list_filter = ['success', 'turn']
-    list_display = ('event_name', 'turn', 'timestamp', 'player', 'success', 'sequestrated')
+    list_display = ('event_name', 'turn', 'timestamp', 'player', 'success')
     search_fields = ['player__user__first_name', 'player__user__last_name']
 
 class PageRequestAdmin(admin.ModelAdmin):

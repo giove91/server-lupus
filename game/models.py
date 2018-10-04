@@ -398,7 +398,7 @@ class Turn(models.Model):
         DAWN: 'Dawn',
         CREATION: 'Creation',
         }
-    phase = models.CharField(max_length=1, choices=TURN_PHASES.items())
+    phase = models.CharField(max_length=1, choices=sorted(TURN_PHASES.items()))
 
     # begin must always be set (and coincide with the previous turn's
     # end if it exists); end can be None only when it is the last turn

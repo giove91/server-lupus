@@ -316,22 +316,14 @@ class Confusione(Confusione):
 class Illusione(Illusione):
     def apply_dawn(self, dynamics):
         assert self.has_power
-
         assert self.recorded_target2.alive
 
-        # Visiting: Stalker illusion, we have to replace the
-        # original location
-        self.recorded_target2.visiting = [self.recorded_target]
+        from ..dynamics import Movement
+        illusion = Movement(src=self.recorded_target, dst=self.recorded_target2)
+        assert self.recorded_target2.movement != illusion
 
-        # Visitors: Voyeur illusion, we have to add to the
-        # original list
-        if self.recorded_target2 not in self.recorded_target.visitors:
-            self.recorded_target.visitors.append(self.recorded_target2)
-
-        if self.recorded_target2.role.recorded_target is not None and self.recorded_target2 in self.recorded_target2.role.recorded_target.visitors:
-            self.recorded_target2.role.recorded_target.visitors.remove(self.recorded_target2)
-
-        dynamics.illusion = (self.recorded_target2, self.recorded_target)
+        dynamics.movements.remove(self.recorded_target.movement)
+        dynamics.movements.append(illusion)
 
 class Occultamento(Occultamento):
     pass

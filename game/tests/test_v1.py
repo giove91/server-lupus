@@ -19,6 +19,7 @@ from game.utils import get_now, advance_to_time
 from datetime import timedelta, datetime, time
 
 from .test_utils import create_game, delete_auto_users, create_users, create_game_from_dump, test_advance_turn, record_name
+from unittest import skip
 
 def create_test_game(seed, roles):
 	return create_game(seed, 'v1', roles)
@@ -994,6 +995,7 @@ class GameTests(TestCase):
         dynamics.debug_event_bin = None
 
     @record_name
+    @skip('Meccanica abolita')
     def test_disjoint_lupi_with_sequestratore(self): # Update Lupus7
         roles = [ Cacciatore, Negromante, Negromante, Lupo, Lupo, Contadino, Contadino, Sequestratore ]
         self.game = create_test_game(1, roles)
@@ -4439,6 +4441,7 @@ class GameTests(TestCase):
             self.assertTrue(event.player == negromante or event.player == ipnotista)
             self.assertEqual(event.cause, TEAM_DEFEAT)
 
+    @skip('To be implemented')
     def test_ghostify_before_exile(self): # Update Lupus7
         roles = [ Negromante, Lupo, Cacciatore, Contadino, Contadino ]
 
@@ -4680,6 +4683,7 @@ class GameTests(TestCase):
         self.assertEqual(event.cause, NECROMANCER)
         
     @record_name
+    @skip('Meccanica abolita')
     def test_disjoint_negromanti_with_sequestratore(self): # New Lupus7
         roles = [ Cacciatore, Negromante, Negromante, Lupo, Lupo, Contadino, Veggente, Sequestratore ]
         self.game = create_test_game(1, roles)
@@ -6124,7 +6128,6 @@ class GameTests(TestCase):
         # Check result (Spettro succeeds)
         [event] = [event for event in dynamics.debug_event_bin if isinstance(event, PowerOutcomeEvent) if event.player is contadino]
         self.assertTrue(event.success)
-        self.assertFalse(event.sequestrated)
         
         # Advance to next day and (don't) vote
         test_advance_turn(self.game)
@@ -6799,15 +6802,17 @@ class GameTests(TestCase):
         self.assertEqual((divinatore2, Divinatore), info)
 
     @record_name
+    @skip('This test should be updated.')
     def test_load_test(self):
         self.game = self.load_game_helper('test.json')
 
     @record_name
+    @skip('This test should be updated.')
     def test_load_test2(self):
         self.game = self.load_game_helper('mayor_appointing.json')
         players = self.game.get_players()
         self.assertEqual(self.game.get_dynamics().appointed_mayor.user.username, "")
-        
+
     @record_name
     def test_ipnotista_dies_while_negromanti_create_ipnosi(self): # New
         roles = [ Ipnotista, Negromante, Lupo, Lupo, Contadino, Contadino ]
@@ -6826,7 +6831,7 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         test_advance_turn(self.game)
-        
+
         # Kill Contadino
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=lupo, target=contadino, timestamp=get_now()))
         
