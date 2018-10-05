@@ -170,8 +170,10 @@ def kill_all_dynamics():
 class Game(models.Model):
     public = models.BooleanField(default=False)
     postgame_info = models.BooleanField(default=False)
-    def __unicode__(self):
-        return u"Game %d" % self.pk
+
+    def __str__(self):
+        return self.name
+
     name = models.CharField(max_length=20, verbose_name='Nome univoco')
     title = models.CharField(max_length=32, verbose_name='Titolo della partita')
     description = models.CharField(max_length=1000, verbose_name='Descrizione')
@@ -411,9 +413,9 @@ class Turn(models.Model):
         ordering = ['date', 'phase']
         unique_together = (('game', 'date', 'phase'),)
     
-    def __unicode__(self):
+    def __str__(self):
         return "%s %d" % (Turn.TURN_PHASES[self.phase], self.date)
-    as_string = property(__unicode__)
+    as_string = property(__str__)
 
     def __repr__(self):
         return "%s %d" % (Turn.TURN_PHASES[self.phase], self.date)
@@ -454,6 +456,10 @@ class Turn(models.Model):
             return u'all\''
     preposition_to_as_italian_string_property = property(preposition_to_as_italian_string)
     
+    def is_current(self):
+        return self.game.current_turn == self
+    is_current.boolean = True
+
     @staticmethod
     def get_or_create(game, date, phase, must_exist=False):
         try:
