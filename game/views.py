@@ -238,7 +238,7 @@ class EventListView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if hasattr(self.request.dynamics, 'rules'):
-            display_votes = self.request.dynamics.rules.display_votes or self.get_point_of_view == 'admin',
+            display_votes = self.request.dynamics.rules.display_votes or self.get_point_of_view() == 'admin'
             display_mayor = self.request.dynamics.rules.mayor
         else:
             display_votes = False

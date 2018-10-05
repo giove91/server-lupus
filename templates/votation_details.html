@@ -5,7 +5,9 @@
     <tr>
         <td class="name-container">Nome</td>
         <td class="vote-container">Voti</td>
-        <td>Votanti</td>
+        {% if display_votes %}
+            <td>Votanti</td>
+        {% endif %}
     </tr>
     </thead>
     <tbody>
@@ -13,7 +15,9 @@
         <tr>
             <td>{{ voted.full_name }}</td>
             <td>{{ info.votes }}</td>
-            <td>{{ info.voters|order_by_name|join_by_attr:"full_name" }}</td>
+            {% if display_votes %}
+                <td>{{ info.voters|order_by_name|join_by_attr:"full_name" }}</td>
+            {% endif %}
         </tr>
     {% endfor %}
     </tbody>
