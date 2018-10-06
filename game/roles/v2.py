@@ -237,6 +237,9 @@ class Negromante(Negromante):
         return available_powers
 
     def pre_apply_dawn(self, dynamics):
+        if isinstance(self.recorded_target.role, Morte) and not self.recorded_target.can_use_power():
+            return False
+
         if self.player.alive:
             return self.recorded_target.role.ghost
         else:
@@ -346,6 +349,20 @@ class Illusione(Illusione):
             assert self.recorded_target2.movement != illusion
             dynamics.movements.append(illusion)
 
+class Morte(Morte):
+    frequency = ONCE_A_GAME
+
+    def pre_apply_dawn(self, dynamics):
+        return True
+
+    def apply_dawn(self, dynamics):
+        if not self.recorded_target.just_dead:
+            assert self.recorded_target.alive
+            from ..events import PlayerDiesEvent
+            dynamics.generate_event(PlayerDiesEvent(player=self.recorded_target, cause=DEATH_GHOST))
+
+
+
 class Occultamento(Occultamento):
     pass
 
@@ -362,3 +379,9 @@ class Telepatia(Spettro):
 
         dynamics.post_event_triggers.append(trigger)
 
+
+
+## ORDER COSTRAINTS
+#
+# Necromancers must act after every other ghost.
+# If not, they will change power before they can use it.

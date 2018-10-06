@@ -280,11 +280,11 @@ class TestSpectralSequence(GameTest, TestCase):
 
         # Try to make confusione and visione
         self.usepower(self.negromante_a, target=self.contadino_a, role_class=Confusione)
-        self.usepower(self.negromante_b, target=self.contadino_c, role_class=Visione)
+        self.usepower(self.negromante_b, target=self.contadino_c, role_class=Telepatia)
         self.advance_turn()
 
         self.check_event(GhostSwitchEvent, {'ghost': Confusione}, player=self.contadino_a)
-        self.check_event(GhostSwitchEvent, {'ghost': Visione}, player=self.contadino_c)
+        self.check_event(GhostSwitchEvent, {'ghost': Telepatia}, player=self.contadino_c)
         self.advance_turn(NIGHT)
 
         # Try to make two amnesia
@@ -348,10 +348,11 @@ class TestSpectralSequence(GameTest, TestCase):
         self.check_event(PlayerDiesEvent, {'player': self.diavolo})
         self.check_event(GhostSwitchEvent, None)
         self.check_event(PowerOutcomeEvent, {'success': False}, player=self.negromante_a)
-        self.assertIsInstance(self.contadino_a, Delusione)
+        self.assertIsInstance(self.contadino_a.role, Morte)
         self.advance_turn(NIGHT)
 
         self.usepower(self.negromante_a, self.contadino_a, role_class=Confusione)
+        self.assertFalse(self.contadino_a.can_use_power())
         self.advance_turn()
 
         self.check_event(PowerOutcomeEvent, {'success': False}, player=self.negromante_a)
