@@ -128,6 +128,7 @@ class Dynamics:
             player.alive = True
             player.active = True
             player.disqualified = False
+            player.consumed_soul = False
             player.canonical = True
             player.recorded_vote = None
             player.recorded_elect = None

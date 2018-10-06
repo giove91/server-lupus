@@ -1255,6 +1255,31 @@ class GhostificationEvent(Event):
         
         return None
 
+class SoulConsumptionEvent(Event):
+    RELEVANT_PHASES = [DAWN]
+    AUTOMATIC = True
+
+    # The one who knows the event.
+    player = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
+    # The one whose soul has been consumed.
+    target = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
+
+    def apply(self, dynamics):
+        target = self.target.canonicalize()
+        assert not target.alive
+        target.consumed_soul = True
+
+    def to_player_string(self, player):
+        if player == self.player:
+            if self.player == self.target:
+                return u'La tua anima è stata consumata.'
+            else:
+                return u'Percepisci che l\'anima di %s è stata consumata.' % self.target.full_name
+        elif player == 'admin':
+            if self.player == self.target:
+                return u'%s percepisce che la sua anima è stata consumata.' % (self.target.full_name)
+            else:
+                return u'%s percepisce che l\'anima di %s è stata consumata.' % (self.player.full_name, self.target.full_name)
 
 class GhostificationFailedEvent(Event):
     RELEVANT_PHASES = [DAWN, SUNSET]
@@ -1287,6 +1312,7 @@ class GhostSwitchEvent(Event):
 
     GHOSTIFICATION_CAUSES = (
         (NECROMANCER, 'Necromancer'),
+        (DEATH_GHOST, 'DeathGhost'),
         )
     cause = models.CharField(max_length=1, choices=GHOSTIFICATION_CAUSES, default=None)
 
@@ -1294,7 +1320,7 @@ class GhostSwitchEvent(Event):
         player = self.player.canonicalize()
 
         assert not player.alive
-        assert self.ghost not in dynamics.used_ghost_powers
+        assert self.ghost not in dynamics.used_ghost_powers, self.ghost
         assert self.player.role.ghost
         #assert not(dynamics.death_ghost_created and self.cause == HYPNOTIST_DEATH and not dynamics.death_ghost_just_created), (dynamics.death_ghost_created, dynamics.death_ghost_just_created, self.cause)
         #assert not(self.cause == HYPNOTIST_DEATH and self.ghost != IPNOSI)
@@ -1302,7 +1328,8 @@ class GhostSwitchEvent(Event):
         #assert not(self.ghost == IPNOSI and [player2 for player2 in dynamics.get_alive_players() if isinstance(player2.role, Ipnotista) and player2.team == NEGROMANTI] != [])
 
         # Update global status
-        dynamics.used_ghost_powers.add(self.ghost)
+        if not self.ghost.allow_duplicates:
+            dynamics.used_ghost_powers.add(self.ghost)
         if not self.player.role.allow_duplicates:
             dynamics.used_ghost_powers.remove(self.player.role.__class__)
 
@@ -1318,6 +1345,12 @@ class GhostSwitchEvent(Event):
                 return u'Il tuo potere soprannaturale è cambiato! Sei diventat%s ora uno %s.' % (oa, power)
             elif player == 'admin':
                 return u'%s è stat%s trasformat%s in uno %s.' % (self.player.full_name, oa, oa, power)
+
+        elif self.cause == DEATH_GHOST:
+            if player == self.player:
+                return u'Hai perso il potere soprannaturale della Morte.'
+            elif player == 'admin':
+                return u'%s ha perso il potere soprannaturale della Morte.' % self.player.full_name
 
         else:
             raise Exception ('Unknown cause for GhostSwitchEvent')

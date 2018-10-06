@@ -220,15 +220,9 @@ class Stregone(Stregone):
 
 class Negromante(Negromante):
     priority = POST_MORTEM
-    has_power = True
+    frequency = EVERY_NIGHT
     required = True
     message_role = 'Assegna il seguente potere soprannaturale:'
-
-    def can_use_power(self):
-        if not self.player.alive:
-            return self.has_power
-
-        return True
 
     def get_targets_role_class(self):
         powers = {Amnesia, Assoluzione, Confusione, Diffamazione, Illusione, Morte, Occultamento, Telepatia}
@@ -237,25 +231,28 @@ class Negromante(Negromante):
         return available_powers
 
     def pre_apply_dawn(self, dynamics):
-        if isinstance(self.recorded_target.role, Morte) and not self.recorded_target.can_use_power():
+        if self.recorded_target.consumed_soul:
             return False
 
-        if self.player.alive:
-            return self.recorded_target.role.ghost
-        else:
-            return True
+        if self.recorded_role_class in dynamics.used_ghost_powers:
+            return False
+
+        if not self.recorded_target.role.ghost and not [x for x in dynamics.get_dead_players() if x.role.necromancer and not x.consumed_soul]:
+            return False
+
+        return True
 
     def apply_dawn(self, dynamics):
         if self.recorded_target.role.ghost:
             from ..events import GhostSwitchEvent
             dynamics.generate_event(GhostSwitchEvent(player=self.recorded_target, ghost=self.recorded_role_class, cause=NECROMANCER))
         else:
-            assert not self.player.alive
-            from ..events import GhostificationEvent
+            from ..events import GhostificationEvent, SoulConsumptionEvent
             dynamics.generate_event(GhostificationEvent(player=self.recorded_target, ghost=self.recorded_role_class, cause=NECROMANCER))
-
-        if not self.player.alive:
-            self.has_power = False
+            sacrifice = dynamics.random.choice([x for x in dynamics.get_dead_players() if isinstance(x.role, self.__class__) and not x.consumed_soul])
+            for negromante in dynamics.get_active_players():
+                if negromante.role.necromancer:
+                    dynamics.generate_event(SoulConsumptionEvent(player=negromante, target=sacrifice))
 
 class Fantasma(Fantasma):
     # We must refer to the correct definitions of the powers
@@ -358,10 +355,10 @@ class Morte(Morte):
     def apply_dawn(self, dynamics):
         if not self.recorded_target.just_dead:
             assert self.recorded_target.alive
-            from ..events import PlayerDiesEvent
+            from ..events import PlayerDiesEvent, GhostSwitchEvent
             dynamics.generate_event(PlayerDiesEvent(player=self.recorded_target, cause=DEATH_GHOST))
-
-
+            dynamics.generate_event(GhostSwitchEvent(player=self.player, ghost=Delusione, cause=DEATH_GHOST))
+            self.player.consumed_soul = True
 
 class Occultamento(Occultamento):
     pass
