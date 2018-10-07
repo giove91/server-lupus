@@ -559,6 +559,7 @@ class Player(models.Model):
     AURA_COLORS = (
         (WHITE, 'White'),
         (BLACK, 'Black'),
+        (None, 'Nessuno'),
     )
     AURA_COLORS_DICT = dict(AURA_COLORS)
     
@@ -566,6 +567,7 @@ class Player(models.Model):
         (POPOLANI, 'Popolani'),
         (LUPI, 'Lupi'),
         (NEGROMANTI, 'Negromanti'),
+        (None, 'Nessuno'),
     )
     TEAMS_DICT = dict(TEAMS)
     

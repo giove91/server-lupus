@@ -7,7 +7,7 @@ from importlib import import_module
 class Rules():
     teams = [POPOLANI, LUPI, NEGROMANTI]
     needs_spectral_sequence = False
-    show_votes = True
+    display_votes = True
     mayor = True
     strict_quorum = False
 
