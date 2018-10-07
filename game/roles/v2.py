@@ -257,10 +257,32 @@ class Negromante(Negromante):
 class Fantasma(Fantasma):
     # We must refer to the correct definitions of the powers
     def get_valid_powers(self):
-        return {Amnesia, Confusione, Illusione, Ipnosi, Occultamento, Visione}
+        return [Amnesia, Assoluzione, Confusione, Diffamazione, Illusione, Morte, Occultamento, Telepatia]
+
+    def post_death(self, dynamics):
+        powers = self.get_valid_powers()
+        available_powers = [x for x in powers if x not in dynamics.used_ghost_powers]
+        if len(available_powers) >= 1:
+            power = dynamics.random.choice(available_powers)
+        else:
+            power = Delusione
+
+        from ..events import RoleKnowledgeEvent, GhostificationEvent
+        dynamics.generate_event(GhostificationEvent(player=self.player, cause=PHANTOM, ghost=power))
+        for negromante in dynamics.players:
+            if negromante.role.necromancer:
+                dynamics.generate_event(RoleKnowledgeEvent(player=self.player,
+                                                           target=negromante,
+                                                           role_class=negromante.role.__class__,
+                                                           cause=GHOST))
+                dynamics.generate_event(RoleKnowledgeEvent(player=negromante,
+                                                           target=self.player,
+                                                           role_class=power,
+                                                           cause=PHANTOM))
 
 class Delusione(Spettro):
     # Spettro yet to be initialized (or who has lost his power).
+    verbose_name = 'Spettro senza alcun potere soprannaturale'
     frequency = NEVER
     priority = USELESS
     allow_duplicates = True
@@ -274,6 +296,7 @@ class Amnesia(Amnesia):
 
 class Assoluzione(Spettro):
     name = "Spettro dell'Assoluzione"
+    verbose_name = 'Spettro con il potere soprannaturale dell\'Assoluzione'
     priority = MODIFY
     frequency = EVERY_OTHER_NIGHT
     targets = ALIVE
@@ -292,6 +315,7 @@ class Assoluzione(Spettro):
 
 class Diffamazione(Spettro):
     name = "Spettro della Diffamazione"
+    verbose_name = 'Spettro con il potere soprannaturale della Diffamazione'
     priority = MODIFY
     frequency = EVERY_NIGHT
     targets = ALIVE
@@ -364,6 +388,8 @@ class Occultamento(Occultamento):
     pass
 
 class Telepatia(Spettro):
+    name = 'Spettro della Telepatia'
+    verbose_name = 'Spettro con il potere soprannaturale della Telepatia'
     priority = EVENT_INFLUENCE
     frequency = EVERY_OTHER_NIGHT
     targets = ALIVE

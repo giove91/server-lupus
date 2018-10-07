@@ -1224,7 +1224,7 @@ class GhostificationEvent(Event):
 
     def to_player_string(self, player):
         oa = self.player.oa
-        power = self.ghost.name
+        power = self.ghost.verbose_name
 
         if self.cause == NECROMANCER:
             if player == self.player:
@@ -1242,7 +1242,7 @@ class GhostificationEvent(Event):
             if player == self.player:
                 return u'La sopraggiunta morte ti dà un senso di beatitudine. Sei diventat%s uno %s.' % (oa, power)
             elif player == 'admin':
-                return u'Il Fantasma %s è divenuto uno %s' % (self.player.full_name, power)
+                return u'Il Fantasma %s è divenuto uno %s.' % (self.player.full_name, power)
         
         elif self.cause == HYPNOTIST_DEATH:
             if player == self.player:

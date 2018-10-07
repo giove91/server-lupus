@@ -145,7 +145,7 @@ class TestMultipleRoleKnowledge(GameTest, TestCase):
         })
 
 class TestSpectralSequence(GameTest, TestCase):
-    roles = [ Contadino, Contadino, Contadino, Contadino, Contadino, Contadino, Lupo, Diavolo, Negromante, Negromante ]
+    roles = [ Contadino, Contadino, Contadino, Contadino, Contadino, Contadino, Lupo, Diavolo, Negromante, Negromante, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma]
     spectral_sequence = [True, False, True, True]
 
     def test_sequence(self):
@@ -387,6 +387,20 @@ class TestSpectralSequence(GameTest, TestCase):
         self.advance_turn()
 
         self.assertIsInstance(self.contadino_c.role, Morte)
+
+    def test_fantasma(self):
+        self.advance_turn(NIGHT)
+        powers = {Amnesia, Assoluzione, Confusione, Delusione, Diffamazione, Illusione, Morte, Occultamento, Telepatia}
+        for phantom in [x for x in self.players if isinstance(x.role, Fantasma)]:
+            self.usepower(self.lupo, phantom)
+            self.advance_turn()
+
+            self.check_event(GhostificationEvent, {'player': phantom})
+            powers.remove(phantom.role.__class__)
+            self.advance_turn(NIGHT)
+
+        self.assertEqual(powers, set())
+        self.assertIsInstance(phantom.role, Delusione)
 
 class TestVotingPowers(GameTest, TestCase):
     roles = [ Contadino, Guardia, Veggente, Spia, Messia, Esorcista, Lupo, Stregone, Fattucchiera, Negromante]

@@ -884,6 +884,7 @@ class Scrutatore(Role):
 
 class Spettro(Role):
     name = 'Spettro'
+    verbose_name = 'Spettro'
     team = NEGROMANTI
     aura = None
     is_mystic = None
@@ -902,6 +903,7 @@ class Spettro(Role):
 
 class Amnesia(Spettro):
     name = 'Spettro dell\'Amnesia'
+    verbose_name = 'Spettro con il potere soprannaturale dell\'Amnesia'
     priority = MODIFY + 1 # Must act after ipnosi
     frequency = EVERY_NIGHT
     targets = ALIVE
@@ -927,6 +929,7 @@ class Amnesia(Spettro):
 
 class Confusione(Spettro):
     name = 'Spettro della Confusione'
+    verbose_name = 'Spettro con il potere soprannaturale della Confusione'
     priority = QUERY_INFLUENCE
     frequency = EVERY_NIGHT
     targets = EVERYBODY
@@ -951,6 +954,7 @@ class Confusione(Spettro):
 
 class Corruzione(Spettro):
     name = 'Spettro della Corruzione'
+    verbose_name = 'Spettro con il potere soprannaturale della Corruzione'
     priority = POST_MORTEM
     frequency = ONCE_A_GAME
     targets = ALIVE
@@ -972,6 +976,7 @@ class Corruzione(Spettro):
 
 class Illusione(Spettro):
     name = 'Spettro dell\'Illusione'
+    verbose_name = 'Spettro con il potere soprannaturale dell\'Illusione'
     priority = QUERY_INFLUENCE
     frequency = EVERY_OTHER_NIGHT
     targets = EVERYBODY
@@ -988,6 +993,7 @@ class Illusione(Spettro):
 
 class Ipnosi(Spettro):
     name = 'Spettro dell\'Ipnosi'
+    verbose_name = 'Spettro con il potere soprannaturale dell\'Ipnosi'
     priority = MODIFY
     frequency = EVERY_OTHER_NIGHT
     targets = EVERYBODY
@@ -1010,6 +1016,7 @@ class Ipnosi(Spettro):
 
 class Morte(Spettro):
     name = 'Spettro della Morte'
+    verbose_name = 'Spettro con il potere soprannaturale della Morte'
     priority = KILLER
     frequency = EVERY_OTHER_NIGHT
     can_act_first_night = False
@@ -1033,6 +1040,7 @@ class Morte(Spettro):
 
 class Occultamento(Spettro):
     name = 'Spettro dell\'Occultamento'
+    verbose_name = 'Spettro con il potere soprannaturale dell\'Occultamento'
     critical_blocker = True
     priority = BLOCK
     frequency = EVERY_NIGHT
@@ -1058,6 +1066,7 @@ class Occultamento(Spettro):
 
 class Visione(Spettro):
     name = 'Spettro della Visione'
+    verbose_name = 'Spettro con il potere soprannaturale della Visione'
     priority = QUERY
     frequency = EVERY_NIGHT
     targets = ALIVE
