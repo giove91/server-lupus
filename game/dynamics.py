@@ -241,7 +241,7 @@ class Dynamics:
             queued_event = self._pop_event_from_queue()
             if queued_event is not None:
                 self.logger.debug("Receiving event %s from queue", queued_event)
-                if self.debug_event_bin is not None:
+                if self.debug_event_bin is not None and not self.simulating:
                     self.debug_event_bin.append(queued_event)
                 if SINGLE_MODE:
                     queued_event.save()
@@ -602,7 +602,7 @@ class Dynamics:
 
     def check_common_target(self, players):
         target = None
-        target_ghost = None
+        role_class = None
         for player in players:
             role = player.role
             if role.recorded_target is not None:
@@ -633,7 +633,8 @@ class Dynamics:
             player.apparent_team = player.team
             player.movement = None
             # Restore cooldown for EVERY_OTHER_NIGHT powers
-            player.cooldown = False
+            if not self.simulating:
+                player.cooldown = False
 
         # So, here comes the big little male house ("gran casino");
         # first of all we consider powers that can block powers that
@@ -723,6 +724,7 @@ class Dynamics:
             self.sentence_modifications = []
             self.vote_influences = []
             self.electoral_frauds = []
+            self.post_event_triggers = []
             for player in self.players:
                 player.temp_dehypnotized = False
         else:

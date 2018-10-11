@@ -74,6 +74,9 @@ class Role(object):
         self.recorded_multiple_role_class = None
         self.recorded_command = None
 
+    def __lt__(self, other):
+        return TEAMS.index(self.team) < TEAMS.index(other.team) or (self.team == other.team and self.name < other.name)
+
     @classmethod
     def as_string(cls):
         module = cls.__module__.split('.')[-1]
@@ -161,7 +164,8 @@ class Role(object):
     def unrecord_targets(self):
         self.recorded_target = None
         self.recorded_target2 = None
-        self.recorded_target_ghost = None
+        self.recorded_role_class = None
+        self.recorded_multiple_role_class = None
         self.recorded_command = None
 
     def apply_usepower(self, dynamics, event):

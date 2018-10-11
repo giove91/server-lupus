@@ -46,6 +46,8 @@ POPOLANI = 'P'
 LUPI = 'L'
 NEGROMANTI = 'N'
 
+TEAMS = [POPOLANI, LUPI, NEGROMANTI]
+
 TEAM_IT = {
     POPOLANI: 'Popolani',
     LUPI: 'Lupi',

@@ -129,6 +129,7 @@ class Voyeur(Voyeur):
 ##############
 
 class Lupo(Lupo):
+    knowledge_class = 1
     required = True
 
     # Lupi can kill everybody! Yay!
@@ -149,9 +150,11 @@ class Lupo(Lupo):
         return True
 
 class Assassino(Assassino):
+    knowledge_class = 1
     pass
 
 class Diavolo(Diavolo):
+    knowledge_class = 1
     targets_multiple_role_class = ALIVE
 
     def pre_apply_dawn(self, dynamics):
@@ -169,6 +172,7 @@ class Diavolo(Diavolo):
         ))
 
 class Fattucchiera(Fattucchiera):
+    knowledge_class = 1
     message_role = 'Fallo apparire come:'
     targets = EVERYBODY
     targets_role_class = ALIVE
@@ -182,6 +186,7 @@ class Fattucchiera(Fattucchiera):
         target.apparent_team = role.team
 
 class Alcolista(Rinnegato):
+    knowledge_class = 1
     name = 'Alcolista'
     frequency = EVERY_NIGHT
     priority = QUERY_INFLUENCE # Mah
@@ -194,6 +199,7 @@ class Alcolista(Rinnegato):
         pass #out
 
 class Sequestratore(Sequestratore):
+    knowledge_class = 1
     def apply_dawn(self, dynamics):
         super().apply_dawn(dynamics)
         if self.recorded_target.movement in dynamics.movements:
@@ -206,6 +212,7 @@ class Sequestratore(Sequestratore):
             dynamics.generate_event(MovementKnowledgeEvent(player=self.player, target=self.recorded_target, target2=None, cause=KIDNAPPER))
 
 class Stregone(Stregone):
+    knowledge_class = 1
     pass
 
 ##############
@@ -213,6 +220,7 @@ class Stregone(Stregone):
 ##############
 
 class Negromante(Negromante):
+    knowledge_class = 4
     priority = POST_MORTEM
     frequency = EVERY_NIGHT
     required = True
@@ -249,6 +257,7 @@ class Negromante(Negromante):
                     dynamics.generate_event(SoulConsumptionEvent(player=negromante, target=sacrifice))
 
 class Fantasma(Fantasma):
+    knowledge_class = 4
     # We must refer to the correct definitions of the powers
     def get_valid_powers(self):
         return [Amnesia, Assoluzione, Confusione, Diffamazione, Illusione, Morte, Occultamento, Telepatia]
