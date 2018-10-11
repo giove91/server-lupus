@@ -296,7 +296,7 @@ class TestSpectralSequence(GameTest, TestCase):
         self.assertEqual(self.contadino_b.team, POPOLANI)
         self.assertEqual(self.contadino_c.team, NEGROMANTI)
 
-        # Try to make confusione and visione
+        # Try to make confusione and telepatia
         self.usepower(self.negromante_a, target=self.contadino_a, role_class=Confusione)
         self.usepower(self.negromante_b, target=self.contadino_c, role_class=Telepatia)
         self.advance_turn()
@@ -865,6 +865,41 @@ class TestAlcolista(GameTest, TestCase):
 
         # And again, even to deads
         self.check_event(PowerOutcomeEvent, {'success': False}, player=self.alcolista)
+
+class TestAuraMisticityKnowledge(GameTest, TestCase):
+    roles = [Contadino, Veggente, Mago, Lupo, Fattucchiera, Negromante]
+    spectral_sequence = [True]
+
+    def setUp(self):
+        # Automatically make Confusione
+        super().setUp()
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.contadino)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.negromante, self.contadino, role_class=Confusione)
+        self.advance_turn(NIGHT)
+
+    def test_veggente(self):
+        self.usepower(self.veggente, self.fattucchiera)
+        self.advance_turn()
+
+        self.check_event(AuraKnowledgeEvent, {'player': self.veggente, 'target': self.fattucchiera, 'aura': WHITE})
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.veggente, self.lupo)
+        self.advance_turn()
+
+        self.check_event(AuraKnowledgeEvent, {'player': self.veggente, 'target': self.lupo, 'aura': BLACK})
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.veggente, self.lupo)
+        self.usepower(self.fattucchiera, self.lupo, role_class=Contadino)
+        self.advance_turn()
+
+        self.check_event(AuraKnowledgeEvent, {'player': self.veggente, 'target': self.lupo, 'aura': WHITE})
+        self.advance_turn(NIGHT)
 
 class TestMovements(GameTest, TestCase):
     roles = [Contadino, Stalker, Voyeur, Guardia, Assassino, Alcolista, Stregone, Sequestratore, Lupo, Negromante]
