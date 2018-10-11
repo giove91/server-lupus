@@ -49,7 +49,7 @@ class Weather:
         url = 'http://api.openweathermap.org/data/2.5/weather?q=Pisa&mode=xml&APPID=a7956a78c44d8f1d55ce58ad08e0e2b3'
         # TODO: When publishing the code, make this configurable
         try:
-            data = urllib2.urlopen(url, timeout = 3)
+            data = urlopen(url, timeout = 3)
             rawdata = data.read()
             root = ET.fromstring(rawdata)
             self.description = int( root.find('weather').get('number') )
