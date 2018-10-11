@@ -151,9 +151,6 @@ class Lupo(Lupo):
 class Assassino(Assassino):
     pass
 
-class Avvocato(Avvocato):
-    pass
-
 class Diavolo(Diavolo):
     targets_multiple_role_class = ALIVE
 
@@ -195,9 +192,6 @@ class Alcolista(Rinnegato):
 
     def apply_dawn(self, dynamics):
         pass #out
-
-class Necrofilo(Necrofilo):
-    pass
 
 class Sequestratore(Sequestratore):
     def apply_dawn(self, dynamics):
