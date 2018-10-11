@@ -66,8 +66,8 @@ class CommandEvent(Event):
                 'player': self.player.user.username,
                 'target': self.target.user.username if self.target is not None else None,
                 'target2': self.target2.user.username if self.target2 is not None else None,
-                'role_class': str(self.role_class) if self.role_class is not None else None,
-                'multiple_role_class': list(self.multiple_role_class) if self.multiple_role_class is not None else None,
+                'role_class': self.role_class.as_string() if self.role_class is not None else None,
+                'multiple_role_class': [x.as_string() for x in self.multiple_role_class] if self.multiple_role_class is not None else None,
                 'type': dict(CommandEvent.ACTION_TYPES)[self.type],
                 })
         return ret
@@ -76,8 +76,8 @@ class CommandEvent(Event):
         self.player = players_map[data['player']]
         self.target = players_map[data['target']]
         self.target2 = players_map[data['target2']]
-        self.role_class = data['role_class']
-        self.multiple_role_class = data['multiple_role_class']
+        self.role_class = Role.get_from_string(data['role_class']) if data['role_class'] is not None else None
+        self.multiple_role_class = {Role.get_from_string(x) for x in data['multiple_role_class']} if data['multiple_role_class'] is not None else None
         self.type = rev_dict(CommandEvent.ACTION_TYPES)[data['type']]
 
     def check_phase(self, dynamics=None, turn=None):
@@ -196,7 +196,7 @@ class SpectralSequenceEvent(Event):
         return ret
 
     def load_from_dict(self, data, players_map):
-        self.sequence = data[sequence]
+        self.sequence = data['sequence']
 
     def apply(self, dynamics):
         dynamics.spectral_sequence = self.sequence
@@ -211,12 +211,12 @@ class AvailableRoleEvent(Event):
     def to_dict(self):
         ret = Event.to_dict(self)
         ret.update({
-                'role_class': str(self.role_class),
+                'role_class': self.role_class.as_string(),
                 })
         return ret
 
     def load_from_dict(self, data, players_map):
-        self.role_class = data['role_class']
+        self.role_class = Role.get_from_string(data['role_class'])
 
     def apply(self, dynamics):
         assert len(dynamics.available_roles) < len(dynamics.players), "%d %d" % (len(dynamics.available_roles), len(dynamics.players))
@@ -630,14 +630,14 @@ class SoothsayerModelEvent(Event):
         ret = Event.to_dict(self)
         ret.update({
             'target': self.target.user.username,
-            'advertised_role': str(self.advertised_role),
+            'advertised_role': self.advertised_role.as_string(),
             'soothsayer': self.soothsayer.user.username,
         })
         return ret
 
     def load_from_dict(self, data, players_map):
         self.target = players_map[data['target']]
-        self.advertised_role = data['advertised_role']
+        self.advertised_role = Role.get_from_string(data['advertised_role'])
         self.soothsayer = players_map[data['soothsayer']]
 
     def apply(self, dynamics):
