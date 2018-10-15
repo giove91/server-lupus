@@ -24,7 +24,7 @@ def create_users(n):
     return users
 
 def create_game(seed, ruleset, roles):
-    game = Game()
+    game = Game(name='test')
     game.save()
 
     users = create_users(len(roles))

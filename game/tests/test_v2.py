@@ -8,7 +8,7 @@ from functools import wraps
 
 from django.utils import timezone
 
-from django.test import TestCase
+from django.test import TestCase, Client
 
 from game.models import *
 from game.roles.v2 import *
@@ -19,6 +19,112 @@ from game.utils import get_now, advance_to_time
 from datetime import timedelta, datetime, time
 
 from .test_utils import GameTest
+
+class TestWebInterface(GameTest, TestCase):
+    roles = [Contadino, Veggente, Stalker, Lupo, Diavolo, Negromante]
+    spectral_sequence = [True]
+
+    def test_simple_target(self):
+        self.advance_turn(NIGHT)
+
+        c = Client()
+        c.force_login(self.veggente.user)
+        response = c.get('/game/test/usepower/')
+        self.assertEqual(response.context['form'].fields.keys(), {'target'})
+
+        response = c.post('/game/test/usepower/', {'target': self.lupo.user.pk})
+        self.assertEqual(response.status_code, 200)
+
+        self.advance_turn()
+        self.check_event(AuraKnowledgeEvent, {'player': self.veggente, 'target': self.lupo})
+
+    def test_double_target(self):
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.contadino)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.negromante, self.contadino, role_class=Illusione)
+        self.advance_turn(NIGHT)
+
+        c = Client()
+        c.force_login(self.contadino.user)
+        response = c.get('/game/test/usepower/')
+        self.assertEqual(response.context['form'].fields.keys(), {'target', 'target2'})
+
+        response = c.post('/game/test/usepower/', {'target': self.veggente.user.pk, 'target2':self.lupo.user.pk})
+        self.assertEqual(response.status_code, 200)
+
+        self.usepower(self.stalker, self.veggente)
+
+        self.advance_turn()
+        self.check_event(MovementKnowledgeEvent, {'player': self.stalker, 'target': self.veggente, 'target2': self.lupo})
+
+    def test_role_target(self):
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.contadino)
+        self.advance_turn(NIGHT)
+
+        c = Client()
+        c.force_login(self.negromante.user)
+        response = c.get('/game/test/usepower/')
+        self.assertEqual(response.context['form'].fields.keys(), {'target', 'role_class'})
+
+        response = c.post('/game/test/usepower/', {'target': self.contadino.user.pk, 'role_class': Confusione.as_string()})
+        self.assertEqual(response.status_code, 200)
+
+        self.advance_turn()
+        self.check_event(GhostSwitchEvent, {'player': self.contadino, 'ghost': Confusione})
+    def test_multiple_role_target(self):
+        c = Client()
+        c.force_login(self.diavolo.user)
+        response = c.get('/game/test/usepower/')
+        self.assertEqual(response.context['form'].fields.keys(), {'target', 'multiple_role_class'})
+
+        response = c.post('/game/test/usepower/', {'target': self.veggente.user.pk, 'multiple_role_class': [Negromante.as_string(), Veggente.as_string()]})
+        self.assertEqual(response.status_code, 200)
+
+        self.advance_turn()
+        self.check_event(MultipleRoleKnowledgeEvent, {'player': self.diavolo, 'response': True, 'multiple_role_class': {Veggente, Negromante}})
+
+    def test_vote(self):
+        self.advance_turn(DAY)
+
+        c = Client()
+        c.force_login(self.contadino.user)
+        response = c.post('/game/test/vote/', {'target': self.veggente.user.pk})
+        self.advance_turn()
+
+        self.check_event(VoteAnnouncedEvent, {'voter': self.contadino, 'voted': self.veggente})
+
+    def test_cancel_vote(self):
+        self.advance_turn(DAY)
+
+        self.vote(self.contadino, self.veggente)
+        c = Client()
+        c.force_login(self.contadino.user)
+        response = c.post('/game/test/vote/', {'target': None})
+        self.advance_turn()
+
+        self.check_event(VoteAnnouncedEvent, None)
+
+    def test_personal_events(self):
+        self.usepower(self.veggente, self.lupo)
+        self.advance_turn(DAY)
+
+        c = Client()
+        c.force_login(self.veggente.user)
+        response = c.get('/game/test/status/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(dict(response.context['events'])[self.game.current_turn.prev_turn()]['standard'], [])
+
+        response = c.get('/game/test/personalinfo/')
+        self.assertEqual(dict(response.context['events'])[self.game.current_turn.prev_turn()]['standard'], ['Hai utilizzato con successo il tuo potere su %s.' % self.lupo.full_name, 'Scopri che %s ha aura nera.' % self.lupo.full_name])
+
+        c.force_login(self.lupo.user)
+        response = c.get('/game/test/personalinfo/')
+        self.assertEqual(dict(response.context['events'])[self.game.current_turn.prev_turn()]['standard'], [])
 
 class TestQuorum(GameTest, TestCase):
     roles = [Contadino, Contadino, Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Lupo, Negromante]
