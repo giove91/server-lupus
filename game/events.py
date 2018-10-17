@@ -1050,9 +1050,9 @@ class MovementKnowledgeEvent(Event):
     def to_player_string(self, player):
         if self.cause == KIDNAPPER:
             if player == self.player:
-                return u'Scopri che stanotte %s stava cercando di agire.' % (self.target.full_name)
+                return u'Scopri che stanotte %s aveva intenzione di utilizzare il proprio potere speciale.' % (self.target.full_name)
             elif player == 'admin':
-                return u'%s scopre che stanotte %s stava cercando di agire.' % (self.player.full_name, self.target.full_name)
+                return u'%s scopre che stanotte %s non aveva intenzione di utilizzare alcun potere speciale.' % (self.player.full_name, self.target.full_name)
             else:
                 return None
 
@@ -1096,7 +1096,7 @@ class NoMovementKnowledgeEvent(Event):
             if self.cause == STALKER:
                 return u'Scopri che stanotte %s non si è recat%s da nessuna parte.' % (self.target.full_name, self.target.oa)
             elif self.cause == KIDNAPPER:
-                return u'Scopri che stanotte %s non stava cercando di agire.' % (self.target.full_name)
+                return u'Scopri che stanotte %s non aveva intenzione di utilizzare alcun potere speciale.' % (self.target.full_name)
             elif self.cause == VOYEUR:
                 return u'Scopri che stanotte nessun personaggio si è recato da %s.' % (self.target.full_name)
             else:
@@ -1106,7 +1106,7 @@ class NoMovementKnowledgeEvent(Event):
             if self.cause == STALKER:
                 return u'%s scopre che stanotte %s non si è recat%s da nessuna parte.' % (self.player.full_name, self.target.full_name, self.target.oa)
             if self.cause == KIDNAPPER:
-                return u'%s scopre che stanotte %s non stava cercando di agire.' % (self.player.full_name, self.target.full_name)
+                return u'%s scopre che stanotte %s non aveva intenzione di utilizzare alcun potere speciale.' % (self.player.full_name, self.target.full_name)
             elif self.cause == VOYEUR:
                 return u'%s scopre che stanotte nessun personaggio si è recato da %s.' % (self.player.full_name, self.target.full_name)
             else:
@@ -1459,9 +1459,9 @@ class TelepathyEvent(Event):
         event = self.perceived_event
 
         if player == self.player:
-            return u'%s scopre: %s' % (event.player, event.to_player_string(event.player))
+            return u'Leggendo nella sua mente, percepisci che %s ha ottenuto le seguenti informazioni: %s' % (event.player, event.to_player_string(event.player))
         elif player == 'admin':
-            return u'Lo Spettro della Telepatia %s percepisce che %s ha scoperto: %s' % (self.player, event.player, event.to_player_string(event.player))
+            return u'Lo Spettro della Telepatia %s percepisce che %s ha ottenuto le seguenti informazioni: %s' % (self.player, event.player, event.to_player_string(event.player))
         else:
             return None
 
