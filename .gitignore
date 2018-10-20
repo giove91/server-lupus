@@ -1,3 +1,6 @@
 *.pyc
 db.sqlite3
 *~
+*.log
+game/migrations/
+templates/letters/*.pdf
