@@ -7,6 +7,7 @@
 
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     {% if game %}
         <title>{{ game.title }}</title>
     {% else %}
@@ -14,16 +15,18 @@
     {% endif %}
     <link rel="stylesheet" href="{% static "reset.css" %}" />
     <link rel="stylesheet" href="{% static "text.css" %}" />
-    <link rel="stylesheet" href="{% static "960.css" %}" />
     <link rel="stylesheet" href="{% static "lupus.css" %}" />
+    <link rel="stylesheet" href="{% static "responsive.css" %}" />
+    <!-- <link rel="stylesheet" href="{% static "960.css" %}" /> -->
     <link rel="stylesheet" href="{% static "fish.css" %}" />
-    
+    <link rel="stylesheet" href="{% static "unsemantic-grid-responsive-tablet.css" %}" />
+
     <!--<link href='http://fonts.googleapis.com/css?family=Ubuntu:400,700,400italic' rel='stylesheet' type='text/css'>-->
-    
+
     <!--[if lt IE 9]>
     <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-    
+
     <script src="{% static "script.js" %}"></script>
     <script src="{% static "jquery-1.11.0.min.js" %}"></script>
     <script src="{% static "fish.js" %}"></script>
@@ -31,139 +34,143 @@
 </head>
 
 <body>
-    
-    <div id="header-background">
+
+    <!-- <div id="header-background">
             <div id="header-background-upper"></div>
             <div id="header-background-lower"></div>
-    </div>
-    
-    <div class="container_16">
-            <header id="header" class="grid_16">
-                    <!--<img id="logo" src="{% static "logo.png" %}"/>-->
+    </div> -->
+
+        <header id="header">
+            <div id="header-background-upper">
+                <div id="header-upper">
                     <a href="/">
-                    <img id="logo" src="{% static "logo.svg" %}" onerror="this.src='{% static "logo.png" %}'; this.onerror=null;">
+                        <img id="logo" src="{% static "logo.svg" %}" onerror="this.src='{% static "logo.png" %}'; this.onerror=null;">
                     </a>
-                    <div id="header-upper">
-                        <span id="login">
-                            <div>
-                            {% if user.is_authenticated %}
-                                <a href="{% url 'logout' %}">Logout</a>
-                            {% else %}
-                                <a href="{% url 'login' %}">Login</a>
-                            {% endif %}
-                            </div>
-                            {% if user.is_authenticated %}
-                                <div class="username">
-                                    Sei loggato come {{ user.username }} ({{ user.first_name }} {{ user.last_name }})
-                                </div>
-                            {% endif %}
-                            {% if is_master and player %}
-                                <div class="point-of-view">
-                                    Punto di vista di {{ player.full_name }}
-                                </div>
-                            {% endif %}
-                        </span>
-                        <ul>
-                            <li><a href="{% url 'home' %}">Home</a></li>
-                            {% if game %}
-                                <li><a href="{% url 'game:status' game_name=game.name  %}">Stato del villaggio</a></li>
-                                <li class="announcements"><a href="{% url 'game:announcements' game_name=game.name %}">Annunci dei GM</a></li>
-                            {% elif user.is_authenticated %}
-                                <li><a href="{% url 'creategame' %}">Crea nuovo villaggio</a></li>
-                            {% endif %}
-                        </ul>
-                    </div>
-                    <div id="header-lower">
-                        {% if latest_announcement %}
-                            <strong>{{ latest_announcement.timestamp|date:"d/m/Y H:i" }}</strong> {{ latest_announcement.text|truncatechars:125 }}
+                    <span id="login">
+                        <div>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'logout' %}">Logout</a>
+                        {% else %}
+                            <a href="{% url 'login' %}">Login</a>
                         {% endif %}
-                    </div>
-            </header>
-        
-            <div class="clear"></div>
-        
+                        </div>
+                        {% if user.is_authenticated %}
+                            <div class="username hidden-mobile">
+                                Sei loggato come {{ user.username }} ({{ user.first_name }} {{ user.last_name }})
+                            </div>
+                        {% endif %}
+                        {% if is_master and player %}
+                            <div class="point-of-view">
+                                Punto di vista di {{ player.full_name }}
+                            </div>
+                        {% endif %}
+                    </span>
+                    <ul class="hidden-mobile">
+                        <li><a href="{% url 'home' %}">Home</a></li>
+                        {% if game %}
+                            <li><a href="{% url 'game:status' game_name=game.name  %}">Stato del villaggio</a></li>
+                            <li class="announcements"><a href="{% url 'game:announcements' game_name=game.name %}">Annunci dei GM</a></li>
+                        {% elif user.is_authenticated %}
+                            <li><a href="{% url 'creategame' %}">Crea nuovo villaggio</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            <div id="header-background-lower">
+                <div id="header-lower">
+                    {% if latest_announcement %}
+                        <strong>{{ latest_announcement.timestamp|date:"d/m/Y H:i" }}</strong> {{ latest_announcement.text|truncatechars:125 }}
+                    {% endif %}
+                </div>
+            </div>
+        </header>
+
+        <!-- <div class="clear"></div> -->
+
         {% if classified %}
-            <div class="grid_16">
+            <div>
                 <div class="security-banner">
-                        <img id="visibility-indicator" src="{% static "classified.png" %}" />
-                        Questa pagina contiene informazioni riservate. Accertati di essere da sol{{ user.profile.oa }}.
+                    <img id="visibility-indicator" src="{% static "classified.png" %}" />
+                    Questa pagina contiene informazioni riservate. Accertati di essere da sol{{ user.profile.oa }}.
                 </div>
             </div>
         {% endif %}
-        
-        <div class="clear vertical-space"></div>
-        
-        <aside class="grid_3">
-        {% if is_master %}
 
-            <div class="nav-menu game-master">
-                <h1>Status</h1>
-                <ul>
-                    <li><a href="{% url 'game:adminstatus' game_name=game.name %}">Tutte le informazioni</a></li>
-                </ul>
-            </div>
+        <!-- <div class="clear vertical-space"></div> -->
+
+        <div class="grid-container">
+
+            <aside class="grid-20">
+            {% if is_master %}
+
+                <div class="nav-menu game-master">
+                    <h1>Status</h1>
+                    <ul>
+                        <li><a href="{% url 'game:adminstatus' game_name=game.name %}">Tutte le informazioni</a></li>
+                    </ul>
+                </div>
 
 
-            <div class="nav-menu game-master">
-                <h1>Giocatori</h1>
-                <ul>
-                {% if user.is_staff and not game.started %}
-                    <li><a href="{% url 'game:newplayer' game_name=game.name %}">Nuovo giocatore</a></li>
-                {% endif %}
-                <li><a href="{% url 'game:pointofview' game_name=game.name %}">Punto di vista</a></li>
-                <li><a href="{% url 'game:personalinfo' game_name=game.name %}">Informazioni personali</a></li>
-                {% if current_turn.phase == DAY %}
-                    <li><a href="{% url 'game:vote' game_name=game.name %}">Votazione per il rogo</a></li>
-                    {% if display_mayor %}
-                        <li><a href="{% url 'game:elect' game_name=game.name %}">Elezione del Sindaco</a></li>
+                <div class="nav-menu game-master">
+                    <h1>Giocatori</h1>
+                    <ul>
+                    {% if user.is_staff and not game.started %}
+                        <li><a href="{% url 'game:newplayer' game_name=game.name %}">Nuovo giocatore</a></li>
                     {% endif %}
-                {% endif %}
-                {% if current_turn.phase == NIGHT %}
-                    <li><a href="{% url 'game:usepower' game_name=game.name %}">Potere notturno</a></li>
-                {% endif %}
-                {% if player is not None and display_mayor and player.is_mayor %}
-                    <li><a href="{% url 'game:appoint' game_name=game.name %}">Designa successore</a></li>
-                {% endif %}
-            </ul>
-            </div>
-
-            <div class="nav-menu game-master">
-                <h1>Partita</h1>
-                <ul>
-                    {% if current_turn.phase == CREATION %}
-                        <li><a href="{% url 'game:setup' game_name=game.name %}">Setup iniziale</a></li>
+                    <li><a href="{% url 'game:pointofview' game_name=game.name %}">Punto di vista</a></li>
+                    <li><a href="{% url 'game:personalinfo' game_name=game.name %}">Informazioni personali</a></li>
+                    {% if current_turn.phase == DAY %}
+                        <li><a href="{% url 'game:vote' game_name=game.name %}">Votazione per il rogo</a></li>
+                        {% if display_mayor %}
+                            <li><a href="{% url 'game:elect' game_name=game.name %}">Elezione del Sindaco</a></li>
+                        {% endif %}
                     {% endif %}
-                    <li><a href="{% url 'game:settings' game_name=game.name %}">Impostazioni</a></li>
-                    <li><a href="{% url 'game:managemasters' game_name=game.name %}">Gestione Master</a></li>
-                    <li><a href="{% url 'game:publishannouncement' game_name=game.name %}">Pubblica annuncio</a></li>
-                    <li><a href="{% url 'game:comment' game_name=game.name %}">Commenti</a></li>
-                </ul>
-            </div>
-
-            <div class="nav-menu game-master">
-                <h1>Turni</h1>
-                <ul>
-                    {% if current_turn.phase != CREATION %}
-                        <li><a href="{% url 'game:advanceturn' game_name=game.name %}">Turno successivo</a></li>
-                        <li><a href="{% url 'game:rollbackturn' game_name=game.name %}">Turno precedente</a></li>
-                        <li><a href="{% url 'game:forcevictory' game_name=game.name %}">Decreta vincitori</a></li>
+                    {% if current_turn.phase == NIGHT %}
+                        <li><a href="{% url 'game:usepower' game_name=game.name %}">Potere notturno</a></li>
                     {% endif %}
-                    <li><a href="{% url 'game:restart' game_name=game.name %}">Ricomincia</a></li>
-                    {% if user.is_staff %}
-                        <li><a href="{% url 'game:dump' game_name=game.name %}">Salva partita</a></li>
-                        <li><a href="{% url 'game:load' game_name=game.name %}">Carica partita</a></li>
+                    {% if player is not None and display_mayor and player.is_mayor %}
+                        <li><a href="{% url 'game:appoint' game_name=game.name %}">Designa successore</a></li>
                     {% endif %}
                 </ul>
-            </div>
+                </div>
 
-            <div class="nav-menu game-master">
-                <h1>Indietro</h1>
-                <ul>
-                    <li><a href="{% url 'game:as_normal_user' game_name=game.name %}">Esci dal menù GM</a></li>
-                </ul>
-            </div>
+                <div class="nav-menu game-master">
+                    <h1>Partita</h1>
+                    <ul>
+                        {% if current_turn.phase == CREATION %}
+                            <li><a href="{% url 'game:setup' game_name=game.name %}">Setup iniziale</a></li>
+                        {% endif %}
+                        <li><a href="{% url 'game:settings' game_name=game.name %}">Impostazioni</a></li>
+                        <li><a href="{% url 'game:managemasters' game_name=game.name %}">Gestione Master</a></li>
+                        <li><a href="{% url 'game:publishannouncement' game_name=game.name %}">Pubblica annuncio</a></li>
+                        <li><a href="{% url 'game:comment' game_name=game.name %}">Commenti</a></li>
+                    </ul>
+                </div>
 
-        {% else %}
+                <div class="nav-menu game-master">
+                    <h1>Turni</h1>
+                    <ul>
+                        {% if current_turn.phase != CREATION %}
+                            <li><a href="{% url 'game:advanceturn' game_name=game.name %}">Turno successivo</a></li>
+                            <li><a href="{% url 'game:rollbackturn' game_name=game.name %}">Turno precedente</a></li>
+                            <li><a href="{% url 'game:forcevictory' game_name=game.name %}">Decreta vincitori</a></li>
+                        {% endif %}
+                        <li><a href="{% url 'game:restart' game_name=game.name %}">Ricomincia</a></li>
+                        {% if user.is_staff %}
+                            <li><a href="{% url 'game:dump' game_name=game.name %}">Salva partita</a></li>
+                            <li><a href="{% url 'game:load' game_name=game.name %}">Carica partita</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+
+                <div class="nav-menu game-master">
+                    <h1>Indietro</h1>
+                    <ul>
+                        <li><a href="{% url 'game:as_normal_user' game_name=game.name %}">Esci dal menù GM</a></li>
+                    </ul>
+                </div>
+
+            {% else %}
 
             {% if game is not None %}
                 {% if not game.started and master is None %}
@@ -243,9 +250,9 @@
 
         <div class="clear"></div>
     </div>
-    
-    
-    
+
+
+
     <script>
       fish_images = [
           "{% static 'fishes/fish1.svg' %}",

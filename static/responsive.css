@@ -1,0 +1,56 @@
+/*
+
+Styles for responsiveness.
+
+*/
+
+.container, #header-upper, #header-lower, .security-banner {
+	margin-left: auto;
+	margin-right: auto;
+	max-width: 1200px;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+@media (max-width: 1024px) {
+	.hidden-mobile {
+		display: none;
+	}
+
+	/*---------------------
+
+	Header related styles
+
+	----------------------*/
+	#logo {
+		position: initial;
+		left: initial;
+		top: initial;
+		width: auto;
+		height: auto;
+		max-width: 100%;
+	}
+
+	#header-upper > a {
+		flex: 0 1 auto;
+	}
+
+	#login {
+		position: initial;
+		top: initial;
+		right: initial;
+		padding: 0.5ex 0 0.5ex 1ex;
+		flex: 1 1 auto;
+	}
+
+	#header-background-upper {
+		height:
+	}
+}
+
+
+@@media (min-width: 1025px) {
+	.hidden-desktop {
+		display: none;
+	}
+}

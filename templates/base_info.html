@@ -3,26 +3,25 @@
 {% block content %}
 
 {% if current_turn.phase == DAY or current_turn.phase == NIGHT or is_master %}
-    <main id="content" class="grid_10">
-        
+    <main id="content" class="grid-60">
+
         {% block personal_info %}{% endblock %}
-        
+
         {% include "status.html" with display_mayor=display_mayor %}
-        
+
         {% block events_title %}{% endblock %}
 	    {% include "events.html" %}
-	
+
     </main>
-    <aside class="grid_3">
-        
+    <aside class="grid-20">
+
         {% include "players.html" %}
-        
+
     </aside>
 {% else %}
-    <main id="content" class="grid_13">
+    <main id="content" class="grid-80">
         {% include "status.html" with display_mayor=False %}
     </main>
 {% endif %}
 
 {% endblock %}
-
