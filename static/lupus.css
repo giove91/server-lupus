@@ -294,7 +294,7 @@ label {
 }
 
 #visibility-indicator {
-	display:inline-block;
+	/*display:inline-block;*/
 	width: 140px;
 	height: auto;
 	margin-right: 30px;

@@ -20,6 +20,7 @@
     <!-- <link rel="stylesheet" href="{% static "960.css" %}" /> -->
     <link rel="stylesheet" href="{% static "fish.css" %}" />
     <link rel="stylesheet" href="{% static "unsemantic-grid-responsive-tablet.css" %}" />
+    <link rel="stylesheet" href="{% static "slideout.css" %}" />
 
     <!--<link href='http://fonts.googleapis.com/css?family=Ubuntu:400,700,400italic' rel='stylesheet' type='text/css'>-->
 
@@ -30,6 +31,7 @@
     <script src="{% static "script.js" %}"></script>
     <script src="{% static "jquery-1.11.0.min.js" %}"></script>
     <script src="{% static "fish.js" %}"></script>
+    <script src="{% static "slideout.min.js" %}"></script>
     {{ form.media }}
 </head>
 
@@ -40,67 +42,68 @@
             <div id="header-background-lower"></div>
     </div> -->
 
-        <header id="header">
-            <div id="header-background-upper">
-                <div id="header-upper">
-                    <a href="/">
-                        <img id="logo" src="{% static "logo.svg" %}" onerror="this.src='{% static "logo.png" %}'; this.onerror=null;">
-                    </a>
-                    <span id="login">
-                        <div>
-                        {% if user.is_authenticated %}
-                            <a href="{% url 'logout' %}">Logout</a>
-                        {% else %}
-                            <a href="{% url 'login' %}">Login</a>
-                        {% endif %}
-                        </div>
-                        {% if user.is_authenticated %}
-                            <div class="username hidden-mobile">
-                                Sei loggato come {{ user.username }} ({{ user.first_name }} {{ user.last_name }})
-                            </div>
-                        {% endif %}
-                        {% if is_master and player %}
-                            <div class="point-of-view">
-                                Punto di vista di {{ player.full_name }}
-                            </div>
-                        {% endif %}
-                    </span>
-                    <ul class="hidden-mobile">
-                        <li><a href="{% url 'home' %}">Home</a></li>
-                        {% if game %}
-                            <li><a href="{% url 'game:status' game_name=game.name  %}">Stato del villaggio</a></li>
-                            <li class="announcements"><a href="{% url 'game:announcements' game_name=game.name %}">Annunci dei GM</a></li>
-                        {% elif user.is_authenticated %}
-                            <li><a href="{% url 'creategame' %}">Crea nuovo villaggio</a></li>
-                        {% endif %}
-                    </ul>
-                </div>
-            </div>
-            <div id="header-background-lower">
-                <div id="header-lower">
-                    {% if latest_announcement %}
-                        <strong>{{ latest_announcement.timestamp|date:"d/m/Y H:i" }}</strong> {{ latest_announcement.text|truncatechars:125 }}
+    <div id="panel">
+    <header id="header">
+        <div id="header-background-upper">
+            <div id="header-upper">
+                <a href="/">
+                    <img id="logo" src="{% static "logo.svg" %}" onerror="this.src='{% static "logo.png" %}'; this.onerror=null;">
+                </a>
+                <span id="login">
+                    <div>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'logout' %}">Logout</a>
+                    {% else %}
+                        <a href="{% url 'login' %}">Login</a>
                     {% endif %}
-                </div>
+                    </div>
+                    {% if user.is_authenticated %}
+                        <div class="username hidden-mobile">
+                            Sei loggato come {{ user.username }} ({{ user.first_name }} {{ user.last_name }})
+                        </div>
+                    {% endif %}
+                    {% if is_master and player %}
+                        <div class="point-of-view">
+                            Punto di vista di {{ player.full_name }}
+                        </div>
+                    {% endif %}
+                </span>
+                <ul class="hidden-mobile">
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    {% if game %}
+                        <li><a href="{% url 'game:status' game_name=game.name  %}">Stato del villaggio</a></li>
+                        <li class="announcements"><a href="{% url 'game:announcements' game_name=game.name %}">Annunci dei GM</a></li>
+                    {% elif user.is_authenticated %}
+                        <li><a href="{% url 'creategame' %}">Crea nuovo villaggio</a></li>
+                    {% endif %}
+                </ul>
             </div>
-        </header>
-
-        <!-- <div class="clear"></div> -->
-
-        {% if classified %}
-            <div>
-                <div class="security-banner">
-                    <img id="visibility-indicator" src="{% static "classified.png" %}" />
-                    Questa pagina contiene informazioni riservate. Accertati di essere da sol{{ user.profile.oa }}.
-                </div>
+        </div>
+        <div id="header-background-lower">
+            <div id="header-lower">
+                {% if latest_announcement %}
+                    <strong>{{ latest_announcement.timestamp|date:"d/m/Y H:i" }}</strong> {{ latest_announcement.text|truncatechars:125 }}
+                {% endif %}
             </div>
-        {% endif %}
+        </div>
+    </header>
 
-        <!-- <div class="clear vertical-space"></div> -->
+    <!-- <div class="clear"></div> -->
 
-        <div class="grid-container">
+    {% if classified %}
+        <div>
+            <div class="security-banner">
+                <img id="visibility-indicator" src="{% static "classified.png" %}" />
+                <div>Questa pagina contiene informazioni riservate. Accertati di essere da sol{{ user.profile.oa }}.</div>
+            </div>
+        </div>
+    {% endif %}
 
-            <aside class="grid-20">
+    <!-- <div class="clear vertical-space"></div> -->
+
+    <div class="grid-container">
+
+        <aside id="menu" class="grid-20">
             {% if is_master %}
 
                 <div class="nav-menu game-master">
@@ -140,6 +143,7 @@
                         {% if current_turn.phase == CREATION %}
                             <li><a href="{% url 'game:setup' game_name=game.name %}">Setup iniziale</a></li>
                         {% endif %}
+                        <li class="hidden-desktop"><a href="{% url 'game:status' game_name=game.name  %}">Stato del villaggio</a></li>
                         <li><a href="{% url 'game:settings' game_name=game.name %}">Impostazioni</a></li>
                         <li><a href="{% url 'game:managemasters' game_name=game.name %}">Gestione Master</a></li>
                         <li><a href="{% url 'game:publishannouncement' game_name=game.name %}">Pubblica annuncio</a></li>
@@ -239,6 +243,7 @@
                     <h1>Area personale</h1>
                     <ul>
                         <li><a href="{% url 'password_change' %}">Cambia password</a></li>
+                        <li class="hidden-desktop"><a href="{% url 'creategame' %}">Crea nuovo villaggio</a></li>
                     </ul>
                 </div>
             {% endif %}
@@ -251,7 +256,7 @@
         <div class="clear"></div>
     </div>
 
-
+    </div>
 
     <script>
       fish_images = [
@@ -261,6 +266,14 @@
           "{% static 'fishes/fish4.svg' %}",
       ];
       //create_fishes_by_density(0.00003);
+    </script>
+    <script>
+        var slideout = new Slideout({
+            'panel': $('#panel')[0],
+            'menu': $('#menu')[0],
+            'padding': 256,
+            'tolerance': 70
+        });
     </script>
 </body>
 </html>
