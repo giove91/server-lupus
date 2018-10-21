@@ -1455,15 +1455,15 @@ class TelepathyEvent(Event):
     def apply(self, dynamics):
         pass
 
-    def to_player_string(self, player):
-        event = self.perceived_event
+    def get_perceived_message(self):
+        return self.perceived_event.to_player_string(self.perceived_event.player)
 
-        if player == self.player:
-            return u'Leggendo nella sua mente, percepisci che %s ha ottenuto le seguenti informazioni: %s' % (event.player, event.to_player_string(event.player))
-        elif player == 'admin':
-            return u'Lo Spettro della Telepatia %s percepisce che %s ha ottenuto le seguenti informazioni: %s' % (self.player, event.player, event.to_player_string(event.player))
+    def to_player_string(self, player):
+        if player == 'admin':
+            return u'Lo Spettro della Telepatia %s percepisce che %s ha ottenuto la seguente informazione: %s' % (self.player, self.perceived_event.player, self.get_perceived_message())
         else:
             return None
+
 
 
 class FreeTextEvent(Event):

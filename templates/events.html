@@ -12,7 +12,19 @@
         {% for message in values.standard %}
             <p>{{ message|safe }}</p>
         {% endfor %}
-        
+
+        {% if values.telepathy %}
+            {% for target, messages in values.telepathy.items %}
+                <p>Leggendo nella sua mente, percepisci che {{ target.full_name }} ha ottenuto le seguenti informazioni:
+                <ul>
+                    {% for message in messages %}
+                        <li>{{ message|safe }}</li>
+                    {% endfor %}
+                </ul>
+                </p>
+            {% endfor %}
+        {% endif %}
+
         {% if turn.phase == CREATION %}
             {% if values.soothsayer_propositions %}
                 <p>In virtù del tuo potere ti vengono fornite le seguenti quattro proposizioni, di cui esattamente due sono vere ed esattamente due sono false.
@@ -33,8 +45,7 @@
                 </p>
             {% endif %}
         {% endif %}
-        
-        
+
         {% if turn.phase == DAWN %}
             <p>Mentre i primi raggi di sole sfiorano i campi, ci rechiamo stancamente al lavoro.</p>
         {% endif %}
