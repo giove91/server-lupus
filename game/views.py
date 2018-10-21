@@ -1365,8 +1365,9 @@ class ForceVictoryForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         dynamics = self.game.get_dynamics()
 
-        choices = [(x,TEAM_IT[x]) for x in dynamics.rules.starting_teams]
-        self.fields["winners"].choices = choices
+        choices = [(x,TEAM_IT[x]) for x in dynamics.playing_teams]
+        self.fields["winners"].initial = list(dynamics.recorded_winners) if dynamics.recorded_winners is not None else []
+        self.fields["winners"].choices = sorted(choices, key=lambda x:x[1])
         self.fields["winners"].widget.choices = choices
 
 @method_decorator(master_required, name='dispatch')

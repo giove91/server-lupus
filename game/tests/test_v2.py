@@ -131,6 +131,25 @@ class TestWebInterface(GameTest, TestCase):
         response = c.get('/game/test/personalinfo/')
         self.assertEqual(dict(response.context['events'])[self.game.current_turn.prev_turn()]['standard'], [])
 
+    def test_force_victory(self):
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.negromante)
+        self.advance_turn(DAY)
+
+        c = Client()
+        c.force_login(self.master.user)
+        c.get('/game/test/as_gm/')
+        response = c.get('/game/test/forcevictory/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['form'].fields['winners'].choices, [(LUPI, 'Lupi'), (POPOLANI, 'Popolani')])
+
+        response = c.post('/game/test/forcevictory/', {'winners': [POPOLANI]})
+        self.advance_turn()
+
+        self.assertEqual(self.dynamics.winners, {POPOLANI})
+
+
 class TestQuorum(GameTest, TestCase):
     roles = [Contadino, Contadino, Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Lupo, Negromante]
     spectral_sequence = []

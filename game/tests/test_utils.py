@@ -34,7 +34,13 @@ def create_game(seed, ruleset, roles):
         player = Player.objects.create(user=user, game=game)
         player.save()
 
+
     game.initialize(get_now())
+
+    user = User.objects.create(username='master', first_name='Pi', last_name='Kappa', email='pikappa@sns.it', password='ciaociao')
+    user.save()
+    master = GameMaster(user=user, game=game)
+    master.save()
 
     first_turn = game.get_dynamics().current_turn
 
@@ -126,6 +132,7 @@ class GameTest():
         if self.spectral_sequence is not None:
             self.dynamics.inject_event(SpectralSequenceEvent(sequence=self.spectral_sequence, timestamp=get_now()))
 
+        self.master = GameMaster.objects.get(game=self.game)
         self.players = self.game.get_players()
         need_soothsayer = False
         for player in self.players:
