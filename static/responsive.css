@@ -36,6 +36,10 @@ Styles for responsiveness.
 		max-width: 100%;
 	}
 
+	#header {
+		margin-bottom: 0;
+	}
+
 	#header-upper > a {
 		flex: 0 1 auto;
 	}
@@ -50,6 +54,15 @@ Styles for responsiveness.
 
 	#header-background-upper {
 		height:
+	}
+
+	#panel {
+		padding-top: 1ex;
+	}
+
+	body .grid-container {
+		padding-left: 0;
+		padding-right: 0;
 	}
 
 

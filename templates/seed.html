@@ -2,9 +2,9 @@
 
 {% block content %}
 
-<main id="content" class="grid-80">
+<main id="content">
     <h1>Inizializza partita</h1>
-    
+
     <div class="info-block">
         <p>
         <form method="post">
@@ -13,12 +13,11 @@
         <p><input type="submit" value="Conferma" /></p>
         </form>
         </p>
-        
+
         {% if message != None %}
             <p><strong>{{ message }}</strong></p>
         {% endif %}
-        
+
     </div>
 </main>
 {% endblock %}
-

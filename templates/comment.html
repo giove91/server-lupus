@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 
 {% block content %}
-<main id="content" class="grid-80">
+<main id="content">
 
     <h1>Commenti alla partita</h1>
 
     <div class="info-block">
-        
+
         <p>Qui puoi lasciare i tuoi commenti riguardanti la partita.
         Saranno visibili solamente a te e ai GM, ed eventualmente verranno pubblicati dopo la fine della partita.</p>
-        
+
         {% if can_comment %}
             <form action="{% url 'game:comment' game_name=game.name %}" method="post">
             {% csrf_token %}
@@ -19,13 +19,13 @@
         {% else %}
             <p>Non puoi inviare altri commenti durante questo turno di gioco.</p>
         {% endif %}
-        
-        
-        
+
+
+
     </div>
     <div class="info-block">
         <h2>I tuoi commenti</h2>
-        
+
         {% if old_comments %}
             {% for comment in old_comments %}
                 <p><strong>{{ comment.timestamp|date:"d/m/Y H:i" }}</strong><br /> {{ comment.text|escape|linebreaksbr }}</p>
@@ -33,9 +33,8 @@
         {% else %}
             <p>Non hai ancora inviato alcun commento.</p>
         {% endif %}
-        
+
     </div>
 </main>
-    
-{% endblock %}
 
+{% endblock %}

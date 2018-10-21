@@ -42,7 +42,6 @@
             <div id="header-background-lower"></div>
     </div> -->
 
-    <div id="panel">
     <header id="header">
         <div id="header-background-upper">
             <div id="header-upper">
@@ -251,7 +250,9 @@
         {% endif %}
         </aside>
 
-        {% block content %}{% endblock %}
+        <div id="panel" class="grid-80">
+            {% block content %}{% endblock %}
+        </div>
 
         <div class="clear"></div>
     </div>
@@ -273,6 +274,30 @@
             'menu': $('#menu')[0],
             'padding': 256,
             'tolerance': 70
+        });
+
+        var fixed = document.querySelector('header#header');
+
+        slideout.on('translate', function(translated) {
+            fixed.style.transform = 'translateX(' + translated + 'px)';
+        });
+
+        slideout.on('beforeopen', function () {
+            fixed.style.transition = 'transform 300ms ease';
+            fixed.style.transform = 'translateX(256px)';
+        });
+
+        slideout.on('beforeclose', function () {
+            fixed.style.transition = 'transform 300ms ease';
+            fixed.style.transform = 'translateX(0px)';
+        });
+
+        slideout.on('open', function () {
+            fixed.style.transition = '';
+        });
+
+        slideout.on('close', function () {
+            fixed.style.transition = '';
         });
     </script>
 </body>

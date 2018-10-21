@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<main id="content" class="grid-80">
+<main id="content">
 
     <h1>Annunci dei GM</h1>
     <div class="info-block">
@@ -21,7 +21,7 @@
         </li>
         {% empty %}
             <li>Non ci sono annunci.</li>
-        {% endfor %} 
+        {% endfor %}
         {% if form %}
             <li>
             <form method="post" action="">

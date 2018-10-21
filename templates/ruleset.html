@@ -1,14 +1,13 @@
 {% extends "base.html" %}
 
 {% block content %}
-<main id="content" class="grid-80">
+<main id="content">
     <h1>Regolamento</h1>
-    
-    <div class="info-block">    
+
+    <div class="info-block">
         {% load staticfiles %}
         <a href="{% static 'regolamento.pdf' %}">Scarica il regolamento (PDF)</a></br>
         <a href="{% static 'lupushandbook.pdf' %}">Scarica i consigli di gioco (PDF)</a>
     </div>
 </main>
 {% endblock %}
-

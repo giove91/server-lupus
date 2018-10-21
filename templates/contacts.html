@@ -2,10 +2,10 @@
 
 {% block content %}
 
-<main id="content" class="grid-80">
+<main id="content">
 
     <h1>Contatti</h1>
-    
+
     <div class="info-block">
         <h2>Game Master</h2>
         <table class="normal">
@@ -23,7 +23,7 @@
     <div class="info-block">
         <h2>Giocatori</h2>
         <p>Mailing list di tutti i giocatori e dei GM: </p>
-        
+
         <table class="normal">
         {% for player in game.players %}
             <tr>
@@ -34,9 +34,7 @@
             <tr><td>Curiosamente non ci sono giocatori.</td></tr>
         {% endfor %}
         </table>
-    
+
     </div>
 </main>
 {% endblock %}
-
-

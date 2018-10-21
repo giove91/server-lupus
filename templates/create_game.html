@@ -2,9 +2,9 @@
 
 {% block content %}
 
-<main id="content" class="grid-80">
+<main id="content">
     <h1>Crea nuova partita</h1>
-    
+
     <div class="info-block">
         <p>
         <form action="{% url 'creategame' %}" method="post">
@@ -13,12 +13,11 @@
         <p><input type="submit" value="Crea partita" /></p>
         </form>
         </p>
-        
+
         {% if message != None %}
             <p><strong>{{ message }}</strong></p>
         {% endif %}
-        
+
     </div>
 </main>
 {% endblock %}
-

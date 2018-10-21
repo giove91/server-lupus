@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<main id="content" class="grid-80">
+<main id="content">
     <h1>Divinatori</h1>
     <div class="info-block">
         <div class="separator">
@@ -12,7 +12,7 @@
             <p>Il {{ soothsayer.role.disambiguated_name }} non ha ricevuto il numero
             corretto di proposizioni.</p>
         {% elif error == TRUTH_MISMATCH %}
-            <p>Il {{ soothsayer.role.disambiguated_name }} ha ricevuto delle proposizioni che non 
+            <p>Il {{ soothsayer.role.disambiguated_name }} ha ricevuto delle proposizioni che non
             soddisfano le condizioni di verità imposte dal regolamento.</p>
             <p>Modifica le proposizioni per correggere l'errore.</p>
         {% elif error == KNOWS_ABOUT_SELF %}
@@ -41,12 +41,11 @@
         </form>
         </li>
         </ul>
-    
+
         {% if message != None %}
             <p><strong>{{ message }}</strong></p>
         {% endif %}
-        
+
     </div>
 </main>
 {% endblock %}
-

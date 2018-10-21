@@ -2,9 +2,9 @@
 
 {% block content %}
 
-<main id="content" class="grid-80">
+<main id="content">
     <h1>Impostazioni di gioco</h1>
-    
+
     <div class="info-block">
         <div class="separator">
             <h2>Impostazioni di gioco</h2>
@@ -14,7 +14,7 @@
         {{ form.as_p }}
         <p><input type="submit" value="Salva" /></p>
         </form>
-        
+
         {% if message != None %}
             <p><strong>{{ message }}</strong></p>
         {% endif %}
@@ -22,4 +22,3 @@
 
 </main>
 {% endblock %}
-

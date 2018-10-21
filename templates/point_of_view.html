@@ -2,11 +2,11 @@
 
 {% block content %}
 
-<main id="content" class="grid-80">
+<main id="content">
     <h1>Punto di vista</h1>
-    
+
     <div class="info-block">
-        
+
         <p>
         <form method="post">
         {% csrf_token %}
@@ -14,12 +14,11 @@
         <p><input type="submit" value="Cambia punto di vista" /></p>
         </form>
         </p>
-        
+
         {% if message != None %}
             <p><strong>{{ message }}</strong></p>
         {% endif %}
-        
+
     </div>
 </main>
 {% endblock %}
-

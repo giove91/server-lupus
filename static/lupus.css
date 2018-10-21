@@ -3,13 +3,13 @@ html {
     overflow-y:scroll;
 }
 
-body {
+body, #panel {
 	background-color: #e9eaed;
-	background-image: -webkit-radial-gradient(ellipse at center, #fafafa 0%,#e9eaed 50%,#e9eaed 100%);
+	/*background-image: -webkit-radial-gradient(ellipse at center, #fafafa 0%,#e9eaed 50%,#e9eaed 100%);
 	background-image: -moz-radial-gradient(ellipse at center, #fafafa 0%,#e9eaed 50%,#e9eaed 100%);
 	background-image: -o-radial-gradient(ellipse at center, #fafafa 0%,#e9eaed 50%,#e9eaed 100%);
 	background-image: radial-gradient(ellipse at center, #fafafa 0%,#e9eaed 50%,#e9eaed 100%);
-	background-repeat: no-repeat;
+	background-repeat: no-repeat;*/
 	color: #181818;
 }
 
@@ -136,9 +136,8 @@ label {
 
 
 #header {
-    /*position: relative;*/
     margin-bottom: 10px;
-    /*text-align: center;*/
+    z-index: 1;
 }
 
 #header-background-upper, #header-background-lower {
@@ -306,4 +305,8 @@ label {
 	top: 0;
 	z-index: 2;
 	height: 104px;
+}
+
+#panel {
+    padding: 0;
 }
