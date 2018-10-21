@@ -209,3 +209,9 @@ class GameTest():
     def autovote(self):
         for player in self.game.get_alive_players():
             self.vote(player, player)
+
+    def restart(self):
+        for player in self.players:
+            player.user.delete()
+        self.game.delete()
+        self.setUp()

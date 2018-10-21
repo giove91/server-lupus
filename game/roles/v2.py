@@ -151,7 +151,18 @@ class Lupo(Lupo):
 
 class Assassino(Assassino):
     knowledge_class = 1
-    pass
+
+    def apply_dawn(self, dynamics):
+        from ..events import PlayerDiesEvent
+        assert self.recorded_target is not None
+
+        # Will target illusions
+        movements = [mov for mov in dynamics.movements if mov.dst == self.recorded_target and mov is not self.player.movement]
+        if len(movements) > 0:
+            mov = dynamics.random.choice(movements)
+            if mov is mov.src.movement and not mov.src.just_dead:
+                assert mov.src.alive
+                dynamics.generate_event(PlayerDiesEvent(player=mov.src, cause=ASSASSIN))
 
 class Diavolo(Diavolo):
     knowledge_class = 1

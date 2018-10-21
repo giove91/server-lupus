@@ -97,6 +97,11 @@ class TestWebInterface(GameTest, TestCase):
         self.advance_turn()
 
         self.check_event(VoteAnnouncedEvent, {'voter': self.contadino, 'voted': self.veggente})
+        self.advance_turn()
+
+        response = c.get('/game/test/status/')
+        self.assertFalse(response.context['display_votes'])
+        self.assertFalse(response.context['display_mayor'])
 
     def test_cancel_vote(self):
         self.advance_turn(DAY)
@@ -1070,6 +1075,26 @@ class TestMovements(GameTest, TestCase):
         self.advance_turn()
 
         self.check_event(MovementKnowledgeEvent, {'player': self.stalker, 'target': self.guardia, 'target2': self.contadino})
+
+    def test_assassino_and_illusione(self):
+        killed = set()
+        for x in range(2):
+            # Lowest number that works.
+            # May produce error if messing with random generator, in that case it must be invcreased.
+
+            self.seed = x
+            self.restart()
+
+            self.usepower(self.assassino, self.stalker)
+            self.usepower(self.voyeur, self.stalker)
+            self.usepower(self.contadino, self.alcolista, target2=self.stalker)
+
+            self.advance_turn()
+            events = self.get_events(PlayerDiesEvent)
+            killed.add(events[0].player.role.__class__ if events else None)
+            self.tearDown()
+
+        self.assertEqual(killed, {None, Voyeur})
 
 class TestTelepatia(GameTest, TestCase):
     roles = [Contadino, Veggente, Mago, Stalker, Voyeur, Espansivo, Lupo, Diavolo, Alcolista, Negromante]
