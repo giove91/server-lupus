@@ -45,19 +45,26 @@
     <header id="header">
         <div id="header-background-upper">
             <div id="header-upper">
+                <img id="menu-button" class="hide-on-desktop hide-on-tablet" src="{% static "menu-icon.svg" %}">
                 <a href="/">
                     <img id="logo" src="{% static "logo.svg" %}" onerror="this.src='{% static "logo.png" %}'; this.onerror=null;">
                 </a>
                 <span id="login">
                     <div>
                     {% if user.is_authenticated %}
-                        <a href="{% url 'logout' %}">Logout</a>
+                        <a href="{% url 'logout' %}">
+                            <span class="hide-on-mobile">Logout</span>
+                            <img class="hide-on-desktop hide-on-tablet" src="{% static "logout.svg" %}" onerror="this.src='{% static "logout.png" %}'; this.onerror=null;">
+                        </a>
                     {% else %}
-                        <a href="{% url 'login' %}">Login</a>
+                        <a href="{% url 'login' %}">
+                            <span class="hide-on-mobile">Login</span>
+                            <img class="hide-on-desktop hide-on-tablet" src="{% static "login.svg" %}" onerror="this.src='{% static "login.png" %}'; this.onerror=null;">
+                        </a>
                     {% endif %}
                     </div>
                     {% if user.is_authenticated %}
-                        <div class="username hidden-mobile">
+                        <div class="username hide-on-mobile">
                             Sei loggato come {{ user.username }} ({{ user.first_name }} {{ user.last_name }})
                         </div>
                     {% endif %}
@@ -67,7 +74,7 @@
                         </div>
                     {% endif %}
                 </span>
-                <ul class="hidden-mobile">
+                <ul id="header-menu" class="hide-on-mobile">
                     <li><a href="{% url 'home' %}">Home</a></li>
                     {% if game %}
                         <li><a href="{% url 'game:status' game_name=game.name  %}">Stato del villaggio</a></li>
@@ -90,7 +97,7 @@
     <!-- <div class="clear"></div> -->
 
     {% if classified %}
-        <div>
+        <div class="hide-on-mobile">
             <div class="security-banner">
                 <img id="visibility-indicator" src="{% static "classified.png" %}" />
                 <div>Questa pagina contiene informazioni riservate. Accertati di essere da sol{{ user.profile.oa }}.</div>
@@ -102,7 +109,7 @@
 
     <div class="grid-container">
 
-        <aside id="menu" class="grid-20">
+        <aside id="menu" class="tablet-grid-20 grid-20">
             {% if is_master %}
 
                 <div class="nav-menu game-master">
@@ -142,7 +149,8 @@
                         {% if current_turn.phase == CREATION %}
                             <li><a href="{% url 'game:setup' game_name=game.name %}">Setup iniziale</a></li>
                         {% endif %}
-                        <li class="hidden-desktop"><a href="{% url 'game:status' game_name=game.name  %}">Stato del villaggio</a></li>
+                        <li class="hide-on-desktop hide-on-tablet"><a href="{% url 'game:status' game_name=game.name  %}">Stato del villaggio</a></li>
+                        <li class="hide-on-desktop hide-on-tablet"><a href="{% url 'game:announcements' game_name=game.name %}">Annunci dei GM</a></li>
                         <li><a href="{% url 'game:settings' game_name=game.name %}">Impostazioni</a></li>
                         <li><a href="{% url 'game:managemasters' game_name=game.name %}">Gestione Master</a></li>
                         <li><a href="{% url 'game:publishannouncement' game_name=game.name %}">Pubblica annuncio</a></li>
@@ -193,6 +201,8 @@
                 <div class="nav-menu">
                     <h1>Partita</h1>
                     <ul>
+                        <li class="hide-on-desktop hide-on-tablet"><a href="{% url 'game:status' game_name=game.name  %}">Stato del villaggio</a></li>
+                        <li class="hide-on-desktop hide-on-tablet"><a href="{% url 'game:announcements' game_name=game.name %}">Annunci dei GM</a></li>
                     {% if player and current_turn.phase != CREATION %}
                         <li><a href="{% url 'game:personalinfo' game_name=game.name %}">Informazioni personali</a></li>
                         {% if current_turn.phase == DAY %}
@@ -206,9 +216,6 @@
                             <li><a href="{% url 'game:appoint' game_name=game.name %}">Designa successore</a></li>
                         {% endif %}
                         <li><a href="{% url 'game:comment' game_name=game.name %}">Commenti alla partita</a></li>
-                    {% endif %}
-                    {% if master or player and game.started %}
-                        <li><a href="{% url 'game:contacts' game_name=game.name %}">Elenco partecipanti</a></li>
                     {% endif %}
                     {% if master is not None %}
                         <li><a href="{% url 'game:as_gm' game_name=game.name %}">Interfaccia da GM</a></li>
@@ -242,7 +249,7 @@
                     <h1>Area personale</h1>
                     <ul>
                         <li><a href="{% url 'password_change' %}">Cambia password</a></li>
-                        <li class="hidden-desktop"><a href="{% url 'creategame' %}">Crea nuovo villaggio</a></li>
+                        <li class="hide-on-desktop hide-on-tablet"><a href="{% url 'creategame' %}">Crea nuovo villaggio</a></li>
                     </ul>
                 </div>
             {% endif %}
@@ -250,7 +257,16 @@
         {% endif %}
         </aside>
 
-        <div id="panel" class="grid-80">
+        <div id="panel" class="tablet-grid-80 grid-80">
+            {% if classified %}
+                <div class="hide-on-desktop hide-on-tablet">
+                    <div class="security-banner">
+                        <img id="visibility-indicator" src="{% static "classified.png" %}" />
+                        <div>Questa pagina contiene informazioni riservate. Accertati di essere da sol{{ user.profile.oa }}.</div>
+                    </div>
+                </div>
+            {% endif %}
+
             {% block content %}{% endblock %}
         </div>
 
@@ -269,11 +285,17 @@
       //create_fishes_by_density(0.00003);
     </script>
     <script>
+        var slidebarWidth = 220
+
         var slideout = new Slideout({
             'panel': $('#panel')[0],
             'menu': $('#menu')[0],
-            'padding': 256,
-            'tolerance': 70
+            'padding': slidebarWidth,
+            'tolerance': 70,
+            'grabWidth': 80
+        });
+        $('#menu-button').click(function() {
+            slideout.toggle();
         });
 
         var fixed = document.querySelector('header#header');
@@ -284,7 +306,7 @@
 
         slideout.on('beforeopen', function () {
             fixed.style.transition = 'transform 300ms ease';
-            fixed.style.transform = 'translateX(256px)';
+            fixed.style.transform = 'translateX(' + slidebarWidth + 'px)';
         });
 
         slideout.on('beforeclose', function () {

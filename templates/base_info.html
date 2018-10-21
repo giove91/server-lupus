@@ -4,7 +4,7 @@
 
 {% if current_turn.phase == DAY or current_turn.phase == NIGHT or is_master %}
     <div class="grid-container">
-        <main id="content" class="grid-75">
+        <main id="content" class="tablet-grid-75 grid-75">
 
             {% block personal_info %}{% endblock %}
 
@@ -14,7 +14,7 @@
     	    {% include "events.html" %}
 
         </main>
-        <aside class="grid-25">
+        <aside class="tablet-grid-25 grid-25">
 
             {% include "players.html" %}
 

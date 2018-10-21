@@ -4,31 +4,15 @@ Styles for responsiveness.
 
 */
 
-.container, #header-upper, #header-lower, .security-banner {
-	margin-left: auto;
-	margin-right: auto;
-	max-width: 1200px;
-	padding-left: 10px;
-	padding-right: 10px;
-}
 
-.security-banner > * {
-	display: inline-block;
-}
-
-
-@media (max-width: 1024px) {
-	.hidden-mobile {
-		display: none;
-	}
-
+@media (max-width: 767px) {
 	/*---------------------
 
 	Header related styles
 
 	----------------------*/
 	#logo {
-		position: initial;
+		position: relative;
 		left: initial;
 		top: initial;
 		width: auto;
@@ -42,6 +26,7 @@ Styles for responsiveness.
 
 	#header-upper > a {
 		flex: 0 1 auto;
+		align-self: flex-start;
 	}
 
 	#login {
@@ -53,16 +38,43 @@ Styles for responsiveness.
 	}
 
 	#header-background-upper {
-		height:
+		height: 60px;
 	}
+
+	#header-upper {
+		justify-content: space-between;
+	}
+
+	#login {
+		flex: 0 1 auto;
+	}
+
+	#logo {
+		height: 70px;
+	}
+
+	/* -------------------------
+
+	Miscellaneous
+
+	------------------------- */
 
 	#panel {
 		padding-top: 1ex;
 	}
 
+	#content {
+		padding-left: 1.5ex;
+		padding-right: 1.5ex;
+	}
+
 	body .grid-container {
 		padding-left: 0;
 		padding-right: 0;
+	}
+
+	#menu {
+		padding-top: 1.5ex;
 	}
 
 
@@ -83,7 +95,7 @@ Styles for responsiveness.
 	  bottom: 0;
 	  right: 0;
 	  z-index: 0;
-	  width: 256px;
+	  width: 220px;
 	  overflow-y: scroll;
 	  -webkit-overflow-scrolling: touch;
 	  display: none;
@@ -96,19 +108,12 @@ Styles for responsiveness.
 	}
 
 	.slideout-open,
-	.slideout-open body,
+	/*.slideout-open body,*/
 	.slideout-open .slideout-panel {
-	  overflow: hidden;
+		overflow: hidden;
 	}
 
 	.slideout-open .slideout-menu {
 	  display: block;
-	}
-}
-
-
-@@media (min-width: 1025px) {
-	.hidden-desktop {
-		display: none;
 	}
 }
