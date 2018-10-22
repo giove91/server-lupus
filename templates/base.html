@@ -69,7 +69,7 @@
                         </div>
                     {% endif %}
                     {% if is_master and player %}
-                        <div class="point-of-view">
+                        <div class="point-of-view hide-on-mobile">
                             Punto di vista di {{ player.full_name }}
                         </div>
                     {% endif %}
@@ -87,8 +87,17 @@
         </div>
         <div id="header-background-lower">
             <div id="header-lower">
+                {% if user.is_authenticated %}
+                    {% if is_master and player %}
+                        <span class="point-of-view hide-on-desktop">{{ player.full_name }}</span>
+                    {% else %}
+                        <span class="hide-on-desktop">
+                            {{ user.first_name }} {{ user.last_name }}
+                        </span>
+                    {% endif %}
+                {% endif %}
                 {% if latest_announcement %}
-                    <strong>{{ latest_announcement.timestamp|date:"d/m/Y H:i" }}</strong> {{ latest_announcement.text|truncatechars:125 }}
+                    <span class="hide-on-mobile"><strong>{{ latest_announcement.timestamp|date:"d/m/Y H:i" }}</strong> {{ latest_announcement.text|truncatechars:125 }}</span>
                 {% endif %}
             </div>
         </div>
