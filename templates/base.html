@@ -68,9 +68,13 @@
                             Sei loggato come {{ user.username }} ({{ user.first_name }} {{ user.last_name }})
                         </div>
                     {% endif %}
-                    {% if is_master and player %}
+                    {% if is_master %}
                         <div class="point-of-view hide-on-mobile">
-                            Punto di vista di {{ player.full_name }}
+                            {% if player %}
+                                Punto di vista di {{ player.full_name }}
+                            {% else %}
+                                Game Master
+                            {% endif %}
                         </div>
                     {% endif %}
                 </span>
@@ -88,8 +92,8 @@
         <div id="header-background-lower">
             <div id="header-lower">
                 {% if user.is_authenticated %}
-                    {% if is_master and player %}
-                        <span class="point-of-view hide-on-desktop">{{ player.full_name }}</span>
+                    {% if is_master %}
+                        <span class="point-of-view hide-on-desktop">{{ player.full_name | default:"Game Master" }}</span>
                     {% else %}
                         <span class="hide-on-desktop">
                             {{ user.first_name }} {{ user.last_name }}
@@ -122,71 +126,61 @@
             {% if is_master %}
 
                 <div class="nav-menu game-master">
-                    <h1>Status</h1>
+                    <h1>Azioni da GM</h1>
                     <ul>
-                        <li><a href="{% url 'game:adminstatus' game_name=game.name %}">Tutte le informazioni</a></li>
+                        {% if user.is_staff and not game.started %}
+                             <li><a href="{% url 'game:newplayer' game_name=game.name %}" data-toggle="tooltip" title="Crea un nuovo account e lo iscrive alla partita.!">Nuovo giocatore</a></li>
+                        {% endif %}
+                        <li><a href="{% url 'game:adminstatus' game_name=game.name %}" data-toggle="tooltip" title="Consulta il registro di tutte le informazioni.">Tutte le informazioni</a></li>
+                        {% if current_turn.phase == CREATION %}
+                            <li><a href="{% url 'game:setup' game_name=game.name %}" data-toggle="tooltip" title="Inserisci le informazioni necessarie a iniziare la partita.">Setup iniziale</a></li>
+                        {% endif %}
+                        <li><a href="{% url 'game:managemasters' game_name=game.name %}" data-toggle="tooltip" title="Aggiungi o rimuovi un Game Master.">Gestione Master</a></li>
+                        <li><a href="{% url 'game:pointofview' game_name=game.name %}" data-toggle="tooltip" title="Assumi l'identità di un giocatore, per consultare il suo diario o agire al suo posto.">Punto di vista</a></li>
+                        <li><a href="{% url 'game:publishannouncement' game_name=game.name %}" data-toggle="tooltip" title="Pubblica un nuovo annuncio dei GM.">Pubblica annuncio</a></li>
+                        {% if current_turn.phase != CREATION %}
+                            <li><a href="{% url 'game:forcevictory' game_name=game.name %}" data-toggle="tooltip" title="Forza la fine della partita con la vittoria di una fazione specifica.">Decreta vincitori</a></li>
+                        {% endif %}
+                        <li><a href="{% url 'game:as_normal_user' game_name=game.name %}" data-toggle="tooltip" title="Torna alla triste interfaccia da persona qualunque.">Esci dal menù GM</a></li>
                     </ul>
                 </div>
 
-
+                {% if player %}
                 <div class="nav-menu game-master">
-                    <h1>Giocatori</h1>
+                    <h1>Casa di {{ player.user.first_name }}</h1>
                     <ul>
-                    {% if user.is_staff and not game.started %}
-                        <li><a href="{% url 'game:newplayer' game_name=game.name %}">Nuovo giocatore</a></li>
-                    {% endif %}
-                    <li><a href="{% url 'game:pointofview' game_name=game.name %}">Punto di vista</a></li>
-                    <li><a href="{% url 'game:personalinfo' game_name=game.name %}">Informazioni personali</a></li>
+
+                    <li><a href="{% url 'game:personalinfo' game_name=game.name %}" data-toggle="tooltip" title="Consulta le informazioni ottenute da {{ player.full_name }} nel corso della partita.">Diario personale</a></li>
                     {% if current_turn.phase == DAY %}
-                        <li><a href="{% url 'game:vote' game_name=game.name %}">Votazione per il rogo</a></li>
+                        <li><a href="{% url 'game:vote' game_name=game.name %}" data-toggle="tooltip" title="Scegli una persona che {{ player.full_name }} voterà per il rogo.">Votazione per il rogo</a></li>
                         {% if display_mayor %}
-                            <li><a href="{% url 'game:elect' game_name=game.name %}">Elezione del Sindaco</a></li>
+                            <li><a href="{% url 'game:elect' game_name=game.name %}" data-toggle="tooltip" title="Scegli una persona che {{ player.full_name }} eleggerà come sindaco.">Elezione del Sindaco</a></li>
                         {% endif %}
                     {% endif %}
                     {% if current_turn.phase == NIGHT %}
-                        <li><a href="{% url 'game:usepower' game_name=game.name %}">Potere notturno</a></li>
+                        <li><a href="{% url 'game:usepower' game_name=game.name %}" data-toggle="tooltip" title="Usa il potere speciale di {{ player.full_name }}.">Potere notturno</a></li>
                     {% endif %}
                     {% if player is not None and display_mayor and player.is_mayor %}
-                        <li><a href="{% url 'game:appoint' game_name=game.name %}">Designa successore</a></li>
+                        <li><a href="{% url 'game:appoint' game_name=game.name %}" data-toggle="tooltip" title="Scegli la persona che {{ player.full_name }} eleggerà come successore.">Designa successore</a></li>
                     {% endif %}
                 </ul>
                 </div>
+               {% endif %}
+
 
                 <div class="nav-menu game-master">
-                    <h1>Partita</h1>
+                    <h1>Svolgimento</h1>
                     <ul>
-                        {% if current_turn.phase == CREATION %}
-                            <li><a href="{% url 'game:setup' game_name=game.name %}">Setup iniziale</a></li>
-                        {% endif %}
-                        <li class="hide-on-desktop hide-on-tablet"><a href="{% url 'game:status' game_name=game.name  %}">Stato del villaggio</a></li>
-                        <li class="hide-on-desktop hide-on-tablet"><a href="{% url 'game:announcements' game_name=game.name %}">Annunci dei GM</a></li>
-                        <li><a href="{% url 'game:settings' game_name=game.name %}">Impostazioni</a></li>
-                        <li><a href="{% url 'game:managemasters' game_name=game.name %}">Gestione Master</a></li>
-                        <li><a href="{% url 'game:publishannouncement' game_name=game.name %}">Pubblica annuncio</a></li>
-                        <li><a href="{% url 'game:comment' game_name=game.name %}">Commenti</a></li>
-                    </ul>
-                </div>
-
-                <div class="nav-menu game-master">
-                    <h1>Turni</h1>
-                    <ul>
+                        <li><a href="{% url 'game:settings' game_name=game.name %}" data-toggle="tooltip" title="Imposta la durata dei turni e non solo.">Impostazioni</a></li>
                         {% if current_turn.phase != CREATION %}
-                            <li><a href="{% url 'game:advanceturn' game_name=game.name %}">Turno successivo</a></li>
-                            <li><a href="{% url 'game:rollbackturn' game_name=game.name %}">Turno precedente</a></li>
-                            <li><a href="{% url 'game:forcevictory' game_name=game.name %}">Decreta vincitori</a></li>
+                            <li><a href="{% url 'game:advanceturn' game_name=game.name %}" data-toggle="tooltip" title="Forza l'avanzamento al prossimo turno.">Turno successivo</a></li>
+                            <li><a href="{% url 'game:rollbackturn' game_name=game.name %}" data-toggle="tooltip" title="Cancella il turno corrente e torna al precedente.">Turno precedente</a></li>
                         {% endif %}
-                        <li><a href="{% url 'game:restart' game_name=game.name %}">Ricomincia</a></li>
+                        <li><a href="{% url 'game:restart' game_name=game.name %}" data-toggle="tooltip" title="Cancella tutti i turni e torna alla Creazione.">Ricomincia</a></li>
                         {% if user.is_staff %}
-                            <li><a href="{% url 'game:dump' game_name=game.name %}">Salva partita</a></li>
-                            <li><a href="{% url 'game:load' game_name=game.name %}">Carica partita</a></li>
+                            <li><a href="{% url 'game:dump' game_name=game.name %}" data-toggle="tooltip" title="Salva la parita in JSON.">Salva partita</a></li>
+                            <li><a href="{% url 'game:load' game_name=game.name %}" data-toggle="tooltip" title="Carica la partita da JSON.">Carica partita</a></li>
                         {% endif %}
-                    </ul>
-                </div>
-
-                <div class="nav-menu game-master">
-                    <h1>Indietro</h1>
-                    <ul>
-                        <li><a href="{% url 'game:as_normal_user' game_name=game.name %}">Esci dal menù GM</a></li>
                     </ul>
                 </div>
 
@@ -198,37 +192,45 @@
                     <h1>Iscrizioni</h1>
                     <ul>
                     {% if player is None %}
-                        <li><a href="{% url 'game:join' game_name=game.name %}">Unisciti al villaggio</a></li>
+                        <li><a href="{% url 'game:join' game_name=game.name %}" data-toggle="tooltip" title="Iscriviti a questa partita di Lupus Realtime.">Unisciti al villaggio</a></li>
                     {% else %}
-                        <li><a href="{% url 'game:leave' game_name=game.name %}">Abbandona il villaggio</a></li>
+                        <li><a href="{% url 'game:leave' game_name=game.name %}" data-toggle="tooltip" title="Abbandona la partita prima dell'inizio.">Abbandona il villaggio</a></li>
                     {% endif %}
                     </ul>
                 </div>
                 {% endif %}
 
+                <div class="nav-menu hide-on-desktop hide-on-tablet">
+                    <h1>Bacheca</h1>
+                    <ul>
+                        <li><a href="{% url 'game:status' game_name=game.name  %}">Stato del villaggio</a></li>
+                        <li><a href="{% url 'game:announcements' game_name=game.name %}">Annunci dei GM</a></li>
+                    </ul>
+                </div>
+ 
                 {% if player or master %}
                 <div class="nav-menu">
-                    <h1>Partita</h1>
+                <h1>Area privata</h1>
                     <ul>
-                        <li class="hide-on-desktop hide-on-tablet"><a href="{% url 'game:status' game_name=game.name  %}">Stato del villaggio</a></li>
-                        <li class="hide-on-desktop hide-on-tablet"><a href="{% url 'game:announcements' game_name=game.name %}">Annunci dei GM</a></li>
                     {% if player and current_turn.phase != CREATION %}
-                        <li><a href="{% url 'game:personalinfo' game_name=game.name %}">Informazioni personali</a></li>
+                        <li><a href="{% url 'game:personalinfo' game_name=game.name %}" data-toggle="tooltip" title="Consulta il registro delle informazioni che hai ottenuto nel corso della partita.">Diario personale</a></li>
                         {% if current_turn.phase == DAY %}
-                            <li><a href="{% url 'game:vote' game_name=game.name %}">Votazione per il rogo</a></li>
-                            <li><a href="{% url 'game:elect' game_name=game.name %}">Elezione del Sindaco</a></li>
+                            <li><a href="{% url 'game:vote' game_name=game.name %}" data-toggle="tooltip" title="Scegli una persona da votare per il rogo odierno.">Votazione per il rogo</a></li>
+                            {% if display_mayor %}
+                                <li><a href="{% url 'game:elect' game_name=game.name %}" data-toggle="tooltip" title="Scegli una persona da votare come Sindaco del villaggio.">Elezione del Sindaco</a></li>
+                            {% endif %}
                         {% endif %}
                         {% if current_turn.phase == NIGHT %}
-                            <li><a href="{% url 'game:usepower' game_name=game.name %}">Potere notturno</a></li>
+                            <li><a href="{% url 'game:usepower' game_name=game.name %}" data-toggle="tooltip" title="Usa il tuo potere speciale.">Potere notturno</a></li>
                         {% endif %}
                         {% if player.is_mayor %}
-                            <li><a href="{% url 'game:appoint' game_name=game.name %}">Designa successore</a></li>
+                            <li><a href="{% url 'game:appoint' game_name=game.name %}" data-toggle="tooltip" title="Scegli che diventerà Sindaco in caso di una tua prematura dipartita.">Designa successore</a></li>
                         {% endif %}
-                        <li><a href="{% url 'game:comment' game_name=game.name %}">Commenti alla partita</a></li>
                     {% endif %}
                     {% if master is not None %}
-                        <li><a href="{% url 'game:as_gm' game_name=game.name %}">Interfaccia da GM</a></li>
+                        <li><a href="{% url 'game:as_gm' game_name=game.name %}" data-toggle="tooltip" title="Sfrutta i tuoi poteri da Game Master.">Interfaccia da GM</a></li>
                     {% endif %}
+                    <li><a href="{% url 'game:comment' game_name=game.name %}" data-toggle="tooltip" title="Annota un commento nel tuo diario.">Scrivi un commento</a></li>
                 </ul>
                 </div>
                 {% endif %}
@@ -238,13 +240,13 @@
                 <div class="nav-menu">
                     <h1>Dopo partita</h1>
                     <ul>
-                        <li><a href="{% url 'game:adminstatus' game_name=game.name %}">Tutte le informazioni</a></li>
+                        <li><a href="{% url 'game:adminstatus' game_name=game.name %}" data-toggle="tooltip" title="Consulta il registro di tutte le azioni della partita.">Tutte le informazioni</a></li>
                     </ul>
                 </div>
             {% endif %}
 
             <div class="nav-menu">
-                <h1>Informazioni</h1>
+                <h1>Su RealTime Lupus</h1>
                 <ul>
                     <li><a href="{% url 'ruleset' %}">Regolamento</a></li>
                     <li><a href="{% url 'prototypes' %}">Prototipi</a></li>
@@ -255,7 +257,7 @@
 
             {% if user.is_authenticated %}
                 <div class="nav-menu">
-                    <h1>Area personale</h1>
+                    <h1>Account</h1>
                     <ul>
                         <li><a href="{% url 'password_change' %}">Cambia password</a></li>
                         <li class="hide-on-desktop hide-on-tablet"><a href="{% url 'creategame' %}">Crea nuovo villaggio</a></li>
