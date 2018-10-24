@@ -409,10 +409,19 @@ class VoteAnnouncedEvent(Event):
         assert self.type in [ELECT, VOTE]
         assert self.voter.canonicalize().alive
         assert self.voted.canonicalize().alive
-    
+
     def to_player_string(self,player):
-        # This event is processed separately
-        return None
+        if self.type == ELECT:
+            msg = "come Sindaco"
+        elif self.type == VOTE:
+            msg = "per il rogo"
+        else:
+            raise TypeError("Invalid type for VoteAnnouncedEvent: %s" % self.type)
+
+        if player == self.voter:
+            return "Hai votato %s per %s." % (self.voted, msg)
+        else:
+            return None
 
 
 class TallyAnnouncedEvent(Event):
