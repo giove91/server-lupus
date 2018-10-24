@@ -419,7 +419,7 @@ class VoteAnnouncedEvent(Event):
             raise TypeError("Invalid type for VoteAnnouncedEvent: %s" % self.type)
 
         if player == self.voter:
-            return "Hai votato %s per %s." % (self.voted, msg)
+            return "Hai votato %s %s." % (self.voted, msg)
         else:
             return None
 

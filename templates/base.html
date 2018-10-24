@@ -114,14 +114,14 @@
                 <li><a href="{% url 'game:personalinfo' game_name=game.name %}">Informazioni personali</a></li>
                 {% if current_turn.phase == DAY %}
                     <li><a href="{% url 'game:vote' game_name=game.name %}">Votazione per il rogo</a></li>
-                    {% if display_mayor %}
+                    {% if rules.mayor %}
                         <li><a href="{% url 'game:elect' game_name=game.name %}">Elezione del Sindaco</a></li>
                     {% endif %}
                 {% endif %}
                 {% if current_turn.phase == NIGHT %}
                     <li><a href="{% url 'game:usepower' game_name=game.name %}">Potere notturno</a></li>
                 {% endif %}
-                {% if player is not None and display_mayor and player.is_mayor %}
+                {% if player is not None and rules.mayor and player.is_mayor %}
                     <li><a href="{% url 'game:appoint' game_name=game.name %}">Designa successore</a></li>
                 {% endif %}
             </ul>
