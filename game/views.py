@@ -202,7 +202,7 @@ class EventListView(TemplateView):
         else:
             comments = []
 
-        result = dict([(turn, { 'standard': [], VOTE: {}, ELECT: {}, 'initial_propositions': [], 'soothsayer_propositions': [], 'comments': [] }) for turn in turns ])
+        result = dict([(turn, { 'standard': [], VOTE: {}, ELECT: {}, 'initial_propositions': [], 'soothsayer_propositions': [], 'telepathy': {}, 'comments': [] }) for turn in turns ])
         for event in events:
             message = event.to_player_string(player)
             if message is not None:
@@ -227,6 +227,12 @@ class EventListView(TemplateView):
 
             if event.subclass == 'RoleKnowledgeEvent' and event.cause == SOOTHSAYER and event.player == player:
                 result[event.turn]['soothsayer_propositions'].append(event.to_soothsayer_proposition())
+
+            if event.subclass == 'TelepathyEvent' and event.player == player:
+                if event.perceived_event.player in result[event.turn]['telepathy']:
+                    result[event.turn]['telepathy'][event.perceived_event.player].append(event.get_perceived_message())
+                else:
+                    result[event.turn]['telepathy'][event.perceived_event.player] = [event.get_perceived_message()]
 
         for comment in comments:
             result[comment.turn]['comments'].append(comment)
@@ -1359,8 +1365,9 @@ class ForceVictoryForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         dynamics = self.game.get_dynamics()
 
-        choices = [(x,TEAM_IT[x]) for x in dynamics.rules.starting_teams]
-        self.fields["winners"].choices = choices
+        choices = [(x,TEAM_IT[x]) for x in dynamics.playing_teams]
+        self.fields["winners"].initial = list(dynamics.recorded_winners) if dynamics.recorded_winners is not None else []
+        self.fields["winners"].choices = sorted(choices, key=lambda x:x[1])
         self.fields["winners"].widget.choices = choices
 
 @method_decorator(master_required, name='dispatch')

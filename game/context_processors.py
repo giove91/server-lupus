@@ -28,6 +28,15 @@ def context_current_turn(request):
         'current_phase': current_phase, # Maybe useless
     }
 
+def context_rules(request):
+    dynamics = request.dynamics
+    if dynamics is None or not hasattr(dynamics, 'rules'):
+        return {}
+    else:
+        return {
+            'rules': dynamics.rules
+        }
+
 def context_constants(request):
     return {
         'CREATION': CREATION,
@@ -57,6 +66,7 @@ def context_lupus(request):
         context_current_turn,
         context_constants,
         context_latest_announcement,
+        context_rules,
     ]
     result = dict()
     for f in context_functions:

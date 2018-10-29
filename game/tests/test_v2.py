@@ -97,6 +97,11 @@ class TestWebInterface(GameTest, TestCase):
         self.advance_turn()
 
         self.check_event(VoteAnnouncedEvent, {'voter': self.contadino, 'voted': self.veggente})
+        self.advance_turn()
+
+        response = c.get('/game/test/status/')
+        self.assertFalse(response.context['display_votes'])
+        self.assertFalse(response.context['display_mayor'])
 
     def test_cancel_vote(self):
         self.advance_turn(DAY)
@@ -125,6 +130,25 @@ class TestWebInterface(GameTest, TestCase):
         c.force_login(self.lupo.user)
         response = c.get('/game/test/personalinfo/')
         self.assertEqual(dict(response.context['events'])[self.game.current_turn.prev_turn()]['standard'], [])
+
+    def test_force_victory(self):
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.negromante)
+        self.advance_turn(DAY)
+
+        c = Client()
+        c.force_login(self.master.user)
+        c.get('/game/test/as_gm/')
+        response = c.get('/game/test/forcevictory/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['form'].fields['winners'].choices, [(LUPI, 'Lupi'), (POPOLANI, 'Popolani')])
+
+        response = c.post('/game/test/forcevictory/', {'winners': [POPOLANI]})
+        self.advance_turn()
+
+        self.assertEqual(self.dynamics.winners, {POPOLANI})
+
 
 class TestQuorum(GameTest, TestCase):
     roles = [Contadino, Contadino, Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Lupo, Negromante]
@@ -1070,6 +1094,26 @@ class TestMovements(GameTest, TestCase):
         self.advance_turn()
 
         self.check_event(MovementKnowledgeEvent, {'player': self.stalker, 'target': self.guardia, 'target2': self.contadino})
+
+    def test_assassino_and_illusione(self):
+        killed = set()
+        for x in range(2):
+            # Lowest number that works.
+            # May produce error if messing with random generator, in that case it must be invcreased.
+
+            self.seed = x
+            self.restart()
+
+            self.usepower(self.assassino, self.stalker)
+            self.usepower(self.voyeur, self.stalker)
+            self.usepower(self.contadino, self.alcolista, target2=self.stalker)
+
+            self.advance_turn()
+            events = self.get_events(PlayerDiesEvent)
+            killed.add(events[0].player.role.__class__ if events else None)
+            self.tearDown()
+
+        self.assertEqual(killed, {None, Voyeur})
 
 class TestTelepatia(GameTest, TestCase):
     roles = [Contadino, Veggente, Mago, Stalker, Voyeur, Espansivo, Lupo, Diavolo, Alcolista, Negromante]

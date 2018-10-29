@@ -13,6 +13,14 @@
             <tr><td>Aura</td><td>{{ player.aura_as_italian_string_property }}</td></tr>
             <tr><td>Stato</td><td>{{ player.status_as_italian_string_property }}</td></tr>
             <tr><td>Mistico</td><td>{{ player.is_mystic|yesno:"Sì,No,Boh" }}
+            {% if current_turn.phase == DAY %}
+                <tr><td>Vota</td><td>{{ player.recorded_vote | default:"Nessuno" }}</td></tr>
+                {% if display_mayor %}
+                    <tr><td>Eleggi</td><td>{{ player.recorded_elect | default:"Nessuno" }}</td></tr>
+                {% endif %}
+            {% elif current_turn.phase == NIGHT %}
+                <tr><td>Usa potere su</td><td>{{ player.role.recorded_target | default:"Nessuno" }}</td></tr>
+            {% endif %}
         </table>
         
         {% if player.is_mayor %}
