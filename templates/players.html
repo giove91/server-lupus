@@ -1,10 +1,10 @@
 {% load game_extras %}
 
-<div class="players-status">
+<div id="players-list" class="players-status">
 <h2>Vivi</h2>
 <ul>
     {% for player in game.alive_players|order_by_name %}
-        <li>{{ player.full_name }}</li>
+        <li><div>{{ player.full_name }}</div></li>
     {% empty %}
         <p><i>Non ci sono vivi</i></p>
     {% endfor %}
@@ -15,7 +15,7 @@
 <h2>Morti</h2>
 <ul>
     {% for player in game.dead_players|order_by_name %}
-        <li>{{ player.full_name }}</li>
+        <li><div>{{ player.full_name }}</div></li>
     {% empty %}
         <p><i>Non ci sono morti</i></p>
     {% endfor %}
@@ -25,10 +25,9 @@
 <h2>Esiliati</h2>
 <ul>
     {% for player in game.inactive_players|order_by_name %}
-        <li>{{ player.full_name }}</li>
+        <li><div>{{ player.full_name }}</div></li>
     {% endfor %}
 </ul>
 {% endif %}
 
 </div>
-

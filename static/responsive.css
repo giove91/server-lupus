@@ -55,6 +55,68 @@ Styles for responsiveness.
 
 	/* -------------------------
 
+	Players list related styles
+
+	------------------------- */
+
+	#panel > .grid-container {
+		display: flex;
+		flex-flow: column nowrap;
+		align-items: stretch;
+	}
+
+	#content {
+		order: 2;
+	}
+
+	#players-list {
+		order: 1;
+	}
+
+	#players-list > ul {
+		display: flex;
+		flex-flow: row wrap;
+		/*align-items: center;*/
+	}
+
+	#players-list > ul > * {
+		width: 50%;
+		max-width: 50%;
+		flex: 1 0 auto;
+	}
+
+	#players-list > ul > *:nth-child(even) {
+		text-align: left;
+	}
+
+	#players-list > ul > *:nth-child(odd) {
+		text-align: right;
+	}
+
+	#players-list > ul > *:nth-child(1):nth-last-child(1) {
+		text-align: center;
+		width: 100%;
+		max-width: initial;
+	}
+
+	#players-list > ul > p {
+		width: 100%;
+	}
+
+	#players-list > ul > *:nth-child(even) > div {
+		padding-left: 1ex;
+	}
+
+	#players-list > ul > *:nth-child(odd) > div {
+		padding-right: 1ex;
+	}
+
+	#players-list > ul > *:nth-child(1):nth-last-child(1) > div {
+		padding: 0;
+	}
+
+	/* -------------------------
+
 	Miscellaneous
 
 	------------------------- */
