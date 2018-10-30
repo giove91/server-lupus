@@ -139,6 +139,13 @@ Styles for responsiveness.
 		padding-top: 1.5ex;
 	}
 
+    .security-banner {
+        text-align: center;
+    }
+
+    #visibility-indicator {
+        margin: 0;
+    }
 
 	/*---------------------
 
