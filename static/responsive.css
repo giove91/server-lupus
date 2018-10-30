@@ -170,7 +170,7 @@ Styles for responsiveness.
 	}
 
 	.slideout-open,
-	/*.slideout-open body,*/
+	.slideout-open body,
 	.slideout-open .slideout-panel {
 		overflow: hidden;
 	}
