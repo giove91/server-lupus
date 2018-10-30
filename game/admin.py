@@ -25,6 +25,7 @@ admin.site.register(User, UserAdmin)
 class GameAdmin(admin.ModelAdmin):
     list_display = ('name', 'title', 'current_turn', 'public', 'postgame_info')
     list_display_link = ('current_turn',)
+    exclude = ('day_end_weekdays',)
 
 class TurnAdmin(admin.ModelAdmin):
     formfield_overrides = {
