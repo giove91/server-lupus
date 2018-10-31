@@ -14,6 +14,14 @@
             della partita.
         {% elif not game.started %}
             {{ game.description }}
+            {% if user.is_authenticated %}
+            </p><p>
+                {% if player %}
+                    Sei iscritt{{ user.profile.oa }} a questa partita.
+                {% else %}
+                    Non sei iscritt{{ user.profile.oa }} a questa partita.
+                {% endif %}
+            {% endif %}
         {% endif %}
     {% endif %}
     {% if current_turn.phase == DAWN %}
