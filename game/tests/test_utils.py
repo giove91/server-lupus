@@ -37,7 +37,7 @@ def create_game(seed, ruleset, roles):
 
     game.initialize(get_now())
 
-    user = User.objects.create(username='master', first_name='Pi', last_name='Kappa', email='pikappa@sns.it', password='ciaociao')
+    user = User.objects.create(username='pk_master', first_name='Paperinik', last_name='Master', email='pikappa@sns.it', password='ciaociao')
     user.save()
     master = GameMaster(user=user, game=game)
     master.save()
@@ -220,5 +220,6 @@ class GameTest():
     def restart(self):
         for player in self.players:
             player.user.delete()
+        self.master.user.delete()
         self.game.delete()
         self.setUp()
