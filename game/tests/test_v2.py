@@ -149,6 +149,22 @@ class TestWebInterface(GameTest, TestCase):
 
         self.assertEqual(self.dynamics.winners, {POPOLANI})
 
+    def test_comment(self):
+        c = Client()
+        c.force_login(self.lupo.user)
+        c.post('/game/test/comment/', {'text': 'Sono un lupo cattivissimo bwahahah'})
+
+        comment = Comment.objects.get()
+        self.assertEqual(comment.user, self.lupo.user)
+        self.assertEqual(comment.text, 'Sono un lupo cattivissimo bwahahah')
+
+        response = c.get('/game/test/comment/')
+        self.assertIn(comment, response.context['old_comments'])
+
+        c.force_login(self.contadino.user)
+        response = c.get('/game/test/comment/')
+        self.assertNotIn(comment, response.context['old_comments'])
+
 
 class TestQuorum(GameTest, TestCase):
     roles = [Contadino, Contadino, Contadino, Contadino, Contadino, Contadino, Lupo, Lupo, Lupo, Negromante]
