@@ -1221,3 +1221,86 @@ class TestTelepatia(GameTest, TestCase):
         event = event.perceived_event
         self.assertIsInstance(event, MultipleRoleKnowledgeEvent)
         self.check_event(event, {'player': self.diavolo, 'target': self.veggente, 'response': True, 'multiple_role_class': {Stalker, Veggente}, 'cause': DEVIL})
+
+class TestVita(GameTest, TestCase):
+    roles = [Contadino, Veggente, Mago, Stalker, Voyeur, Esorcista, Lupo, Diavolo, Alcolista, Negromante]
+    spectral_sequence = [True]
+
+    def test_vita_on_veggente(self):
+        self.advance_turn(NIGHT)
+
+        self.lupo.usepower(self.veggente)
+        self.advance_turn(NIGHT)
+
+        self.negromante.usepower(self.negromante, self.veggente, role_class=Vita)
+        self.advance_turn()
+
+        self.check_event(ResurrectionEvent, {'player': self.veggente})
+        self.assertIsInstance(self.veggente.role, Veggente)
+        self.assertIsInstance(self.veggente.ghost, Vita)
+        self.assertEqual(self.veggente.team, NEGROMANTI)
+        self.assertTrue(self.veggente.alive)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.veggente, self.lupo)
+        self.advance_turn()
+
+        self.check_event(AuraKnowledgeEvent, {'player': self.veggente, 'aura': BLACK})
+
+    def test_vita_dies_and_respawns(self):
+        self.advance_turn(NIGHT)
+
+        self.lupo.usepower(self.veggente)
+        self.advance_turn(NIGHT)
+
+        self.negromante.usepower(self.negromante, self.veggente, role_class=Vita)
+        self.advance_turn(DAY)
+
+        self.burn(self.veggente)
+        self.advance_turn()
+
+        self.check_event(VoteAnnouncedEvent, {'voted': self.veggente}, voter=self.veggente))
+        self.check_event(PlayerDiesEvent, {'player': self.veggente})
+        self.check_event(PowerSwitchEvent, {'player': self.veggente, 'ghost': Delusione, 'cause': LIFE_GHOST})
+        self.assertIsInstance(self.veggente.role, Veggente)
+        self.assertIsInstance(self.veggente.ghost, Delusione)
+        self.advance_turn()
+
+        self.negromante.usepower(self.negromante, self.veggente, role_class=Vita)
+        self.advance_turn()
+
+        self.check_event(ResurrectionEvent, {'player': self.veggente})
+
+    def test_vita_changes_power(self):
+        self.advance_turn(NIGHT)
+
+        self.lupo.usepower(self.veggente)
+        self.advance_turn(NIGHT)
+
+        self.negromante.usepower(self.negromante, self.veggente, role_class=Vita)
+        self.advance_turn()
+
+        self.check_event(ResurrectionEvent, {'player': self.veggente})
+        self.assertTrue(self.veggente.alive)
+        self.advance_turn(NIGHT)
+
+        self.negromante.usepower(self.negromante, self.veggente, role_class=Morte)
+        self.advance_turn()
+
+        self.check_event(PlayerDiesEvent, {'player': self.veggente, 'cause': LIFE_GHOST})
+
+    def test_esorcista_on_vita(self):
+        # L'esorcista blocca i poteri, non le abilità. Quindi non ha effetto su vita.
+        self.advance_turn(NIGHT)
+
+        self.lupo.usepower(self.veggente)
+        self.advance_turn(NIGHT)
+
+        self.negromante.usepower(self.negromante, self.veggente, role_class=Vita)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.veggente, self.lupo)
+        self.usepower(self.esorcista, self.lupo)
+        self.advance_turn()
+
+        self.check_event(AuraKnowledgeEvent, {'player': self.veggente, 'aura': BLACK})
