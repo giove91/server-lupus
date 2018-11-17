@@ -36,7 +36,7 @@ class BooleanArrayField(models.IntegerField):
         if value is None:
             return None
         return sum([x*2**i for i, x in enumerate(value)])
-    
+
 
 class StringsSetField(models.TextField):
     def from_db_value(self, value, expression, connection):
@@ -123,7 +123,7 @@ class KnowsChild(models.Model):
 
     class Meta:
         abstract = True
- 
+
     def as_child(self):
         return getattr(self, self.subclass.lower())
 
@@ -392,7 +392,7 @@ class Turn(models.Model):
 
     # Date is counted starting from FIRST_DATE
     date = models.IntegerField()
-    
+
     TURN_PHASES = {
         DAY: 'Day',
         SUNSET: 'Sunset',
@@ -408,18 +408,18 @@ class Turn(models.Model):
 
     begin = models.DateTimeField(null=True, blank=True)
     end = models.DateTimeField(null=True, blank=True)
-    
+
     class Meta:
         ordering = ['date', 'phase']
         unique_together = (('game', 'date', 'phase'),)
-    
+
     def __str__(self):
         return "%s %d" % (Turn.TURN_PHASES[self.phase], self.date)
     as_string = property(__str__)
 
     def __repr__(self):
         return "%s %d" % (Turn.TURN_PHASES[self.phase], self.date)
-    
+
     def __hash__(self):
         # Custom hash function, working for non-saved objects
         return hash((self.game, self.date,self.phase))
@@ -433,7 +433,7 @@ class Turn(models.Model):
             CREATION: 'Creazione',
             }[self.phase]
     phase_as_italian_string_property = property(phase_as_italian_string)
-    
+
     def turn_as_italian_string(self):
         if self.phase == CREATION:
             return u'Prologo'
@@ -446,7 +446,7 @@ class Turn(models.Model):
         elif self.phase == DAWN:
             return u'Alba del giorno %s' % self.date
     turn_as_italian_string_property = property(turn_as_italian_string)
-    
+
     def preposition_to_as_italian_string(self):
         if self.phase == CREATION or self.phase == NIGHT:
             return u'alla '
@@ -455,7 +455,7 @@ class Turn(models.Model):
         elif self.phase == DAWN:
             return u'all\''
     preposition_to_as_italian_string_property = property(preposition_to_as_italian_string)
-    
+
     def is_current(self):
         return self.game.current_turn == self
     is_current.boolean = True
@@ -537,15 +537,15 @@ class Turn(models.Model):
 
 class Profile(models.Model):
     # Additional information about Users
-    
+
     GENDERS = (
         (MALE, 'Male'),
         (FEMALE, 'Female'),
     )
-    
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     gender = models.CharField(max_length=1, choices=GENDERS)
-    
+
     # Returns 'o' or 'a' depending on the gender
     def get_oa(self):
         if self.gender == FEMALE:
@@ -562,7 +562,7 @@ class Player(models.Model):
         (None, 'Nessuno'),
     )
     AURA_COLORS_DICT = dict(AURA_COLORS)
-    
+
     TEAMS = (
         (POPOLANI, 'Popolani'),
         (LUPI, 'Lupi'),
@@ -570,31 +570,31 @@ class Player(models.Model):
         (None, 'Nessuno'),
     )
     TEAMS_DICT = dict(TEAMS)
-    
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
-    
+
     class Meta:
         ordering = ['user__last_name', 'user__first_name']
         unique_together = ['user','game']
-    
+
     def get_full_name(self):
         return "%s %s" % (self.user.first_name, self.user.last_name)
     full_name = property(get_full_name)
-    
+
     def get_gender(self):
         try:
             return self.user.profile.gender
         except Profile.DoesNotExist:
             return MALE
     gender = property(get_gender)
-    
+
     def __str__(self):
         return u"%s %s" % (self.user.first_name, self.user.last_name)
 
     def __repr__(self):
         return u"%s (%s %s)" % (self.user.username, self.user.first_name, self.user.last_name)
-    
+
     # Returns 'o' or 'a' depending on the player's gender
     def get_oa(self):
         try:
@@ -602,8 +602,8 @@ class Player(models.Model):
         except Profile.DoesNotExist:
             return 'o'
     oa = property(get_oa)
-    
-    
+
+
     def canonicalize(self):
         # We save on queries when we can
         if 'canonical' in self.__dict__ and self.canonical:
@@ -611,7 +611,7 @@ class Player(models.Model):
         else:
             return self.game.get_dynamics().get_canonical_player(self)
 
-    
+
     def get_role_name(self):
         canonical = self.canonicalize()
         if canonical.role is not None:
@@ -619,12 +619,12 @@ class Player(models.Model):
         else:
             return "Unassigned"
     role_name = property(get_role_name)
-    
+
     def aura_as_italian_string(self):
         canonical = self.canonicalize()
         return AURA_IT[ canonical.aura ]
     aura_as_italian_string_property = property(aura_as_italian_string)
-    
+
     def status_as_italian_string(self):
         canonical = self.canonicalize()
         if canonical.active:
@@ -635,13 +635,13 @@ class Player(models.Model):
         else:
             return u'Esiliat%s' % self.oa
     status_as_italian_string_property = property(status_as_italian_string)
-    
+
     def team_as_italian_string(self):
         canonical = self.canonicalize()
         return TEAM_IT[ canonical.team ]
     team_as_italian_string_property = property(team_as_italian_string)
-    
-    
+
+
     def can_use_power(self):
         if self.game.is_over:
             # The game has ended
@@ -655,25 +655,26 @@ class Player(models.Model):
         if canonical.role is None:
             # The role has not been set -- this shouldn't happen if Game is running
             return False
-        
+
         if not canonical.active:
             # The player has been exiled
             return False
-        
+
         turn = self.game.current_turn
         if turn.phase != NIGHT:
             # Players can use their powers only during the night
             return False
-        
+
         return canonical.power.can_use_power()
     can_use_power.boolean = True
 
     def get_power(self):
         canonical = self.canonicalize()
-        if canonical.alive or canonical.ghost is None:
+        if canonical.alive:
             return canonical.role
         else:
-            return canonical.ghost
+            return canonical.dead_power
+
     power = property(get_power)
 
     def team(self):
@@ -693,8 +694,8 @@ class Player(models.Model):
     def active(self):
         return self.canonicalize().active
     active.boolean = True
-    
-    
+
+
     def can_vote(self):
         if self.game.is_over:
             # The game is over
@@ -704,23 +705,23 @@ class Player(models.Model):
             return False
 
         canonical = self.canonicalize()
-        
+
         if not canonical.active:
             # The player has been exiled
             return False
         if not canonical.alive:
             # The player is dead
             return False
-        
+
         turn = self.game.current_turn
         if turn.phase != DAY:
             # Players can vote only during the day
             return False
-        
+
         # Everything seems to be OK
         return True
     can_vote.boolean = True
-    
+
     def is_mayor(self):
         # True if this player is the Mayor
         mayor = self.game.get_dynamics().mayor
@@ -739,7 +740,7 @@ class Player(models.Model):
 class GameMaster(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
-    
+
     class Meta:
         ordering = ['user__last_name', 'user__first_name']
         unique_together = ['user','game']
@@ -815,31 +816,31 @@ class Event(KnowsChild):
 
 
 class Announcement(models.Model):
-    
+
     game = models.ForeignKey(Game, null=True, blank=True, default=None, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(default=datetime.now)
     text = models.TextField(verbose_name='Testo')
     visible = models.BooleanField(default=True)
-    
+
     class Meta:
         ordering = ['timestamp']
-    
+
     def __unicode__(self):
         return u"Announcement %d" % self.pk
     announcement_name = property(__unicode__)
 
 
 class Comment(models.Model):
-    
+
     timestamp = models.DateTimeField(default=datetime.now)
     turn = models.ForeignKey(Turn, null=True, blank=True,on_delete=models.CASCADE)
     user = models.ForeignKey(User,on_delete=models.CASCADE)
     text = models.TextField()
     visible = models.BooleanField(default=True)
-    
+
     class Meta:
         ordering = ['timestamp']
-    
+
     def __unicode__(self):
         return u"Comment %d" % self.pk
     comment_name = property(__unicode__)
@@ -863,18 +864,16 @@ class Comment(models.Model):
         )
 
 class PageRequest(models.Model):
-    
+
     user = models.ForeignKey(User,models.CASCADE)
     timestamp = models.DateTimeField()
     path = models.TextField()
     ip_address = models.TextField()
     hostname = models.TextField()
-    
+
     class Meta:
         ordering = ['timestamp']
-    
+
     def __unicode__(self):
         return u"PageRequest %d" % self.pk
     pagerequest_name = property(__unicode__)
-
-

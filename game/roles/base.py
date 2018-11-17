@@ -26,8 +26,12 @@ class Role(object):
     aura = None
     is_mystic = False
     ghost = False
+    dead_power = False
     required = False
     necromancer = False
+
+    ''' Only to be changed if role has a default dead_power. '''
+    initial_dead_power = None
 
     ''' Priority of actions.
     Lower values will act before during dawn computation.
@@ -98,9 +102,6 @@ class Role(object):
     disambiguated_name = property(get_disambiguated_name)
 
     def can_use_power(self):
-        if not self.ghost and not self.player.alive:
-            return False
-
         if not self.can_act_first_night and self.player.game.current_turn.full_days_from_start() == 0:
             return False
 
@@ -139,7 +140,7 @@ class Role(object):
     def get_targets_role_class(self):
         '''Returns a set of possible role class targets.'''
         return {
-            ALIVE: {x for x in self.player.game.get_dynamics().valid_roles if not x.ghost},
+            ALIVE: {x for x in self.player.game.get_dynamics().valid_roles if not x.dead_power},
             DEAD: {x for x in self.player.game.get_dynamics().valid_roles if x.ghost},
             EVERYBODY: {x for x in self.player.game.get_dynamics().valid_roles},
             None: None
@@ -148,7 +149,7 @@ class Role(object):
     def get_targets_multiple_role_class(self):
         '''Returns a set of possible multiple role class targets.'''
         return {
-            ALIVE: {x for x in self.player.game.get_dynamics().valid_roles if not x.ghost},
+            ALIVE: {x for x in self.player.game.get_dynamics().valid_roles if not x.dead_power},
             DEAD: {x for x in self.player.game.get_dynamics().valid_roles if x.ghost},
             EVERYBODY: {x for x in self.player.game.get_dynamics().valid_roles},
             None: None
@@ -242,6 +243,11 @@ class Role(object):
         description of the problem."""
         return False
 
+class NoPower(Role):
+    name = "Nessuno"
+    priority = USELESS
+    dead_power = True
+
 # Fazione dei Popolani
 
 class Contadino(Role):
@@ -318,7 +324,7 @@ class Esorcista(Role):
         for blocker in players:
             if blocker.pk == self.player.pk:
                 continue
-            if not blocker.power.ghost:
+            if blocker.alive:
                 continue
             if blocker.power.recorded_target is not None and \
                     blocker.power.recorded_target.pk == self.recorded_target.pk:
@@ -404,7 +410,7 @@ class Messia(Role):
 
     def pre_apply_dawn(self, dynamics):
         # Power fails on Spettri
-        if self.recorded_target.ghost is not None:
+        if self.recorded_target.specter:
             return False
         return True
 
@@ -428,7 +434,7 @@ class Sciamano(Role):
     def get_blocked(self, players):
         if self.recorded_target is None:
             return []
-        if self.recorded_target.power.ghost:
+        if self.recorded_target.specter:
             return [self.recorded_target.pk]
         else:
             return []
@@ -468,7 +474,7 @@ class Trasformista(Role):
 
     def pre_apply_dawn(self, dynamics):
         # There are some forbidden roles
-        if self.recorded_target.team != POPOLANI and not self.recorded_target.ghost is not None:
+        if self.recorded_target.team != POPOLANI and not self.recorded_target.specter:
             return False
         if self.recorded_target.role.frequency in [NEVER, ONCE_A_GAME]:
             return False
@@ -708,7 +714,7 @@ class Stregone(Role):
         for blocked in players:
             if blocked.pk == self.player.pk:
                 continue
-            if blocked.power.ghost:
+            if not blocked.alive:
                 continue
             if blocked.power.recorded_target is not None and blocked.power.recorded_target.pk == self.recorded_target.pk:
                 ret.append(blocked.pk)
@@ -781,14 +787,14 @@ class Negromante(Role):
         from ..events import GhostificationEvent, RoleKnowledgeEvent
 
         if not self.recorded_target.just_ghostified:
-            assert self.recorded_target.ghost is None
+            assert not self.recorded_target.specter
             dynamics.generate_event(GhostificationEvent(player=self.recorded_target, ghost=self.recorded_role_class, cause=NECROMANCER))
             self.recorded_target.just_ghostified = True
 
         else:
             # Since GhostificationEvent is not applied during simulation,
             # we must not check the following during simulation
-            assert self.recorded_target.ghost is not None or dynamics.simulating
+            assert self.recorded_target.specter or dynamics.simulating
 
         dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_class=self.player.role.__class__, cause=GHOST))
 
@@ -893,6 +899,7 @@ class Spettro(Role):
     aura = None
     is_mystic = None
     ghost = True
+    dead_power = True
     allow_duplicates = False
     on_mystic_only = False
 
@@ -1135,5 +1142,3 @@ Roles with no power: Contadino, Divinatore, Massone,
 Rinnegato, Fantasma.
 Will be applied at the end, but seriously, who cares.
 '''
-
-

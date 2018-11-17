@@ -122,13 +122,13 @@ class Dynamics:
             self.players_dict[player.pk] = player
             player.team = None
             player.role = None
-            player.ghost = None
+            player.dead_power = None
+            player.specter = False
             player.aura = None
             player.is_mystic = None
             player.alive = True
             player.active = True
             player.disqualified = False
-            player.consumed_soul = False
             player.canonical = True
             player.recorded_vote = None
             player.recorded_elect = None
@@ -174,20 +174,20 @@ class Dynamics:
 
     def get_canonical_player(self, player):
         return self.players_dict[player.pk]
-    
-    
+
+
     def get_apparent_aura(self, player):
         return player.apparent_aura
 
     def get_apparent_mystic(self, player):
         return player.apparent_mystic
-    
+
     def get_apparent_role(self, player):
         return player.apparent_role
-    
+
     def get_apparent_team(self, player):
         return player.apparent_team
-    
+
     def update(self, simulation=False, lazy=False):
         # If dynamics was updated recently, don't try again to save time
         if lazy and self.last_update + UPDATE_INTERVAL > get_now():
@@ -210,13 +210,13 @@ class Dynamics:
         if self.spawned_at:
             self.logger.info('First updating finished. Elapsed time: %r' % (time.time() - self.spawned_at))
             self.spawned_at = None
-        
+
 
     def _pop_event_from_db(self):
         self.logger.debug("Searching db for events in %r after %s an with pk>%s", self.current_turn, self.last_timestamp_in_turn, self.last_pk_in_turn)
         if len(self.db_event_queue) > 0:
             return self.db_event_queue.pop(0).as_child()
-            
+
         try:
             result = Event.objects.filter(turn=self.current_turn). \
                 filter(Q(timestamp__gt=self.last_timestamp_in_turn) |
@@ -309,7 +309,7 @@ class Dynamics:
             self.simulated_turn.set_begin_end(self.current_turn)
         else:
             self.simulated_turn = None
-        
+
         self.simulated_events = []
 
         # Debug print
@@ -343,7 +343,7 @@ class Dynamics:
             DAWN: self._compute_entering_dawn,
             CREATION: self._compute_entering_creation,
             }[self.current_turn.phase]()
-    
+
     def _simulate_next_turn(self):
         """
         Simulate following turn.
@@ -368,11 +368,11 @@ class Dynamics:
         self.simulated_events = []
         # Copy random status
         random_state = self.random.getstate()
-        
+
         # Save last processed event
         real_last_timestamp_in_turn = self.last_timestamp_in_turn
         real_last_pk_in_turn = self.last_pk_in_turn
-        
+
         # Save mayor
         pre_simulation_mayor = self.mayor
         pre_simulation_appointed_mayor = self.appointed_mayor
@@ -395,7 +395,7 @@ class Dynamics:
             SUNSET: self._compute_entering_sunset,
             DAWN: self._compute_entering_dawn,
             }[self.simulated_turn.phase]()
-            
+
         # Rollback turn
         self.current_turn = real_current_turn
         self.prev_turn = real_prev_turn
@@ -410,14 +410,14 @@ class Dynamics:
         self.appointed_mayor = pre_simulation_appointed_mayor
         self.pre_simulation_mayor = None
         self.pre_simulation_appointed_mayor = None
-        
+
         # Rollback random object
         self.random.setstate(random_state)
-        
+
         self.simulating = False
         self.simulated = True
-        
-    
+
+
     def _receive_event(self, event):
         # Preliminary checks on the context
         assert self.current_turn is not None
@@ -468,7 +468,7 @@ class Dynamics:
         if event.timestamp is None:
             event.timestamp = get_now()
         event.save()
-        
+
         if self.debug_event_bin is not None:
             self.debug_event_bin.append(event)
         self.update()
@@ -677,6 +677,7 @@ class Dynamics:
 
         # Utility methods for later
         def apply_role(player):
+            assert (player.alive) != (player.power.dead_power)
             if player.power.recorded_target is None:
                 return
             self.logger.debug("  > Applying role %r for %r:", player.power, player)
@@ -718,7 +719,7 @@ class Dynamics:
             player.just_transformed = False
             player.just_resurrected = False
             player.has_confusion = False
-        
+
         if self.simulating:
             # Remove useless state for following day
             self.sentence_modifications = []
@@ -728,7 +729,7 @@ class Dynamics:
             for player in self.players:
                 player.temp_dehypnotized = False
         else:
-            
+
             self._end_of_main_phase()
 
     def _compute_entering_day(self):

@@ -13,9 +13,9 @@ class CommandEvent(Event):
 
     RELEVANT_PHASES = [DAY, NIGHT]
     AUTOMATIC = False
-    
+
     player = models.ForeignKey(Player, related_name='action_set',on_delete=models.CASCADE)
-    
+
     ACTION_TYPES = (
         (USEPOWER, 'UsePower'),
         (VOTE, 'Vote'),
@@ -30,12 +30,12 @@ class CommandEvent(Event):
         ELECT: [DAY],
         APPOINT: [DAY, NIGHT],
         }
-    
+
     target = models.ForeignKey(Player, null=True, blank=True, related_name='+',on_delete=models.CASCADE)
     target2 = models.ForeignKey(Player, null=True, blank=True, related_name='+',on_delete=models.CASCADE)
     role_class = RoleField(null=True)
     multiple_role_class = MultipleRoleField(null=True)
-    
+
     def __unicode__(self):
         return u"CommandEvent %d" % self.pk
 
@@ -153,7 +153,7 @@ class SeedEvent(Event):
         # implementation; its reduced randomness properties shouldn't
         # be a problem for us
         from .my_random import WichmannHill
- 
+
         dynamics.random = WichmannHill()
         dynamics.random.seed(int(self.seed))
 
@@ -284,11 +284,17 @@ class SetRoleEvent(Event):
         player.team = role.team
         player.aura = role.aura
         player.is_mystic = role.is_mystic
+        if player.role.initial_dead_power is None:
+            from .roles.base import NoPower
+            player.dead_power = NoPower(player)
+        else:
+            player.dead_power = player.role.initial_dead_power(player)
+
         assert player.role is not None
         assert player.team is not None
         assert player.aura is not None
         assert player.is_mystic is not None
-
+        assert player.dead_power is not None
     def to_player_string(self, player):
         if player == self.player:
             return u'Ti è stato assegnato il ruolo di %s.' % self.role_class.name
@@ -345,7 +351,7 @@ class SetMayorEvent(Event):
             assert len(dynamics.get_alive_players())==0
             dynamics.mayor = None
             dynamics.appointed_mayor = None
-        
+
 
     def to_player_string(self, player):
         if self.player is None:
@@ -374,7 +380,7 @@ class InitialPropositionEvent(Event):
     # An initial proposition published by the GM
     RELEVANT_PHASES = [CREATION]
     AUTOMATIC = False
-    
+
     text = models.TextField(verbose_name='Testo')
 
     def to_dict(self):
@@ -389,7 +395,7 @@ class InitialPropositionEvent(Event):
 
     def apply(self, dynamics):
         pass
-    
+
     def to_player_string(self, player):
         # This event is processed separately
         return None
@@ -428,7 +434,7 @@ class TallyAnnouncedEvent(Event):
         assert self.type in [ELECT, VOTE]
         assert self.voted.canonicalize().alive
         assert self.vote_num > 0
-    
+
     def to_player_string(self,player):
         # This event is processed separately
         return None
@@ -443,7 +449,6 @@ class PlayerResurrectsEvent(Event):
     def apply(self, dynamics):
         player = self.player.canonicalize()
         assert not player.alive
-        assert player.ghost is None
         player.alive = True
 
     def to_player_string(self,player):
@@ -592,7 +597,7 @@ class PlayerDiesEvent(Event):
         # Yeah, finally kill player!
         player.alive = False
         player.just_dead = False
-        
+
         player.role.post_death(dynamics)
         # Trigger generic post_death code
         dynamics.rules.post_death(dynamics, player)
@@ -705,12 +710,12 @@ class RoleKnowledgeEvent(Event):
             assert self.target.canonicalize().role.__class__.__name__ == 'Necrofilo'
 
         elif self.cause == GHOST:
-            assert self.player.canonicalize().ghost is not None
+            assert self.player.canonicalize().specter
             assert self.target.canonicalize().role.__class__.__name__ == 'Negromante'
 
         elif self.cause == PHANTOM or self.cause == HYPNOTIST_DEATH or self.cause == CORRUPTION:
             assert self.player.canonicalize().role.__class__.__name__ == 'Negromante'
-            assert self.target.canonicalize().ghost is not None
+            assert self.target.canonicalize().specter
 
         elif self.cause == KNOWLEDGE_CLASS:
             assert self.player.canonicalize().role.knowledge_class is not None
@@ -734,19 +739,19 @@ class RoleKnowledgeEvent(Event):
 
         if self.cause in [EXPANSIVE, GHOST, PHANTOM, HYPNOTIST_DEATH, KNOWLEDGE_CLASS]:
             assert isinstance(self.target.canonicalize().power, self.role_class)
-    
-    
+
+
     def to_player_string(self, player):
         toa = self.target.oa
         poa = self.player.oa
         role_name = self.role_class.name
-        
+
         if self.cause == EXPANSIVE:
             if player == self.player:
                 return u'%s ti rivela di essere l\'Espansivo.' % self.target.full_name
             elif player == 'admin':
                 return u'%s rivela a %s di essere l\'Espansivo.' % (self.target.full_name, self.player.full_name)
-        
+
         elif self.cause == KNOWLEDGE_CLASS:
             if player == self.player:
                 return u'A %s è stato assegnato il ruolo di %s.' % (self.target.full_name, role_name)
@@ -796,34 +801,34 @@ class RoleKnowledgeEvent(Event):
                 return u'Scopri che %s ha il ruolo di %s.' % (self.target.full_name, role_name)
             elif player == 'admin':
                 return u'Il Divinatore %s scopre che %s ha il ruolo di %s.' % (self.player.full_name, self.target.full_name, role_name)
-        
+
         elif self.cause == MEDIUM:
             if player == self.player:
                 return u'Scopri che %s ha il ruolo di %s.' % (self.target.full_name, role_name)
             elif player == 'admin':
                 return u'Il Medium %s scopre che %s ha il ruolo di %s.' % (self.player.full_name, self.target.full_name, role_name)
-        
+
         elif self.cause == HYPNOTIST_DEATH:
             if player == self.player:
                 return u'Percepisci che %s era un Ipnotista: dopo la morte è diventat%s uno Spettro.' % (self.target.full_name, toa)
             elif player == 'admin':
                 return u'Il Negromante %s viene a sapere che l\'Ipnotista %s è diventato uno Spettro.' % (self.player.full_name, self.target.full_name)
-        
+
         elif self.cause == VISION_GHOST:
             if player == self.player:
                 return u'Scopri che %s ha il ruolo di %s.' % (self.target.full_name, role_name)
             elif player == 'admin':
                 return u'Lo Spettro con il potere della Visione %s scopre che %s ha il ruolo di %s.' % (self.player.full_name, self.target.full_name, role_name)
-        
+
         elif self.cause == NECROPHILIAC:
             if player == self.player:
                 return u'Percepisci che il Necrofilo %s ha profanato la tua salma questa notte.' % (self.target.full_name)
             elif player == 'admin':
                 return u'%s viene a sapere che il Necrofilo %s ha profanato la sua tomba.' % (self.player.full_name, self.target.full_name)
-        
+
         else:
             raise Exception ('Unknown cause for RoleKnowledgeEvent')
-        
+
         return None
 
 class NegativeRoleKnowledgeEvent(Event):
@@ -911,24 +916,24 @@ class AuraKnowledgeEvent(Event):
 
     def apply(self, dynamics):
         pass
-    
+
     def to_player_string(self, player):
         aura = AURA_IT[ self.aura ].lower()
-        
+
         if self.cause == SEER:
             if player == self.player:
                 return u'Scopri che %s ha aura %s.' % (self.target.full_name, aura)
             elif player == 'admin':
                 return u'Il Veggente %s scopre che %s ha aura %s.' % (self.player.full_name, self.target.full_name, aura)
             return None
-        
+
         elif self.cause == DETECTIVE:
             if player == self.player:
                 return u'Scopri che %s ha aura %s.' % (self.target.full_name, aura)
             elif player == 'admin':
                 return u"L'Investigatore %s scopre che %s ha aura %s." % (self.player.full_name, self.target.full_name, aura)
             return None
-        
+
         else:
             raise Exception ('Unknown cause for AuraKnowledgeEvent')
 
@@ -949,13 +954,13 @@ class MysticityKnowledgeEvent(Event):
 
     def apply(self, dynamics):
         pass
-    
+
     def to_player_string(self, player):
         if self.is_mystic:
             result = ''
         else:
             result = 'non '
-        
+
         if player == self.player:
             return u'Scopri che %s %sè un mistico.' % (self.target.full_name, result)
         elif player == 'admin':
@@ -978,10 +983,10 @@ class TeamKnowledgeEvent(Event):
 
     def apply(self, dynamics):
         assert self.target.canonicalize().team == self.team or self.target.canonicalize().has_confusion
-    
+
     def to_player_string(self, player):
         team = TEAM_IT[ self.team ]
-        
+
         if player == self.player:
             return u'Scopri che %s appartiene alla Fazione dei %s.' % (self.target.full_name, team)
         elif player == 'admin':
@@ -1002,7 +1007,7 @@ class VoteKnowledgeEvent(Event):
 
     def apply(self, dynamics):
         pass
-    
+
     def to_player_string(self, player):
 
         if player == self.player:
@@ -1039,7 +1044,7 @@ class MovementKnowledgeEvent(Event):
 
     def apply(self, dynamics):
         assert (self.target2 is None) == (self.cause == KIDNAPPER)
-    
+
     def to_player_string(self, player):
         if self.cause == KIDNAPPER:
             if player == self.player:
@@ -1073,7 +1078,7 @@ class NoMovementKnowledgeEvent(Event):
     # that is, target is the player that was watched.
     player = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
     target = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
-    
+
     KNOWLEDGE_CAUSE_TYPES = (
         (STALKER, 'Stalker'),
         (VOYEUR, 'Voyeur'),
@@ -1083,7 +1088,7 @@ class NoMovementKnowledgeEvent(Event):
 
     def apply(self, dynamics):
         assert self.player.pk != self.target.pk
-    
+
     def to_player_string(self, player):
         if player == self.player:
             if self.cause == STALKER:
@@ -1094,7 +1099,7 @@ class NoMovementKnowledgeEvent(Event):
                 return u'Scopri che stanotte nessun personaggio si è recato da %s.' % (self.target.full_name)
             else:
                 raise Exception ('Unknown cause')
-        
+
         elif player == 'admin':
             if self.cause == STALKER:
                 return u'%s scopre che stanotte %s non si è recat%s da nessuna parte.' % (self.player.full_name, self.target.full_name, self.target.oa)
@@ -1104,7 +1109,7 @@ class NoMovementKnowledgeEvent(Event):
                 return u'%s scopre che stanotte nessun personaggio si è recato da %s.' % (self.player.full_name, self.target.full_name)
             else:
                 raise Exception ('Unknown cause')
-        
+
         else:
             return None
 
@@ -1161,10 +1166,10 @@ class HypnotizationEvent(Event):
         assert hypnotist.role.__class__.__name__ == 'Ipnotista'
 
         player.hypnotist = hypnotist
-    
+
     def to_player_string(self, player):
         oa = self.player.oa
-        
+
         if player == 'admin':
             return u'%s è stat%s ipnotizzat%s da %s.' % (self.player.full_name, oa, oa, self.hypnotist.full_name)
         else:
@@ -1205,8 +1210,9 @@ class GhostificationEvent(Event):
             dynamics.used_ghost_powers.add(self.ghost)
 
         # Real ghostification
-        player.ghost = self.ghost(player)
-        player.ghost.post_appearance(dynamics)
+        player.dead_power = self.ghost(player)
+        player.dead_power.post_appearance(dynamics)
+        player.specter = True
         player.team = NEGROMANTI
 
     def to_player_string(self, player):
@@ -1224,49 +1230,23 @@ class GhostificationEvent(Event):
                 return u'Credevi che i giochi fossero fatti? Pensavi che la morte fosse un evento definitivo? Certo che no! Come nelle migliori soap opera, non c\'è pace neanche dopo la sepoltura. Ti sei risvegliat%s come %s.' % (oa, power)
             elif player == 'admin':
                 return u'%s si è risvegliat%s come %s.' % (self.player.full_name, oa, power)
-        
+
         elif self.cause == PHANTOM:
             if player == self.player:
                 return u'La sopraggiunta morte ti dà un senso di beatitudine. Sei diventat%s uno %s.' % (oa, power)
             elif player == 'admin':
                 return u'Il Fantasma %s è divenuto uno %s.' % (self.player.full_name, power)
-        
+
         elif self.cause == HYPNOTIST_DEATH:
             if player == self.player:
                 return u'Sei diventat%s uno %s.' % (oa, power)
             elif player == 'admin':
                 return u'L\'Ipnotista %s è divenuto uno %s' % (self.player.full_name, power)
-        
+
         else:
             raise Exception ('Unknown cause for GhostificationEvent')
-        
+
         return None
-
-class SoulConsumptionEvent(Event):
-    RELEVANT_PHASES = [DAWN]
-    AUTOMATIC = True
-
-    # The one who knows the event.
-    player = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
-    # The one whose soul has been consumed.
-    target = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
-
-    def apply(self, dynamics):
-        target = self.target.canonicalize()
-        assert not target.alive
-        target.consumed_soul = True
-
-    def to_player_string(self, player):
-        if player == self.player:
-            if self.player == self.target:
-                return u'La tua anima è stata consumata.'
-            else:
-                return u'Percepisci che l\'anima di %s è stata consumata.' % self.target.full_name
-        elif player == 'admin':
-            if self.player == self.target:
-                return u'%s percepisce che la sua anima è stata consumata.' % (self.target.full_name)
-            else:
-                return u'%s percepisce che l\'anima di %s è stata consumata.' % (self.player.full_name, self.target.full_name)
 
 class GhostificationFailedEvent(Event):
     RELEVANT_PHASES = [DAWN, SUNSET]
@@ -1282,7 +1262,7 @@ class GhostificationFailedEvent(Event):
 
     def to_player_string(self, player):
         oa = self.player.oa
-        
+
         if player == self.player:
             return u'Sembra che tu abbia aspettato troppo a morire: i poteri soprannaturali sono stati tutti assegnati, per cui sei condannat%s a rimanere un Fantasma.' % oa
         elif player == 'admin':
@@ -1307,7 +1287,7 @@ class GhostSwitchEvent(Event):
         player = self.player.canonicalize()
 
         assert self.ghost not in dynamics.used_ghost_powers, self.ghost
-        assert self.player.ghost is not None
+        assert self.player.specter
         #assert not(dynamics.death_ghost_created and self.cause == HYPNOTIST_DEATH and not dynamics.death_ghost_just_created), (dynamics.death_ghost_created, dynamics.death_ghost_just_created, self.cause)
         #assert not(self.cause == HYPNOTIST_DEATH and self.ghost != IPNOSI)
         #assert not(self.cause != HYPNOTIST_DEATH and self.ghost == IPNOSI)
@@ -1316,13 +1296,13 @@ class GhostSwitchEvent(Event):
         # Update global status
         if not self.ghost.allow_duplicates:
             dynamics.used_ghost_powers.add(self.ghost)
-        if not self.player.ghost.allow_duplicates:
-            dynamics.used_ghost_powers.remove(self.player.ghost.__class__)
+        if not self.player.dead_power.allow_duplicates:
+            dynamics.used_ghost_powers.remove(self.player.dead_power.__class__)
 
         # Power switch!
-        player.ghost.pre_disappearance(dynamics)
-        player.ghost = self.ghost(player)
-        player.ghost.post_appearance(dynamics)
+        player.dead_power.pre_disappearance(dynamics)
+        player.dead_power = self.ghost(player)
+        player.dead_power.post_appearance(dynamics)
 
     def to_player_string(self, player):
         oa = self.player.oa
@@ -1342,7 +1322,7 @@ class GhostSwitchEvent(Event):
 
         else:
             raise Exception ('Unknown cause for GhostSwitchEvent')
-        
+
         return None
 
 
@@ -1376,20 +1356,20 @@ class PowerOutcomeEvent(Event):
             else:
                 return role.name
 
-        player_role = role_description(self.player.role, self.player.ghost)
-        target_role = role_description(target.role, target.ghost)
+        player_role = role_description(self.player.role, self.player.dead_power)
+        target_role = role_description(target.role, target.dead_power)
 
         if self.success:
             if player == self.player:
                 return u'Hai utilizzato con successo il tuo potere su %s.' % target.full_name
-            
+
             elif player == 'admin':
                 return u'%s (%s) ha utilizzato con successo il proprio potere su %s (%s).' % (self.player.full_name, player_role, target.full_name, target_role)
-        
+
         else:
             if player == self.player:
                 return u'Ti risvegli confus%s e stordit%s: l\'unica cosa di cui sei cert%s è di non essere riuscit%s ad utilizzare il tuo potere su %s, questa notte.' % (oa, oa, oa, oa, target.full_name)
-            
+
             elif player == 'admin':
                 return '%s (%s) non è riuscit%s ad utilizzare il proprio potere su %s (%s).' % (self.player.full_name, player_role, oa, target.full_name, target_role)
 
@@ -1425,7 +1405,7 @@ class DisqualificationEvent(Event):
 
     def to_player_string(self, player):
         oa = self.player.oa
-        
+
         if player == self.player:
             return u'Sei stat%s squalificat%s. Il motivo della squalifica è: %s' % (oa, oa, self.private_message)
         elif player == 'admin':
@@ -1511,7 +1491,7 @@ class ExileEvent(Event):
             player.role.post_death(dynamics)
     def to_player_string(self, player):
         oa = self.player.oa
-        
+
         if self.cause == DISQUALIFICATION:
             if player == self.player:
                 return u'Sei stat%s squalificat%s. Il motivo della squalifica è: %s' % (oa, oa, self.disqualification.private_message)
@@ -1520,10 +1500,10 @@ class ExileEvent(Event):
                     return u'%s è stat%s squalificat%s.' % (self.player.full_name, oa, oa)
                 else:
                     return u'%s è stat%s squalificat%s. Il motivo della squalifica è: %s' % (self.player.full_name, oa, oa, self.disqualification.public_message)
-        
+
         elif self.cause == TEAM_DEFEAT:
             team = TEAM_IT[ self.player.canonicalize().team ]
-            
+
             if player == self.player:
                 return u'La tua Fazione è stata sconfitta. Per te non rimane che l\'esilio.'
             else:
@@ -1575,7 +1555,7 @@ class VictoryEvent(Event):
         dynamics.over = True
         dynamics.giove_is_happy = True
         dynamics.server_is_on_fire = True
-    
+
     def to_player_string(self, player):
         winners = list(self.winners)
         if len(winners) == 1:
@@ -1587,6 +1567,3 @@ class VictoryEvent(Event):
             return u'<b>La partita si è conclusa con la vittoria di tutte le Fazioni.</b>'
         else:
             raise Exception ('Number of winner is not reasonable')
-
-
-
