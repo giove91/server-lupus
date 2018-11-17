@@ -124,7 +124,7 @@ class CommandEvent(Event):
                 assert False, "Should not arrive here"
 
         elif self.type == USEPOWER:
-            self.player.canonicalize().role.apply_usepower(dynamics, self)
+            self.player.canonicalize().power.apply_usepower(dynamics, self)
 
         else:
             assert False, "Invalid type"
@@ -443,15 +443,9 @@ class PlayerResurrectsEvent(Event):
     def apply(self, dynamics):
         player = self.player.canonicalize()
         assert not player.alive
-
-        # If the player is a ghost, their power gets deactivated. Poor
-        # they!
-        if player.role.ghost:
-            assert player.role.has_power
-            player.role.has_power = False
-
+        assert player.ghost is None
         player.alive = True
-        
+
     def to_player_string(self,player):
         oa = self.player.oa
         if player == self.player:
@@ -711,12 +705,12 @@ class RoleKnowledgeEvent(Event):
             assert self.target.canonicalize().role.__class__.__name__ == 'Necrofilo'
 
         elif self.cause == GHOST:
-            assert self.player.canonicalize().role.ghost
+            assert self.player.canonicalize().ghost is not None
             assert self.target.canonicalize().role.__class__.__name__ == 'Negromante'
 
         elif self.cause == PHANTOM or self.cause == HYPNOTIST_DEATH or self.cause == CORRUPTION:
             assert self.player.canonicalize().role.__class__.__name__ == 'Negromante'
-            assert self.target.canonicalize().role.ghost
+            assert self.target.canonicalize().ghost is not None
 
         elif self.cause == KNOWLEDGE_CLASS:
             assert self.player.canonicalize().role.knowledge_class is not None
@@ -739,7 +733,7 @@ class RoleKnowledgeEvent(Event):
             assert False
 
         if self.cause in [EXPANSIVE, GHOST, PHANTOM, HYPNOTIST_DEATH, KNOWLEDGE_CLASS]:
-            assert isinstance(self.target.canonicalize().role, self.role_class)
+            assert isinstance(self.target.canonicalize().power, self.role_class)
     
     
     def to_player_string(self, player):
@@ -1210,15 +1204,9 @@ class GhostificationEvent(Event):
         if not self.ghost.allow_duplicates:
             dynamics.used_ghost_powers.add(self.ghost)
 
-        # Call pre disappearance code
-        player.role.pre_disappearance(dynamics)
-
-        # Save original role for Trasformista
-        assert player.role_class_before_ghost is None
-        player.role_class_before_ghost = player.role.__class__
-
         # Real ghostification
-        player.role = self.ghost(player)
+        player.ghost = self.ghost(player)
+        player.ghost.post_appearance(dynamics)
         player.team = NEGROMANTI
 
     def to_player_string(self, player):
@@ -1318,9 +1306,8 @@ class GhostSwitchEvent(Event):
     def apply(self, dynamics):
         player = self.player.canonicalize()
 
-        assert not player.alive
         assert self.ghost not in dynamics.used_ghost_powers, self.ghost
-        assert self.player.role.ghost
+        assert self.player.ghost is not None
         #assert not(dynamics.death_ghost_created and self.cause == HYPNOTIST_DEATH and not dynamics.death_ghost_just_created), (dynamics.death_ghost_created, dynamics.death_ghost_just_created, self.cause)
         #assert not(self.cause == HYPNOTIST_DEATH and self.ghost != IPNOSI)
         #assert not(self.cause != HYPNOTIST_DEATH and self.ghost == IPNOSI)
@@ -1329,11 +1316,13 @@ class GhostSwitchEvent(Event):
         # Update global status
         if not self.ghost.allow_duplicates:
             dynamics.used_ghost_powers.add(self.ghost)
-        if not self.player.role.allow_duplicates:
-            dynamics.used_ghost_powers.remove(self.player.role.__class__)
+        if not self.player.ghost.allow_duplicates:
+            dynamics.used_ghost_powers.remove(self.player.ghost.__class__)
 
         # Power switch!
-        player.role = self.ghost(player)
+        player.ghost.pre_disappearance(dynamics)
+        player.ghost = self.ghost(player)
+        player.ghost.post_appearance(dynamics)
 
     def to_player_string(self, player):
         oa = self.player.oa
@@ -1372,23 +1361,23 @@ class PowerOutcomeEvent(Event):
 
         player = self.player.canonicalize()
         if self.success or not dynamics.rules.forgiving_failures:
-            player.role.last_usage = dynamics.prev_turn
-            player.role.last_target = self.command.target.canonicalize()
-            if player.role.frequency == EVERY_OTHER_NIGHT:
+            player.power.last_usage = dynamics.prev_turn
+            player.power.last_target = self.command.target.canonicalize()
+            if player.power.frequency == EVERY_OTHER_NIGHT:
                 player.cooldown = True
 
     def to_player_string(self, player):
         target = self.command.target
         oa = self.player.oa
 
-        def role_description(role, rcbf):
-            desc = role.name
-            if role.ghost:
-                desc += ', ex %s' % (rcbf.name)
-            return desc
+        def role_description(role, ghost):
+            if ghost:
+                return '%s, ex %s' % (ghost.name, role.name)
+            else:
+                return role.name
 
-        player_role = role_description(self.player.role, self.player.role_class_before_ghost)
-        target_role = role_description(target.role, target.role_class_before_ghost)
+        player_role = role_description(self.player.role, self.player.ghost)
+        target_role = role_description(target.role, target.ghost)
 
         if self.success:
             if player == self.player:

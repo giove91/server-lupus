@@ -665,8 +665,16 @@ class Player(models.Model):
             # Players can use their powers only during the night
             return False
         
-        return canonical.role.can_use_power()
+        return canonical.power.can_use_power()
     can_use_power.boolean = True
+
+    def get_power(self):
+        canonical = self.canonicalize()
+        if canonical.alive or canonical.ghost is None:
+            return canonical.role
+        else:
+            return canonical.ghost
+    power = property(get_power)
 
     def team(self):
         return Player.TEAMS_DICT[self.canonicalize().team]

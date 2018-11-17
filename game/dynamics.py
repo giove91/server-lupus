@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 class Movement:
     def __repr__(self):
-        return "%r (%r) => %r (%r) %s" % (self.src, self.src.role.name, self.dst, self.dst.role.name, "[Illusione]" if self != self.src.movement else "")
+        return "%r (%r) => %r (%r) %s" % (self.src, self.src.power.name, self.dst, self.dst.power.name, "[Illusione]" if self != self.src.movement else "")
     def __init__(self, src, dst):
         self.src = src
         self.dst = dst
@@ -122,7 +122,7 @@ class Dynamics:
             self.players_dict[player.pk] = player
             player.team = None
             player.role = None
-            player.role_class_before_ghost = None
+            player.ghost = None
             player.aura = None
             player.is_mystic = None
             player.alive = True
@@ -604,7 +604,7 @@ class Dynamics:
         target = None
         role_class = None
         for player in players:
-            role = player.role
+            role = player.power
             if role.recorded_target is not None:
                 if target is None:
                     target = role.recorded_target
@@ -629,7 +629,7 @@ class Dynamics:
         for player in self.get_active_players():
             player.apparent_aura = player.aura
             player.apparent_mystic = player.is_mystic
-            player.apparent_role = player.role.__class__ if not player.role.ghost else player.role_class_before_ghost
+            player.apparent_role = player.role.__class__
             player.apparent_team = player.team
             player.movement = None
             # Restore cooldown for EVERY_OTHER_NIGHT powers
@@ -642,10 +642,10 @@ class Dynamics:
         # Sciamano, Esorcista, Stregone
 
         # Build the list of blockers
-        critical_blockers = [player for player in self.get_active_players() if player.role.critical_blocker and player.role.recorded_target is not None]
+        critical_blockers = [player for player in self.get_active_players() if player.power.critical_blocker and player.power.recorded_target is not None]
 
         # Build the block graph and compute blocking success
-        block_graph = dict([(x.pk, x.role.get_blocked(self.players)) for x in self.players])
+        block_graph = dict([(x.pk, x.power.get_blocked(self.players)) for x in self.players])
         rev_block_graph = dict([(x.pk, []) for x in self.players])
         for x, ys in iter(block_graph.items()):
             for y in ys:
@@ -669,33 +669,33 @@ class Dynamics:
 
         # Then compute the visit graph
         for player in self.get_active_players():
-            if player.role.recorded_target is not None and not player.role.ghost:
-                mov = Movement(src=player, dst=player.role.recorded_target)
+            if player.power.recorded_target is not None and player.alive:
+                mov = Movement(src=player, dst=player.power.recorded_target)
                 self.movements.append(mov)
                 player.movement = mov
         self.logger.debug("  movements: %r", dict([(x.src, x.dst) for x in self.movements]))
 
         # Utility methods for later
         def apply_role(player):
-            if player.role.recorded_target is None:
+            if player.power.recorded_target is None:
                 return
-            self.logger.debug("  > Applying role %r for %r:", player.role, player)
+            self.logger.debug("  > Applying role %r for %r:", player.power, player)
             success = powers_success[player.pk]
             if success:
-                success = player.role.pre_apply_dawn(self)
+                success = player.power.pre_apply_dawn(self)
                 self.logger.debug("    Success!" if success else "    Conditions for applying role not met!")
             else:
                 self.logger.debug("    Power blocked!")
-            event = PowerOutcomeEvent(player=player, success=success, command=player.role.recorded_command)
+            event = PowerOutcomeEvent(player=player, success=success, command=player.power.recorded_command)
             self.generate_event(event)
             if success:
-                player.role.apply_dawn(self)
+                player.power.apply_dawn(self)
 
         players = self.get_active_players()
         self.random.shuffle(players)
-        players.sort(key=lambda x:x.role.priority)
+        players.sort(key=lambda x:x.power.priority)
         for player in players:
-            assert player.role.priority is not None
+            assert player.power.priority is not None
             apply_role(player)
             while self._update_step(advancing_turn=True):
                 pass
@@ -706,7 +706,7 @@ class Dynamics:
         self.movements = []
         for player in self.players:
             if not self.simulating:
-                player.role.unrecord_targets()
+                player.power.unrecord_targets()
             player.apparent_aura = None
             player.apparent_mystic = None
             player.apparent_role = None

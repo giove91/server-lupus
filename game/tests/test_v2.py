@@ -305,7 +305,7 @@ class TestSpectralSequence(GameTest, TestCase):
         self.check_event(GhostificationEvent, {'player': self.contadino_a, 'ghost': Delusione})
         self.assertEqual(self.contadino_a.team, NEGROMANTI)
         self.assertFalse(self.contadino_a.is_mystic)
-        self.assertTrue(isinstance(self.contadino_a.role, Delusione))
+        self.assertTrue(isinstance(self.contadino_a.ghost, Delusione))
         self.check_event(RoleKnowledgeEvent, {'role_class': Negromante, 'cause': GHOST}, player=self.contadino_a, target=self.negromante_a)
         self.check_event(RoleKnowledgeEvent, {'role_class': Negromante, 'cause': GHOST}, player=self.contadino_a, target=self.negromante_b)
         self.check_event(RoleKnowledgeEvent, {'target': self.contadino_a, 'role_class': Delusione, 'cause': SPECTRAL_SEQUENCE}, player=self.negromante_a)
@@ -320,7 +320,7 @@ class TestSpectralSequence(GameTest, TestCase):
         # Check he is not Spettro
         self.check_event(GhostificationEvent, None)
         self.assertEqual(self.contadino_b.team, POPOLANI)
-        self.assertFalse(self.contadino_b.role.ghost)
+        self.assertFalse(self.contadino_b.ghost is not None)
 
         self.advance_turn(NIGHT)
 
@@ -330,7 +330,7 @@ class TestSpectralSequence(GameTest, TestCase):
 
         self.check_event(GhostificationEvent, None)
         self.assertEqual(self.diavolo.team, LUPI)
-        self.assertFalse(self.diavolo.role.ghost)
+        self.assertIsNone(self.diavolo.ghost)
 
         self.advance_turn(NIGHT)
 
@@ -340,7 +340,7 @@ class TestSpectralSequence(GameTest, TestCase):
 
         self.check_event(GhostificationEvent, {'player': self.contadino_c, 'ghost': Delusione})
         self.assertEqual(self.contadino_c.team, NEGROMANTI)
-        self.assertTrue(isinstance(self.contadino_c.role, Delusione))
+        self.assertTrue(isinstance(self.contadino_c.ghost, Delusione))
 
         self.advance_turn(NIGHT)
 
@@ -350,7 +350,7 @@ class TestSpectralSequence(GameTest, TestCase):
 
         self.check_event(GhostificationEvent, {'player': self.contadino_d, 'ghost': Delusione})
         self.assertEqual(self.contadino_d.team, NEGROMANTI)
-        self.assertTrue(isinstance(self.contadino_d.role, Delusione))
+        self.assertTrue(isinstance(self.contadino_d.ghost, Delusione))
 
         self.advance_turn(NIGHT)
 
@@ -360,7 +360,7 @@ class TestSpectralSequence(GameTest, TestCase):
 
         self.check_event(GhostificationEvent, None)
         self.assertEqual(self.contadino_e.team, POPOLANI)
-        self.assertFalse(self.contadino_e.role.ghost)
+        self.assertIsNone(self.contadino_e.ghost)
 
     def test_negromante(self):
         self.advance_turn(NIGHT)
@@ -373,15 +373,15 @@ class TestSpectralSequence(GameTest, TestCase):
         self.advance_turn()
 
         self.check_event(GhostSwitchEvent, {'player': self.contadino_a, 'ghost': Amnesia})
-        self.assertTrue(isinstance(self.contadino_a.role, Amnesia))
+        self.assertTrue(isinstance(self.contadino_a.ghost, Amnesia))
         self.advance_turn(NIGHT)
 
         self.usepower(self.negromante_a, self.contadino_a, role_class=Confusione)
-        self.assertNotIn(Amnesia, self.negromante_a.role.get_targets_role_class())
+        self.assertNotIn(Amnesia, self.negromante_a.power.get_targets_role_class())
         self.advance_turn()
 
         self.check_event(GhostSwitchEvent, {'player': self.contadino_a, 'ghost': Confusione})
-        self.assertIsInstance(self.contadino_a.role, Confusione)
+        self.assertIsInstance(self.contadino_a.ghost, Confusione)
         self.advance_turn(NIGHT)
 
         # Kill contadino_b => doesn't become spettro
@@ -463,8 +463,8 @@ class TestSpectralSequence(GameTest, TestCase):
         not_amnesia = self.contadino_a if bad_n == self.negromante_a else self.contadino_c
 
         self.check_event(GhostSwitchEvent, {'player': amnesia, 'ghost': Amnesia})
-        self.assertIsInstance(amnesia.role, Amnesia)
-        self.assertNotIsInstance(not_amnesia.role, Amnesia)
+        self.assertIsInstance(amnesia.ghost, Amnesia)
+        self.assertNotIsInstance(not_amnesia.ghost, Amnesia)
 
     def test_spettri_every_other_night(self):
         self.advance_turn(NIGHT)
@@ -482,7 +482,7 @@ class TestSpectralSequence(GameTest, TestCase):
         self.advance_turn(NIGHT)
 
         # Cannot use power
-        self.assertIsInstance(self.contadino_a.role, Confusione)
+        self.assertIsInstance(self.contadino_a.ghost, Confusione)
         self.assertFalse(self.contadino_a.can_use_power())
         self.advance_turn(NIGHT)
 
@@ -513,7 +513,7 @@ class TestSpectralSequence(GameTest, TestCase):
         self.check_event(GhostSwitchEvent, None, cause=NECROMANCER)
         self.check_event(GhostSwitchEvent, {'player': self.contadino_a, 'ghost': Delusione}, cause=DEATH_GHOST)
         self.check_event(PowerOutcomeEvent, {'success': False}, player=self.negromante_a)
-        self.assertIsInstance(self.contadino_a.role, Delusione)
+        self.assertIsInstance(self.contadino_a.ghost, Delusione)
         self.advance_turn(NIGHT)
 
         self.usepower(self.negromante_a, self.contadino_a, role_class=Confusione)
@@ -532,7 +532,7 @@ class TestSpectralSequence(GameTest, TestCase):
         self.usepower(self.negromante_a, self.contadino_c, role_class=Morte)
         self.advance_turn()
 
-        self.assertIsInstance(self.contadino_c.role, Morte)
+        self.assertIsInstance(self.contadino_c.ghost, Morte)
 
     def test_fantasma(self):
         self.advance_turn(NIGHT)
@@ -542,11 +542,11 @@ class TestSpectralSequence(GameTest, TestCase):
             self.advance_turn()
 
             self.check_event(GhostificationEvent, {'player': phantom})
-            powers.remove(phantom.role.__class__)
+            powers.remove(phantom.ghost.__class__)
             self.advance_turn(NIGHT)
 
         self.assertEqual(powers, set())
-        self.assertIsInstance(phantom.role, Delusione)
+        self.assertIsInstance(phantom.ghost, Delusione)
 
 class TestVotingPowers(GameTest, TestCase):
     roles = [ Contadino, Guardia, Veggente, Spia, Messia, Esorcista, Lupo, Stregone, Fattucchiera, Negromante]
@@ -840,7 +840,7 @@ class TestRoleKnowledge(GameTest, TestCase):
         self.advance_turn()
 
         self.check_event(RoleKnowledgeEvent, {'player': self.investigatore, 'target': self.contadino, 'role_class': Contadino})
-        self.assertTrue(isinstance(self.contadino.role, Amnesia))
+        self.assertTrue(isinstance(self.contadino.ghost, Amnesia))
 
     def test_divinatore_and_investigatore_with_confusione(self):
         self.advance_turn(NIGHT)

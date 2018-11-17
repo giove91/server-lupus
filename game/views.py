@@ -412,28 +412,28 @@ class UsePowerView(CommandView):
     def get_fields(self):
         player = self.request.player
         game = player.game
-        role = player.role
+        power = player.power
         
-        targets = role.get_targets()
-        targets2 = role.get_targets2()
-        role_classes = role.get_targets_role_class()
-        multiple_role_classes = role.get_targets_multiple_role_class()
+        targets = power.get_targets()
+        targets2 = power.get_targets2()
+        role_classes = power.get_targets_role_class()
+        multiple_role_classes = power.get_targets_multiple_role_class()
         
-        initial = role.recorded_target
-        initial2 = role.recorded_target2
-        initial_role_class = role.recorded_role_class
-        initial_multiple_role_class = role.recorded_multiple_role_class
+        initial = power.recorded_target
+        initial2 = power.recorded_target2
+        initial_role_class = power.recorded_role_class
+        initial_multiple_role_class = power.recorded_multiple_role_class
         
         fields = {}
 
 
         if targets is not None:
-            fields['target'] = {'choices': targets, 'initial': initial, 'label': role.message}
+            fields['target'] = {'choices': targets, 'initial': initial, 'label': power.message}
         if targets2 is not None:
-            fields['target2'] = {'choices': targets2, 'initial': initial2, 'label': role.message2}
+            fields['target2'] = {'choices': targets2, 'initial': initial2, 'label': power.message2}
         if role_classes is not None:
             role_classes = sorted(role_classes, key=lambda x: x.name)
-            fields['role_class'] = {'choices': role_classes, 'initial': initial_role_class, 'label': role.message_role}
+            fields['role_class'] = {'choices': role_classes, 'initial': initial_role_class, 'label': power.message_role}
         if multiple_role_classes is not None:
             multiple_role_classes = sorted(multiple_role_classes, key=lambda x: x.name)
             fields['multiple_role_class'] = {'choices': multiple_role_classes, 'initial': initial_multiple_role_class, 'label': ''}
@@ -442,12 +442,12 @@ class UsePowerView(CommandView):
     
     def save_command(self, cleaned_data):
         player = self.request.player
-        role = player.role
+        power = player.power
         
-        targets = role.get_targets()
-        targets2 = role.get_targets2()
-        role_classes = role.get_targets_role_class()
-        multiple_role_classes = role.get_targets_multiple_role_class()
+        targets = power.get_targets()
+        targets2 = power.get_targets2()
+        role_classes = power.get_targets_role_class()
+        multiple_role_classes = power.get_targets_multiple_role_class()
         
         target = cleaned_data['target']
         target2 = None
@@ -468,7 +468,7 @@ class UsePowerView(CommandView):
                 # If target2 is not valid (or None), make the command not valid
                 # unless target is None (which means that the power will not be used)
                 return False
-            if not role.allow_target2_same_as_target and target2 == target:
+            if not power.allow_target2_same_as_target and target2 == target:
                 return False
         
         if role_classes is not None:

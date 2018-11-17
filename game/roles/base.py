@@ -171,19 +171,19 @@ class Role(object):
     def apply_usepower(self, dynamics, event):
         # First checks
         assert event.player.pk == self.player.pk
-        assert self.can_use_power(), "Il %s %s ha tentato di usare il suo potere quando non poteva farlo." % (event.player.role.name, event.player.full_name)
+        assert self.can_use_power(), "Il %s %s ha tentato di usare il suo potere quando non poteva farlo." % (event.player.power.name, event.player.full_name)
 
         # Check target validity
         targets = self.get_targets()
         if targets is None:
             assert event.target is None
         else:
-            assert event.target is None or event.target in targets, (event.target, targets, event, event.player, event.player.role)
+            assert event.target is None or event.target in targets, (event.target, targets, event, event.player, event.player.power)
 
         # Check target2 validity
         targets2 = self.get_targets2()
         if targets2 is None:
-            assert event.target2 is None, event.player.role.power
+            assert event.target2 is None, event.player.power
         else:
             assert event.target2 is None or event.target2 in targets2
 
@@ -318,10 +318,10 @@ class Esorcista(Role):
         for blocker in players:
             if blocker.pk == self.player.pk:
                 continue
-            if not blocker.role.ghost:
+            if not blocker.power.ghost:
                 continue
-            if blocker.role.recorded_target is not None and \
-                    blocker.role.recorded_target.pk == self.recorded_target.pk:
+            if blocker.power.recorded_target is not None and \
+                    blocker.power.recorded_target.pk == self.recorded_target.pk:
                 ret.append(blocker.pk)
         return ret
 
@@ -404,7 +404,7 @@ class Messia(Role):
 
     def pre_apply_dawn(self, dynamics):
         # Power fails on Spettri
-        if self.recorded_target.role.ghost:
+        if self.recorded_target.ghost is not None:
             return False
         return True
 
@@ -428,7 +428,7 @@ class Sciamano(Role):
     def get_blocked(self, players):
         if self.recorded_target is None:
             return []
-        if self.recorded_target.role.ghost:
+        if self.recorded_target.power.ghost:
             return [self.recorded_target.pk]
         else:
             return []
@@ -468,7 +468,7 @@ class Trasformista(Role):
 
     def pre_apply_dawn(self, dynamics):
         # There are some forbidden roles
-        if self.recorded_target.team != POPOLANI and not self.recorded_target.role.ghost:
+        if self.recorded_target.team != POPOLANI and not self.recorded_target.ghost is not None:
             return False
         if self.recorded_target.role.frequency in [NEVER, ONCE_A_GAME]:
             return False
@@ -708,9 +708,9 @@ class Stregone(Role):
         for blocked in players:
             if blocked.pk == self.player.pk:
                 continue
-            if blocked.role.ghost:
+            if blocked.power.ghost:
                 continue
-            if blocked.role.recorded_target is not None and blocked.role.recorded_target.pk == self.recorded_target.pk:
+            if blocked.power.recorded_target is not None and blocked.power.recorded_target.pk == self.recorded_target.pk:
                 ret.append(blocked.pk)
         return ret
 
@@ -781,14 +781,14 @@ class Negromante(Role):
         from ..events import GhostificationEvent, RoleKnowledgeEvent
 
         if not self.recorded_target.just_ghostified:
-            assert not self.recorded_target.role.ghost
+            assert self.recorded_target.ghost is None
             dynamics.generate_event(GhostificationEvent(player=self.recorded_target, ghost=self.recorded_role_class, cause=NECROMANCER))
             self.recorded_target.just_ghostified = True
 
         else:
             # Since GhostificationEvent is not applied during simulation,
             # we must not check the following during simulation
-            assert self.recorded_target.role.ghost or dynamics.simulating
+            assert self.recorded_target.ghost is not None or dynamics.simulating
 
         dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_class=self.player.role.__class__, cause=GHOST))
 
@@ -1059,12 +1059,12 @@ class Occultamento(Spettro):
             return []
         ret = []
         for blocker in players:
-            if isinstance(blocker.role, Esorcista):
+            if isinstance(blocker.power, Esorcista):
                 continue
             if blocker.pk == self.player.pk:
                 continue
-            if blocker.role.recorded_target is not None and \
-                    blocker.role.recorded_target.pk == self.recorded_target.pk:
+            if blocker.power.recorded_target is not None and \
+                    blocker.power.recorded_target.pk == self.recorded_target.pk:
                 ret.append(blocker.pk)
         return ret
 

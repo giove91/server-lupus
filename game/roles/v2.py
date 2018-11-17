@@ -250,13 +250,13 @@ class Negromante(Negromante):
         if self.recorded_role_class in dynamics.used_ghost_powers:
             return False
 
-        if not self.recorded_target.role.ghost and not [x for x in dynamics.get_dead_players() if x.role.necromancer and not x.consumed_soul]:
+        if self.recorded_target.ghost is None and not [x for x in dynamics.get_dead_players() if x.role.necromancer and not x.consumed_soul]:
             return False
 
         return True
 
     def apply_dawn(self, dynamics):
-        if self.recorded_target.role.ghost:
+        if self.recorded_target.ghost is not None:
             from ..events import GhostSwitchEvent
             dynamics.generate_event(GhostSwitchEvent(player=self.recorded_target, ghost=self.recorded_role_class, cause=NECROMANCER))
         else:
