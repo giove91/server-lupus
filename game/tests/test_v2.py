@@ -361,7 +361,7 @@ class TestSpectralSequence(GameTest, TestCase):
 
         self.check_event(GhostificationEvent, None)
         self.assertEqual(self.contadino_e.team, POPOLANI)
-        self.assertIsNone(self.contadino_e.dead_power)
+        self.assertIsInstance(self.contadino_e.dead_power, NoPower)
 
     def test_negromante(self):
         self.advance_turn(NIGHT)
@@ -396,16 +396,14 @@ class TestSpectralSequence(GameTest, TestCase):
         self.usepower(self.lupo, self.negromante_a)
         self.advance_turn(NIGHT)
 
-        self.assertFalse(self.negromante_a.can_use_power())
-        self.usepower(self.negromante_b, self.contadino_b, role_class=Amnesia)
+        self.assertFalse(self.negromante_a.alive)
+        self.assertIsInstance(self.negromante_a.dead_power, Spettrificazione)
+        self.assertTrue(self.negromante_a.can_use_power())
+        self.usepower(self.negromante_a, self.contadino_b, role_class=Amnesia)
         self.advance_turn()
 
-        self.check_event(PowerOutcomeEvent, {'player': self.negromante_b, 'success': True})
+        self.check_event(PowerOutcomeEvent, {'player': self.negromante_a, 'success': True})
         self.check_event(GhostificationEvent, {'player': self.contadino_b, 'ghost': Amnesia})
-        events = self.get_events(SoulConsumptionEvent)
-        self.assertEqual({event.target for event in events}, {self.negromante_a})
-        self.assertEqual({event.player for event in events}, {self.negromante_a, self.negromante_b})
-        self.assertTrue(self.negromante_a.consumed_soul)
         self.advance_turn(NIGHT)
 
         # Kill contadini
@@ -417,11 +415,7 @@ class TestSpectralSequence(GameTest, TestCase):
         self.advance_turn(NIGHT)
 
         self.assertEqual(self.contadino_e.team, POPOLANI)
-        self.usepower(self.negromante_b, self.contadino_e, role_class=Telepatia)
-        self.advance_turn()
-
-        self.check_event(PowerOutcomeEvent, {'player': self.negromante_b, 'success': False})
-        self.assertEqual(self.contadino_e.team, POPOLANI)
+        self.assertFalse(self.negromante_a.can_use_power())
 
     def test_negromanti_make_same_spettro(self):
         self.advance_turn(NIGHT)
@@ -509,16 +503,10 @@ class TestSpectralSequence(GameTest, TestCase):
         self.check_event(PowerOutcomeEvent, {'success': True}, player=self.contadino_a)
         self.check_event(PlayerDiesEvent, {'player': self.diavolo})
         self.check_event(GhostSwitchEvent, None, cause=NECROMANCER)
-        self.check_event(GhostSwitchEvent, {'player': self.contadino_a, 'ghost': Delusione}, cause=DEATH_GHOST)
+        self.check_event(UnGhostificationEvent, {'player': self.contadino_a})
         self.check_event(PowerOutcomeEvent, {'success': False}, player=self.negromante_a)
-        self.assertIsInstance(self.contadino_a.dead_power, Delusione)
-        self.advance_turn(NIGHT)
-
-        self.usepower(self.negromante_a, self.contadino_a, role_class=Confusione)
-        self.assertFalse(self.contadino_a.can_use_power())
-        self.advance_turn()
-
-        self.check_event(PowerOutcomeEvent, {'success': False}, player=self.negromante_a)
+        self.assertIsInstance(self.contadino_a.dead_power, NoPower)
+        self.assertFalse(self.contadino_a.specter)
         self.advance_turn(NIGHT)
 
         # Morte can be reassigned

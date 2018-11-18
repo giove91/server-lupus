@@ -249,6 +249,8 @@ class Negromante(Negromante):
     def pre_apply_dawn(self, dynamics):
         if self.recorded_role_class in dynamics.used_ghost_powers:
             return False
+        if not self.recorded_target.specter:
+            return False
 
         return True
 
@@ -256,6 +258,10 @@ class Negromante(Negromante):
         assert self.recorded_target.specter
         from ..events import GhostSwitchEvent
         dynamics.generate_event(GhostSwitchEvent(player=self.recorded_target, ghost=self.recorded_role_class, cause=NECROMANCER))
+
+    def post_death(self, dynamics):
+        if isinstance(self.player.dead_power, NoPower):
+            self.player.dead_power = Spettrificazione(self.player)
 
 class Spettrificazione(Role):
     name = "Spettrificazione"
@@ -413,9 +419,9 @@ class Morte(Morte):
     def apply_dawn(self, dynamics):
         if not self.recorded_target.just_dead:
             assert self.recorded_target.alive
-            from ..events import PlayerDiesEvent, GhostSwitchEvent
+            from ..events import PlayerDiesEvent, UnGhostificationEvent
             dynamics.generate_event(PlayerDiesEvent(player=self.recorded_target, cause=DEATH_GHOST))
-            dynamics.generate_event(GhostSwitchEvent(player=self.player, ghost=Delusione, cause=DEATH_GHOST))
+            dynamics.generate_event(UnGhostificationEvent(player=self.player))
 
 class Occultamento(Occultamento):
     pass

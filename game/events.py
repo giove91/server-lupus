@@ -737,8 +737,11 @@ class RoleKnowledgeEvent(Event):
         elif self.cause == HYPNOTIST_DEATH:
             assert False
 
-        if self.cause in [EXPANSIVE, GHOST, PHANTOM, HYPNOTIST_DEATH, KNOWLEDGE_CLASS]:
-            assert isinstance(self.target.canonicalize().power, self.role_class)
+        if self.cause in [EXPANSIVE, KNOWLEDGE_CLASS, GHOST]:
+            assert isinstance(self.target.canonicalize().role, self.role_class)
+
+        if self.cause in [PHANTOM, HYPNOTIST_DEATH]:
+            assert isinstance(self.target.canonicalize().dead_power, self.role_class)
 
 
     def to_player_string(self, player):
@@ -1269,6 +1272,34 @@ class GhostificationFailedEvent(Event):
             return u'Il Fantasma %s non diventa uno Spettro per mancanza di poteri soprannaturali.' % self.player.full_name
         else:
             return None
+
+class UnGhostificationEvent(Event):
+    RELEVANT_PHASES = [DAWN]
+    AUTOMATIC = True
+
+    player = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
+
+    def apply(self, dynamics):
+        player = self.player.canonicalize()
+
+        assert player.specter
+        from game.roles.base import NoPower
+        if not self.player.dead_power.allow_duplicates:
+            dynamics.used_ghost_powers.remove(self.player.dead_power.__class__)
+        player.dead_power.pre_disappearance(dynamics)
+        player.dead_power = NoPower(player)
+        player.specter = False
+
+    def to_player_string(self, player):
+        oa = self.player.oa
+
+        if player == self.player:
+            return u'Sembra che tu possa finalmente riposare... Non sei più uno Spettro.' % oa
+        elif player == 'admin':
+            return u'%s non è più uno Spettro.' % self.player.full_name
+        else:
+            return None
+
 
 class GhostSwitchEvent(Event):
     RELEVANT_PHASES = [DAWN]
