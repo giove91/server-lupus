@@ -112,6 +112,7 @@ HUNTER = 'H'
 WOLVES = 'W'
 ASSASSIN = 'A'
 DEATH_GHOST = 'D'
+LIFE_GHOST = 'L'
 
 # Stake failure causes
 MISSING_QUORUM = 'Q'
@@ -122,6 +123,7 @@ NECROMANCER = 'N'
 PHANTOM = 'P'
 HYPNOTIST_DEATH = 'H'
 SPECTRAL_SEQUENCE = 'S'
+LIFE_GHOST = 'L'
 
 # Role knowledge causes (PHANTOM clashes with the ghostification cause
 # and so must set to the same value --- curse insufficient namespace

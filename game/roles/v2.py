@@ -241,7 +241,7 @@ class Negromante(Negromante):
         return [player for player in self.player.game.get_active_players() if player.specter and player.pk != self.player.pk]
 
     def get_targets_role_class(self):
-        powers = {Amnesia, Assoluzione, Confusione, Diffamazione, Illusione, Morte, Occultamento, Telepatia}
+        powers = {Amnesia, Assoluzione, Confusione, Diffamazione, Illusione, Morte, Occultamento, Telepatia, Vita}
         dynamics = self.player.game.get_dynamics()
         available_powers = powers - dynamics.used_ghost_powers
         return available_powers
@@ -441,7 +441,24 @@ class Telepatia(Spettro):
 
         dynamics.post_event_triggers.append(trigger)
 
+class Vita(Spettro):
+    name = 'Vita'
+    verbose_name = 'Spettro con l\'Incantesimo della Vita'
+    priority = USELESS
 
+    def post_appearance(self, dynamics):
+        assert not self.player.alive
+        from ..events import PlayerResurrectsEvent
+        dynamics.generate_event(PlayerResurrectsEvent(player=self.player))
+
+    def pre_disappearance(self, dynamics):
+        if self.player.alive:
+            from ..events import PlayerDiesEvent
+            dynamics.generate_event(PlayerDiesEvent(player=self.player, cause=LIFE_GHOST))
+
+    def post_death(self, dynamics):
+        from ..events import GhostSwitchEvent
+        dynamics.generate_event(GhostSwitchEvent(player=self.player, ghost=Delusione, cause=LIFE_GHOST))
 
 ## ORDER COSTRAINTS
 #

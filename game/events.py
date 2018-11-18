@@ -568,6 +568,7 @@ class PlayerDiesEvent(Event):
         (WOLVES, 'Wolves'),
         (ASSASSIN, 'Assassin'),
         (DEATH_GHOST, 'DeathGhost'),
+        (LIFE_GHOST, 'LifeGhost'),
         )
     cause = models.CharField(max_length=1, choices=DEATH_CAUSE_TYPES, default=None)
 
@@ -577,6 +578,7 @@ class PlayerDiesEvent(Event):
         WOLVES: [DAWN],
         DEATH_GHOST: [DAWN],
         ASSASSIN: [DAWN],
+        LIFE_GHOST: [DAWN]
         }
 
     def apply(self, dynamics):
@@ -599,6 +601,7 @@ class PlayerDiesEvent(Event):
         player.just_dead = False
 
         player.role.post_death(dynamics)
+        player.dead_power.post_death(dynamics)
         # Trigger generic post_death code
         dynamics.rules.post_death(dynamics, player)
 
@@ -1302,7 +1305,7 @@ class UnGhostificationEvent(Event):
 
 
 class GhostSwitchEvent(Event):
-    RELEVANT_PHASES = [DAWN]
+    RELEVANT_PHASES = [DAWN, SUNSET]
     AUTOMATIC = True
 
     player = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
@@ -1311,6 +1314,7 @@ class GhostSwitchEvent(Event):
     GHOSTIFICATION_CAUSES = (
         (NECROMANCER, 'Necromancer'),
         (DEATH_GHOST, 'DeathGhost'),
+        (LIFE_GHOST, 'LifeGhost'),
         )
     cause = models.CharField(max_length=1, choices=GHOSTIFICATION_CAUSES, default=None)
 
@@ -1344,6 +1348,12 @@ class GhostSwitchEvent(Event):
                 return u'Percepisci che qualcosa è cambiato intorno a te. Sei ora uno %s.' % (power)
             elif player == 'admin':
                 return u'%s è ora uno %s.' % (self.player.full_name, power)
+
+        elif self.cause == LIFE_GHOST:
+            if player == self.player:
+                return u'Percepisci che l\'Incantesimo della Vita si è spezzato.'
+            elif player == 'admin':
+                return u'L\'Incantesimo della Vita attivo su %s si è spezzato.' % self.player.full_name
 
         else:
             raise Exception ('Unknown cause for GhostSwitchEvent')
