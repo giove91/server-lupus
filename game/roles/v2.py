@@ -315,7 +315,8 @@ class Fantasma(Fantasma):
 
 class Delusione(Spettro):
     # Spettro yet to be initialized (or who has lost his power).
-    verbose_name = 'Spettro senza alcun potere soprannaturale'
+    name "Nessuno"
+    verbose_name = 'Nessuno'
     frequency = NEVER
     priority = USELESS
     allow_duplicates = True
@@ -328,8 +329,8 @@ class Amnesia(Amnesia):
         self.recorded_target.has_permanent_amnesia = True
 
 class Assoluzione(Spettro):
-    name = "Spettro dell'Assoluzione"
-    verbose_name = 'Spettro con il potere soprannaturale dell\'Assoluzione'
+    name = "Assoluzione"
+    verbose_name = 'Incantesimo dell\'Assoluzione'
     priority = MODIFY
     frequency = EVERY_OTHER_NIGHT
     targets = ALIVE
@@ -347,8 +348,8 @@ class Assoluzione(Spettro):
         dynamics.vote_influences.append(vote_influence)
 
 class Diffamazione(Spettro):
-    name = "Spettro della Diffamazione"
-    verbose_name = 'Spettro con il potere soprannaturale della Diffamazione'
+    name = "Diffamazione"
+    verbose_name = 'Incantesimo della Diffamazione'
     priority = MODIFY
     frequency = EVERY_NIGHT
     targets = ALIVE
@@ -420,8 +421,8 @@ class Occultamento(Occultamento):
     pass
 
 class Telepatia(Spettro):
-    name = 'Spettro della Telepatia'
-    verbose_name = 'Spettro con il potere soprannaturale della Telepatia'
+    name = 'Telepatia'
+    verbose_name = 'Incantesimo della Telepatia'
     priority = EVENT_INFLUENCE
     frequency = EVERY_OTHER_NIGHT
     targets = ALIVE

@@ -65,7 +65,7 @@ class Role(object):
     ''' Roles in the same knowledge class will be aware of each other at game start. '''
     knowledge_class = None
 
-    message = 'Usa il tuo potere su:'
+    message = 'Agisci su:'
     message2 = 'Parametro secondario:'
 
     def __init__(self, player):
@@ -913,8 +913,8 @@ class Spettro(Role):
 
 
 class Amnesia(Spettro):
-    name = 'Spettro dell\'Amnesia'
-    verbose_name = 'Spettro con il potere soprannaturale dell\'Amnesia'
+    name = 'Amnesia'
+    verbose_name = 'Incantesimo dell\'Amnesia'
     priority = MODIFY + 1 # Must act after ipnosi
     frequency = EVERY_NIGHT
     targets = ALIVE
@@ -939,8 +939,8 @@ class Amnesia(Spettro):
         dynamics.vote_influences.append(vote_influence)
 
 class Confusione(Spettro):
-    name = 'Spettro della Confusione'
-    verbose_name = 'Spettro con il potere soprannaturale della Confusione'
+    name = 'Confusione'
+    verbose_name = 'Incantesimo della Confusione'
     priority = QUERY_INFLUENCE
     frequency = EVERY_NIGHT
     targets = EVERYBODY
@@ -964,8 +964,8 @@ class Confusione(Spettro):
 
 
 class Corruzione(Spettro):
-    name = 'Spettro della Corruzione'
-    verbose_name = 'Spettro con il potere soprannaturale della Corruzione'
+    name = 'Corruzione'
+    verbose_name = 'Incantesimo della Corruzione'
     priority = POST_MORTEM
     frequency = ONCE_A_GAME
     targets = ALIVE
@@ -986,8 +986,8 @@ class Corruzione(Spettro):
         dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_class=self.__class__, cause=CORRUPTION))
 
 class Illusione(Spettro):
-    name = 'Spettro dell\'Illusione'
-    verbose_name = 'Spettro con il potere soprannaturale dell\'Illusione'
+    name = 'Illusione'
+    verbose_name = 'Incantesimo dell\'Illusione'
     priority = QUERY_INFLUENCE
     frequency = EVERY_OTHER_NIGHT
     targets = EVERYBODY
@@ -1003,8 +1003,8 @@ class Illusione(Spettro):
         dynamics.movements.append(illusion)
 
 class Ipnosi(Spettro):
-    name = 'Spettro dell\'Ipnosi'
-    verbose_name = 'Spettro con il potere soprannaturale dell\'Ipnosi'
+    name = 'Ipnosi'
+    verbose_name = 'Incantesimo dell\'Ipnosi'
     priority = MODIFY
     frequency = EVERY_OTHER_NIGHT
     targets = EVERYBODY
@@ -1026,8 +1026,8 @@ class Ipnosi(Spettro):
         dynamics.vote_influences.append(vote_influence)
 
 class Morte(Spettro):
-    name = 'Spettro della Morte'
-    verbose_name = 'Spettro con il potere soprannaturale della Morte'
+    name = 'Morte'
+    verbose_name = 'Incantesimo della Morte'
     priority = KILLER
     frequency = EVERY_OTHER_NIGHT
     can_act_first_night = False
@@ -1050,8 +1050,8 @@ class Morte(Spettro):
             dynamics.generate_event(PlayerDiesEvent(player=self.recorded_target, cause=DEATH_GHOST))
 
 class Occultamento(Spettro):
-    name = 'Spettro dell\'Occultamento'
-    verbose_name = 'Spettro con il potere soprannaturale dell\'Occultamento'
+    name = 'Occultamento'
+    verbose_name = 'Incantesimo dell\'Occultamento'
     critical_blocker = True
     priority = BLOCK
     frequency = EVERY_NIGHT
@@ -1076,8 +1076,8 @@ class Occultamento(Spettro):
         return ret
 
 class Visione(Spettro):
-    name = 'Spettro della Visione'
-    verbose_name = 'Spettro con il potere soprannaturale della Visione'
+    name = 'Visione'
+    verbose_name = 'Incantesimo della Visione'
     priority = QUERY
     frequency = EVERY_NIGHT
     targets = ALIVE

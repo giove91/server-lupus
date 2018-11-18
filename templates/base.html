@@ -158,7 +158,7 @@
                         {% endif %}
                     {% endif %}
                     {% if current_turn.phase == NIGHT %}
-                        <li><a href="{% url 'game:usepower' game_name=game.name %}" data-toggle="tooltip" title="Usa il potere speciale di {{ player.full_name }}.">Potere notturno</a></li>
+                        <li><a href="{% url 'game:usepower' game_name=game.name %}" data-toggle="tooltip" title="Usa il potere speciale di {{ player.full_name }}.">{{ player.alive | yesno:"Abilità notturna,Potere notturno"}}</a></li>
                     {% endif %}
                     {% if player is not None and display_mayor and player.is_mayor %}
                         <li><a href="{% url 'game:appoint' game_name=game.name %}" data-toggle="tooltip" title="Scegli la persona che {{ player.full_name }} eleggerà come successore.">Designa successore</a></li>
@@ -221,7 +221,7 @@
                             {% endif %}
                         {% endif %}
                         {% if current_turn.phase == NIGHT %}
-                            <li><a href="{% url 'game:usepower' game_name=game.name %}" data-toggle="tooltip" title="Usa il tuo potere speciale.">Potere notturno</a></li>
+                            <li><a href="{% url 'game:usepower' game_name=game.name %}" data-toggle="tooltip" title="Usa {{ player.alive | yesno:"la tua abilità,il tuo potere"}} speciale.">{{ player.alive | yesno:"Abilità notturna,Potere notturno"}}</a></li>
                         {% endif %}
                         {% if player.is_mayor %}
                             <li><a href="{% url 'game:appoint' game_name=game.name %}" data-toggle="tooltip" title="Scegli che diventerà Sindaco in caso di una tua prematura dipartita.">Designa successore</a></li>

@@ -2,7 +2,7 @@
 
 {% block personal_info %}
     <h1>Informazioni personali</h1>
-    
+
     <div class="info-block">
         <table class="normal">
             <tr><td>Nome</td><td>{{ player.full_name }}</td></tr>
@@ -12,7 +12,11 @@
             </td></tr>
             <tr><td>Aura</td><td>{{ player.aura_as_italian_string_property }}</td></tr>
             <tr><td>Stato</td><td>{{ player.status_as_italian_string_property }}</td></tr>
-            <tr><td>Mistico</td><td>{{ player.is_mystic|yesno:"Sì,No,Boh" }}
+            <tr><td>Mistico</td><td>{{ player.is_mystic|yesno:"Sì,No,Boh" }}</td></tr>
+            {% if player.specter %}
+              <tr><td>Spettro</td><td>{{ player.specter | yesno:"Sì,No,Boh" }}</td></tr>
+              <tr><td>Incantesimo</td><td>{{ player.dead_power.name }}</td></tr>
+            {% endif %}
             {% if current_turn.phase == DAY %}
                 <tr><td>Vota</td><td>{{ player.recorded_vote | default:"Nessuno" }}</td></tr>
                 {% if display_mayor %}
@@ -22,13 +26,13 @@
                 <tr><td>Usa potere su</td><td>{{ player.role.recorded_target | default:"Nessuno" }}</td></tr>
             {% endif %}
         </table>
-        
+
         {% if player.is_mayor %}
             <p>Sei l'attuale Sindaco del villaggio.</p>
         {% endif %}
-        
+
     </div>
-    
+
 {% endblock %}
 
 {% block events_title %}

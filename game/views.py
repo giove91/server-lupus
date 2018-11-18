@@ -402,28 +402,28 @@ class CommandView(GameFormView):
 ## Night power
 
 class UsePowerView(CommandView):
-    
-    title = 'Potere notturno'
+
+    title = 'Azione speciale'
     url_name = 'game:usepower'
-    
+
     def can_execute_action(self):
         return self.request.player is not None and self.request.player.can_use_power()
-    
+
     def get_fields(self):
         player = self.request.player
         game = player.game
         power = player.power
-        
+
         targets = power.get_targets()
         targets2 = power.get_targets2()
         role_classes = power.get_targets_role_class()
         multiple_role_classes = power.get_targets_multiple_role_class()
-        
+
         initial = power.recorded_target
         initial2 = power.recorded_target2
         initial_role_class = power.recorded_role_class
         initial_multiple_role_class = power.recorded_multiple_role_class
-        
+
         fields = {}
 
 
@@ -437,18 +437,18 @@ class UsePowerView(CommandView):
         if multiple_role_classes is not None:
             multiple_role_classes = sorted(multiple_role_classes, key=lambda x: x.name)
             fields['multiple_role_class'] = {'choices': multiple_role_classes, 'initial': initial_multiple_role_class, 'label': ''}
-        
+
         return fields
-    
+
     def save_command(self, cleaned_data):
         player = self.request.player
         power = player.power
-        
+
         targets = power.get_targets()
         targets2 = power.get_targets2()
         role_classes = power.get_targets_role_class()
         multiple_role_classes = power.get_targets_multiple_role_class()
-        
+
         target = cleaned_data['target']
         target2 = None
         role_class = None
@@ -456,10 +456,10 @@ class UsePowerView(CommandView):
 
         if target == '':
             target = None
-        
+
         if target is not None and not target in targets:
             return False
-        
+
         if targets2 is not None:
             target2 = cleaned_data['target2']
             if target2 == '':
@@ -470,7 +470,7 @@ class UsePowerView(CommandView):
                 return False
             if not power.allow_target2_same_as_target and target2 == target:
                 return False
-        
+
         if role_classes is not None:
             role_class = cleaned_data['role_class']
             if role_class == '':
@@ -493,13 +493,13 @@ class UsePowerView(CommandView):
                 # If role_class is not valid (or None), make the command not valid
                 # unless target is None (which means that the power will not be used)
                 return False
-        
+
         # If target is None, then the other fields are set to None
         if target is None:
             target2 = None
             role_class = None
             multiple_role_class = None
-        
+
         command = CommandEvent(player=player, type=USEPOWER, target=target, target2=target2, role_class=role_class, multiple_role_class=multiple_role_class, turn=player.game.current_turn, timestamp=get_now())
         if not command.check_phase(turn=self.request.current_turn):
             return False
@@ -510,33 +510,33 @@ class UsePowerView(CommandView):
 ## Stake vote
 
 class VoteView(CommandView):
-    
+
     title = 'Votazione per il rogo'
     url_name = 'game:vote'
-    
+
     def can_execute_action(self):
         return self.request.player is not None and self.request.player.can_vote()
-    
+
     def get_fields(self):
         player = self.request.player
         game = player.game
         choices = game.get_alive_players()
         initial = player.recorded_vote
-        
+
         fields = {'target': {'choices': choices, 'initial': initial, 'label': 'Vota per condannare a morte:'} }
         return fields
-    
+
     def save_command(self, cleaned_data):
         player = self.request.player
         game = player.game
         target = cleaned_data['target']
-        
+
         if target == '':
             target = None
-        
+
         if target is not None and target not in game.get_alive_players():
             return False
-        
+
         command = CommandEvent(player=player, type=VOTE, target=target, turn=game.current_turn, timestamp=get_now())
         if not command.check_phase(turn=self.request.current_turn):
             return False
@@ -547,33 +547,33 @@ class VoteView(CommandView):
 ## Mayor vote
 
 class ElectView(CommandView):
-    
+
     title = 'Elezione del Sindaco'
     url_name = 'game:elect'
-    
+
     def can_execute_action(self):
         return self.request.player is not None and self.request.player.can_vote() and self.request.dynamics.rules.mayor
-    
+
     def get_fields(self):
         player = self.request.player
         game = player.game
         choices = game.get_alive_players()
         initial = player.recorded_elect
-        
+
         fields = {'target': {'choices': choices, 'initial': initial, 'label': 'Vota per eleggere:'} }
         return fields
-    
+
     def save_command(self, cleaned_data):
         player = self.request.player
         game = player.game
         target = cleaned_data['target']
-        
+
         if target == '':
             target = None
-        
+
         if target is not None and target not in game.get_alive_players():
             return False
-        
+
         command = CommandEvent(player=player, type=ELECT, target=target, turn=game.current_turn, timestamp=get_now())
         if not command.check_phase(turn=self.request.current_turn):
             return False
@@ -584,36 +584,36 @@ class ElectView(CommandView):
 
 # View for appointing a successor (for mayor only)
 class AppointView(CommandView):
-    
+
     title = 'Nomina del successore'
     url_name = 'game:appoint'
-    
+
     def can_execute_action(self):
         return self.request.player is not None and self.request.player.is_mayor() and self.request.dynamics.rules.mayor and (self.request.game.current_turn.phase in [DAY, NIGHT])
-    
+
     def get_fields(self):
         player = self.request.player
         game = player.game
         choices = [p for p in game.get_alive_players() if p.pk != player.pk]
         initial = game.get_dynamics().appointed_mayor
-        
+
         fields = {'target': {'choices': choices, 'initial': initial, 'label': 'Designa come successore:'} }
         return fields
-    
+
     def save_command(self, cleaned_data):
         player = self.request.player
         game = player.game
         target = cleaned_data['target']
-        
+
         if target == '':
             target = None
-        
+
         if target is not None and target not in game.get_alive_players():
             return False
-        
+
         if target is not None and target == player:
             return False
-        
+
         command = CommandEvent(player=player, type=APPOINT, target=target, turn=game.current_turn, timestamp=get_now())
         if not command.check_phase(turn=self.request.current_turn):
             return False
@@ -1255,7 +1255,7 @@ class SpectralSequenceForm(forms.Form):
         super().__init__(*args, **kwargs)
 
     sequence = forms.MultipleChoiceField(
-            widget=forms.CheckboxSelectMultiple(), 
+            widget=forms.CheckboxSelectMultiple(),
             choices = tuple((i, 'Morto %s' % (i+1)) for i in range(20)),
             label='Popolani da rendere spettri:'
     )
