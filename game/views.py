@@ -417,6 +417,8 @@ class UsePowerView(CommandView):
         targets = power.get_targets()
         targets2 = power.get_targets2()
         role_classes = power.get_targets_role_class()
+        if role_classes is not None:
+            role_classes -= {power.get_target_role_class_default()}
         multiple_role_classes = power.get_targets_multiple_role_class()
 
         initial = power.recorded_target
@@ -447,6 +449,7 @@ class UsePowerView(CommandView):
         targets = power.get_targets()
         targets2 = power.get_targets2()
         role_classes = power.get_targets_role_class()
+        role_class_default = power.get_target_role_class_default()
         multiple_role_classes = power.get_targets_multiple_role_class()
 
         target = cleaned_data['target']
@@ -474,7 +477,7 @@ class UsePowerView(CommandView):
         if role_classes is not None:
             role_class = cleaned_data['role_class']
             if role_class == '':
-                role_class = None
+                role_class = role_class_default
             else:
                 role_class = Role.get_from_string(role_class)
             if not role_class in role_classes and target is not None:

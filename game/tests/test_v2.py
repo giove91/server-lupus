@@ -88,6 +88,30 @@ class TestWebInterface(GameTest, TestCase):
         self.advance_turn()
         self.check_event(MultipleRoleKnowledgeEvent, {'player': self.diavolo, 'response': True, 'multiple_role_class': {Veggente, Negromante}})
 
+    def test_deactivate_power(self):
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.contadino)
+        self.advance_turn(NIGHT)
+
+        c = Client()
+        c.force_login(self.negromante.user)
+        response = c.get('/game/test/usepower/')
+        self.assertEqual(response.context['form'].fields.keys(), {'target', 'role_class'})
+
+        response = c.post('/game/test/usepower/', {'target': self.contadino.user.pk, 'role_class': Vita.as_string()})
+        self.assertEqual(response.status_code, 200)
+
+        self.advance_turn()
+        self.assertTrue(self.contadino.alive)
+
+        self.advance_turn(NIGHT)
+        response = c.post('/game/test/usepower/', {'target': self.contadino.user.pk, 'role_class': ''})
+        self.assertEqual(response.status_code, 200)
+
+        self.advance_turn()
+        self.assertFalse(self.contadino.alive)
+
     def test_vote(self):
         self.advance_turn(DAY)
 

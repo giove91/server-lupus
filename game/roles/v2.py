@@ -39,6 +39,8 @@ class Divinatore(Divinatore):
     targets = ALIVE
     targets_role_class = ALIVE
 
+    message_role = 'Scopri se è il seguente ruolo:'
+
     def apply_dawn(self, dynamics):
         if dynamics.get_apparent_role(self.recorded_target) == self.recorded_role_class:
             from ..events import RoleKnowledgeEvent
@@ -251,10 +253,13 @@ class Negromante(Negromante):
         return [player for player in self.player.game.get_active_players() if player.specter and player.pk != self.player.pk]
 
     def get_targets_role_class(self):
-        powers = {Amnesia, Assoluzione, Confusione, Diffamazione, Illusione, Morte, Occultamento, Telepatia, Vita}
+        powers = {Amnesia, Assoluzione, Confusione, Diffamazione, Illusione, Morte, Occultamento, Telepatia, Vita, Delusione}
         dynamics = self.player.game.get_dynamics()
         available_powers = powers - dynamics.used_ghost_powers
         return available_powers
+
+    def get_target_role_class_default(self):
+        return Delusione
 
     def pre_apply_dawn(self, dynamics):
         if self.recorded_role_class in dynamics.used_ghost_powers:
@@ -269,7 +274,8 @@ class Negromante(Negromante):
     def apply_dawn(self, dynamics):
         assert self.recorded_target.specter
         from ..events import GhostSwitchEvent
-        dynamics.generate_event(GhostSwitchEvent(player=self.recorded_target, ghost=self.recorded_role_class, cause=NECROMANCER))
+        spell = self.recorded_role_class if self.recorded_role_class is not None else Delusione
+        dynamics.generate_event(GhostSwitchEvent(player=self.recorded_target, ghost=spell, cause=NECROMANCER))
 
     def post_death(self, dynamics):
         if isinstance(self.player.dead_power, NoPower):

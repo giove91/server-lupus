@@ -146,6 +146,10 @@ class Role(object):
             None: None
         }[self.targets_role_class]
 
+    def get_target_role_class_default(self):
+        '''Returns a role which acts as None.'''
+        return None
+
     def get_targets_multiple_role_class(self):
         '''Returns a set of possible multiple role class targets.'''
         return {
