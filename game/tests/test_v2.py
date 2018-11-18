@@ -125,7 +125,7 @@ class TestWebInterface(GameTest, TestCase):
         self.assertEqual(dict(response.context['events'])[self.game.current_turn.prev_turn()]['standard'], [])
 
         response = c.get('/game/test/personalinfo/')
-        self.assertEqual(dict(response.context['events'])[self.game.current_turn.prev_turn()]['standard'], ['Hai utilizzato con successo il tuo potere su %s.' % self.lupo.full_name, 'Scopri che %s ha aura nera.' % self.lupo.full_name])
+        self.assertEqual(dict(response.context['events'])[self.game.current_turn.prev_turn()]['standard'], ['Hai utilizzato con successo la tua abilità su %s.' % self.lupo.full_name, 'Scopri che %s ha aura nera.' % self.lupo.full_name])
 
         c.force_login(self.lupo.user)
         response = c.get('/game/test/personalinfo/')

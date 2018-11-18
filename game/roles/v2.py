@@ -314,9 +314,9 @@ class Fantasma(Fantasma):
                                                            cause=PHANTOM))
 
 class Delusione(Spettro):
-    # Spettro yet to be initialized (or who has lost his power).
-    name "Nessuno"
-    verbose_name = 'Nessuno'
+    # Spettro yet to be initialized.
+    name = "Nessuno"
+    verbose_name = "Spettro senza alcun Incantesimo attivo"
     frequency = NEVER
     priority = USELESS
     allow_duplicates = True
@@ -330,7 +330,7 @@ class Amnesia(Amnesia):
 
 class Assoluzione(Spettro):
     name = "Assoluzione"
-    verbose_name = 'Incantesimo dell\'Assoluzione'
+    verbose_name = 'Spettro con l\'Incantesimo dell\'Assoluzione'
     priority = MODIFY
     frequency = EVERY_OTHER_NIGHT
     targets = ALIVE
@@ -349,7 +349,7 @@ class Assoluzione(Spettro):
 
 class Diffamazione(Spettro):
     name = "Diffamazione"
-    verbose_name = 'Incantesimo della Diffamazione'
+    verbose_name = 'Spettro con l\'Incantesimo della Diffamazione'
     priority = MODIFY
     frequency = EVERY_NIGHT
     targets = ALIVE
@@ -422,7 +422,7 @@ class Occultamento(Occultamento):
 
 class Telepatia(Spettro):
     name = 'Telepatia'
-    verbose_name = 'Incantesimo della Telepatia'
+    verbose_name = 'Spettro con l\'Incantesimo della Telepatia'
     priority = EVENT_INFLUENCE
     frequency = EVERY_OTHER_NIGHT
     targets = ALIVE

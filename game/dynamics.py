@@ -687,7 +687,7 @@ class Dynamics:
                 self.logger.debug("    Success!" if success else "    Conditions for applying role not met!")
             else:
                 self.logger.debug("    Power blocked!")
-            event = PowerOutcomeEvent(player=player, success=success, command=player.power.recorded_command)
+            event = PowerOutcomeEvent(player=player, success=success, command=player.power.recorded_command, power=player.power.__class__)
             self.generate_event(event)
             if success:
                 player.power.apply_dawn(self)

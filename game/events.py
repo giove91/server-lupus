@@ -1306,19 +1306,13 @@ class GhostSwitchEvent(Event):
 
     def to_player_string(self, player):
         oa = self.player.oa
-        power = self.ghost.name
+        power = self.ghost.verbose_name
 
         if self.cause == NECROMANCER:
             if player == self.player:
-                return u'Il tuo potere soprannaturale è cambiato! Sei diventat%s ora uno %s.' % (oa, power)
+                return u'Percepisci che qualcosa è cambiato intorno a te. Sei ora uno %s.' % (power)
             elif player == 'admin':
-                return u'%s è stat%s trasformat%s in uno %s.' % (self.player.full_name, oa, oa, power)
-
-        elif self.cause == DEATH_GHOST:
-            if player == self.player:
-                return u'Hai perso il potere soprannaturale della Morte.'
-            elif player == 'admin':
-                return u'%s ha perso il potere soprannaturale della Morte.' % self.player.full_name
+                return u'%s è ora uno %s.' % (self.player.full_name, power)
 
         else:
             raise Exception ('Unknown cause for GhostSwitchEvent')
@@ -1332,12 +1326,14 @@ class PowerOutcomeEvent(Event):
 
     player = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
     command = models.OneToOneField(CommandEvent, on_delete=models.CASCADE)
+    power = RoleField()
     success = models.BooleanField(default=False)
 
     def apply(self, dynamics):
         assert self.command.type == USEPOWER
         assert self.command.player.pk == self.player.pk
         assert self.command.target is not None
+        assert self.power is not None
 
         player = self.player.canonicalize()
         if self.success or not dynamics.rules.forgiving_failures:
@@ -1350,28 +1346,19 @@ class PowerOutcomeEvent(Event):
         target = self.command.target
         oa = self.player.oa
 
-        def role_description(role, ghost):
-            if ghost:
-                return '%s, ex %s' % (ghost.name, role.name)
-            else:
-                return role.name
-
-        player_role = role_description(self.player.role, self.player.dead_power)
-        target_role = role_description(target.role, target.dead_power)
-
         if self.success:
             if player == self.player:
-                return u'Hai utilizzato con successo il tuo potere su %s.' % target.full_name
+                return u'Hai utilizzato con successo %s su %s.' % ("il tuo potere" if self.power.dead_power else "la tua abilità", target.full_name)
 
             elif player == 'admin':
-                return u'%s (%s) ha utilizzato con successo il proprio potere su %s (%s).' % (self.player.full_name, player_role, target.full_name, target_role)
+                return u'%s ha utilizzato con successo %s di %s su %s.' % (self.player.full_name, "il proprio potere" if self.power.dead_power else "la propria abilità", self.power.name, target.full_name)
 
         else:
             if player == self.player:
-                return u'Ti risvegli confus%s e stordit%s: l\'unica cosa di cui sei cert%s è di non essere riuscit%s ad utilizzare il tuo potere su %s, questa notte.' % (oa, oa, oa, oa, target.full_name)
+                return u'Ti risvegli confus%s e stordit%s: l\'unica cosa di cui sei cert%s è di non essere riuscit%s ad utilizzare %s su %s, questa notte.' % (oa, oa, oa, oa, "il tuo potere" if self.power.dead_power else "la tua abilità", target.full_name)
 
             elif player == 'admin':
-                return '%s (%s) non è riuscit%s ad utilizzare il proprio potere su %s (%s).' % (self.player.full_name, player_role, oa, target.full_name, target_role)
+                return '%s non è riuscit%s ad utilizzare %s di %s su %s.' % (self.player.full_name, oa, "il proprio potere" if self.power.dead_power else "la propria abilità", self.power.name, target.full_name)
 
 
 class DisqualificationEvent(Event):
@@ -1428,7 +1415,7 @@ class TelepathyEvent(Event):
 
     def to_player_string(self, player):
         if player == 'admin':
-            return u'Lo Spettro della Telepatia %s percepisce che %s ha ottenuto la seguente informazione: %s' % (self.player, self.perceived_event.player, self.get_perceived_message())
+            return u'Lo Spettro %s percepisce che %s ha ottenuto la seguente informazione: %s' % (self.player, self.perceived_event.player, self.get_perceived_message())
         else:
             return None
 
