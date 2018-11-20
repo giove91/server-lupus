@@ -94,8 +94,9 @@ class Sciamano(Sciamano):
 
     def apply_dawn(self, dynamics):
         self.recorded_target.protected_by_keeper = True
-        from ..events import GhostSwitchEvent
-        dynamics.generate_event(GhostSwitchEvent(player=self.recorded_target, ghost=Delusione, cause=SHAMAN))
+        if self.recorded_target.specter and not isinstance(self.recorded_target.dead_power, Delusione):
+            from ..events import GhostSwitchEvent
+            dynamics.generate_event(GhostSwitchEvent(player=self.recorded_target, ghost=Delusione, cause=SHAMAN))
 
 class Stalker(Stalker):
     pass
@@ -319,16 +320,6 @@ class Fantasma(Fantasma):
 
         from ..events import RoleKnowledgeEvent, GhostificationEvent
         dynamics.generate_event(GhostificationEvent(player=self.player, cause=PHANTOM, ghost=power))
-        for negromante in dynamics.players:
-            if negromante.role.necromancer:
-                dynamics.generate_event(RoleKnowledgeEvent(player=self.player,
-                                                           target=negromante,
-                                                           role_class=negromante.role.__class__,
-                                                           cause=GHOST))
-                dynamics.generate_event(RoleKnowledgeEvent(player=negromante,
-                                                           target=self.player,
-                                                           role_class=power,
-                                                           cause=PHANTOM))
 
 class Delusione(Spettro):
     # Spettro yet to be initialized.
