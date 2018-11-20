@@ -6,7 +6,8 @@ from django.template.loader import render_to_string
 from .models import *
 from .events import *
 from .constants import *
-
+from datetime import timedelta
+from .utils import get_now
 
 def render_to_file(template, filename, context):
     codecs.open(filename, 'w', 'utf-8').write(render_to_string(template, context))
@@ -38,7 +39,7 @@ class LetterRenderer:
             if message is not None:
                 self.initial_knowledge.append(message)
         
-        soothsayer_events = [ev for ev in self.game.get_dynamics().events if isinstance(ev, RoleKnowledgeEvent) and ev.player == player and ev.cause == SOOTHSAYER]
+        soothsayer_events = [ev for ev in self.game.get_dynamics().events if isinstance(ev, SoothsayerModelEvent) and ev.soothsayer == player]
         self.soothsayer_knowledge = []
         for event in soothsayer_events:
             message = event.to_soothsayer_proposition()
@@ -73,12 +74,14 @@ class LetterRenderer:
         render_to_file(template, 'templates/' + self.directory + filename, self.context)
         
         # Compiling
-        os.system('pdflatex -output-directory templates/' + self.directory + ' templates/' + self.directory + filename)
-        
+        time = get_now()
+        os.system('pdflatex -output-directory templates/' + self.directory + ' templates/' + self.directory + filename + ' | grep "!"')
+        assert get_now() - time <= timedelta(seconds=1)
+
         # Cleaning
-        os.system('rm ' + self.directory + basename + '.tex')
-        os.system('rm ' + self.directory + basename + '.aux')
-        os.system('rm ' + self.directory + basename + '.log')
+        os.system('rm templates/' + self.directory + basename + '.tex')
+        os.system('rm templates/' + self.directory + basename + '.aux')
+        os.system('rm templates/' + self.directory + basename + '.log')
     
     def render_role(self):
         template = self.template_role
@@ -90,7 +93,9 @@ class LetterRenderer:
         render_to_file(template, 'templates/' + self.directory + filename, self.context)
         
         # Compiling
-        os.system('pdflatex -output-directory templates/' + self.directory + ' templates/' + self.directory + filename)
+        time = get_now()
+        os.system('pdflatex -output-directory templates/' + self.directory + ' templates/' + self.directory + filename + '| grep "!"')
+        assert get_now() - time <= timedelta(seconds=1)
         
         # Cleaning
         os.system('rm templates/' + self.directory + basename + '.tex')

@@ -31,7 +31,7 @@
 
 
 \subsection*{Ruolo e personaggio}
-Carissim{{ player.oa }} {{ player.full_name }}, nel corso della partita ricoprirai il ruolo di {{ player.role.full_name }}.
+Carissim{{ player.oa }} {{ player.full_name }}, nel corso della partita ricoprirai il ruolo di {{ player.role.name }}.
 
 {% include "letters/role_details.tex" %}
 
@@ -58,7 +58,7 @@ Tuttavia vi vengono fornite le seguenti utilissime proposizioni, che i Game Mast
 \end{itemize}
 {% endif %}
 
-Il Sindaco del villaggio è {{ mayor.full_name }}.
+%Il Sindaco del villaggio è {{ mayor.full_name }}.
 
 
 \subsection*{Credenziali di accesso all'interfaccia web}
@@ -67,7 +67,7 @@ Le comunicazioni relative alle dinamiche di gioco (non le comunicazioni tra gioc
 L'indirizzo a cui collegarsi è il seguente:
 \nopagebreak
 \begin{center}
-    \verb|http://lupus.uz.sns.it/|
+    \verb|https://lupus.uz.sns.it/|
 \end{center}
 
 Le credenziali con cui puoi accedere all'area riservata (per votare, utilizzare il tuo potere notturno e visualizzare le informazioni personali) sono le seguenti.
@@ -81,14 +81,14 @@ Le credenziali con cui puoi accedere all'area riservata (per votare, utilizzare 
 
 
 \subsection*{Elenco dei giocatori}
-Partecipano alla partita {{ numplayers }} giocatori, di cui si fornisce l'elenco completo:
+Partecipano alla partita {{ numplayers }} giocatori, di cui si fornisce l'elenco completo, con nome utente del forum:
 \nopagebreak
 
 \begin{minipage}{0.5\textwidth}
 \small
 \begin{tabular}{ll}
 {% for player in players %}
-        {{ player.full_name }} & \verb| {{ player.user.email }} | \\
+        {{ player.full_name }} & \verb| {{ player.user.username }} | \\
 {% if forloop.counter == column_height %}
 \end{tabular}
 \end{minipage}
@@ -99,12 +99,6 @@ Partecipano alla partita {{ numplayers }} giocatori, di cui si fornisce l'elenco
 {% endfor %}
 \end{tabular}
 \end{minipage}
-
-È stata creata una mailing-list che potete utilizzare per scrivere a tutti i giocatori:
-\begin{center}
-\verb||
-\end{center}
-
 
 \subsection*{Segretezza delle informazioni}
 
@@ -117,7 +111,7 @@ Discorso analogo si applica all'interfaccia web: alcune pagine (quelle che, nel 
 \subsection*{Comunicazioni con i Game Master}
 
 I Game Master che gestiscono la partita sono Alessandro Iraci, Matteo Migliorini e Manuele Cusumano.
-In caso di dubbi o necessità, potete contattarli all'indirizzo e-mail:
+In caso di dubbi o necessità, potete contattarli scrivendo al gruppo lupus_8_gm oppure via email.
 
 \end{document}
 

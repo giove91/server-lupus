@@ -11,6 +11,7 @@ from django.utils import timezone
 from django.test import TestCase, Client
 
 from game.models import *
+import game.roles.v2 as v2
 from game.roles.v2 import *
 from game.events import *
 from game.constants import *
@@ -188,6 +189,29 @@ class TestWebInterface(GameTest, TestCase):
         c.force_login(self.contadino.user)
         response = c.get('/game/test/comment/')
         self.assertNotIn(comment, response.context['old_comments'])
+
+
+class TestLetterRender(GameTest, TestCase):
+    roles =  [getattr(v2, k) for k in dir(v2) if isclass(getattr(v2, k)) and issubclass(getattr(v2, k), Role) and getattr(v2, k).__module__ == 'game.roles.v2']
+    roles = [x for x in roles if not x.dead_power]
+    spectral_sequence = []
+
+    def setUp(self):
+        super().setUp()
+        for player in self.players:
+            player.user.last_name = player.role.name
+            player.user.save()
+        self.soothsayer_proposition(self.divinatore, self.espansivo, Veggente)
+        self.soothsayer_proposition(self.divinatore, self.negromante, Guardia)
+        self.soothsayer_proposition(self.divinatore, self.lupo, Contadino)
+        self.soothsayer_proposition(self.divinatore, self.contadino, Contadino)
+
+    def test_rendering(self):
+        from ..letter_renderer import LetterRenderer
+        for player in self.players:
+            with self.subTest(role = player.role.__class__):
+                lr = LetterRenderer(player)
+                lr.render_all()
 
 
 class TestQuorum(GameTest, TestCase):
@@ -1310,7 +1334,7 @@ class TestVita(GameTest, TestCase):
         self.advance_turn()
 
         self.check_event(VoteAnnouncedEvent, {'voted': self.veggente}, voter=self.veggente)
-        self.check_event(PlayerDiesEvent, {'player': self.veggente})
+        self.check_event(PlayerDiesEvent, {'player': self.veggente, 'cause':STAKE})
         self.check_event(GhostSwitchEvent, {'player': self.veggente, 'ghost': Delusione, 'cause': LIFE_GHOST})
         self.assertIsInstance(self.veggente.role, Veggente)
         self.assertIsInstance(self.veggente.dead_power, Delusione)
