@@ -1,36 +1,24 @@
 {% if player.role_name == "Contadino" %}
-Sei un contadino, ovvero un buzzurro, villano, bifolco, villico, bovaro, burino, eccetera. Hai essenzialmente due modalità di azione: ``influenzabile sempliciotto'', in cui credi supinamente a qualunque cosa ti dicano, e ``folla inferocita'', in cui brandisci un forcone e parti al linciaggio di
-chiunque ti capiti a tiro.
+Sei un contadino, ovvero un buzzurro, villano, bifolco, villico, bovaro, burino, eccetera. Hai essenzialmente due modalità di azione: "influenzabile sempliciotto", in cui credi supinamente a qualunque cosa ti dicano, e "folla inferocita", in cui brandisci un forcone e parti al linciaggio di chiunque ti capiti a tiro.
 
-Il Contadino appartiene alla Fazione dei Popolani e non ha alcun potere speciale.
-{% endif %}
-
-
-{% if player.role_name == "Cacciatore" %}
-Cerbiatti, coniglietti, allodole ed altri teneri animali del sottobosco per te non sono altro che selvaggina, cappotti, girocolli e scaldamani. E qualche volta un bel trofeo. Ti sei rifugiato in questo piccolo villaggio per sfuggire ad un gruppo di animalisti inferociti che aveva iniziato a pattugliare il tuo terreno di caccia preferito: la riserva naturale per la protezione del panda gigante.
-
-Il Cacciatore appartiene alla Fazione dei Popolani, ma gode di una pessima reputazione presso le associazioni animaliste e quindi la sua aura è nera. Una sola volta durante l'arco della partita, in una notte dopo la prima, egli può scegliere un personaggio vivo contro cui puntare il suo fucile. Il Cacciatore uccide il personaggio scelto.
-{% endif %}
-
-
-{% if player.role_name == "Custode" %}
-Il tuo era un lavoro di tutto riposo, anzi, di eterno riposo: lucidare le lapidi, strappare qualche erbaccia, cambiare l'acqua ai fiori e l'olio ai lumini. Al cimitero hai fatto conoscenza con molti personaggi interessanti: investigatori, esorcisti, maghi, messia, necrofili. Poi una mattina hai trovato una tomba svuotata, con candele nere tutte intorno e sulla lapide un pentagramma rosso che non veniva via neanche col Vetril. Da allora ogni notte ti apposti con Guendalina in pugno (sì, la tua pala ha un nome), per dare ai visitatori notturni l'accoglienza che meritano.
-
-Il Custode del Cimitero appartiene alla Fazione dei Popolani e ogni due notti può scegliere un giocatore morto di cui custodire la tomba. Per quella notte, se uno o più Negromanti tentano di risvegliare come Spettro il personaggio scelto dal Custode del Cimitero, il loro potere non ha alcun effetto. Inoltre, il Custode del cimitero scopre anche quanti altri personaggi hanno agito sul personaggio scelto (ma non quali).
+Il Contadino appartiene alla Fazione dei Popolani e non ha alcuna abilità.
 {% endif %}
 
 
 {% if player.role_name == "Sciamano" %}
 Gli ultimi tagli alla ricerca scientifica hanno dato il colpo di grazia agli esperimenti dello scienziato pazzo per cui lavoravi (anche la folla armata di torce e forconi non ha aiutato). E così, dopo anni di fedele servizio, ti sei trovato disoccupato e in piena crisi mistica: la condizione ideale per prenderti un anno sabbatico in India, cambiare il tuo nome da Aigor a Brahamavarta e diplomarti in pratiche sciamaniche di primo livello. Tornato al villaggio, avverti subito forti vibrazioni negative dovute allo stagionale attacco di licantropia. Anche se nessuno si fida di te, cerchi comunque di aiutare qualche anima in pena.
 
-Lo Sciamano è un mistico e appartiene alla Fazione dei Popolani, ma a causa del suo passato da Profanatore di Tombe ha aura nera. Ogni due notti, lo Sciamano può scegliere un personaggio morto e tormentarne lo spirito. Se il personaggio scelto è uno Spettro, e questi agisce, il suo potere non ha effetto.
+Lo Sciamano è un mistico e appartiene alla Fazione dei Popolani, ma a causa del suo passato da Profanatore di Tombe ha aura nera. Ogni due notti, lo Sciamano può scegliere un personaggio morto e tormentarne lo spirito. Spezza l'Incantesimo eventualmente presente su di esso. Se un Negromante tenta di lanciare un'Incantesimo sul personaggio scelto quella notte, la sua abilità non ha effetto.
 {% endif %}
 
 
 {% if player.role_name == "Divinatore" %}
 Hai sempre pensato di essere un tipo qualunque, il contadino medio pronto a linciare alla cieca senza farsi troppe domande. Ma da quando nel villaggio hanno cominciato a succedere fatti strani continui a sognare tuo nonno che invece dei numeri del lotto ripete le solite quattro frasi. Sei certo che due siano vere e due false. Ma quali?
 
-Il Divinatore è un mistico, appartiene alla Fazione dei Popolani e non ha alcun potere speciale. All'inizio della partita il Divinatore è a conoscenza di quattro proposizioni, di cui esattamente due sono vere ed esattamente due sono false.
+Il Divinatore è un mistico e appartiene alla Fazione dei Popolani. Ogni due notti, il Divinatore può scegliere un personaggio vivo
+ed un ruolo, ed effettuare una divinazione su di lui. Scopre se il personaggio scelto ha tale ruolo.
+
+All'inizio della partita il Divinatore è a conoscenza di quattro proposizioni, di cui almeno una è vera e almeno una è falsa.
 
 Le quattro proposizioni sono le seguenti.
 \begin{itemize}
@@ -44,14 +32,14 @@ Le quattro proposizioni sono le seguenti.
 {% if player.role_name == "Esorcista" %}
 L'apparizione della tua torreggiante figura avvolta in una tonaca nera inquieta tutti i passanti, tranne quando sei coperto di vomito verde. Negli ultimi anni hai fatto un giro panoramico del Lato Oscuro, alleandoti con lupi mannari, streghe, diavoli e perfino avvocati. Questo però non autorizza dei negromanti emopiagnoni a invadere il tuo territorio. Armato di bibbia rinforzata in acciaio e pistola ad acqua santa, sei pronto ad affrontare le armate delle tenebre. C'è un nuovo esorcista in città.
 
-L'Esorcista è un mistico e appartiene alla Fazione dei Popolani. Ogni due notti, l'Esorcista può scegliere un personaggio, vivo o morto, e benedire la sua casa. Per quella notte, se uno Spettro tenta di utilizzare il proprio potere sul personaggio scelto dall'Esorcista, il suo potere non ha effetto.
+L'Esorcista è un mistico e appartiene alla Fazione dei Popolani. Ogni due notti, l'Esorcista può scegliere un personaggio, vivo o morto, e benedire la sua casa. Per quella notte, i poteri utilizzati su tale personaggio non hanno effetto. Le abilità funzionano invece normalmente
 {% endif %}
 
 
 {% if player.role_name == "Espansivo" %}
 La tua voglia di amare gli altri è tanto potente che non puoi fare a meno di andare in giro ad abbracciare la gente. È ammirevole che tu non abbia ancora desistito, dopo aver cercato di abbracciare, nell'ordine, un lupo, un serial killer con l'ulcera e Barbieri.
 
-L'Espansivo appartiene alla Fazione dei Popolani ed ha un potere attivabile ogni due notti. L'Espansivo può scegliere un personaggio vivo e andare a trovarlo. A questo personaggio viene rivelata l'identità dell'Espansivo.
+L'Espansivo appartiene alla Fazione dei Popolani. Ogni due notti, l'Espansivo può scegliere un personaggio vivo e andare a trovarlo. A questo personaggio viene rivelata l'identità dell'Espansivo.
 {% endif %}
 
 
@@ -65,8 +53,7 @@ La Guardia del corpo appartiene alla Fazione dei Popolani e ogni notte può sceg
 {% if player.role_name == "Investigatore" %}
 I bifolchi ti hanno fatto venire dalla grande città per indagare sulle morti misteriose. Porti un impermeabile marrone, un cappello a tesa larga e una barba di tre giorni. Fumi una sigaretta dopo l'altra e tieni la tua fiaschetta di whiskey sempre a portata di mano. Un vero duro. Peccato che tu ti sia preparato per la licenza di investigatore guardando la Signora in Giallo.
 
-L'Investigatore appartiene alla Fazione dei Popolani e ogni notte può scegliere un personaggio morto per indagare su di esso. Scopre il colore della sua aura.
-{% endif %}
+L'Investigatore appartiene alla Fazione dei Popolani e ogni notte può scegliere un personaggio morto per indagare su di esso. Scopre il suo ruolo.{% endif %}
 
 
 {% if player.role_name == "Mago" %}
@@ -79,14 +66,14 @@ Il Mago è un mistico e appartiene alla Fazione dei Popolani. Ogni notte può sc
 {% if player.role_name == "Massone" %}
 Illuminato fratello, benvenuto nella loggia! Per guadagnarti l'accesso alla sala, tuttavia, dovrai mostrare l'anello segreto, fare l'occhiolino segreto, dare la stretta di mano segreta e, ehm, aiutarci a trovare la chiave. Se sei alto meno di 1 metro e 70 e il tuo cognome inizia per B, puoi saltare questa procedura.
 
-I Massoni appartengono alla Fazione dei Popolani e non hanno alcun potere speciale. I Massoni si conoscono a vicenda.
+I Massoni appartengono alla Fazione dei Popolani e non hanno alcuna abilità. I Massoni si conoscono a vicenda.
 {% endif %}
 
 
 {% if player.role_name == "Messia" %}
 Sei l'Eccelso, il Predestinato, il Santissimo (se sei religioso), l'Eletto (se sei molto nerd), l'Unto del Signore (lasciamo perdere che è meglio). Di fronte a te la luce avanza, le tenebre arretrano e riesci a far risollevare dalle tombe più morti che il regista medio di film di zombie.
 
-Il Messia è un mistico e appartiene alla Fazione dei Popolani. Ha un potere attivabile di notte, una sola volta in tutta la partita. Il Messia può scegliere di resuscitare un personaggio morto che tornerà in vita il giorno seguente, riacquistando i suoi poteri speciali. Il suo potere non funziona sugli Spettri.
+Il Messia è un mistico e appartiene alla Fazione dei Popolani. Ha un'abilità attivabile di notte, una sola volta in tutta la partita. Il Messia può scegliere di resuscitare un personaggio morto che tornerà in vita il giorno seguente, riacquistando i suoi poteri speciali. Il suo potere non funziona sugli Spettri.
 {% endif %}
 
 
@@ -94,14 +81,14 @@ Il Messia è un mistico e appartiene alla Fazione dei Popolani. Ha un potere att
 {% if player.role_name == "Stalker" %}
 Più appiccicoso della melassa, più insistente di una canzone degli One Direction, più fastidioso di una colonia di formiche rosse insediata nelle mutande. Una volta puntata una vittima la segui ovunque, e questo include anche il gabinetto, le atroci riunioni del club del libro e i ricevimenti del professor Beltram.
 
-Lo Stalker appartiene (stranamente) alla Fazione dei Popolani ed ha un potere attivabile ogni due giorni. Lo Stalker sceglie un personaggio vivo da pedinare e scopre se ha agito durante la notte e, nel caso, su chi; non scopre però cosa ha fatto.
+Lo Stalker appartiene (stranamente) alla Fazione dei Popolani. Ogni due notti, lo Stalker sceglie un personaggio vivo da pedinare e scopre se ha agito durante la notte e, nel caso, su chi; non scopre però cosa ha fatto.
 {% endif %}
 
 
 {% if player.role_name == "Trasformista" %}
 Anche il tuo numero di scarpe è un mistero. Nella vita hai cambiato più facce che cappelli e nemmeno tua madre potrebbe riconoscerti ormai, ammesso che tu ti ricordi chi è tua madre. Forse sei un agente segreto, un supereroe, o forse cerchi solo di rifarti una vita dove nessuno conosce i tuoi incresciosi trascorsi da necrofilo. La passione per i cimiteri però ti è rimasta e nel tempo libero ami passeggiare tra le tombe in cerca di una nuova identità.
 
-Il Trasformista appartiene alla Fazione dei Popolani, ma la sua vita nel mistero gli conferisce aura nera. Ha un potere attivabile di notte, una sola volta in tutta la partita. Il Trasformista può scegliere un personaggio morto. Se il personaggio scelto, nel momento in cui è morto, aveva un ruolo con un potere speciale attivabile una volta ogni una o due notti, ed apparteneva alla Fazione dei Popolani, il Trasformista lo scopre ed ottiene tale ruolo; altrimenti, il potere del Trasformista non ha effetto.
+Il Trasformista appartiene alla Fazione dei Popolani, ma la sua vita nel mistero gli conferisce aura nera. Ha un potere attivabile di notte, una sola volta in tutta la partita. Il Trasformista può scegliere un personaggio morto. Se il personaggio scelto ha un ruolo appartenente alla fazione dei Popolani, il Trasformista lo scopre ed ottiene tale ruolo; altrimenti, il potere del Trasformista non ha effetto.
 {% endif %}
 
 
@@ -115,7 +102,7 @@ Il Veggente è un mistico e appartiene alla Fazione dei Popolani. Ogni notte pu�
 {% if player.role_name == "Voyeur" %}
 Nascosto nel tuo cespuglio di fiducia con un binocolo dotato di sensori a infrarossi, ti diverti a spiare tutte le attività della notte: coppiette che copulano, riti satanici, lupi mannari che straziano orrendamente i corpi delle loro vittime, e ogni tanto un ubriaco che arriva barcollando e piscia nel tuo cespuglio.
 
-Il Voyeur appartiene alla Fazione dei Popolani ed ha un potere attivabile ogni due notti. Il Voyeur può scegliere un personaggio vivo e spiare la sua casa. Scopre quali altri personaggi durante la notte hanno agito sul personaggio scelto, ma non cosa hanno fatto.
+Il Voyeur appartiene alla Fazione dei Popolani. Ogni due notti, il Voyeur può scegliere un personaggio vivo e spiare la sua casa. Scopre quali altri personaggi durante la notte hanno agito sul personaggio scelto, ma non cosa hanno fatto.
 {% endif %}
 
 
@@ -123,61 +110,44 @@ Il Voyeur appartiene alla Fazione dei Popolani ed ha un potere attivabile ogni d
 {% if player.role_name == "Lupo" %}
 Di giorno solo le folte basette, le profonde occhiaie e la tendenza a grattarti col piede dietro l'orecchio tradiscono quello che diventi di notte: un terribile lupo mannaro! Sei una bestia assetata di sangue, nata per uccidere, e il tuo unico cruccio è che qualche volta i contadini armati di forconi ci azzeccano.
 
-I Lupi sono cattivi, brutti, hanno l'alito pesante e appartengono alla Fazione dei Lupi (ma dai). I Lupi si conoscono tra loro. Ogni notte i Lupi possono scegliere un personaggio vivo da uccidere. Se tutti i Lupi che decidono di usare il proprio potere scelgono lo stesso personaggio, questi muore. Se almeno due Lupi indicano personaggi diversi, il loro potere non ha alcun effetto.
-Il potere dei Lupi ha effetto solo sui componenti della Fazione dei Popolani.
+I Lupi sono cattivi, brutti, hanno l'alito pesante e appartengono alla Fazione dei Lupi (ma dai). Ogni notte i Lupi possono scegliere un personaggio vivo da uccidere. Se tutti i Lupi che decidono di usare il proprio potere scelgono lo stesso personaggio, questi muore. Se almeno due Lupi indicano personaggi diversi, la loro abilità non ha alcun effetto.
 {% endif %}
 
 {% if player.role_name == "Assassino" %}
 John Kennedy, Paolo Borsellino e Kenny di South Park sono solo alcuni degli omicidi con cui non hai assolutamente niente a che fare, ma a cui ti ispiri per diventare famoso. Hai deciso di appendere il fucile al chiodo e ritirarti in campagna, ma la recente striscia di omicidi ti ha spinto a riprendere il tuo vecchio hobby.
 
-L'Assassino appartiene alla Fazione dei Lupi, e conosce gli Avvocati, i Sequestratori, i Necrofili, i Rinnegati e gli eventuali altri Assassini. Ogni due notti dopo la prima, l'Assassino può scegliere un personaggio vivo e puntare il suo fucile di precisione verso casa sua. Uccide uno degli altri personaggi che hanno usato il proprio potere sul personaggio scelto dall'Assassino, selezionato in modo casuale.
+A causa della sua passione per gli omicidi, l'Assassino appartiene alla Fazione dei Lupi. Ogni due notti dopo la prima, l'Assassino può scegliere un personaggio vivo e puntare il suo fucile di precisione verso casa sua. Uccide uno degli altri personaggi che hanno usato il proprio potere sul personaggio scelto dall'Assassino, selezionato in modo casuale.
 {% endif %}
-
-{% if player.role_name == "Avvocato" %}
-La tua specialità è parlare per tre ore senza mai riprendere fiato e senza dire assolutamente nulla. In un villaggio di contadini che non hanno mai sentito pronunciare una parola più lunga di tre sillabe, questo ti rende pressoché onnipotente.
-
-L'Avvocato non solo appartiene alla Fazione dei Lupi, ma è pure un avvocato. Ha un potere attivabile ogni due notti. L'Avvocato può scegliere un personaggio vivo e far approvare per esso una legge \emph{ad personam}. Se durante il giorno successivo l'assemblea delibera di uccidere tale personaggio, questi non muore. Grazie ai suoi agganci nella malavita, l'Avvocato conosce gli altri Avvocati, gli Assassini, i Necrofili, i Rinnegati ed i Sequestratori.
-{% endif %}
-
 
 {% if player.role_name == "Diavolo" %}
 Tu sei l'Angelo Caduto, la Bestia, il Maligno! Il tuo numero fortunato è 666. Sei dotato di molteplici teste cornute e di tanto in tanto ti trasformi in drago, serpente, donna nuda o cantante rock. I tuoi unici problemi sono che la tua farina è andata di nuovo tutta in crusca e hai a casa un intero stock di pentole senza coperchi, che non sai come piazzare; per fortuna ne sai una più del diavolo, e questo significa che ne sai davvero tante.
 
-Il Diavolo appartiene alla Fazione dei Lupi e conosce le Fattucchiere, gli Stregoni e gli eventuali altri Diavoli. Ogni notte il Diavolo può scegliere un personaggio vivo per leggere nella sua anima. Scopre il ruolo del personaggio scelto.
+Il Diavolo appartiene alla Fazione dei Lupi. Ogni notte, il Diavolo può scegliere un personaggio vivo e un sottoinsieme dei ruoli, e scrutare fra le fiamme. Scopre se il ruolo del personaggio scelto appartiene a tale sottoinsieme.
 {% endif %}
 
 
 {% if player.role_name == "Fattucchiera" %}
 Passi il sabato sera insieme alle tue colleghe, a far ribollire lingue di varano, peli di pipistrello e pollici di marinaio per scatenare letali epidemie di singhiozzo nel villaggio. Sei una crudele creatura del Maligno, ma la tua credibilità è sminuita dal fatto di chiamarti fata Zurlina. E il fatto che la gente scoppi a ridere al sentire il tuo nome, non fa che aumentare il tuo desiderio di trasformarli tutti in rospi...
 
-La Fattucchiera è un mistico e appartiene alla Fazione dei Lupi; conosce i Diavoli, gli Stregoni e le eventuali altre Fattucchiere. Ogni notte la Fattucchiera può indicare un personaggio, vivo o morto, e stregarlo. Per quella notte l'aura di tale personaggio appare del colore opposto a quello effettivo.
-{% endif %}
-
-{% if player.role_name == "Necrofilo" %}
-Tutto il villaggio ti conosce come il fondatore del club di giardinaggio, senza sospettare che si tratti di un'abile copertura per poter girare indisturbato con una vanga in spalla. Mettiamola così: il giorno che riceverai il freddo bacio della morte, non sarà per te una novità.
-
-I suoi gusti particolari non piacevano agli abitanti del villaggio, e così il Necrofilo si è trasferito nella Fazione dei Lupi. Ha un potere speciale attivabile di notte: una sola volta durante l'arco della partita, il Necrofilo può scegliere un personaggio morto e fare... ehm... ecco... e prenderne il ruolo. Se il personaggio scelto appartiene alla Fazione dei Lupi, il Necrofilo lo scopre ed ottiene tale ruolo; altrimenti, il potere del Necrofilo non ha effetto. Conosce gli Assassini, gli Avvocati, i Rinnegati, i Sequestratori e gli eventuali altri Necrofili. Se il Necrofilo utilizza il suo... ehm, potere con successo, il bersaglio scopre (suo malgrado) l'identità del Necrofilo.</p>
-
+La Fattucchiera è un mistico e appartiene alla Fazione dei Lupi; la sua magia le conferisce aura bianca. Ogni notte la Fattucchiera può indicare un personaggio, vivo o morto, e un ruolo. Per quella notte il ruolo, l'aura e la misticità di tale personaggio appariranno come se quest'ultimo avesse il ruolo scelto.
 {% endif %}
 
 
-{% if player.role_name == "Rinnegato" %}
-Sei bello e dannato, uno sbandato senza onore e senza legge, un peccatore che vaga di luogo in luogo senza mai trovare pace. Al tuo arrivo nel villaggio sei accolto dai sospiri delle contadine, che fanno a gara per curare le ferite del tuo animo tormentato e accarezzare i tuoi zigomi cesellati. La loro fiducia è mal riposta, ma non sarai certo tu a metterle in guardia.
-
-Il Rinnegato appartiene alla Fazione dei Lupi, ma a causa del suo fascino irresistibile la sua aura è bianca. Non ha alcun potere speciale. Conosce gli Assassini, gli Avvocati, i Necrofili, i Sequestratori e gli eventuali altri Rinnegati.
+{% if player.role_name == "Alcolista" %}
+TODO
 {% endif %}
 
 
 {% if player.role_name == "Sequestratore" %}
 Sei abitualmente domiciliato in una grotta nei pressi di Sussubbiarrutarruggiu (Sardegna), da dove riemergi per rapire facoltosi turisti in cerca di un cospicuo riscatto. Ma poi li rilasci in cambio di un biglietto del Lotto che ti è stato assicurato essere vincente, il che dimostra quanto vivere in una grotta non giovi alla salute mentale della gente.
 
-Il Sequestratore appartiene alla Fazione dei Lupi e conosce gli Assassini, gli Avvocati, i Necrofili, i Rinnegati e gli eventuali altri Sequestratori. Ogni notte, il Sequestratore può scegliere un personaggio vivo e rapirlo. Per quella notte, se il personaggio scelto agisce, il suo potere non ha effetto. Ai fini di tutti gli effetti di gioco, è come se quel personaggio non avesse agito affatto.
+Il Sequestratore appartiene alla Fazione dei Lupi. Ogni notte, il Sequestratore può scegliere un personaggio vivo e rapirlo. Per quella notte, se il personaggio scelto utilizza la propria abilità, tale abilità non ha effetto. Il Sequestratore scopre se tale personaggio stava generando un movimento (ma non scopre dove era diretto), ed il tal caso cancella il movimento generato.
 {% endif %}
 
 {% if player.role_name == "Stregone" %}
 La tua passione per l'occulto, il tuo odio verso i bifolchi del villaggio, e la tua cotta per la fata Zurlina ti hanno spinto ad imparare la magia nera e diventare uno Stregone. Passi il tuo tempo a farti beffe dei contadini ignoranti con la tua magia, sperando così di fare colpo sulla tua bella.
 
-Lo Stregone appartiene alla Fazione dei Lupi e conosce le Fattucchiere, i Diavoli e gli eventuali altri Stregoni. Ogni notte, lo Stregone può scegliere un personaggio vivo e lanciare un incantesimo sulla sua casa. Per quella notte, se un qualsiasi altro personaggio vivo agisce sul personaggio scelto dallo Stregone, il suo potere non ha effetto.
+Lo Stregone appartiene alla Fazione dei Lupi e conosce le Fattucchiere, i Diavoli e gli eventuali altri Stregoni. Ogni notte, lo Stregone può scegliere un personaggio vivo e lanciare un incantesimo sulla sua casa. Per quella notte, se un qualsiasi altro personaggio vivo usa un'abilità sul personaggio scelto dallo Stregone, questa non ha effetto.
 {% endif %}
 
 
@@ -185,37 +155,9 @@ Lo Stregone appartiene alla Fazione dei Lupi e conosce le Fattucchiere, i Diavol
 Candele nere, pennarello indelebile rosso per disegnare pentagrammi, un chilo e mezzo di gioielleria etnica: sei pronto a risvegliare i morti! Adesso devi solo creare l'evento su Facebook e invitare tutti i tuoi amici occultisti al cimitero per una seduta spiritica con finale a sorpresa. Certo, i bigotti del villaggio e quegli zoticoni dei lupi non capiranno la tua particolare spiritualità, ma potrai sempre evocare nuovi spettri per dare una spinta alla tua vita sociale.
 
 I Negromanti appartengono alla Fazione dei Negromanti (pensa un po') e hanno aura bianca. È complicato...
+        
+Ogni notte, ciascun Negromante può scegliere uno Spettro ed effettuare un Incantesimo (non già attivo) su di esso. Un eventuale Incantesimo precedentemente attivo su tale Spettro viene disattivato, e viene rimpiazzato dall’Incantesimo selezionato. Un Negromante può anche disattivare un Incantesimo attivo su tale Spettro senza attivarne uno nuovo.
 
-Ogni notte, ciascun Negromante può scegliere un personaggio morto e selezionare un potere soprannaturale. Se tutti i Negromanti che decidono di usare il proprio potere speciale scelgono lo stesso personaggio e selezionano lo stesso potere soprannaturale, il personaggio scelto diventa uno Spettro e ottiene il potere selezionato. Da quel momento in poi, egli appartiene alla Fazione dei Negromanti. Gli viene comunicata l'identità dei Negromanti che lo hanno risvegliato come Spettro. Una volta che un potere soprannaturale viene assegnato ad uno Spettro (compreso il Fantasma), questo non può più essere scelto per i nuovi Spettri. Solo i personaggi appartenenti alla fazione dei Popolani possono essere risvegliati come Spettri. I Negromanti si conoscono fra loro.
+Quando un Negromante muore, ottiene un potere. Una sola volta durante l’arco della partita, un Negromante morto può scegliere un altro personaggio morto e selezionare un Incantesimo (non già attivo). Tale personaggio diventa uno Spettro e l’Incantesimo selezionato viene attivato su di esso. Ciascun Incantesimo può essere attivo su al più uno Spettro alla volta.
 {% endif %}
-
-
-{% if player.role_name == "Fantasma" %}
-Anche se cammini ancora in questa valle di lacrime, ti senti molto portato per l'aldilà. Ti piace passeggiare tra cimiteri abbandonati, chiese sconsacrate e antiche rovine, ululando lugubremente nel vento. Se trovi delle catene, non puoi fare a meno di scuoterle. Non vedi l'ora di tirare le cuoia per far vedere a contadini e lupi mannari di cosa sei capace.
-
-Il Fantasma appartiene alla Fazione dei Negromanti e ha aura nera. Non ha alcun potere speciale da vivo, ma se muore diventa immediatamente uno Spettro e ottiene uno dei poteri soprannaturali non ancora assegnati, scelto in modo casuale. Gli viene inoltre comunicata l'identità dei Negromanti, e ai Negromanti viceversa l'identità del Fantasma. Al Fantasma non possono venire assegnati i poteri soprannaturali della Corruzione e della Morte.
-{% endif %}
-
-
-{% if player.role_name == "Ipnotista" %}
-Non leggere questo messaggio. Non continuare a leggere. Smetti ora. Adesso non puoi smettere di leggere. Mentre leggi le palpebre si fanno pesanti e la stanza gira e non è perché hai preso una birra di troppo. I tuoi occhi leggono, ma la tua mente dorme. Quando conterò fino a tre, la tua mente si sveglierà e tu avrai il potere di ipnotizzare le menti più deboli e non ricorderai niente di quello che hai letto. Uno. Due. Tre. Che fai, leggi ancora?
-
-L'Ipnotista appartiene alla Fazione dei Negromanti e ha aura bianca. Ogni due notti, l'Ipnotista può scegliere un personaggio vivo e controllarne la mente. Da quel momento in poi il voto per il rogo di quel personaggio è considerato uguale a quello espresso dall'Ipnotista; questo accade anche se l'Ipnotista non vota. Il personaggio scelto non viene informato di essere sotto il controllo dell'Ipnotista.
-Un personaggio può essere sotto il controllo di un solo Ipnotista per volta, e precisamente l'ultimo ad aver agito su di esso. L'Ipnotista conosce i Medium, gli Scrutatori e gli eventuali altri Ipnotisti. Ipnotisti.
-{% endif %}
-
-
-{% if player.role_name == "Medium" %}
-Ti sei stufato di sentire i contadini ridere alle tue spalle quando passi per strada indossando il tuo magnifico turbante di lamé viola. Sarà anche pacchiano farsi chiamare ``il Divino Osiris'', ma nessuno può mettere in dubbio i tuoi poteri. Forse questi ragazzetti che hai sgamato a evocare spiriti nel cimitero sapranno apprezzarli di più...
-
-Il Medium è un mistico, appartiene alla Fazione dei Negromanti e ha aura bianca. Ogni notte, il Medium può scegliere un personaggio morto e contattarne lo spirito. Scopre il suo ruolo. Il Medium conosce gli Ipnotisti, gli Scrutatori e gli eventuali altri Medium.
-{% endif %}
-
-
-{% if player.role_name == "Scrutatore" %}
-A volte per vincere non servono poteri mistici: basta una matita copiativa e una croce nel punto giusto. Nessuna scheda resta bianca a lungo nelle tue mani esperte. Gli ingenui abitanti del villaggio sono ben lontani dal sospettare i tuoi maneggi di democrazia creativa, che in ambienti meno sofisticati potrebbero essere chiamati brogli.
-
-Lo Scrutatore appartiene alla Fazione dei Negromanti e ha aura bianca. Ogni due notti, lo Scrutatore può scegliere  un personaggio vivo e taroccare i voti diretti a lui. Il giorno seguente, al momento della pubblicazione dei voti, tutti i voti diretti al personaggio scelto saranno invece assegnati al personaggio votato dallo Scrutatore. Lo Scrutatore conosce gli Ipnotisti, i Medium e gli eventuali altri Scrutatori.
-{% endif %}
-
 
