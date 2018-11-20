@@ -86,7 +86,16 @@ class Messia(Messia):
     pass
 
 class Sciamano(Sciamano):
-    pass
+    frequency = EVERY_NIGHT
+    priority = POST_MORTEM
+
+    def get_blocked(self, players):
+        return []
+
+    def apply_dawn(self, dynamics):
+        self.recorded_target.protected_by_keeper = True
+        from ..events import GhostSwitchEvent
+        dynamics.generate_event(GhostSwitchEvent(player=self.recorded_target, ghost=Delusione, cause=SHAMAN))
 
 class Stalker(Stalker):
     pass
@@ -232,7 +241,7 @@ class Stregone(Stregone):
 
 class Negromante(Negromante):
     knowledge_class = 4
-    priority = POST_MORTEM
+    priority = POST_MORTEM + 1
     frequency = EVERY_NIGHT
     required = True
     message_role = 'Lancia il seguente incantesimo:'
@@ -250,6 +259,8 @@ class Negromante(Negromante):
         if self.recorded_role_class in dynamics.used_ghost_powers:
             return False
         if not self.recorded_target.specter:
+            return False
+        if self.recorded_target.protected_by_keeper:
             return False
 
         return True
@@ -464,3 +475,5 @@ class Vita(Spettro):
 #
 # Necromancers must act after every other ghost.
 # If not, they will change power before they can use it.
+#
+# The same applies for Shamans, who must act after every other ghost but before necromancers.

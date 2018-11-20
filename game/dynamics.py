@@ -144,7 +144,7 @@ class Dynamics:
             player.just_transformed = False
             player.just_resurrected = False
             player.hypnotist = None
-            player.has_permanent_amnesia = None
+            player.has_permanent_amnesia = False
             player.has_confusion = False
             player.cooldown = False
 

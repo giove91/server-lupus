@@ -1315,6 +1315,7 @@ class GhostSwitchEvent(Event):
         (NECROMANCER, 'Necromancer'),
         (DEATH_GHOST, 'DeathGhost'),
         (LIFE_GHOST, 'LifeGhost'),
+        (SHAMAN, 'Shaman'),
         )
     cause = models.CharField(max_length=1, choices=GHOSTIFICATION_CAUSES, default=None)
 
@@ -1349,11 +1350,12 @@ class GhostSwitchEvent(Event):
             elif player == 'admin':
                 return u'%s è ora uno %s.' % (self.player.full_name, power)
 
-        elif self.cause == LIFE_GHOST:
+        elif self.cause == LIFE_GHOST or self.cause == SHAMAN:
+            assert self.ghost.name == "Nessuno"
             if player == self.player:
-                return u'Percepisci che l\'Incantesimo della Vita si è spezzato.'
+                return u'Percepisci l\'effetto dell\'Incantesimo attivo su di te svanire, e con esso il tuo potere.'
             elif player == 'admin':
-                return u'L\'Incantesimo della Vita attivo su %s si è spezzato.' % self.player.full_name
+                return u'L\'Incantesimo attivo su %s si è spezzato.' % self.player.full_name
 
         else:
             raise Exception ('Unknown cause for GhostSwitchEvent')
