@@ -665,6 +665,7 @@ class TestSpectralSequence(GameTest, TestCase):
         self.advance_turn(NIGHT)
 
         self.usepower(self.negromante_a, self.contadino_a, role_class=Amnesia)
+        self.assertFalse(self.sciamano.can_use_power())
         self.advance_turn()
 
         self.check_event(PowerOutcomeEvent, {'success': True}, player=self.negromante_a)

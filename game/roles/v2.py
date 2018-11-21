@@ -91,7 +91,7 @@ class Messia(Messia):
     pass
 
 class Sciamano(Sciamano):
-    frequency = EVERY_NIGHT
+    frequency = EVERY_OTHER_NIGHT
     priority = POST_MORTEM
 
     def get_blocked(self, players):
