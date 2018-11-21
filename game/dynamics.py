@@ -1021,22 +1021,24 @@ class Dynamics:
     def _end_of_main_phase(self):
         self.logger.debug("Terminating main phase")
 
-        assert self.mayor.alive and self.mayor.active
+        assert not self.rules.mayor or (self.mayor.alive and self.mayor.active)
         if self.appointed_mayor is not None:
             assert self.appointed_mayor.alive and self.appointed_mayor.active
 
         self._check_deaths()
         self._perform_disqualifications()
         self._check_team_exile()
-        self._perform_mayor_succession()
+        if self.rules.mayor:
+            self._perform_mayor_succession()
         self._apply_end_phase_events()
 
-        if len(self.get_alive_players())==0:
-            assert self.mayor is None
-        else:
-            assert self.mayor.alive and self.mayor.active
-        if self.appointed_mayor is not None:
-            assert self.appointed_mayor.alive and self.appointed_mayor.active
+        if self.rules.mayor:
+            if len(self.get_alive_players())==0:
+                assert self.mayor is None
+            else:
+                assert self.mayor.alive and self.mayor.active
+            if self.appointed_mayor is not None:
+                assert self.appointed_mayor.alive and self.appointed_mayor.active
 
         # Reset leftover temporary status
         self.death_ghost_just_created = False

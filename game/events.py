@@ -235,10 +235,11 @@ class AvailableRoleEvent(Event):
                 dynamics.generate_event(event)
                 given_roles[player_pk] = role_class
 
-            event = SetMayorEvent()
-            event.player = dynamics.players_dict[mayor]
-            event.cause = BEGINNING
-            dynamics.generate_event(event)
+            if dynamics.rules.mayor:
+                event = SetMayorEvent()
+                event.player = dynamics.players_dict[mayor]
+                event.cause = BEGINNING
+                dynamics.generate_event(event)
 
             # Then compute all the knowledge classes and generate the
             # relevant events

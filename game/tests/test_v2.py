@@ -712,6 +712,9 @@ class TestVotingPowers(GameTest, TestCase):
     roles = [ Contadino, Guardia, Veggente, Spia, Messia, Esorcista, Lupo, Stregone, Fattucchiera, Negromante]
     spectral_sequence = [True, True, True]
 
+    def test_no_mayor(self):
+        self.assertIsNone(self.dynamics.mayor)
+
     def test_spia(self):
         self.check_phase(NIGHT)
         self.assertFalse(self.spia.can_use_power())
