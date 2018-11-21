@@ -991,7 +991,7 @@ class AdvanceTurnView(ConfirmView):
     def can_execute_action(self):
         game = self.request.game
         if game.current_turn.phase == CREATION:
-            return game.started and game.mayor is not None and game.get_dynamics().check_missing_soothsayer_propositions() is None
+            return game.started and game.get_dynamics().players[0].role is not None and game.get_dynamics().check_missing_soothsayer_propositions() is None
         return not self.request.game.is_over
 
     def form_valid(self, form):
@@ -1060,7 +1060,7 @@ class SetupGameView(RedirectView):
             self.pattern_name = 'game:status'
         elif not game.started:
             self.pattern_name = 'game:seed'
-        elif game.mayor is None:
+        elif dynamics.players[0].role is None:
             self.pattern_name = 'game:composition'
         elif dynamics.check_missing_spectral_sequence():
             self.pattern_name = 'game:spectralsequence'
@@ -1131,10 +1131,10 @@ class VillageCompositionForm(forms.Form):
         super(VillageCompositionForm, self).__init__(*args, **kwargs)
         dynamics = self.game.get_dynamics()
         teams = dynamics.rules.teams
-        assert self.game.started and self.game.mayor is None
+        assert self.game.started and self.game.get_dynamics().players[0].role is None
 
         for role in sorted(dynamics.valid_roles, key=lambda x: (teams.index(x.team), x.name)):
-            if not role.ghost:
+            if not role.dead_power:
                 self.fields[role.__name__] = forms.IntegerField(label=role.name, min_value=0, initial=0)
 
     def clean(self):
