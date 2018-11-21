@@ -1297,7 +1297,7 @@ class TestTelepatia(GameTest, TestCase):
         self.check_event(event, {'player': self.diavolo, 'target': self.veggente, 'response': True, 'multiple_role_class': {Stalker, Veggente}, 'cause': DEVIL})
 
 class TestVita(GameTest, TestCase):
-    roles = [Contadino, Veggente, Mago, Messia, Stalker, Voyeur, Esorcista, Lupo, Diavolo, Alcolista, Negromante]
+    roles = [Contadino, Cacciatore, Veggente, Mago, Messia, Stalker, Voyeur, Esorcista, Lupo, Diavolo, Alcolista, Negromante]
     spectral_sequence = [True, False, True]
 
     def test_vita_on_veggente(self):
@@ -1418,3 +1418,24 @@ class TestVita(GameTest, TestCase):
         self.advance_turn(NIGHT)
 
         self.assertFalse(self.messia.can_use_power())
+
+    def test_vita_and_cacciatore(self):
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.veggente)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.negromante, self.veggente, role_class=Vita)
+        self.advance_turn(NIGHT)
+
+        self.assertTrue(self.veggente.alive)
+        self.usepower(self.cacciatore, self.veggente)
+        self.advance_turn()
+
+        self.check_event(PlayerDiesEvent, {'player': self.veggente, 'cause': HUNTER})
+        self.check_event(GhostSwitchEvent, {'player': self.veggente, 'ghost': Delusione, 'cause': LIFE_GHOST})
+        self.assertIsInstance(self.veggente.role, Veggente)
+        self.assertIsInstance(self.veggente.dead_power, Delusione)
+        self.advance_turn(NIGHT)
+
+        self.assertFalse(self.cacciatore.can_use_power())

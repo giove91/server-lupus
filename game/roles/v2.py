@@ -30,6 +30,9 @@ class Rules(Rules):
 #  POPOLANI  #
 ##############
 
+class Cacciatore(Cacciatore):
+    pass
+
 class Contadino(Contadino):
     pass
 
