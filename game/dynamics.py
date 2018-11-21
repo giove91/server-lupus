@@ -53,6 +53,7 @@ class Dynamics:
         self._updating = False
         self.debug_event_bin = None
         self.auto_event_queue = []
+        self.end_phase_queue = []
         self.db_event_queue = []
         self.simulating = False
         self.simulated = False
@@ -115,6 +116,7 @@ class Dynamics:
         self.sentence_modifications = []
         self.winners = None
         self.over = False
+        self.just_used_powers = []
         self.upcoming_deaths = []
         self.pending_disqualifications = []
         self.movements = []
@@ -477,6 +479,7 @@ class Dynamics:
         """This is for automatic events."""
         assert event.AUTOMATIC
         assert self.current_turn.phase in event.RELEVANT_PHASES
+        assert event.check_validity(self)
         event.turn = self.current_turn
         if event.timestamp is None:
             event.timestamp = self.last_timestamp_in_turn
@@ -487,6 +490,12 @@ class Dynamics:
         self.auto_event_queue.append(event)
         for trigger in self.post_event_triggers:
             trigger(event)
+
+    def schedule_event(self, event):
+        """This is for automatic events, which are applied at the
+        end of main phase.
+        """
+        self.end_phase_queue.append(event)
 
     def _compute_entering_creation(self):
         self.logger.debug("Computing creation")
@@ -1001,6 +1010,14 @@ class Dynamics:
         else:
             assert self.mayor.alive and self.mayor.active
 
+    def _apply_end_phase_events(self):
+        while len(self.end_phase_queue) > 0:
+            event = self.end_phase_queue.pop(0)
+            if event.check_validity(self):
+                self.generate_event(event)
+                while self._update_step(advancing_turn=True):
+                    pass
+
     def _end_of_main_phase(self):
         self.logger.debug("Terminating main phase")
 
@@ -1012,6 +1029,7 @@ class Dynamics:
         self._perform_disqualifications()
         self._check_team_exile()
         self._perform_mayor_succession()
+        self._apply_end_phase_events()
 
         if len(self.get_alive_players())==0:
             assert self.mayor is None
@@ -1022,6 +1040,7 @@ class Dynamics:
 
         # Reset leftover temporary status
         self.death_ghost_just_created = False
+        self.just_used_powers = []
         self.upcoming_deaths = []
         self.pending_disqualifications = []
         self.post_event_triggers = []

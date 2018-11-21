@@ -793,6 +793,9 @@ class Event(KnowsChild):
     def apply(self, dynamics):
         raise NotImplementedError("Calling Events.apply() instead of a subclass")
 
+    def check_validity(self, dynamics):
+        return True
+
     def load_from_dict(self, data, players_map):
         raise NotImplementedError("Calling Events.load_from_dict() instead of a subclass")
 

@@ -13,14 +13,14 @@ class Rules(Rules):
         if player.team == POPOLANI and len(dynamics.spectral_sequence) > 0 and NEGROMANTI in dynamics.playing_teams and not NEGROMANTI in dynamics.dying_teams:
             if dynamics.spectral_sequence.pop(0):
                 from ..events import GhostificationEvent, RoleKnowledgeEvent
-                dynamics.generate_event(GhostificationEvent(player=player, ghost=Delusione, cause=SPECTRAL_SEQUENCE))
+                dynamics.schedule_event(GhostificationEvent(player=player, ghost=Delusione, cause=SPECTRAL_SEQUENCE))
                 for negromante in dynamics.players:
                     if negromante.role.necromancer:
-                        dynamics.generate_event(RoleKnowledgeEvent(player=player,
+                        dynamics.schedule_event(RoleKnowledgeEvent(player=player,
                                                                    target=negromante,
                                                                    role_class=negromante.role.__class__,
                                                                    cause=GHOST))
-                        dynamics.generate_event(RoleKnowledgeEvent(player=negromante,
+                        dynamics.schedule_event(RoleKnowledgeEvent(player=negromante,
                                                                    target=player,
                                                                    role_class=Delusione,
                                                                    cause=SPECTRAL_SEQUENCE))
@@ -311,7 +311,9 @@ class Spettrificazione(Role):
     def apply_dawn(self, dynamics):
         assert not self.recorded_target.specter
         from ..events import GhostificationEvent
-        dynamics.generate_event(GhostificationEvent(player=self.recorded_target, ghost=self.recorded_role_class, cause=NECROMANCER))
+        dynamics.schedule_event(GhostificationEvent(player=self.recorded_target, ghost=self.recorded_role_class, cause=NECROMANCER))
+        # Since event is not applied till the end of turn, save the power so that a Fantasma doesn't take it.
+        dynamics.just_used_powers.append(self.recorded_role_class)
 
 class Fantasma(Fantasma):
     knowledge_class = 4
@@ -321,7 +323,7 @@ class Fantasma(Fantasma):
 
     def post_death(self, dynamics):
         powers = self.get_valid_powers()
-        available_powers = [x for x in powers if x not in dynamics.used_ghost_powers]
+        available_powers = [x for x in powers if x not in dynamics.used_ghost_powers and x not in dynamics.just_used_powers]
         if len(available_powers) >= 1:
             power = dynamics.random.choice(available_powers)
         else:

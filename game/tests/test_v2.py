@@ -381,7 +381,7 @@ class TestLupi(GameTest, TestCase):
         self.assertTrue(self.veggente.alive)
 
 class TestSpectralSequence(GameTest, TestCase):
-    roles = [ Contadino, Contadino, Contadino, Contadino, Contadino, Contadino, Cacciatore, Sciamano, Lupo, Diavolo, Negromante, Negromante, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma]
+    roles = [ Contadino, Contadino, Contadino, Contadino, Contadino, Contadino, Cacciatore, Cacciatore, Cacciatore, Cacciatore, Cacciatore, Cacciatore, Cacciatore, Cacciatore, Sciamano, Lupo, Diavolo, Negromante, Negromante, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma]
     spectral_sequence = [True, False, True, True]
 
     def test_sequence(self):
@@ -612,17 +612,34 @@ class TestSpectralSequence(GameTest, TestCase):
 
     def test_fantasma(self):
         self.advance_turn(NIGHT)
-        powers = {Amnesia, Assoluzione, Confusione, Delusione, Diffamazione, Illusione, Morte, Occultamento, Telepatia}
-        for phantom in [x for x in self.players if isinstance(x.role, Fantasma)]:
-            self.usepower(self.lupo, phantom)
-            self.advance_turn()
 
-            self.check_event(GhostificationEvent, {'player': phantom})
-            powers.remove(phantom.dead_power.__class__)
-            self.advance_turn(NIGHT)
+        self.usepower(self.lupo, self.contadino_a)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.contadino_b)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.negromante_a)
+        self.advance_turn(NIGHT)
+
+        hunters = [x for x in self.players if isinstance(x.role, Cacciatore)]
+        phantoms = [x for x in self.players if isinstance(x.role, Fantasma)]
+        powers = {Assoluzione, Confusione, Delusione, Diffamazione, Illusione, Morte, Occultamento, Telepatia}
+
+        self.usepower(self.negromante_a, self.contadino_b, role_class=Amnesia)
+        for (hunter, phantom) in zip(hunters, phantoms):
+            self.usepower(hunter, phantom)
+
+        self.advance_turn()
+
+        self.check_event(GhostificationEvent, {'ghost': Amnesia}, player=self.contadino_b)
+
+        events = self.get_events(PlayerDiesEvent)
+        for e in events:
+            self.check_event(GhostificationEvent, {}, player=e.player)
+            powers.remove(e.player.dead_power.__class__)
 
         self.assertEqual(powers, set())
-        self.assertIsInstance(phantom.dead_power, Delusione)
 
     def test_sciamano(self):
         self.advance_turn(NIGHT)
@@ -678,8 +695,8 @@ class TestSpectralSequence(GameTest, TestCase):
         self.burn(self.negromante_a)
         self.advance_turn(NIGHT)
 
-        self.usepower(self.cacciatore, self.contadino_a)
-        self.usepower(self.lupo, self.negromante_b)
+        self.usepower(self.lupo, self.contadino_a)
+        self.usepower(self.cacciatore_a, self.negromante_b)
         self.advance_turn()
 
         self.assertFalse(self.negromante_a.alive)

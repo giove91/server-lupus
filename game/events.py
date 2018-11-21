@@ -701,6 +701,9 @@ class RoleKnowledgeEvent(Event):
         SPECTRAL_SEQUENCE: [DAWN, SUNSET]
         }
 
+    def check_validity(self, dynamics):
+        return self.player.active and self.target.active
+
     def apply(self, dynamics):
         assert dynamics.current_turn.phase in RoleKnowledgeEvent.REAL_RELEVANT_PHASES[self.cause]
 
@@ -1198,10 +1201,14 @@ class GhostificationEvent(Event):
         )
     cause = models.CharField(max_length=1, choices=GHOSTIFICATION_CAUSES, default=None)
 
+    def check_validity(self, dynamics):
+        return NEGROMANTI in dynamics.playing_teams
+
     def apply(self, dynamics):
         player = self.player.canonicalize()
 
         assert not player.alive
+        assert NEGROMANTI in dynamics.playing_teams
         assert self.ghost not in dynamics.used_ghost_powers
         assert self.ghost.ghost
         assert not(dynamics.death_ghost_created and self.cause == NECROMANCER)
