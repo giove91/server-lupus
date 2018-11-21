@@ -610,6 +610,26 @@ class TestSpectralSequence(GameTest, TestCase):
 
         self.check_event(PowerOutcomeEvent, {'success': True}, player=self.negromante_a)
 
+    def test_spectral_sequence_after_exile(self):
+        self.advance_turn(DAY)
+        self.burn(self.negromante_a)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.negromante_b)
+        self.advance_turn()
+
+        self.assertFalse(self.negromante_a.alive)
+        self.assertFalse(self.negromante_b.alive)
+        self.check_event(ExileEvent, {'cause': TEAM_DEFEAT}, player=self.negromante_a)
+        self.check_event(ExileEvent, {'cause': TEAM_DEFEAT}, player=self.negromante_b)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.contadino_a)
+        self.advance_turn()
+
+        self.check_event(GhostificationEvent, None)
+        self.assertEqual(self.contadino_a.team, POPOLANI)
+        self.assertIsInstance(self.contadino_a.dead_power, NoPower)
 
 class TestVotingPowers(GameTest, TestCase):
     roles = [ Contadino, Guardia, Veggente, Spia, Messia, Esorcista, Lupo, Stregone, Fattucchiera, Negromante]

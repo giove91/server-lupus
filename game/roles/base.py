@@ -231,9 +231,14 @@ class Role(object):
         pass
 
     def post_death(self, dynamics):
-        """To be called just after this role dies or is exiled while beong alive.
+        """To be called just after this role dies.
 
         """
+
+    def post_not_alive(self, dynamics):
+        """To be called just after this role stoppes being alive, i.e. dies or is exiled.
+
+		"""
 
     def apply_dawn(self, dynamics):
         raise NotImplementedError("Please extend this method in subclasses")
@@ -568,8 +573,8 @@ class Lupo(Role):
             from ..events import PlayerDiesEvent
             dynamics.generate_event(PlayerDiesEvent(player=self.recorded_target, cause=WOLVES))
 
-    def post_death(self, dynamics):
-        if [player for player in dynamics.get_alive_players() if isinstance(player.role, self.__class__)] == []:
+    def post_not_alive(self, dynamics):
+        if [player for player in dynamics.get_alive_players() if isinstance(player.role, self.__class__)] == [] and not self.team in dynamics.dying_teams:
             dynamics.dying_teams += self.team
 
 class Assassino(Role):
@@ -802,8 +807,8 @@ class Negromante(Role):
 
         dynamics.generate_event(RoleKnowledgeEvent(player=self.recorded_target, target=self.player, role_class=self.player.role.__class__, cause=GHOST))
 
-    def post_death(self, dynamics):
-        if [player for player in dynamics.get_alive_players() if isinstance(player.role, self.__class__)] == []:
+    def post_not_alive(self, dynamics):
+        if [player for player in dynamics.get_alive_players() if isinstance(player.role, self.__class__)] == [] and not self.team in dynamics.dying_teams:
             dynamics.dying_teams += self.team
 
 

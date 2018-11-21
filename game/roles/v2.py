@@ -10,7 +10,7 @@ class Rules(Rules):
 
     @staticmethod
     def post_death(dynamics, player):
-        if player.team == POPOLANI and len(dynamics.spectral_sequence) > 0:
+        if player.team == POPOLANI and len(dynamics.spectral_sequence) > 0 and NEGROMANTI in dynamics.playing_teams:
             if dynamics.spectral_sequence.pop(0):
                 from ..events import GhostificationEvent, RoleKnowledgeEvent
                 dynamics.generate_event(GhostificationEvent(player=player, ghost=Delusione, cause=SPECTRAL_SEQUENCE))
