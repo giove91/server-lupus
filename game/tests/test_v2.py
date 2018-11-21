@@ -338,8 +338,50 @@ class TestMultipleRoleKnowledge(GameTest, TestCase):
             'multiple_role_class': {Lupo, Negromante, Veggente}
         })
 
+class TestLupi(GameTest, TestCase):
+    roles = [ Contadino, Veggente, Lupo, Lupo, Lupo, Negromante ]
+    spectral_sequence = []
+
+    def test_lupi_can_kill_negromante(self):
+        self.advance_turn(NIGHT)
+        self.usepower(self.lupo_a, self.negromante)
+        self.advance_turn()
+
+        self.check_event(PlayerDiesEvent, {'player': self.negromante})
+        self.check_event(ExileEvent, {'player': self.negromante})
+
+    def test_exiled_lupi(self):
+        self.advance_turn(DAY)
+
+        self.burn(self.lupo_a)
+        self.advance_turn(DAY)
+
+        self.burn(self.lupo_b)
+        self.advance_turn(DAY)
+
+        self.assertIn(LUPI, self.dynamics.playing_teams)
+        self.burn(self.lupo_c)
+        self.advance_turn()
+
+        self.check_event(ExileEvent, {'cause': TEAM_DEFEAT}, player=self.lupo_a)
+        self.check_event(ExileEvent, {'cause': TEAM_DEFEAT}, player=self.lupo_b)
+        self.check_event(ExileEvent, {'cause': TEAM_DEFEAT}, player=self.lupo_c)
+        self.assertNotIn(LUPI, self.dynamics.playing_teams)
+
+    def test_disjoint_lupi(self):
+        self.advance_turn(NIGHT)
+        self.usepower(self.lupo_a, self.contadino)
+        self.usepower(self.lupo_b, self.veggente)
+        self.advance_turn()
+
+        self.check_event(PlayerDiesEvent, None)
+        self.check_event(PowerOutcomeEvent, {'power': Lupo, 'success': False}, player=self.lupo_a)
+        self.check_event(PowerOutcomeEvent, {'power': Lupo, 'success': False}, player=self.lupo_b)
+        self.assertTrue(self.contadino.alive)
+        self.assertTrue(self.veggente.alive)
+
 class TestSpectralSequence(GameTest, TestCase):
-    roles = [ Contadino, Contadino, Contadino, Contadino, Contadino, Contadino, Sciamano, Lupo, Diavolo, Negromante, Negromante, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma]
+    roles = [ Contadino, Contadino, Contadino, Contadino, Contadino, Contadino, Cacciatore, Sciamano, Lupo, Diavolo, Negromante, Negromante, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma]
     spectral_sequence = [True, False, True, True]
 
     def test_sequence(self):
@@ -627,6 +669,23 @@ class TestSpectralSequence(GameTest, TestCase):
         self.usepower(self.lupo, self.contadino_a)
         self.advance_turn()
 
+        self.check_event(GhostificationEvent, None)
+        self.assertEqual(self.contadino_a.team, POPOLANI)
+        self.assertIsInstance(self.contadino_a.dead_power, NoPower)
+
+    def test_spectral_sequence_during_exile(self):
+        self.advance_turn(DAY)
+        self.burn(self.negromante_a)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.cacciatore, self.contadino_a)
+        self.usepower(self.lupo, self.negromante_b)
+        self.advance_turn()
+
+        self.assertFalse(self.negromante_a.alive)
+        self.assertFalse(self.negromante_b.alive)
+        self.check_event(ExileEvent, {'cause': TEAM_DEFEAT}, player=self.negromante_a)
+        self.check_event(ExileEvent, {'cause': TEAM_DEFEAT}, player=self.negromante_b)
         self.check_event(GhostificationEvent, None)
         self.assertEqual(self.contadino_a.team, POPOLANI)
         self.assertIsInstance(self.contadino_a.dead_power, NoPower)
