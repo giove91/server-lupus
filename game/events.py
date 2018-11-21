@@ -600,6 +600,7 @@ class PlayerDiesEvent(Event):
         player.alive = False
         player.just_dead = False
 
+        player.role.post_not_alive(dynamics)
         player.role.post_death(dynamics)
         player.dead_power.post_death(dynamics)
         # Trigger generic post_death code
@@ -1518,7 +1519,7 @@ class ExileEvent(Event):
             player.disqualified = True
 
         if was_alive:
-            player.role.post_death(dynamics)
+            player.role.post_not_alive(dynamics)
     def to_player_string(self, player):
         oa = self.player.oa
 

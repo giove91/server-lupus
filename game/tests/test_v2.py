@@ -610,6 +610,26 @@ class TestSpectralSequence(GameTest, TestCase):
 
         self.check_event(PowerOutcomeEvent, {'success': True}, player=self.negromante_a)
 
+    def test_spectral_sequence_after_exile(self):
+        self.advance_turn(DAY)
+        self.burn(self.negromante_a)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.negromante_b)
+        self.advance_turn()
+
+        self.assertFalse(self.negromante_a.alive)
+        self.assertFalse(self.negromante_b.alive)
+        self.check_event(ExileEvent, {'cause': TEAM_DEFEAT}, player=self.negromante_a)
+        self.check_event(ExileEvent, {'cause': TEAM_DEFEAT}, player=self.negromante_b)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.contadino_a)
+        self.advance_turn()
+
+        self.check_event(GhostificationEvent, None)
+        self.assertEqual(self.contadino_a.team, POPOLANI)
+        self.assertIsInstance(self.contadino_a.dead_power, NoPower)
 
 class TestVotingPowers(GameTest, TestCase):
     roles = [ Contadino, Guardia, Veggente, Spia, Messia, Esorcista, Lupo, Stregone, Fattucchiera, Negromante]
@@ -1297,7 +1317,7 @@ class TestTelepatia(GameTest, TestCase):
         self.check_event(event, {'player': self.diavolo, 'target': self.veggente, 'response': True, 'multiple_role_class': {Stalker, Veggente}, 'cause': DEVIL})
 
 class TestVita(GameTest, TestCase):
-    roles = [Contadino, Veggente, Mago, Messia, Stalker, Voyeur, Esorcista, Lupo, Diavolo, Alcolista, Negromante]
+    roles = [Contadino, Cacciatore, Veggente, Mago, Messia, Stalker, Voyeur, Esorcista, Lupo, Diavolo, Alcolista, Negromante]
     spectral_sequence = [True, False, True]
 
     def test_vita_on_veggente(self):
@@ -1418,3 +1438,24 @@ class TestVita(GameTest, TestCase):
         self.advance_turn(NIGHT)
 
         self.assertFalse(self.messia.can_use_power())
+
+    def test_vita_and_cacciatore(self):
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.veggente)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.negromante, self.veggente, role_class=Vita)
+        self.advance_turn(NIGHT)
+
+        self.assertTrue(self.veggente.alive)
+        self.usepower(self.cacciatore, self.veggente)
+        self.advance_turn()
+
+        self.check_event(PlayerDiesEvent, {'player': self.veggente, 'cause': HUNTER})
+        self.check_event(GhostSwitchEvent, {'player': self.veggente, 'ghost': Delusione, 'cause': LIFE_GHOST})
+        self.assertIsInstance(self.veggente.role, Veggente)
+        self.assertIsInstance(self.veggente.dead_power, Delusione)
+        self.advance_turn(NIGHT)
+
+        self.assertFalse(self.cacciatore.can_use_power())
