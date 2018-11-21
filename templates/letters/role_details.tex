@@ -4,6 +4,11 @@ Sei un contadino, ovvero un buzzurro, villano, bifolco, villico, bovaro, burino,
 Il Contadino appartiene alla Fazione dei Popolani e non ha alcuna abilità.
 {% endif %}
 
+{% if player.role_name == "Cacciatore" %}
+Cerbiatti, coniglietti, allodole ed altri teneri animali del sottobosco per te non sono altro che selvaggina, cappotti, girocolli e scaldamani. E qualche volta un bel trofeo. Ti sei rifugiato in questo piccolo villaggio per sfuggire ad un gruppo di animalisti inferociti che aveva iniziato a pattugliare il tuo terreno di caccia preferito: la riserva naturale per la protezione del panda gigante.
+
+Il Cacciatore appartiene alla Fazione dei Popolani, ma gode di una pessima reputazione presso le associazioni animaliste e quindi la sua aura è nera. Una sola volta durante l'arco della partita, in una notte dopo la prima, egli può scegliere un personaggio vivo contro cui puntare il suo fucile. Il Cacciatore uccide il personaggio scelto.
+{% endif %}
 
 {% if player.role_name == "Sciamano" %}
 Gli ultimi tagli alla ricerca scientifica hanno dato il colpo di grazia agli esperimenti dello scienziato pazzo per cui lavoravi (anche la folla armata di torce e forconi non ha aiutato). E così, dopo anni di fedele servizio, ti sei trovato disoccupato e in piena crisi mistica: la condizione ideale per prenderti un anno sabbatico in India, cambiare il tuo nome da Aigor a Brahamavarta e diplomarti in pratiche sciamaniche di primo livello. Tornato al villaggio, avverti subito forti vibrazioni negative dovute allo stagionale attacco di licantropia. Anche se nessuno si fida di te, cerchi comunque di aiutare qualche anima in pena.
