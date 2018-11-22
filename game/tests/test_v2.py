@@ -338,8 +338,8 @@ class TestMultipleRoleKnowledge(GameTest, TestCase):
             'multiple_role_class': {Lupo, Negromante, Veggente}
         })
 
-class TestLupi(GameTest, TestCase):
-    roles = [ Contadino, Veggente, Lupo, Lupo, Lupo, Negromante ]
+class TestKills(GameTest, TestCase):
+    roles = [ Contadino, Cacciatore, Veggente, Lupo, Lupo, Lupo, Assassino, Assassino, Negromante ]
     spectral_sequence = []
 
     def test_lupi_can_kill_negromante(self):
@@ -380,8 +380,35 @@ class TestLupi(GameTest, TestCase):
         self.assertTrue(self.contadino.alive)
         self.assertTrue(self.veggente.alive)
 
+    def test_assassini_kill_each_other(self):
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.assassino_a, self.negromante)
+        self.usepower(self.assassino_b, self.negromante)
+        self.advance_turn()
+
+        self.check_event(PlayerDiesEvent, {'cause': ASSASSIN}, player=self.assassino_a)
+        self.check_event(PlayerDiesEvent, {'cause': ASSASSIN}, player=self.assassino_b)
+        self.check_event(PlayerDiesEvent, None, player=self.negromante)
+
+    def test_cacciatore(self):
+        self.assertFalse(self.cacciatore.can_use_power())
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.cacciatore, self.negromante)
+        self.advance_turn()
+
+        self.check_event(PlayerDiesEvent, {'cause': HUNTER, 'player': self.negromante})
+        self.check_event(ExileEvent, {'cause': TEAM_DEFEAT, 'player': self.negromante})
+        self.advance_turn(NIGHT)
+
+        self.assertFalse(self.cacciatore.can_use_power())
+        self.advance_turn(NIGHT)
+
+        self.assertFalse(self.cacciatore.can_use_power())
+
 class TestSpectralSequence(GameTest, TestCase):
-    roles = [ Contadino, Contadino, Contadino, Contadino, Contadino, Contadino, Cacciatore, Cacciatore, Cacciatore, Cacciatore, Cacciatore, Cacciatore, Cacciatore, Cacciatore, Sciamano, Lupo, Diavolo, Negromante, Negromante, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma]
+    roles = [ Contadino, Contadino, Contadino, Contadino, Contadino, Contadino, Cacciatore, Cacciatore, Cacciatore, Cacciatore, Cacciatore, Cacciatore, Cacciatore, Cacciatore, Sciamano, Lupo, Diavolo, Stregone, Negromante, Negromante, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma, Fantasma]
     spectral_sequence = [True, False, True, True]
 
     def test_sequence(self):
@@ -1186,7 +1213,7 @@ class TestAlcolista(GameTest, TestCase):
         # And again, even to deads
         self.check_event(PowerOutcomeEvent, {'success': False}, player=self.alcolista)
 
-class TestAuraMisticityKnowledge(GameTest, TestCase):
+class TestAuraMysticityKnowledge(GameTest, TestCase):
     roles = [Contadino, Veggente, Mago, Lupo, Fattucchiera, Negromante]
     spectral_sequence = [True]
 
@@ -1220,6 +1247,25 @@ class TestAuraMisticityKnowledge(GameTest, TestCase):
 
         self.check_event(AuraKnowledgeEvent, {'player': self.veggente, 'target': self.lupo, 'aura': WHITE})
         self.advance_turn(NIGHT)
+
+    def test_mago(self):
+        self.usepower(self.mago, self.fattucchiera)
+        self.advance_turn()
+
+        self.check_event(MysticityKnowledgeEvent, {'player': self.mago, 'target': self.fattucchiera, 'is_mystic': True})
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.mago, self.lupo)
+        self.advance_turn()
+
+        self.check_event(MysticityKnowledgeEvent, {'player': self.mago, 'target': self.lupo, 'is_mystic': False})
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.mago, self.lupo)
+        self.usepower(self.fattucchiera, self.lupo, role_class=Veggente)
+        self.advance_turn()
+
+        self.check_event(MysticityKnowledgeEvent, {'player': self.mago, 'target': self.lupo, 'is_mystic': True})
 
 class TestMovements(GameTest, TestCase):
     roles = [Contadino, Stalker, Voyeur, Guardia, Assassino, Alcolista, Stregone, Sequestratore, Lupo, Negromante]
@@ -1259,14 +1305,22 @@ class TestMovements(GameTest, TestCase):
         self.usepower(self.alcolista, self.sequestratore)
         self.advance_turn()
 
-        self.check_event(MovementKnowledgeEvent, {'player': self.sequestratore, 'target': self.alcolista, 'target2': None})
+        self.check_event(MovementKnowledgeEvent, {'player': self.sequestratore, 'target': self.alcolista, 'target2': None, 'cause': KIDNAPPER })
         self.advance_turn(NIGHT)
 
         # Sequestratore on non moving player
         self.usepower(self.sequestratore, self.alcolista)
         self.advance_turn()
 
-        self.check_event(NoMovementKnowledgeEvent, {'player': self.sequestratore, 'target': self.alcolista})
+        self.check_event(NoMovementKnowledgeEvent, {'player': self.sequestratore, 'target': self.alcolista, 'cause': KIDNAPPER })
+
+    def test_sequestratore_and_voyeur(self):
+        self.usepower(self.alcolista, self.guardia)
+        self.usepower(self.sequestratore, self.alcolista)
+        self.usepower(self.voyeur, self.guardia)
+        self.advance_turn()
+
+        self.check_event(NoMovementKnowledgeEvent, {'player': self.voyeur, 'target': self.guardia, 'cause': VOYEUR})
 
     def test_sequestratore_with_illusione(self):
         self.usepower(self.contadino, self.alcolista, target2=None)
@@ -1289,13 +1343,14 @@ class TestMovements(GameTest, TestCase):
         killed = set()
         for x in range(2):
             # Lowest number that works.
-            # May produce error if messing with random generator, in that case it must be invcreased.
+            # May produce error if messing with random generator, in that case it must be increased.
 
             self.seed = x
             self.restart()
 
             self.usepower(self.assassino, self.stalker)
             self.usepower(self.voyeur, self.stalker)
+            self.usepower(self.alcolista, self.stalker)
             self.usepower(self.contadino, self.alcolista, target2=self.stalker)
 
             self.advance_turn()
@@ -1397,7 +1452,7 @@ class TestTelepatia(GameTest, TestCase):
         self.check_event(event, {'player': self.diavolo, 'target': self.veggente, 'response': True, 'multiple_role_class': {Stalker, Veggente}, 'cause': DEVIL})
 
 class TestVita(GameTest, TestCase):
-    roles = [Contadino, Cacciatore, Veggente, Mago, Messia, Stalker, Voyeur, Esorcista, Lupo, Diavolo, Alcolista, Negromante]
+    roles = [Contadino, Cacciatore, Veggente, Mago, Messia, Stalker, Voyeur, Esorcista, Lupo, Diavolo, Stregone, Alcolista, Negromante]
     spectral_sequence = [True, False, True]
 
     def test_vita_on_veggente(self):
@@ -1539,3 +1594,19 @@ class TestVita(GameTest, TestCase):
         self.advance_turn(NIGHT)
 
         self.assertFalse(self.cacciatore.can_use_power())
+
+    def test_vita_with_stregone(self):
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.veggente)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.negromante, self.veggente, role_class=Vita)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.veggente, self.lupo)
+        self.usepower(self.stregone, self.lupo)
+        self.advance_turn()
+
+        self.check_event(PowerOutcomeEvent, {'success': False, 'power': Veggente}, player=self.veggente)
+        self.check_event(AuraKnowledgeEvent, None)
