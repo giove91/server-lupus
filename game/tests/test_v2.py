@@ -190,6 +190,43 @@ class TestWebInterface(GameTest, TestCase):
         response = c.get('/game/test/comment/')
         self.assertNotIn(comment, response.context['old_comments'])
 
+    def test_save_load(self):
+        self.advance_turn(DAY)
+
+        self.burn(self.negromante)
+        self.assertEqual(self.game.current_turn.date, 1)
+
+        master = self.master.user
+        master.is_staff = True
+        master.save()
+
+        c = Client()
+        c.force_login(master)
+
+        response = c.get('/game/test/as_gm/')
+        response = c.get('/game/test/dump/')
+        self.assertEqual(response.status_code, 200)
+
+        with open('test_dumps/test_load.json', 'wb') as f:
+            f.write(response.content)
+
+        self.burn(self.contadino)
+        response = c.post('/game/test/restart/', {'current_turn_pk': self.game.current_turn.pk})
+        self.assertEqual(self.game.current_turn.phase, CREATION)
+
+        with open('test_dumps/test_load.json', 'rb') as f:
+            response = c.post('/game/test/load/', {'json': f}, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.game.current_turn.date, 1)
+        self.assertEqual(self.game.current_turn.phase, DAY)
+
+        self.dynamics = self.game.get_dynamics()
+        self.advance_turn()
+
+        [event] = self.get_events(PlayerDiesEvent)
+        self.assertIsInstance(event.player.role, Negromante)
+
 
 class TestLetterRender(GameTest, TestCase):
     roles =  [getattr(v2, k) for k in dir(v2) if isclass(getattr(v2, k)) and issubclass(getattr(v2, k), Role) and getattr(v2, k).__module__ == 'game.roles.v2']

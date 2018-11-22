@@ -1464,7 +1464,7 @@ class DumpView(View):
     def get(self, request, **kwargs):
         game = request.game
         response = HttpResponse(content_type='application/json; charset=utf-8')
-        response['Content-Disposition'] = 'attachment: filename="dump.json"'
+        response['Content-Disposition'] = 'attachment; filename="%s.json"' % game.name
         dump_game(game, response)
         return response
 
