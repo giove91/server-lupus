@@ -1142,7 +1142,7 @@ class VillageCompositionForm(forms.Form):
         cleaned_data = super().clean()
         count = 0
         for role in dynamics.valid_roles:
-            if not role.ghost:
+            if not role.dead_power:
                 count += cleaned_data.get(role.__name__)
 
         if count != len(dynamics.players):
@@ -1166,7 +1166,7 @@ class VillageCompositionView(GameFormView):
 
     def form_valid(self, form):
         dynamics = self.request.game.get_dynamics()
-        roles = [x for x in dynamics.valid_roles if not x.ghost]
+        roles = [x for x in dynamics.valid_roles if not x.dead_power]
         for role in roles:
             for i in range(form.cleaned_data[role.__name__]):
                 event = AvailableRoleEvent(role_class=role)
@@ -1203,7 +1203,7 @@ class SoothsayerForm(forms.ModelForm):
         dynamics = self.game.get_dynamics()
 
         self.fields["target"].queryset = Player.objects.filter(game=self.game)
-        choices = [(x.as_string(), x.name) for x in dynamics.valid_roles if not x.ghost]
+        choices = [(x.as_string(), x.name) for x in dynamics.valid_roles if not x.dead_power]
         self.fields["advertised_role"].choices = choices
         self.fields["advertised_role"].widget.choices = choices
 
