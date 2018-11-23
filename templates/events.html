@@ -1,12 +1,10 @@
 {% load game_extras %}
 
 {% for turn, values in events reversed %}
-    <div class="info-block">
+    <div class="info-block{% if not turn.id %} preview {% endif %}">
         
-        <div class="separator"><div class="separator"><h2>{{ turn.turn_as_italian_string_property }}
-			{% if not turn.id %}
-				(ANTEPRIMA)
-			{% endif %}
+        <div class="separator"><div class="separator"><h2>
+                {{ turn.turn_as_italian_string_property }}
         </h2></div></div>
         
         {% for message in values.standard %}

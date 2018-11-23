@@ -19,7 +19,7 @@ from .utils import get_now
 RELAX_TIME_CHECKS = False
 ANCIENT_DATETIME = datetime(year=1970, month=1, day=1, tzinfo=REF_TZINFO)
 UPDATE_INTERVAL = timedelta(seconds=1)
-FORCE_PREVIEW = False # Enable only when running tests.
+FORCE_PREVIEW = True # Enable only when running tests.
 
 # When SINGLE_MODE is set, at most one dynamics can act concurrently
 # on the same game; when SINGLE_MODE is not set automatic events won't
@@ -43,6 +43,7 @@ class Dynamics:
 
     def __init__(self, game, preview=False):
         self.preview = preview
+        self.preview_dynamics = None
         self.logger = logging.LoggerAdapter(logger, {'dynamics': hex(id(self))})
         self.logger.info("New dynamics for game %(game)s spawned!" % {'game':game.name, 'self':self})
         self.spawned_at = time.time()
@@ -186,9 +187,12 @@ class Dynamics:
         return player.apparent_team
 
     def get_preview_dynamics(self):
-        preview = self.__class__(self.game, preview=True)
-        preview.update()
-        return preview
+        assert not self.preview
+        if self.preview_dynamics is None:
+            preview = self.__class__(self.game, preview=True)
+            preview.update()
+            self.preview_dynamics = preview
+        return self.preview_dynamics
 
     def update(self, lazy=False):
         # If dynamics was updated recently, don't try again to save time
@@ -384,7 +388,7 @@ class Dynamics:
     def inject_event(self, event):
         """This is for non automatic events."""
         assert not event.AUTOMATIC
-		assert not self.preview
+        assert not self.preview
         assert self.current_turn.phase in event.RELEVANT_PHASES
         event.turn = self.current_turn
         if event.timestamp is None:
@@ -396,7 +400,9 @@ class Dynamics:
         self.update()
 
         if FORCE_PREVIEW:
-            self.get_preview_dynamics()
+            self.preview_dynamics = self.get_preview_dynamics()
+        else:
+            self.preview_dynamics = None
 
     def generate_event(self, event):
         """This is for automatic events."""

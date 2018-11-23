@@ -68,6 +68,10 @@ label {
 	border-radius: 2px;
 }
 
+.info-block.preview {
+    opacity: 0.5
+}
+
 .info-block table {
 	width: 90%;
 	margin-bottom: 10px;

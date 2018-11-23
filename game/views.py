@@ -184,10 +184,9 @@ class EventListView(TemplateView):
         assert dynamics is not None
         assert not dynamics.failed
 
-        if player == 'preview':
+        if player == 'admin':
             dynamics = dynamics.get_preview_dynamics()
-            # Get all events, since it's requesting a preview.
-            player = 'admin'
+            # Get all events, since it's requesting from admin.
 
         assert player == 'admin' or not dynamics.preview
 
@@ -202,6 +201,8 @@ class EventListView(TemplateView):
             comments = Comment.objects.filter(turn__game=game).filter(visible=True).order_by('timestamp')
         else:
             comments = []
+
+        # If requesting a preview, show messages as admin
 
         result = dict([(turn, { 'standard': [], VOTE: {}, ELECT: {}, 'initial_propositions': [], 'soothsayer_propositions': [], 'telepathy': {}, 'comments': [] }) for turn in turns ])
         for event in events:
@@ -245,7 +246,7 @@ class EventListView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if hasattr(self.request.dynamics, 'rules'):
-            display_votes = self.request.dynamics.rules.display_votes or self.get_point_of_view() == 'admin'
+            display_votes = self.request.dynamics.rules.display_votes or self.get_point_of_view() in ['admin', 'preview']
             display_mayor = self.request.dynamics.rules.mayor
         else:
             display_votes = False
@@ -280,7 +281,7 @@ class PersonalInfoView(EventListView):
 @method_decorator(can_access_admin_view, name='dispatch')
 class AdminStatusView(EventListView):
     template_name = 'public_info.html'
-    point_of_view = 'preview'
+    point_of_view = 'admin'
     classified = True
     display_time = True
 
