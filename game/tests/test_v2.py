@@ -156,6 +156,32 @@ class TestWebInterface(GameTest, TestCase):
         response = c.get('/game/test/personalinfo/')
         self.assertEqual(dict(response.context['events'])[self.game.current_turn.prev_turn()]['standard'], [])
 
+    def test_preview(self):
+        self.advance_turn(NIGHT)
+        self.usepower(self.lupo, self.veggente)
+
+        c = Client()
+        c.force_login(self.veggente.user)
+        response = c.get('/game/test/status/')
+        self.assertEqual(response.status_code, 200)
+        last_turn = response.context['events'][-1][0]
+        self.assertEqual(last_turn, self.game.current_turn.prev_turn())
+
+        response = c.get('/game/test/personalinfo/')
+        last_turn = response.context['events'][-1][0]
+        self.assertEqual(last_turn, self.game.current_turn.prev_turn())
+        player = response.context['player']
+        self.assertTrue(player.alive)
+        self.assertEqual(player.team, POPOLANI)
+
+        c.force_login(self.master.user)
+        response = c.get('/game/test/as_gm/')
+        response = c.get('/game/test/adminstatus/')
+        last_turn = response.context['events'][-1][0]
+        self.assertEqual(last_turn.__hash__(), self.game.current_turn.next_turn().__hash__())
+        [poweroutcome, playerdies, ghostification, knowledge1, knowledge2] = dict(response.context['events'])[last_turn]['standard']
+        self.assertEqual(poweroutcome, 'Paperinik 3 ha utilizzato con successo la propria abilità di Lupo su Paperinik 4.')
+
     def test_force_victory(self):
         self.advance_turn(NIGHT)
 
@@ -532,7 +558,7 @@ class TestSpectralSequence(GameTest, TestCase):
         self.advance_turn(NIGHT)
 
         self.usepower(self.negromante_a, self.contadino_a, role_class=Confusione)
-        self.assertNotIn(Amnesia, self.negromante_a.power.get_targets_role_class())
+        self.assertNotIn(Amnesia, self.negromante_a.power.get_targets_role_class(self.dynamics))
         self.advance_turn()
 
         self.check_event(GhostSwitchEvent, {'player': self.contadino_a, 'ghost': Confusione})
@@ -543,7 +569,7 @@ class TestSpectralSequence(GameTest, TestCase):
         self.usepower(self.lupo, self.contadino_b)
         self.advance_turn(NIGHT)
 
-        self.assertNotIn(self.contadino_b, self.negromante_a.power.get_targets())
+        self.assertNotIn(self.contadino_b, self.negromante_a.power.get_targets(self.dynamics))
         self.advance_turn(NIGHT)
 
         # Kill Negromante

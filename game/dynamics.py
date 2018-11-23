@@ -16,11 +16,10 @@ from .events import CommandEvent, VoteAnnouncedEvent, TallyAnnouncedEvent, \
 from .constants import *
 from .utils import get_now
 
-SIMULATE_NEXT_TURN = True
-FORCE_SIMULATION = False # Enable only while running tests
 RELAX_TIME_CHECKS = False
 ANCIENT_DATETIME = datetime(year=1970, month=1, day=1, tzinfo=REF_TZINFO)
 UPDATE_INTERVAL = timedelta(seconds=1)
+FORCE_PREVIEW = False # Enable only when running tests.
 
 # When SINGLE_MODE is set, at most one dynamics can act concurrently
 # on the same game; when SINGLE_MODE is not set automatic events won't
@@ -42,7 +41,8 @@ class Dynamics:
     def __repr__(self):
         return hex(id(self))
 
-    def __init__(self, game):
+    def __init__(self, game, preview=False):
+        self.preview = preview
         self.logger = logging.LoggerAdapter(logger, {'dynamics': hex(id(self))})
         self.logger.info("New dynamics for game %(game)s spawned!" % {'game':game.name, 'self':self})
         self.spawned_at = time.time()
@@ -55,10 +55,7 @@ class Dynamics:
         self.auto_event_queue = []
         self.end_phase_queue = []
         self.db_event_queue = []
-        self.simulating = False
-        self.simulated = False
         self.simulated_turn = None
-        self.simulated_events = []
         self.events = []
         self.turns = []
         self.failed = False
@@ -92,8 +89,6 @@ class Dynamics:
         self.last_update = ANCIENT_DATETIME
         self.mayor = None
         self.appointed_mayor = None
-        self.pre_simulation_mayor = None
-        self.pre_simulation_appointed_mayor = None
         self.available_roles = []
         self.assignements_per_role = {}
         self.death_ghost_created = False
@@ -190,7 +185,12 @@ class Dynamics:
     def get_apparent_team(self, player):
         return player.apparent_team
 
-    def update(self, simulation=False, lazy=False):
+    def get_preview_dynamics(self):
+        preview = self.__class__(self.game, preview=True)
+        preview.update()
+        return preview
+
+    def update(self, lazy=False):
         # If dynamics was updated recently, don't try again to save time
         if lazy and self.last_update + UPDATE_INTERVAL > get_now():
             return
@@ -203,8 +203,6 @@ class Dynamics:
                 self._updating = True
                 while self._update_step():
                     pass
-                if simulation or FORCE_SIMULATION:
-                    self._simulate_next_turn()
                 self._updating = False
             except Exception:
                 self.failed = True
@@ -243,7 +241,7 @@ class Dynamics:
             queued_event = self._pop_event_from_queue()
             if queued_event is not None:
                 self.logger.debug("Receiving event %s from queue", queued_event)
-                if self.debug_event_bin is not None and not self.simulating:
+                if self.debug_event_bin is not None:
                     self.debug_event_bin.append(queued_event)
                 if SINGLE_MODE:
                     queued_event.save()
@@ -256,6 +254,7 @@ class Dynamics:
                 # turn, do not process any other event
                 if advancing_turn:
                     return False
+                
                 event = self._pop_event_from_db()
                 if event is not None:
                     self.logger.debug("Found event %r from database", event)
@@ -275,12 +274,18 @@ class Dynamics:
                 turn = Turn.first_turn(self.game, must_exist=True)
         except Turn.DoesNotExist:
             # Refresh turn since the end might have changed
-            if self.current_turn is not None:
+            if self.current_turn is not None and self.current_turn.pk is not None:
                 self.current_turn.refresh_from_db()
 
             # Check if current_turn has ended: if so, automatically advance turn
             if self.current_turn is not None and self.current_turn.end is not None and self.current_turn.end <= get_now():
                 self.game.advance_turn(current_turn=self.current_turn)
+                return True
+
+            if self.preview and self.simulated_turn is None and self.current_turn.phase in [DAY, NIGHT]:
+                self.simulated_turn = self.current_turn.next_turn()
+                self.turns.append(self.simulated_turn)
+                self._receive_turn(self.simulated_turn)
                 return True
         else:
             self.turns.append(turn)
@@ -305,14 +310,10 @@ class Dynamics:
             self.prev_turn = Turn.objects.get(pk=self.current_turn.pk)
         self.current_turn = turn
 
-        # Create turn to be simulated
-        if self.current_turn.phase in [DAY, NIGHT] and self.current_turn.end is not None:
-            self.simulated_turn = self.current_turn.next_turn()
-            self.simulated_turn.set_begin_end(self.current_turn)
-        else:
-            self.simulated_turn = None
-
-        self.simulated_events = []
+        # If this is a preview, automatically put end to previous turn, without saving it to the database.
+        if self.preview and self.simulated_turn == self.current_turn:
+            self.prev_turn.end = get_now()
+            self.current_turn.set_begin_end(self.prev_turn)
 
         # Debug print
         self.logger.info("Received turn %r", turn)
@@ -346,80 +347,6 @@ class Dynamics:
             CREATION: self._compute_entering_creation,
             }[self.current_turn.phase]()
 
-    def _simulate_next_turn(self):
-        """
-        Simulate following turn.
-        This will work only if simulated turn is in the dynamics, which means that:
-        * Current turn must be DAY or NIGHT
-        * Current turn must have end.
-        During simulation, only events with flag CAN_BE_SIMULATED are applied.
-        Events are not saved in self.events, but in self.simulated_events instead.
-        All changes to dynamics are (or at least they should be) reverted after simulation is complete.
-        This includes the pseudorandom number generator, which is set back to its previous state,
-        to guarantee that dynamics is deterministic.
-
-        In case of problems, set SIMULATE_NEXT_TURN to False to disable simulation.
-        """
-        if not FORCE_SIMULATION and (not SIMULATE_NEXT_TURN or self.simulated):
-            return
-        if self.simulated_turn is None:
-            self.simulated = True
-            return
-        self.simulating = True
-        self.logger.info("Simulating turn %s", self.simulated_turn)
-        self.simulated_events = []
-        # Copy random status
-        random_state = self.random.getstate()
-
-        # Save last processed event
-        real_last_timestamp_in_turn = self.last_timestamp_in_turn
-        real_last_pk_in_turn = self.last_pk_in_turn
-
-        # Save mayor
-        pre_simulation_mayor = self.mayor
-        pre_simulation_appointed_mayor = self.appointed_mayor
-
-        # Temporarily promote
-        real_current_turn = self.current_turn
-        real_prev_turn = self.prev_turn
-        self.current_turn = self.simulated_turn
-        self.prev_turn = real_current_turn
-
-        # Prepare data for checking events
-        if RELAX_TIME_CHECKS:
-            self.last_timestamp_in_turn = ANCIENT_DATETIME
-        else:
-            self.last_timestamp_in_turn = self.current_turn.begin
-        self.last_pk_in_turn = -1
-
-        assert self.simulated_turn.phase in [DAWN,SUNSET], self.simulated_turn
-        {
-            SUNSET: self._compute_entering_sunset,
-            DAWN: self._compute_entering_dawn,
-            }[self.simulated_turn.phase]()
-
-        # Rollback turn
-        self.current_turn = real_current_turn
-        self.prev_turn = real_prev_turn
-
-        # Get back timestamp and pk
-        self.last_timestamp_in_turn = real_last_timestamp_in_turn
-        self.last_pk_in_turn = real_last_pk_in_turn
-
-
-        # Rollback mayor changes
-        self.mayor = pre_simulation_mayor
-        self.appointed_mayor = pre_simulation_appointed_mayor
-        self.pre_simulation_mayor = None
-        self.pre_simulation_appointed_mayor = None
-
-        # Rollback random object
-        self.random.setstate(random_state)
-
-        self.simulating = False
-        self.simulated = True
-
-
     def _receive_event(self, event):
         # Preliminary checks on the context
         assert self.current_turn is not None
@@ -445,26 +372,19 @@ class Dynamics:
         assert self.current_turn.phase in event.RELEVANT_PHASES
 
         # Process the event
-        if not self.simulating:
-            self._process_event(event)
-            self.events.append(event)
-            self.event_num += 1
-        else:
-            self._simulate_event(event)
+        self._process_event(event)
+        self.events.append(event)
+        self.event_num += 1
 
     def _process_event(self, event):
-        self.simulated = False
         event.apply(self)
         if event.to_player_string('admin') is not None:
             self.logger.debug("> %s",event.to_player_string('admin'))
 
-    def _simulate_event(self, event):
-        if event.CAN_BE_SIMULATED:
-            event.apply(self)
-
     def inject_event(self, event):
         """This is for non automatic events."""
         assert not event.AUTOMATIC
+		assert not self.preview
         assert self.current_turn.phase in event.RELEVANT_PHASES
         event.turn = self.current_turn
         if event.timestamp is None:
@@ -475,6 +395,9 @@ class Dynamics:
             self.debug_event_bin.append(event)
         self.update()
 
+        if FORCE_PREVIEW:
+            self.get_preview_dynamics()
+
     def generate_event(self, event):
         """This is for automatic events."""
         assert event.AUTOMATIC
@@ -483,9 +406,6 @@ class Dynamics:
         event.turn = self.current_turn
         if event.timestamp is None:
             event.timestamp = self.last_timestamp_in_turn
-
-        if self.simulating:
-            self.simulated_events.append(event)
 
         self.auto_event_queue.append(event)
         for trigger in self.post_event_triggers:
@@ -511,7 +431,7 @@ class Dynamics:
                 assert role in {x.role.__class__ for x in self.players}
 
         for player in self.players:
-            assert not player.role.needs_soothsayer_propositions()
+            assert not player.role.needs_soothsayer_propositions(self)
 
         assert not self.check_missing_spectral_sequence()
 
@@ -642,8 +562,7 @@ class Dynamics:
             player.apparent_team = player.team
             player.movement = None
             # Restore cooldown for EVERY_OTHER_NIGHT powers
-            if not self.simulating:
-                player.cooldown = False
+            player.cooldown = False
 
         # So, here comes the big little male house ("gran casino");
         # first of all we consider powers that can block powers that
@@ -715,8 +634,7 @@ class Dynamics:
         self.necromancers_agree = None
         self.movements = []
         for player in self.players:
-            if not self.simulating:
-                player.power.unrecord_targets()
+            player.power.unrecord_targets()
             player.apparent_aura = None
             player.apparent_mystic = None
             player.apparent_role = None
@@ -729,17 +647,7 @@ class Dynamics:
             player.just_resurrected = False
             player.has_confusion = False
 
-        if self.simulating:
-            # Remove useless state for following day
-            self.sentence_modifications = []
-            self.vote_influences = []
-            self.electoral_frauds = []
-            self.post_event_triggers = []
-            for player in self.players:
-                player.temp_dehypnotized = False
-        else:
-
-            self._end_of_main_phase()
+        self._end_of_main_phase()
 
     def _compute_entering_day(self):
         self.logger.debug("Computing day")
@@ -769,19 +677,18 @@ class Dynamics:
         while self._update_step(advancing_turn=True):
             pass
 
-        if not self.simulating:
-            # Unrecord all data set during previous dawn
-            self.sentence_modifications = []
-            self.vote_influences = []
-            self.electoral_frauds = []
+        # Unrecord all data set during previous dawn
+        self.sentence_modifications = []
+        self.vote_influences = []
+        self.electoral_frauds = []
 
-            # Unrecord all elect and vote events, and remove hypnotist immunity
-            for player in self.players:
-                player.temp_dehypnotized = False
-                player.recorded_vote = None
-                player.recorded_elect = None
+        # Unrecord all elect and vote events, and remove hypnotist immunity
+        for player in self.players:
+            player.temp_dehypnotized = False
+            player.recorded_vote = None
+            player.recorded_elect = None
 
-            self._end_of_main_phase()
+        self._end_of_main_phase()
 
     def _compute_elected_mayor(self):
         new_mayor = None
@@ -803,11 +710,11 @@ class Dynamics:
         # Send announcements
         for player in self.get_alive_players():
             if ballots[player.pk] is not None:
-                event = VoteAnnouncedEvent(voter=player.canonicalize(), voted=ballots[player.pk], type=ELECT)
+                event = VoteAnnouncedEvent(voter=player, voted=ballots[player.pk], type=ELECT)
                 self.generate_event(event)
         for player in self.get_alive_players():
             if tally_sheet[player.pk] != 0:
-                event = TallyAnnouncedEvent(voted=player.canonicalize(), vote_num=tally_sheet[player.pk], type=ELECT)
+                event = TallyAnnouncedEvent(voted=player, vote_num=tally_sheet[player.pk], type=ELECT)
                 self.generate_event(event)
 
         # Compute winners (or maybe loosers...)

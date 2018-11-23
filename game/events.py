@@ -91,14 +91,14 @@ class CommandEvent(Event):
         assert self.player is not None
 
         # Canonicalize players
-        self.player = self.player.canonicalize()
+        self.player = self.player.canonicalize(dynamics)
         if self.target is not None:
-            self.target = self.target.canonicalize()
+            self.target = self.target.canonicalize(dynamics)
         if self.target2 is not None:
-            self.target2 = self.target2.canonicalize()
+            self.target2 = self.target2.canonicalize(dynamics)
 
         if self.type == APPOINT:
-            assert self.player.is_mayor()
+            assert self.player.is_mayor(dynamics)
             assert self.target2 is None
             assert self.role_class is None
             assert self.multiple_role_class is None
@@ -124,7 +124,7 @@ class CommandEvent(Event):
                 assert False, "Should not arrive here"
 
         elif self.type == USEPOWER:
-            self.player.canonicalize().power.apply_usepower(dynamics, self)
+            self.player.canonicalize(dynamics).power.apply_usepower(dynamics, self)
 
         else:
             assert False, "Invalid type"
@@ -271,7 +271,8 @@ class SetRoleEvent(Event):
     role_class = RoleField()
 
     def apply(self, dynamics):
-        player = self.player.canonicalize()
+        player = self.player
+        assert player.canonical
         role = self.role_class(player)
         # Assign a label to disambiguate players with the same role
         try:
@@ -330,7 +331,8 @@ class SetMayorEvent(Event):
     def apply(self, dynamics):
         assert dynamics.current_turn.phase in SetMayorEvent.REAL_RELEVANT_PHASES[self.cause]
         if self.player is not None:
-            player = self.player.canonicalize()
+            player = self.player
+            assert player.canonical
             assert player.alive
 
             if self.cause == BEGINNING:
@@ -414,8 +416,8 @@ class VoteAnnouncedEvent(Event):
 
     def apply(self, dynamics):
         assert self.type in [ELECT, VOTE]
-        assert self.voter.canonicalize().alive
-        assert self.voted.canonicalize().alive
+        assert self.voter.alive
+        assert self.voted.alive
 
     def to_player_string(self,player):
         return None
@@ -433,7 +435,7 @@ class TallyAnnouncedEvent(Event):
 
     def apply(self, dynamics):
         assert self.type in [ELECT, VOTE]
-        assert self.voted.canonicalize().alive
+        assert self.voted.alive
         assert self.vote_num > 0
 
     def to_player_string(self,player):
@@ -448,7 +450,7 @@ class PlayerResurrectsEvent(Event):
     player = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
 
     def apply(self, dynamics):
-        player = self.player.canonicalize()
+        player = self.player
         assert not player.alive
         player.alive = True
 
@@ -475,9 +477,10 @@ class TransformationEvent(Event):
     cause = models.CharField(max_length=1, choices=TRANSFORMATION_CAUSES, default=None)
 
     def apply(self, dynamics):
-        player = self.player.canonicalize()
-        target = self.target.canonicalize()
+        player = self.player
+        target = self.target
 
+        assert player.canonical and target.canonical
         assert player.alive
         assert not target.alive
 
@@ -519,8 +522,9 @@ class CorruptionEvent(Event):
     player = models.ForeignKey(Player, related_name='+',on_delete=models.CASCADE)
 
     def apply(self, dynamics):
-        player = self.player.canonicalize()
+        player = self.player
 
+        assert player.canonical
         assert player.alive
         assert player.is_mystic and player.aura == WHITE
 
@@ -585,7 +589,8 @@ class PlayerDiesEvent(Event):
     def apply(self, dynamics):
         assert dynamics.current_turn.phase in PlayerDiesEvent.REAL_RELEVANT_PHASES[self.cause]
 
-        player = self.player.canonicalize()
+        player = self.player
+        assert player.canonical
         player.just_dead = True
 
         dynamics.upcoming_deaths.append(self)
@@ -593,7 +598,8 @@ class PlayerDiesEvent(Event):
     def apply_death(self, dynamics):
         assert dynamics.current_turn.phase in PlayerDiesEvent.REAL_RELEVANT_PHASES[self.cause]
 
-        player = self.player.canonicalize()
+        player = self.player
+        assert player.canonical
         assert player.alive
         assert player.just_dead
 
@@ -707,7 +713,7 @@ class RoleKnowledgeEvent(Event):
 
     def apply(self, dynamics):
         assert dynamics.current_turn.phase in RoleKnowledgeEvent.REAL_RELEVANT_PHASES[self.cause]
-
+        assert self.player.canonical
         if self.cause == SOOTHSAYER:
             assert self.player.canonicalize().role.__class__.__name__ == 'Divinatore'
 
@@ -861,6 +867,7 @@ class NegativeRoleKnowledgeEvent(Event):
 
     def apply(self, dynamics):
         assert dynamics.current_turn.phase in NegativeRoleKnowledgeEvent.REAL_RELEVANT_PHASES[self.cause]
+        assert self.player.canonical
         assert self.player.canonicalize().role.__class__.__name__ == 'Divinatore'
 
     def to_player_string(self, player):
@@ -993,6 +1000,7 @@ class TeamKnowledgeEvent(Event):
     cause = models.CharField(max_length=1, choices=KNOWLEDGE_CAUSE_TYPES, default=None)
 
     def apply(self, dynamics):
+        assert self.player.canonical
         assert self.target.canonicalize().team == self.team or self.target.canonicalize().has_confusion
 
     def to_player_string(self, player):
@@ -1171,6 +1179,7 @@ class HypnotizationEvent(Event):
     hypnotist = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
 
     def apply(self, dynamics):
+        assert self.player.canonical and self.hypnotist.canonical
         player = self.player.canonicalize()
         hypnotist = self.hypnotist.canonicalize()
 
@@ -1206,6 +1215,7 @@ class GhostificationEvent(Event):
         return NEGROMANTI in dynamics.playing_teams
 
     def apply(self, dynamics):
+        assert self.player.canonical
         player = self.player.canonicalize()
 
         assert not player.alive
@@ -1270,6 +1280,7 @@ class GhostificationFailedEvent(Event):
     player = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
 
     def apply(self, dynamics):
+        assert self.player.canonical
         player = self.player.canonicalize()
 
         assert not player.alive
@@ -1292,6 +1303,7 @@ class UnGhostificationEvent(Event):
     player = models.ForeignKey(Player, related_name='+', on_delete=models.CASCADE)
 
     def apply(self, dynamics):
+        assert self.player.canonical
         player = self.player.canonicalize()
 
         assert player.specter
@@ -1329,6 +1341,7 @@ class GhostSwitchEvent(Event):
     cause = models.CharField(max_length=1, choices=GHOSTIFICATION_CAUSES, default=None)
 
     def apply(self, dynamics):
+        assert self.player.canonical
         player = self.player.canonicalize()
 
         assert self.ghost not in dynamics.used_ghost_powers, self.ghost
@@ -1386,6 +1399,7 @@ class PowerOutcomeEvent(Event):
         assert self.command.player.pk == self.player.pk
         assert self.command.target is not None
         assert self.power is not None
+        assert self.player.canonical
 
         player = self.player.canonicalize()
         if self.success or not dynamics.rules.forgiving_failures:
@@ -1436,6 +1450,7 @@ class DisqualificationEvent(Event):
         self.public_message = data['public_message']
 
     def apply(self, dynamics):
+        assert self.player.canonical
         player = self.player.canonicalize()
 
         assert player.active
@@ -1509,6 +1524,7 @@ class ExileEvent(Event):
     disqualification = models.OneToOneField(DisqualificationEvent, null=True, blank=True, default=None, on_delete=models.CASCADE)
 
     def apply(self, dynamics):
+        assert self.player.canonical
         player = self.player.canonicalize()
 
         assert player.active

@@ -52,14 +52,14 @@ class Divinatore(Divinatore):
             from ..events import NegativeRoleKnowledgeEvent
             dynamics.generate_event(NegativeRoleKnowledgeEvent(target=self.recorded_target, player=self.player, role_class=self.recorded_role_class, cause=SOOTHSAYER))
 
-    def needs_soothsayer_propositions(self):
+    def needs_soothsayer_propositions(self, dynamics=None):
         from ..events import SoothsayerModelEvent
         events = SoothsayerModelEvent.objects.filter(soothsayer=self.player)
         if len([ev for ev in events if ev.target == ev.soothsayer]) > 0:
             return KNOWS_ABOUT_SELF
         if len(events) != 4:
             return NUMBER_MISMATCH
-        truths = [isinstance(ev.target.canonicalize().role, ev.advertised_role) for ev in events]
+        truths = [isinstance(ev.target.canonicalize(dynamics).role, ev.advertised_role) for ev in events]
         if not (False in truths) or not (True in truths):
             return TRUTH_MISMATCH
 
@@ -252,16 +252,15 @@ class Negromante(Negromante):
     required = True
     message_role = 'Lancia il seguente incantesimo:'
 
-    def get_targets(self):
-        return [player for player in self.player.game.get_active_players() if player.specter and player.pk != self.player.pk]
+    def get_targets(self, dynamics):
+        return [player for player in dynamics.get_active_players() if player.specter and player.pk != self.player.pk]
 
-    def get_targets_role_class(self):
+    def get_targets_role_class(self, dynamics):
         powers = {Amnesia, Assoluzione, Confusione, Diffamazione, Illusione, Morte, Occultamento, Telepatia, Vita, Delusione}
-        dynamics = self.player.game.get_dynamics()
         available_powers = powers - dynamics.used_ghost_powers
         return available_powers
 
-    def get_target_role_class_default(self):
+    def get_target_role_class_default(self, dynamics):
         return Delusione
 
     def pre_apply_dawn(self, dynamics):
@@ -293,9 +292,8 @@ class Spettrificazione(Role):
     targets = DEAD
     message_role = 'Lancia il seguente incantesimo:'
 
-    def get_targets_role_class(self):
+    def get_targets_role_class(self, dynamics):
         powers = {Amnesia, Assoluzione, Confusione, Diffamazione, Illusione, Morte, Occultamento, Telepatia}
-        dynamics = self.player.game.get_dynamics()
         available_powers = powers - dynamics.used_ghost_powers
         return available_powers
 
@@ -404,8 +402,8 @@ class Illusione(Illusione):
     targets2 = EVERYBODY
     allow_target2_same_as_target = False
 
-    def get_targets2(self):
-        ret = self.player.game.get_dynamics().get_active_players()
+    def get_targets2(self, dynamics):
+        ret = dynamics.get_active_players()
         ret.append(None)
         return ret
 

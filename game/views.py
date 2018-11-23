@@ -183,19 +183,20 @@ class EventListView(TemplateView):
         dynamics = game.get_dynamics()
         assert dynamics is not None
         assert not dynamics.failed
-        assert not dynamics.simulating
+
+        if player == 'preview':
+            dynamics = dynamics.get_preview_dynamics()
+            # Get all events, since it's requesting a preview.
+            player = 'admin'
+
+        assert player == 'admin' or not dynamics.preview
+
         if player == 'admin':
             turns = dynamics.turns
-            dynamics.update(simulation=True)
-            if dynamics.simulated_turn is not None and dynamics.simulated:
-                turns = turns + [dynamics.simulated_turn]
         else:
             turns = [turn for turn in dynamics.turns if turn.phase in [CREATION, DAWN, SUNSET]]
 
-        if player == 'admin':
-            events = dynamics.events + dynamics.simulated_events
-        else:
-            events = dynamics.events
+        events = dynamics.events
 
         if player == 'admin':
             comments = Comment.objects.filter(turn__game=game).filter(visible=True).order_by('timestamp')
@@ -279,7 +280,7 @@ class PersonalInfoView(EventListView):
 @method_decorator(can_access_admin_view, name='dispatch')
 class AdminStatusView(EventListView):
     template_name = 'public_info.html'
-    point_of_view = 'admin'
+    point_of_view = 'preview'
     classified = True
     display_time = True
 
@@ -413,13 +414,14 @@ class UsePowerView(CommandView):
         player = self.request.player
         game = player.game
         power = player.power
+        dynamics = game.get_dynamics()
 
-        targets = power.get_targets()
-        targets2 = power.get_targets2()
-        role_classes = power.get_targets_role_class()
+        targets = power.get_targets(dynamics)
+        targets2 = power.get_targets2(dynamics)
+        role_classes = power.get_targets_role_class(dynamics)
         if role_classes is not None:
-            role_classes -= {power.get_target_role_class_default()}
-        multiple_role_classes = power.get_targets_multiple_role_class()
+            role_classes -= {power.get_target_role_class_default(dynamics)}
+        multiple_role_classes = power.get_targets_multiple_role_class(dynamics)
 
         initial = power.recorded_target
         initial2 = power.recorded_target2
@@ -445,12 +447,13 @@ class UsePowerView(CommandView):
     def save_command(self, cleaned_data):
         player = self.request.player
         power = player.power
+        dynamics = self.request.game.get_dynamics()
 
-        targets = power.get_targets()
-        targets2 = power.get_targets2()
-        role_classes = power.get_targets_role_class()
-        role_class_default = power.get_target_role_class_default()
-        multiple_role_classes = power.get_targets_multiple_role_class()
+        targets = power.get_targets(dynamics)
+        targets2 = power.get_targets2(dynamics)
+        role_classes = power.get_targets_role_class(dynamics)
+        role_class_default = power.get_target_role_class_default(dynamics)
+        multiple_role_classes = power.get_targets_multiple_role_class(dynamics)
 
         target = cleaned_data['target']
         target2 = None

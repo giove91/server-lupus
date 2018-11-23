@@ -604,12 +604,14 @@ class Player(models.Model):
     oa = property(get_oa)
 
 
-    def canonicalize(self):
+    def canonicalize(self, dynamics=None):
         # We save on queries when we can
         if 'canonical' in self.__dict__ and self.canonical:
             return self
         else:
-            return self.game.get_dynamics().get_canonical_player(self)
+            if dynamics is None:
+                dynamics = self.game.get_dynamics()
+            return dynamics.get_canonical_player(self)
 
 
     def get_role_name(self):
@@ -722,16 +724,20 @@ class Player(models.Model):
         return True
     can_vote.boolean = True
 
-    def is_mayor(self):
+    def is_mayor(self, dynamics=None):
+        if dynamics is None:
+            dynamics = self.game.get_dynamics()
         # True if this player is the Mayor
-        mayor = self.game.get_dynamics().mayor
+        mayor = dynamics.mayor
         if mayor is None:
             return False
         return self.pk == mayor.pk
     is_mayor.boolean = True
 
-    def is_appointed_mayor(self):
-        appointed_mayor = self.game.get_dynamics().appointed_mayor
+    def is_appointed_mayor(self, dynamics=None):
+        if dynamics is None:
+            dynamics = self.game.get_dynamics()
+        appointed_mayor = dynamics.appointed_mayor
         if appointed_mayor is None:
             return False
         return self.pk == appointed_mayor.pk

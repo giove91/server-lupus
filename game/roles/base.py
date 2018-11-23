@@ -69,7 +69,8 @@ class Role(object):
     message2 = 'Parametro secondario:'
 
     def __init__(self, player):
-        self.player = player.canonicalize()
+        self.player = player
+        assert player.canonical
         self.last_usage = None
         self.last_target = None
         self.recorded_target = None
@@ -119,43 +120,43 @@ class Role(object):
         else:
             raise Exception("Invalid frequency value")
 
-    def get_targets(self):
+    def get_targets(self, dynamics):
         '''Returns the list of possible targets.'''
         return {
-            ALIVE: [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk],
-            DEAD: [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk],
-            EVERYBODY: [player for player in self.player.game.get_active_players() if player.pk != self.player.pk],
+            ALIVE: [player for player in dynamics.get_alive_players() if player.pk != self.player.pk],
+            DEAD: [player for player in dynamics.get_dead_players() if player.pk != self.player.pk],
+            EVERYBODY: [player for player in dynamics.get_active_players() if player.pk != self.player.pk],
             None: None
         }[self.targets]
 
-    def get_targets2(self):
+    def get_targets2(self, dynamics):
         '''Returns the list of possible second targets.'''
         return {
-            ALIVE: [player for player in self.player.game.get_alive_players() if player.pk != self.player.pk],
-            DEAD: [player for player in self.player.game.get_dead_players() if player.pk != self.player.pk],
-            EVERYBODY: [player for player in self.player.game.get_active_players() if player.pk != self.player.pk],
+            ALIVE: [player for player in dynamics.get_alive_players() if player.pk != self.player.pk],
+            DEAD: [player for player in dynamics.get_dead_players() if player.pk != self.player.pk],
+            EVERYBODY: [player for player in dynamics.get_active_players() if player.pk != self.player.pk],
             None: None
         }[self.targets2]
 
-    def get_targets_role_class(self):
+    def get_targets_role_class(self, dynamics):
         '''Returns a set of possible role class targets.'''
         return {
-            ALIVE: {x for x in self.player.game.get_dynamics().valid_roles if not x.dead_power},
-            DEAD: {x for x in self.player.game.get_dynamics().valid_roles if x.ghost},
-            EVERYBODY: {x for x in self.player.game.get_dynamics().valid_roles},
+            ALIVE: {x for x in dynamics.valid_roles if not x.dead_power},
+            DEAD: {x for x in dynamics.valid_roles if x.ghost},
+            EVERYBODY: {x for x in dynamics.valid_roles},
             None: None
         }[self.targets_role_class]
 
-    def get_target_role_class_default(self):
+    def get_target_role_class_default(self, dynamics):
         '''Returns a role which acts as None.'''
         return None
 
-    def get_targets_multiple_role_class(self):
+    def get_targets_multiple_role_class(self, dynamics):
         '''Returns a set of possible multiple role class targets.'''
         return {
-            ALIVE: {x for x in self.player.game.get_dynamics().valid_roles if not x.dead_power},
-            DEAD: {x for x in self.player.game.get_dynamics().valid_roles if x.ghost},
-            EVERYBODY: {x for x in self.player.game.get_dynamics().valid_roles},
+            ALIVE: {x for x in dynamics.valid_roles if not x.dead_power},
+            DEAD: {x for x in dynamics.valid_roles if x.ghost},
+            EVERYBODY: {x for x in dynamics.valid_roles},
             None: None
         }[self.targets_multiple_role_class]
 
@@ -179,22 +180,22 @@ class Role(object):
         assert self.can_use_power(), "Il %s %s ha tentato di usare il suo potere quando non poteva farlo." % (event.player.power.name, event.player.full_name)
 
         # Check target validity
-        targets = self.get_targets()
+        targets = self.get_targets(dynamics)
         if targets is None:
             assert event.target is None
         else:
             assert event.target is None or event.target in targets, (event.target, targets, event, event.player, event.player.power)
 
         # Check target2 validity
-        targets2 = self.get_targets2()
+        targets2 = self.get_targets2(dynamics)
         if targets2 is None:
             assert event.target2 is None, event.player.power
         else:
             assert event.target2 is None or event.target2 in targets2
 
         # Check target_role_class and target_multiple_role_class validity
-        targets_role_class = self.get_targets_role_class()
-        targets_multiple_role_class = self.get_targets_multiple_role_class()
+        targets_role_class = self.get_targets_role_class(dynamics)
+        targets_multiple_role_class = self.get_targets_multiple_role_class(dynamics)
         if targets_role_class is None:
             assert event.role_class is None
         else:
@@ -246,7 +247,7 @@ class Role(object):
     def get_blocked(self, players):
         return []
 
-    def needs_soothsayer_propositions(self):
+    def needs_soothsayer_propositions(self, dynamics=None):
         """Should return False unless the player is a Divinatore who has not received
         a propositions according to the rules. In that case, it should return a
         description of the problem."""
@@ -302,14 +303,14 @@ class Divinatore(Role):
     is_mystic = True
     priority = USELESS
 
-    def needs_soothsayer_propositions(self):
+    def needs_soothsayer_propositions(self, dynamics=None):
         from ..events import SoothsayerModelEvent
         events = SoothsayerModelEvent.objects.filter(soothsayer=self.player)
         if len([ev for ev in events if ev.target == ev.soothsayer]) > 0:
             return KNOWS_ABOUT_SELF
         if len(events) != 4:
             return NUMBER_MISMATCH
-        if sorted([isinstance(ev.target.canonicalize().role, ev.advertised_role) for ev in events]) != sorted([False, False, True, True]):
+        if sorted([isinstance(ev.target.canonicalize(dynamics).role, ev.advertised_role) for ev in events]) != sorted([False, False, True, True]):
             return TRUTH_MISMATCH
 
         return False
@@ -746,8 +747,7 @@ class Negromante(Role):
     necromancer = True # Flag to identify target for Fantasma, Corruzione, ecc.
     targets = DEAD
 
-    def get_targets_role_class(self):
-        dynamics = self.player.game.get_dynamics()
+    def get_targets_role_class(self, dynamics):
         powers = {x for x in dynamics.valid_roles if x.ghost}
         available_powers = powers - dynamics.used_ghost_powers
         return available_powers
@@ -928,7 +928,7 @@ class Amnesia(Spettro):
     frequency = EVERY_NIGHT
     targets = ALIVE
 
-    def get_targets2(self):
+    def get_targets2(self, dynamics):
         return None
 
     def pre_apply_dawn(self, dynamics):
