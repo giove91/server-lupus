@@ -189,9 +189,8 @@ class Dynamics:
     def get_preview_dynamics(self):
         assert not self.preview
         if self.preview_dynamics is None:
-            preview = self.__class__(self.game, preview=True)
-            preview.update()
-            self.preview_dynamics = preview
+            self.preview_dynamics = self.__class__(self.game, preview=True)
+        self.preview_dynamics.update()
         return self.preview_dynamics
 
     def update(self, lazy=False):

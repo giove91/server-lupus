@@ -178,7 +178,7 @@ class TestWebInterface(GameTest, TestCase):
         response = c.get('/game/test/as_gm/')
         response = c.get('/game/test/adminstatus/')
         last_turn = response.context['events'][-1][0]
-        self.assertEqual(last_turn.__hash__(), self.game.current_turn.next_turn().__hash__())
+        self.assertEqual(last_turn.turn_as_italian_string(), self.game.current_turn.next_turn().turn_as_italian_string())
         [poweroutcome, playerdies, ghostification, knowledge1, knowledge2] = dict(response.context['events'])[last_turn]['standard']
         self.assertEqual(poweroutcome, 'Paperinik 3 ha utilizzato con successo la propria abilità di Lupo su Paperinik 4.')
 

@@ -1450,10 +1450,9 @@ class DisqualificationEvent(Event):
         self.public_message = data['public_message']
 
     def apply(self, dynamics):
-        assert self.player.canonical
-        player = self.player.canonicalize()
+        self.player = self.player.canonicalize(dynamics)
 
-        assert player.active
+        assert self.player.active
 
         dynamics.pending_disqualifications.append(self)
 

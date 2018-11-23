@@ -1427,13 +1427,13 @@ class GameTests(TestCase):
         self.assertTrue(veggente.can_use_power())
         self.assertTrue(medium.can_use_power())
         self.assertTrue(investigatore.can_use_power())
-        self.assertEqual(medium.role.get_targets(), [])
-        self.assertEqual(investigatore.role.get_targets(), [])
+        self.assertEqual(medium.role.get_targets(dynamics), [])
+        self.assertEqual(investigatore.role.get_targets(dynamics), [])
         
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=veggente, target=lupo, timestamp=get_now()))
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=diavolo, target=lupo, timestamp=get_now()))
-        self.assertFalse(lupo in medium.role.get_targets())
-        self.assertFalse(lupo in investigatore.role.get_targets())
+        self.assertFalse(lupo in medium.role.get_targets(dynamics))
+        self.assertFalse(lupo in investigatore.role.get_targets(dynamics))
         
         # Advance to dawn and check
         dynamics.debug_event_bin = []
@@ -1467,8 +1467,8 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         
         # Use powers
-        self.assertFalse(lupo in veggente.role.get_targets())
-        self.assertFalse(lupo in diavolo.role.get_targets())
+        self.assertFalse(lupo in veggente.role.get_targets(dynamics))
+        self.assertFalse(lupo in diavolo.role.get_targets(dynamics))
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=medium, target=lupo, timestamp=get_now()))
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=investigatore, target=lupo, timestamp=get_now()))
         
@@ -1746,7 +1746,7 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         
         self.assertTrue(trasformista.can_use_power())
-        self.assertFalse(lupo in trasformista.role.get_targets())
+        self.assertFalse(lupo in trasformista.role.get_targets(dynamics))
         
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -1791,7 +1791,7 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         
         self.assertTrue(trasformista.can_use_power())
-        self.assertFalse(messia in trasformista.role.get_targets())
+        self.assertFalse(messia in trasformista.role.get_targets(dynamics))
         
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -1836,7 +1836,7 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         
         self.assertTrue(trasformista.can_use_power())
-        self.assertFalse(stalker in trasformista.role.get_targets())
+        self.assertFalse(stalker in trasformista.role.get_targets(dynamics))
         
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -1890,7 +1890,7 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         
         self.assertTrue(trasformista.can_use_power())
-        self.assertFalse(ipnotista in trasformista.role.get_targets())
+        self.assertFalse(ipnotista in trasformista.role.get_targets(dynamics))
         
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -1935,7 +1935,7 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         
         self.assertTrue(trasformista.can_use_power())
-        self.assertFalse(diavolo in trasformista.role.get_targets())
+        self.assertFalse(diavolo in trasformista.role.get_targets(dynamics))
         
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -1980,7 +1980,7 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         
         self.assertTrue(trasformista.can_use_power())
-        self.assertFalse(negromante in trasformista.role.get_targets())
+        self.assertFalse(negromante in trasformista.role.get_targets(dynamics))
         
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -2026,7 +2026,7 @@ class GameTests(TestCase):
         # ~ test_advance_turn(self.game)
         
         # ~ self.assertTrue(trasformista.can_use_power())
-        # ~ self.assertFalse(fattucchiera in trasformista.role.get_targets())
+        # ~ self.assertFalse(fattucchiera in trasformista.role.get_targets(dynamics))
         
         # ~ test_advance_turn(self.game)
         # ~ test_advance_turn(self.game)
@@ -2080,7 +2080,7 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         
         self.assertTrue(trasformista.can_use_power())
-        self.assertFalse(investigatore in trasformista.role.get_targets())
+        self.assertFalse(investigatore in trasformista.role.get_targets(dynamics))
         
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -2143,7 +2143,7 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         
         self.assertTrue(necrofilo.can_use_power())
-        self.assertFalse(diavolo in necrofilo.role.get_targets())
+        self.assertFalse(diavolo in necrofilo.role.get_targets(dynamics))
         
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -2201,7 +2201,7 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         
         self.assertTrue(necrofilo.can_use_power())
-        self.assertFalse(lupo in necrofilo.role.get_targets())
+        self.assertFalse(lupo in necrofilo.role.get_targets(dynamics))
         
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -2254,7 +2254,7 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         
         self.assertTrue(necrofilo.can_use_power())
-        self.assertFalse(ipnotista in necrofilo.role.get_targets())
+        self.assertFalse(ipnotista in necrofilo.role.get_targets(dynamics))
         
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -2299,7 +2299,7 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         
         self.assertTrue(necrofilo.can_use_power())
-        self.assertFalse(veggente in necrofilo.role.get_targets())
+        self.assertFalse(veggente in necrofilo.role.get_targets(dynamics))
         
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -2344,7 +2344,7 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         
         self.assertTrue(messia.can_use_power())
-        self.assertFalse(fattucchiera in messia.role.get_targets())
+        self.assertFalse(fattucchiera in messia.role.get_targets(dynamics))
         
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -2500,7 +2500,7 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         
         self.assertTrue(messia.can_use_power())
-        self.assertFalse(investigatore in messia.role.get_targets())
+        self.assertFalse(investigatore in messia.role.get_targets(dynamics))
         
         test_advance_turn(self.game)
         test_advance_turn(self.game)
@@ -2959,8 +2959,8 @@ class GameTests(TestCase):
         
         # Advance to day
         test_advance_turn(self.game)
-        self.assertFalse(contadino in negromante.role.get_targets())
-        self.assertFalse(contadino in custode.role.get_targets())
+        self.assertFalse(contadino in negromante.role.get_targets(dynamics))
+        self.assertFalse(contadino in custode.role.get_targets(dynamics))
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         
@@ -3013,8 +3013,8 @@ class GameTests(TestCase):
 
         # Advance to day
         test_advance_turn(self.game)
-        self.assertFalse(contadino in negromante.role.get_targets())
-        self.assertFalse(contadino in custode.role.get_targets())
+        self.assertFalse(contadino in negromante.role.get_targets(dynamics))
+        self.assertFalse(contadino in custode.role.get_targets(dynamics))
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         
@@ -3086,7 +3086,7 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         
-        self.assertFalse(negromante in sciamano.role.get_targets())
+        self.assertFalse(negromante in sciamano.role.get_targets(dynamics))
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=veggente, target=esorcista, timestamp=get_now()))
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=sciamano, target=veggente, timestamp=get_now()))
         
@@ -3144,7 +3144,7 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         test_advance_turn(self.game)
         
-        self.assertFalse(negromante in sciamano.role.get_targets())
+        self.assertFalse(negromante in sciamano.role.get_targets(dynamics))
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=contadino, target=negromante, timestamp=get_now()))
         dynamics.inject_event(CommandEvent(type=USEPOWER, player=voyeur, target=negromante, timestamp=get_now()))
         
@@ -4907,7 +4907,7 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         
         self.assertTrue(messia.can_use_power())
-        self.assertFalse(fattucchiera in messia.role.get_targets())
+        self.assertFalse(fattucchiera in messia.role.get_targets(dynamics))
         
         test_advance_turn(self.game)
         test_advance_turn(self.game)
