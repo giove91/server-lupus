@@ -1252,7 +1252,7 @@ class GhostificationEvent(Event):
 
         elif self.cause == SPECTRAL_SEQUENCE:
             if player == self.player:
-                return u'Credevi che i giochi fossero fatti? Pensavi che la morte fosse un evento definitivo? Certo che no! Come nelle migliori soap opera, non c\'è pace neanche dopo la sepoltura. Ti sei risvegliat%s come %s.' % (oa, power)
+                return u'Credevi che i giochi fossero fatti? Pensavi che la morte fosse un evento definitivo? Certo che no! Come nelle migliori soap opera, non c\'è pace neanche dopo la sepoltura. Sei diventat%s uno %s.' % (oa, power)
             elif player == 'admin':
                 return u'%s si è risvegliat%s come %s.' % (self.player.full_name, oa, power)
 
