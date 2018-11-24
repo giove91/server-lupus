@@ -799,7 +799,7 @@ class TestSpectralSequence(GameTest, TestCase):
         self.assertIsInstance(self.contadino_a.dead_power, NoPower)
 
 class TestSpettri(GameTest, TestCase):
-    roles = [Contadino, Contadino, Veggente, Esorcista, Lupo, Negromante, Negromante]
+    roles = [Contadino, Contadino, Veggente, Esorcista, Messia, Lupo, Negromante, Negromante]
     spectral_sequence = [True, False, True]
 
     def setUp(self):
@@ -858,6 +858,30 @@ class TestSpettri(GameTest, TestCase):
         self.assertFalse(self.specter.specter)
         self.assertIsInstance(self.specter.dead_power, NoPower)
 
+    def test_resurrected_morte(self):
+        self.usepower(self.alive_n, self.specter, role_class=Morte)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.specter, self.veggente)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.messia, self.specter)
+        self.advance_turn()
+
+        self.check_event(PlayerResurrectsEvent, {'player': self.specter})
+        self.assertTrue(self.specter.alive)
+
+    def test_messia_dead_negromante(self):
+        self.usepower(self.dead_n, self.non_specter, role_class=Amnesia)
+        self.usepower(self.messia, self.non_specter)
+        self.advance_turn()
+
+        self.check_event(PlayerResurrectsEvent, {'player': self.non_specter})
+        self.check_event(PowerOutcomeEvent, {'success': True, 'power': Messia}, player=self.messia)
+        self.check_event(PowerOutcomeEvent, {'success': False, 'power': Spettrificazione}, player=self.dead_n)
+        self.advance_turn(NIGHT)
+
+        self.assertTrue(self.dead_n.can_use_power())
 
 class TestVotingPowers(GameTest, TestCase):
     roles = [ Contadino, Guardia, Veggente, Spia, Messia, Esorcista, Lupo, Stregone, Fattucchiera, Negromante]
@@ -1483,6 +1507,14 @@ class TestMovements(GameTest, TestCase):
             self.tearDown()
 
         self.assertEqual(killed, {None, Voyeur})
+
+    def test_assassino_with_trivial_illusione(self):
+        self.usepower(self.assassino, self.stalker)
+        self.usepower(self.contadino, self.alcolista, target2=self.stalker)
+        self.usepower(self.alcolista, self.stalker)
+        self.advance_turn()
+
+        self.check_event(PlayerDiesEvent, None)
 
 class TestTelepatia(GameTest, TestCase):
     roles = [Contadino, Veggente, Mago, Stalker, Voyeur, Espansivo, Lupo, Diavolo, Alcolista, Negromante]

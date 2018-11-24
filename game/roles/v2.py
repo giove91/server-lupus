@@ -304,6 +304,10 @@ class Spettrificazione(Role):
         if self.recorded_target.specter:
             return False
 
+        # If he was resurrected by Messia, fail
+        if self.recorded_target.alive:
+            return False
+
         return True
 
     def apply_dawn(self, dynamics):
