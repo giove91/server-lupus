@@ -435,7 +435,21 @@ class Morte(Morte):
             dynamics.generate_event(UnGhostificationEvent(player=self.player))
 
 class Occultamento(Occultamento):
-    pass
+    def get_blocked(self, players):
+        if self.recorded_target is None:
+            return []
+        ret = []
+        for blocker in players:
+            if isinstance(blocker.power, Esorcista):
+                continue
+            if blocker.pk == self.player.pk:
+                continue
+            if blocker.power.recorded_target is not None and \
+                    blocker.power.recorded_target.pk == self.recorded_target.pk and \
+                    blocker.alive:
+                ret.append(blocker.pk)
+        return ret
+
 
 class Telepatia(Spettro):
     name = 'Telepatia'

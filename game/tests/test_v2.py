@@ -798,6 +798,53 @@ class TestSpectralSequence(GameTest, TestCase):
         self.assertEqual(self.contadino_a.team, POPOLANI)
         self.assertIsInstance(self.contadino_a.dead_power, NoPower)
 
+class TestSpettri(GameTest, TestCase):
+    roles = [Contadino, Contadino, Veggente, Esorcista, Lupo, Negromante, Negromante]
+    spectral_sequence = [True, False, True]
+
+    def setUp(self):
+        super().setUp()
+        self.advance_turn(NIGHT)
+        self.usepower(self.lupo, self.negromante_b)
+        self.advance_turn(NIGHT)
+        self.usepower(self.lupo, self.contadino_a)
+        self.advance_turn(NIGHT)
+        self.usepower(self.lupo, self.contadino_b)
+        self.advance_turn(NIGHT)
+
+        self.alive_n = self.negromante_a
+        self.dead_n = self.negromante_b
+        self.specter = self.contadino_a
+        self.non_specter = self.contadino_b
+
+        self.assertTrue(self.specter.specter)
+        self.assertFalse(self.non_specter.specter)
+
+    def test_occultamento_with_other_spettri(self):
+        self.usepower(self.alive_n, self.specter, role_class=Occultamento)
+        self.usepower(self.dead_n, self.non_specter, role_class=Morte)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.specter, self.lupo)
+        self.usepower(self.non_specter, self.lupo)
+        self.advance_turn()
+
+        self.check_event(PowerOutcomeEvent, {'success': True, 'power': Morte}, player=self.non_specter)
+        self.check_event(PlayerDiesEvent, {'player': self.lupo})
+        self.check_event(UnGhostificationEvent, {'player': self.non_specter})
+
+    def test_occultamento_with_dead_negromante(self):
+        self.usepower(self.alive_n, self.specter, role_class=Occultamento)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.dead_n, self.non_specter, role_class=Morte)
+        self.usepower(self.specter, self.non_specter)
+        self.advance_turn(NIGHT)
+
+        self.check_event(PowerOutcomeEvent, {'success': True, 'power': Spettrificazione}, player=self.dead_n)
+        self.check_event(GhostificationEvent, {'cause': NECROMANCER, 'player': self.non_specter})
+
+
 class TestVotingPowers(GameTest, TestCase):
     roles = [ Contadino, Guardia, Veggente, Spia, Messia, Esorcista, Lupo, Stregone, Fattucchiera, Negromante]
     spectral_sequence = [True, True, True]
