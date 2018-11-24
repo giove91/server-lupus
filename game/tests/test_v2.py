@@ -844,6 +844,20 @@ class TestSpettri(GameTest, TestCase):
         self.check_event(PowerOutcomeEvent, {'success': True, 'power': Spettrificazione}, player=self.dead_n)
         self.check_event(GhostificationEvent, {'cause': NECROMANCER, 'player': self.non_specter})
 
+    def test_negromante_on_acting_morte(self):
+        self.usepower(self.alive_n, self.specter, role_class=Morte)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.alive_n, self.specter, role_class=Occultamento)
+        self.usepower(self.specter, self.lupo)
+        self.advance_turn()
+
+        self.check_event(PowerOutcomeEvent, {'success': True, 'power': Morte}, player=self.specter)
+        self.check_event(PowerOutcomeEvent, {'success': False, 'power': Negromante}, player=self.alive_n)
+        self.check_event(PlayerDiesEvent, {'player': self.lupo, 'cause': DEATH_GHOST})
+        self.assertFalse(self.specter.specter)
+        self.assertIsInstance(self.specter.dead_power, NoPower)
+
 
 class TestVotingPowers(GameTest, TestCase):
     roles = [ Contadino, Guardia, Veggente, Spia, Messia, Esorcista, Lupo, Stregone, Fattucchiera, Negromante]
