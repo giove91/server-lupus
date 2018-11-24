@@ -19,7 +19,7 @@ from .utils import get_now
 RELAX_TIME_CHECKS = False
 ANCIENT_DATETIME = datetime(year=1970, month=1, day=1, tzinfo=REF_TZINFO)
 UPDATE_INTERVAL = timedelta(seconds=1)
-FORCE_PREVIEW = True # Enable only when running tests.
+FORCE_PREVIEW = False # Enable only when running tests.
 
 # When SINGLE_MODE is set, at most one dynamics can act concurrently
 # on the same game; when SINGLE_MODE is not set automatic events won't
@@ -269,6 +269,10 @@ class Dynamics:
         if advancing_turn:
             return False
 
+        # A turn has already been simulated, do not attempt to advance further
+        if self.simulated_turn is not None:
+            return False
+
         # If no events were found, check for new turns
         try:
             if self.current_turn is not None:
@@ -398,10 +402,10 @@ class Dynamics:
             self.debug_event_bin.append(event)
         self.update()
 
+        self.preview_dynamics = None
+
         if FORCE_PREVIEW:
             self.preview_dynamics = self.get_preview_dynamics()
-        else:
-            self.preview_dynamics = None
 
     def generate_event(self, event):
         """This is for automatic events."""

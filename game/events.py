@@ -339,7 +339,7 @@ class SetMayorEvent(Event):
                 assert dynamics.mayor is None
                 assert dynamics.appointed_mayor is None
 
-            if not player.is_mayor():
+            if not player.is_mayor(dynamics):
                 dynamics.mayor = player
                 dynamics.appointed_mayor = None
 
@@ -348,7 +348,7 @@ class SetMayorEvent(Event):
             else:
                 assert self.cause == ELECT
 
-            assert player.is_mayor()
+            assert player.is_mayor(dynamics)
         else:
             assert self.cause == SUCCESSION_RANDOM
             assert len(dynamics.get_alive_players())==0

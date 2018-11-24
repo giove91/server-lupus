@@ -57,10 +57,10 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         self.assertEqual(self.game.current_turn.phase, DAY)
         event = CommandEvent(player=cacciatore, type=VOTE, target=ipnotista, timestamp=get_now() - timedelta(minutes=10))
-        dynamics.inject_event(event)
 
         # Check that this produces an error
         with self.assertRaises(AssertionError):
+            dynamics.inject_event(event)
             test_advance_turn(self.game)
 
     @record_name
@@ -81,14 +81,14 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         self.assertEqual(self.game.current_turn.phase, DAY)
         event = CommandEvent(player=cacciatore, type=VOTE, target=ipnotista, timestamp=get_now() - timedelta(minutes=10))
-        dynamics.inject_event(event)
-
-        # Do not advance turn, but reboot dynamics and check that the
-        # assertion is violated immediately (i.e., when entering the
-        # turn with the violation, not when finishing it)
-        kill_all_dynamics()
 
         with self.assertRaises(AssertionError):
+            dynamics.inject_event(event)
+
+            # Do not advance turn, but reboot dynamics and check that the
+            # assertion is violated immediately (i.e., when entering the
+            # turn with the violation, not when finishing it)
+            kill_all_dynamics()
             dynamics = self.game.get_dynamics()
 
     @record_name
@@ -109,10 +109,10 @@ class GameTests(TestCase):
         test_advance_turn(self.game)
         self.assertEqual(self.game.current_turn.phase, DAY)
         event = CommandEvent(player=cacciatore, type=VOTE, target=ipnotista, timestamp=get_now() + timedelta(minutes=10))
-        dynamics.inject_event(event)
 
         # Check that this produces an error
         with self.assertRaises(AssertionError):
+            dynamics.inject_event(event)
             test_advance_turn(self.game)
 
     @record_name
