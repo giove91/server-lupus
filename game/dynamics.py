@@ -322,6 +322,9 @@ class Dynamics:
             self.prev_turn.end = get_now()
             self.current_turn.set_begin_end(self.prev_turn)
 
+        # Reset the preview, so that the server does not take the cached one
+        self.preview_dynamics = None
+
         # Debug print
         self.logger.info("Received turn %r", turn)
 

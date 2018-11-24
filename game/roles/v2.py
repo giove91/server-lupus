@@ -293,9 +293,12 @@ class Spettrificazione(Role):
     message_role = 'Lancia il seguente incantesimo:'
 
     def get_targets_role_class(self, dynamics):
-        powers = {Amnesia, Assoluzione, Confusione, Diffamazione, Illusione, Morte, Occultamento, Telepatia}
+        powers = {Amnesia, Assoluzione, Confusione, Diffamazione, Illusione, Morte, Occultamento, Telepatia, Vita, Delusione}
         available_powers = powers - dynamics.used_ghost_powers
         return available_powers
+
+    def get_target_role_class_default(self, dynamics):
+        return Delusione
 
     def pre_apply_dawn(self, dynamics):
         if self.recorded_role_class in dynamics.used_ghost_powers:

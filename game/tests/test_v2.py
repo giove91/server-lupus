@@ -883,6 +883,19 @@ class TestSpettri(GameTest, TestCase):
 
         self.assertTrue(self.dead_n.can_use_power())
 
+    def test_resurrected_negromante(self):
+        self.usepower(self.dead_n, self.non_specter, role_class=Vita)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.messia, self.dead_n)
+        self.advance_turn(DAY)
+
+        self.burn(self.dead_n)
+        self.advance_turn(NIGHT)
+
+        self.assertFalse(self.dead_n.alive)
+        self.assertFalse(self.dead_n.can_use_power())
+
 class TestVotingPowers(GameTest, TestCase):
     roles = [ Contadino, Guardia, Veggente, Spia, Messia, Esorcista, Lupo, Stregone, Fattucchiera, Negromante]
     spectral_sequence = [True, True, True]
