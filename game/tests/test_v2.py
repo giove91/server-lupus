@@ -1766,3 +1766,23 @@ class TestVita(GameTest, TestCase):
 
         self.check_event(PowerOutcomeEvent, {'success': False, 'power': Veggente}, player=self.veggente)
         self.check_event(AuraKnowledgeEvent, None)
+
+class TestApocalypse(GameTest, TestCase):
+    roles = [Cacciatore, Contadino, Lupo, Negromante]
+    spectral_sequence = [True]
+
+    def test_everybody_dies(self):
+        self.advance_turn(DAY)
+
+        self.burn(self.contadino)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.negromante, self.contadino, role_class=Morte)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.cacciatore, self.lupo)
+        self.usepower(self.contadino, self.cacciatore)
+        self.usepower(self.lupo, self.negromante)
+        self.advance_turn()
+
+        self.check_event(VictoryEvent, {'winners': {POPOLANI, LUPI, NEGROMANTI}})
