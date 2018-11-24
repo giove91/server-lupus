@@ -107,10 +107,6 @@ class PrototypesView(TemplateView):
 class ErrorView(TemplateView):
     template_name = 'error.html'
 
-@method_decorator(player_or_master_required, name='dispatch')
-class ContactsView(TemplateView):
-    template_name = 'contacts.html'
-
 class AnnouncementsListView(ListView):
     model = Announcement
     template_name = 'announcements.html'
@@ -1211,6 +1207,7 @@ class SoothsayerForm(forms.ModelForm):
         self.fields["advertised_role"].choices = choices
         self.fields["advertised_role"].widget.choices = choices
 
+@method_decorator(master_required, name='dispatch')
 class SoothsayerView(GameFormView):
     form_class = SoothsayerForm
     template_name = 'soothsayer.html'
@@ -1245,10 +1242,6 @@ class SoothsayerView(GameFormView):
         self.request.game.get_dynamics().inject_event(self.object)
         return super().form_valid(form)
 
-    @method_decorator(master_required)
-    def dispatch(self, *args, **kwargs):
-        return super(SoothsayerView, self).dispatch(*args, **kwargs)
-
 @method_decorator(master_required, name='dispatch')
 class DeleteSoothsayerView(EventDeleteView):
     success_url = 'game:setup'
@@ -1267,6 +1260,7 @@ class SpectralSequenceForm(forms.Form):
             label='Popolani da rendere spettri:'
     )
 
+@method_decorator(master_required, name='dispatch')
 class SpectralSequenceView(FormView):
     form_class = SpectralSequenceForm
     template_name = 'spectral_sequence.html'
@@ -1292,6 +1286,7 @@ class InitialPropositionForm(forms.ModelForm):
         fields = ['text']
         widgets = { 'text': forms.TextInput() }
 
+@method_decorator(master_required, name='dispatch')
 class InitialPropositionsView(CreateView):
     form_class = InitialPropositionForm
     template_name = 'propositions.html'

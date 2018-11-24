@@ -18,7 +18,6 @@ urlpatterns = [
     path('elect/', ElectView.as_view(), name='elect'),
     path('personalinfo/', PersonalInfoView.as_view(), name='personalinfo'),
     path('appoint/', AppointView.as_view(), name='appoint'),
-    path('contacts/', ContactsView.as_view(), name='contacts'),
     path('comment/', CommentView.as_view(), name='comment'),
 
     path('join/', JoinGameView.as_view(), name='join'), # Aggiunge il giocatore
