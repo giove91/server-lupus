@@ -6,8 +6,12 @@
 
     <div class="info-block">
         {% load staticfiles %}
-        <a href="{% static 'regolamento.pdf' %}">Scarica il regolamento (PDF)</a></br>
-        <a href="{% static 'lupushandbook.pdf' %}">Scarica i consigli di gioco (PDF)</a>
+        <div class="separator"><h2>Download</h2></div>
+        <ul>
+        <li><a href="{% static 'regolamento.pdf' %}">Regolamento</a></li>
+        <li><a href="{% static 'lupushandbook.pdf' %}">Consigli di gioco</a></li>
+        <li><a href="{% static 'faq.pdf' %}">FAQ</a></li>
+        </ul>
     </div>
 </main>
 {% endblock %}
