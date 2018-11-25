@@ -190,6 +190,7 @@ class Dynamics:
         assert not self.preview
         if self.preview_dynamics is None:
             self.preview_dynamics = self.__class__(self.game, preview=True)
+        self.logger.info('Loading preview...')
         self.preview_dynamics.update()
         return self.preview_dynamics
 
