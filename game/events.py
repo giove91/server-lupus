@@ -201,6 +201,10 @@ class SpectralSequenceEvent(Event):
     def apply(self, dynamics):
         dynamics.spectral_sequence = self.sequence
 
+    def to_player_string(self, player):
+        if player == 'admin':
+            seq = ', '.join([str(i+1) for i,x in enumerate(self.sequence) if x])
+            return u'È stata assegnata la seguente sequenza spettrale: %s' % seq
 
 class AvailableRoleEvent(Event):
     RELEVANT_PHASES = [CREATION]
