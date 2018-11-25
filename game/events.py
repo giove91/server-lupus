@@ -199,7 +199,7 @@ class SpectralSequenceEvent(Event):
         self.sequence = data['sequence']
 
     def apply(self, dynamics):
-        dynamics.spectral_sequence = self.sequence
+        dynamics.spectral_sequence = self.sequence.copy()
 
     def to_player_string(self, player):
         if player == 'admin':
