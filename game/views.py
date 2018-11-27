@@ -223,7 +223,7 @@ class EventListView(TemplateView):
             if event.subclass == 'InitialPropositionEvent':
                 result[event.turn]['initial_propositions'].append(event.text)
 
-            if event.subclass == 'RoleKnowledgeEvent' and event.cause == SOOTHSAYER and event.player == player:
+            if event.subclass == 'SoothsayerModelEvent' and event.soothsayer == player:
                 result[event.turn]['soothsayer_propositions'].append(event.to_soothsayer_proposition())
 
             if event.subclass == 'TelepathyEvent' and event.player == player:
