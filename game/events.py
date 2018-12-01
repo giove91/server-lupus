@@ -1073,7 +1073,7 @@ class MovementKnowledgeEvent(Event):
             if player == self.player:
                 return u'Scopri che stanotte %s aveva intenzione di utilizzare il proprio potere speciale.' % (self.target.full_name)
             elif player == 'admin':
-                return u'%s scopre che stanotte %s non aveva intenzione di utilizzare alcun potere speciale.' % (self.player.full_name, self.target.full_name)
+                return u'%s scopre che stanotte %s aveva intenzione di utilizzare il proprio potere speciale.' % (self.player.full_name, self.target.full_name)
             else:
                 return None
 
