@@ -93,9 +93,9 @@
             <div id="header-lower">
                 {% if user.is_authenticated %}
                     {% if is_master %}
-                        <span class="point-of-view hide-on-desktop">{{ player.full_name | default:"Game Master" }}</span>
+                        <span class="point-of-view hide-on-desktop hide-on-tablet">{{ player.full_name | default:"Game Master" }}</span>
                     {% else %}
-                        <span class="hide-on-desktop">
+                        <span class="hide-on-desktop hide-on-tablet">
                             {{ user.first_name }} {{ user.last_name }}
                         </span>
                     {% endif %}
@@ -125,6 +125,13 @@
         <aside id="menu" class="tablet-grid-20 grid-20">
             {% if is_master %}
 
+                <div class="nav-menu">
+                <h1>Area privata</h1>
+                    <ul>
+                        <li><a href="{% url 'game:as_normal_user' game_name=game.name %}" data-toggle="tooltip" title="Torna alla triste interfaccia da persona qualunque.">Chiudi il menù GM</a></li>
+                        <li><a href="{% url 'game:comment' game_name=game.name %}" data-toggle="tooltip" title="Annota un commento nel tuo diario.">Scrivi un commento</a></li>
+                    </ul>
+                </div>
                 <div class="nav-menu game-master">
                     <h1>Azioni da GM</h1>
                     <ul>
@@ -141,7 +148,6 @@
                         {% if current_turn.phase != CREATION %}
                             <li><a href="{% url 'game:forcevictory' game_name=game.name %}" data-toggle="tooltip" title="Forza la fine della partita con la vittoria di una fazione specifica.">Decreta vincitori</a></li>
                         {% endif %}
-                        <li><a href="{% url 'game:as_normal_user' game_name=game.name %}" data-toggle="tooltip" title="Torna alla triste interfaccia da persona qualunque.">Esci dal menù GM</a></li>
                     </ul>
                 </div>
 
