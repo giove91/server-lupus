@@ -1799,3 +1799,25 @@ class TestApocalypse(GameTest, TestCase):
         self.advance_turn()
 
         self.check_event(VictoryEvent, {'winners': {POPOLANI, LUPI, NEGROMANTI}})
+
+    def test_amnesia_after_negromanti_exile(self):
+        self.advance_turn(DAY)
+
+        self.burn(self.contadino)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.negromante, self.contadino, role_class=Amnesia)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.contadino, self.cacciatore)
+        self.advance_turn(DAY)
+
+        self.assertTrue(self.cacciatore.has_permanent_amnesia)
+        self.burn(self.negromante)
+        self.advance_turn()
+
+        self.check_event(ExileEvent, {}, player=self.negromante)
+        self.advance_turn()
+
+        self.assertFalse(self.cacciatore.has_permanent_amnesia)
+

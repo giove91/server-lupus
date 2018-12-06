@@ -810,6 +810,8 @@ class Negromante(Role):
     def post_not_alive(self, dynamics):
         if [player for player in dynamics.get_alive_players() if isinstance(player.role, self.__class__)] == [] and not self.team in dynamics.dying_teams:
             dynamics.dying_teams += self.team
+            for player in dynamics.get_active_players():
+                player.has_permanent_amnesia = False
 
 
 class Fantasma(Role):
