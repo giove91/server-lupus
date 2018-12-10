@@ -311,6 +311,9 @@ class Spettrificazione(Role):
         if self.recorded_target.alive:
             return False
 
+        if self.recorded_target.protected_by_keeper:
+            return False
+
         return True
 
     def apply_dawn(self, dynamics):
