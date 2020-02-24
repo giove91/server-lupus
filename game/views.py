@@ -298,7 +298,8 @@ class CommandForm(forms.Form):
 
                 if key == 'target' or key == 'target2':
                     choices = [ (None, '(Nessuno)') ]
-                    choices.extend( [ (player.pk, player.full_name) for player in field['choices'] if player is not None ] )
+                    extra_choices = sorted([player for player in field['choices'] if player is not None], key=lambda x: x.user.last_name)
+                    choices.extend( [ (player.pk, player.full_name) for player in extra_choices ] )
                 elif key == 'role_class' or key == 'multiple_role_class':
                     if key == 'role_class':
                         choices = [ (None, '(Nessuno)') ]

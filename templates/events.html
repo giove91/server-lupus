@@ -66,7 +66,7 @@
             <h3><a id="commentslink{{ turn.pk }}" href="javascript:;" onClick="toggle_comments('comments{{ turn.pk }}', 'commentslink{{ turn.pk }}');">Visualizza i commenti</a></h3>
             <div id="comments{{ turn.pk }}" style="display:none;">
             {% for comment in values.comments %}
-                <p><strong>{{ comment.user.first_name }} {{ comment.user.last_name }}</strong> <em>{{ comment.timestamp|date:"d/m/Y H:i" }}</em> {{ comment.text }}</p>
+                <p><strong>{{ comment.user.first_name }} {{ comment.user.last_name }}</strong> <em>{{ comment.timestamp|date:"d/m/Y H:i" }}</em> {{ comment.text|linebreaksbr }}</p>
             {% endfor %}
             </div>
         {% endif %}

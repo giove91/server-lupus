@@ -1322,7 +1322,7 @@ class UnGhostificationEvent(Event):
         oa = self.player.oa
 
         if player == self.player:
-            return u'Sembra che tu possa finalmente riposare... Non sei più uno Spettro.' % oa
+            return u'Sembra che tu possa finalmente riposare... Non sei più uno Spettro.'
         elif player == 'admin':
             return u'%s non è più uno Spettro.' % self.player.full_name
         else:

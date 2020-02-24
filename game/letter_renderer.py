@@ -75,13 +75,14 @@ class LetterRenderer:
         
         # Compiling
         time = get_now()
-        os.system('pdflatex -output-directory templates/' + self.directory + ' templates/' + self.directory + filename + ' | grep "!"')
+        ret = os.system('pdflatex -output-directory templates/' + self.directory + ' templates/' + self.directory + filename + ' | grep "!"')
         assert get_now() - time <= timedelta(seconds=1)
 
         # Cleaning
-        os.system('rm templates/' + self.directory + basename + '.tex')
-        os.system('rm templates/' + self.directory + basename + '.aux')
-        os.system('rm templates/' + self.directory + basename + '.log')
+        if ret == 0:
+            os.system('rm templates/' + self.directory + basename + '.tex')
+            os.system('rm templates/' + self.directory + basename + '.aux')
+            os.system('rm templates/' + self.directory + basename + '.log')
     
     def render_role(self):
         template = self.template_role
@@ -94,13 +95,14 @@ class LetterRenderer:
         
         # Compiling
         time = get_now()
-        os.system('pdflatex -output-directory templates/' + self.directory + ' templates/' + self.directory + filename + '| grep "!"')
+        ret = os.system('pdflatex -output-directory templates/' + self.directory + ' templates/' + self.directory + filename + '| grep "!"')
         assert get_now() - time <= timedelta(seconds=1)
         
         # Cleaning
-        os.system('rm templates/' + self.directory + basename + '.tex')
-        os.system('rm templates/' + self.directory + basename + '.aux')
-        os.system('rm templates/' + self.directory + basename + '.log')
+        if ret == 0:
+            os.system('rm templates/' + self.directory + basename + '.tex')
+            os.system('rm templates/' + self.directory + basename + '.aux')
+            os.system('rm templates/' + self.directory + basename + '.log')
     
     def render_all(self):
         self.render_setting()
