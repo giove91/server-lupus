@@ -134,7 +134,7 @@ class TestWebInterface(GameTest, TestCase):
         self.vote(self.contadino, self.veggente)
         c = Client()
         c.force_login(self.contadino.user)
-        response = c.post('/game/test/vote/', {'target': None})
+        response = c.post('/game/test/vote/', {'target': ''})
         self.advance_turn()
 
         self.check_event(VoteAnnouncedEvent, None)
@@ -1820,4 +1820,3 @@ class TestApocalypse(GameTest, TestCase):
         self.advance_turn()
 
         self.assertFalse(self.cacciatore.has_permanent_amnesia)
-
