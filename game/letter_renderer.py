@@ -70,7 +70,7 @@ class LetterRenderer:
         filename = basename + '.tex'
         
         # Rendering .tex
-        os.system('mkdir templates/' + self.directory)
+        os.system('mkdir -p templates/' + self.directory)
         render_to_file(template, 'templates/' + self.directory + filename, self.context)
         
         # Compiling
