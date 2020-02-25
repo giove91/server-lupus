@@ -166,37 +166,39 @@ class Fantasma(Fantasma):
         dynamics.generate_event(GhostificationEvent(player=self.player, cause=PHANTOM, ghost=power))
 
 class Delusione(Delusione):
-    pass
+    team = LUPI
 
 class Amnesia(Amnesia):
-    pass
+    team = LUPI
 
 class Assoluzione(Assoluzione):
-    pass
+    team = LUPI
 
 class Diffamazione(Diffamazione):
-    pass
+    team = LUPI
 
 class Confusione(Confusione):
-    pass
+    team = LUPI
 
 class Illusione(Illusione):
-    pass
+    team = LUPI
 
 class Morte(Morte):
-    pass
+    team = LUPI
 
 class Occultamento(Occultamento):
-    pass
+    team = LUPI
 
 class Telepatia(Telepatia):
-    pass
+    team = LUPI
 
 class Vita(Vita):
+    team = LUPI
     # Same as before, correct Delusione
     def post_death(self, dynamics):
         from ..events import GhostSwitchEvent
         dynamics.generate_event(GhostSwitchEvent(player=self.player, ghost=Delusione, cause=LIFE_GHOST))
+
 ## ORDER COSTRAINTS
 #
 # Necromancers must act after every other ghost.
