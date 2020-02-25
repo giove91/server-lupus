@@ -799,13 +799,15 @@ class TestSpectralSequence(GameTest, TestCase):
         self.assertIsInstance(self.contadino_a.dead_power, NoPower)
 
 class TestSpettri(GameTest, TestCase):
-    roles = [Contadino, Contadino, Veggente, Esorcista, Messia, Lupo, Negromante, Negromante]
+    roles = [Contadino, Contadino, Veggente, Esorcista, Messia, Lupo, Negromante, Negromante, Negromante]
     spectral_sequence = [True, False, True]
 
     def setUp(self):
         super().setUp()
         self.advance_turn(NIGHT)
         self.usepower(self.lupo, self.negromante_b)
+        self.advance_turn(NIGHT)
+        self.usepower(self.lupo, self.negromante_c)
         self.advance_turn(NIGHT)
         self.usepower(self.lupo, self.contadino_a)
         self.advance_turn(NIGHT)
@@ -814,6 +816,7 @@ class TestSpettri(GameTest, TestCase):
 
         self.alive_n = self.negromante_a
         self.dead_n = self.negromante_b
+        self.dead_n2 = self.negromante_c
         self.specter = self.contadino_a
         self.non_specter = self.contadino_b
 
@@ -895,6 +898,13 @@ class TestSpettri(GameTest, TestCase):
 
         self.assertFalse(self.dead_n.alive)
         self.assertFalse(self.dead_n.can_use_power())
+
+    def test_vita_on_negromante(self):
+        self.usepower(self.dead_n, self.dead_n2, role_class=Vita)
+        self.advance_turn(NIGHT)
+
+        self.assertFalse(self.dead_n2.alive)
+        self.check_event(PowerOutcomeEvent, {'success': False, 'power': Spettrificazione}, player=self.dead_n)
 
 class TestVotingPowers(GameTest, TestCase):
     roles = [ Contadino, Guardia, Veggente, Spia, Messia, Esorcista, Lupo, Stregone, Fattucchiera, Negromante]

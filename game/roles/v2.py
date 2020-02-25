@@ -311,7 +311,12 @@ class Spettrificazione(Role):
         if self.recorded_target.alive:
             return False
 
+        # Custode del cimitero (Useless in any current ruleset)
         if self.recorded_target.protected_by_keeper:
+            return False
+
+        # Can only ghostify Popolani
+        if self.recorded_target.team != POPOLANI:
             return False
 
         return True
