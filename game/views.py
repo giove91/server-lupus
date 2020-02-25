@@ -1084,7 +1084,8 @@ class SeedForm(forms.Form):
     seed = forms.IntegerField(required=True, label='Seed')
     RULESETS = [
         ('v1', 'Tre fazioni, regole di Lupus 7'),
-        ('v2', 'Tre fazioni, regole di Lupus 8')
+        ('v2', 'Tre fazioni, regole di Lupus 8'),
+        ('v2_2', 'Tre fazioni, regole di Lupus 9')
     ]
     ruleset = forms.ChoiceField(choices=RULESETS, label='Regolamento')
 
