@@ -535,7 +535,7 @@ class CorruptionEvent(Event):
         # Change role in Negromante
         [role_class] = [x for x in dynamics.valid_roles if x.necromancer]
         player.role = role_class(player)
-        player.team = NEGROMANTI
+        player.team = dynamics.rules.necromancers_team
 
     def to_player_string(self, player):
         if player == self.player:
@@ -1216,20 +1216,20 @@ class GhostificationEvent(Event):
     cause = models.CharField(max_length=1, choices=GHOSTIFICATION_CAUSES, default=None)
 
     def check_validity(self, dynamics):
-        return NEGROMANTI in dynamics.playing_teams
+        return dynamics.rules.necromancers_team in dynamics.playing_teams
 
     def apply(self, dynamics):
         assert self.player.canonical
         player = self.player.canonicalize()
 
         assert not player.alive
-        assert NEGROMANTI in dynamics.playing_teams
+        assert dynamics.rules.necromancers_team in dynamics.playing_teams
         assert self.ghost not in dynamics.used_ghost_powers
         assert self.ghost.ghost
         assert not(dynamics.death_ghost_created and self.cause == NECROMANCER)
         #assert not(dynamics.death_ghost_created and self.cause == HYPNOTIST_DEATH and not dynamics.death_ghost_just_created), (dynamics.death_ghost_created, dynamics.death_ghost_just_created, self.cause)
         assert not(self.cause == HYPNOTIST_DEATH and not isinstance(player.role, Ipnotista))
-        assert not(self.cause == HYPNOTIST_DEATH and player.team != NEGROMANTI)
+        assert not(self.cause == HYPNOTIST_DEATH and player.team != dynamics.rules.necromancers_team)
         #assert not(self.cause == HYPNOTIST_DEATH and self.ghost != IPNOSI)
         #assert not(self.cause != HYPNOTIST_DEATH and self.ghost == IPNOSI)
         #assert not(self.ghost == IPNOSI and [player2 for player2 in dynamics.get_alive_players() if isinstance(player2.role, Ipnotista) and player2.team == NEGROMANTI] != [])
@@ -1242,7 +1242,7 @@ class GhostificationEvent(Event):
         player.dead_power = self.ghost(player)
         player.dead_power.post_appearance(dynamics)
         player.specter = True
-        player.team = NEGROMANTI
+        player.team = dynamics.rules.necromancers_team
 
     def to_player_string(self, player):
         oa = self.player.oa

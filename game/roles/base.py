@@ -13,6 +13,7 @@ class Rules():
 
     ''' Determines if a failure should count as power usage for powers with reduced frequency. '''
     forgiving_failures = False
+    necromancers_team = NEGROMANTI #Identifies the team in which necromancer play, to apply ghostifications correctly
 
     @staticmethod
     def post_death(dynamics, player):
