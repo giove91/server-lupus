@@ -1085,7 +1085,7 @@ class SeedForm(forms.Form):
     RULESETS = [
         ('v1', 'Tre fazioni, regole di Lupus 7'),
         ('v2', 'Tre fazioni, regole di Lupus 8'),
-        ('v2_2', 'Tre fazioni, regole di Lupus 9')
+        ('v2_2', 'Due fazioni, regole di Lupus 9')
     ]
     ruleset = forms.ChoiceField(choices=RULESETS, label='Regolamento')
 
@@ -1276,7 +1276,7 @@ class SpectralSequenceView(FormView):
 
     def form_valid(self, form):
         deaths = [int(i) for i in form.cleaned_data.get('sequence')]
-        event = SpectralSequenceEvent(sequence=[i in deaths for i in range(len(deaths))], timestamp=get_now())
+        event = SpectralSequenceEvent(sequence=[i in deaths for i in range(20)], timestamp=get_now())
         self.request.game.get_dynamics().inject_event(event)
         return redirect('game:setup', game_name=self.request.game.name)
 
