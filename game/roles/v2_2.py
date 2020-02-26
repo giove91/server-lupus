@@ -111,6 +111,7 @@ class Stregone(Stregone):
 class Negromante(Negromante):
     knowledge_class = 1
     team = LUPI
+    required = False
 
     def post_not_alive(self, dynamics):
         # Nothing happens when they die

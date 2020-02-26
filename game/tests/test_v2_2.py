@@ -1802,3 +1802,40 @@ class TestApocalypse(GameTest, TestCase):
         self.advance_turn()
 
         self.check_event(VictoryEvent, {'winners': {POPOLANI, LUPI}})
+
+class TestNoNecromancers(GameTest, TestCase):
+    roles = [Cacciatore, Contadino, Lupo, Fantasma]
+    spectral_sequence = [True]
+
+    def test_spettro_without_negromanti(self):
+        self.advance_turn(DAY)
+
+        self.burn(self.contadino)
+        self.advance_turn(NIGHT)
+
+        self.check_event(GhostificationEvent, {'player': self.contadino, 'ghost': Delusione})
+        self.assertEqual(self.contadino.team, LUPI)
+        self.assertIsInstance(self.contadino.dead_power, Delusione)
+
+    def test_victory_popolani(self):
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.cacciatore, self.lupo)
+        self.usepower(self.lupo, self.cacciatore)
+        self.advance_turn()
+
+        self.check_event(GhostificationEvent, None)
+        self.assertEqual(self.contadino.team, POPOLANI)
+        self.assertEqual(self.cacciatore.team, POPOLANI)
+        self.check_event(VictoryEvent, {'winners': {POPOLANI}})
+
+    def test_fantasma_without_negromanti(self):
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.cacciatore, self.fantasma)
+        self.advance_turn()
+
+        self.check_event(GhostificationEvent, {'player': self.fantasma})
+        self.assertEqual(self.fantasma.team, LUPI)
+        self.assertTrue(self.fantasma.specter)
+        self.assertNotIsInstance(self.fantasma.dead_power, Delusione)
