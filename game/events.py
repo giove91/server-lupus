@@ -508,14 +508,14 @@ class TransformationEvent(Event):
     def to_player_string(self, player):
         if self.cause == TRANSFORMIST:
             if player == self.player:
-                return u'Dopo aver utilizzato il tuo potere su %s hai assunto il ruolo di %s.' % (self.target.full_name, self.role_class.name)
+                return u'Dopo aver utilizzato la tua abilità su %s hai assunto il ruolo di %s.' % (self.target.full_name, self.role_class.name)
             elif player == 'admin':
-                return u'%s ha utilizzato il proprio potere di Trasformista su %s assumendo il ruolo di %s.' % (self.player.full_name, self.target.full_name, self.role_class.name)
+                return u'%s ha utilizzato la propria abilità di Trasformista su %s assumendo il ruolo di %s.' % (self.player.full_name, self.target.full_name, self.role_class.name)
         elif self.cause == NECROPHILIAC:
             if player == self.player:
-                return u'Dopo aver utilizzato il tuo potere su %s hai assunto il ruolo di %s.' % (self.target.full_name, self.role_class.name)
+                return u'Dopo aver utilizzato la tua abilità su %s hai assunto il ruolo di %s.' % (self.target.full_name, self.role_class.name)
             elif player == 'admin':
-                return u'%s ha utilizzato il proprio potere di Necrofilo su %s assumendo il ruolo di %s.' % (self.player.full_name, self.target.full_name, self.role_class.name)
+                return u'%s ha utilizzato la propria abilità di Necrofilo su %s assumendo il ruolo di %s.' % (self.player.full_name, self.target.full_name, self.role_class.name)
         else:
             raise Exception ('Unknown cause for TransformationEvent')
 
@@ -1071,9 +1071,9 @@ class MovementKnowledgeEvent(Event):
     def to_player_string(self, player):
         if self.cause == KIDNAPPER:
             if player == self.player:
-                return u'Scopri che stanotte %s aveva intenzione di utilizzare il proprio potere speciale.' % (self.target.full_name)
+                return u'Scopri che stanotte %s aveva intenzione di utilizzare la propria abilità.' % (self.target.full_name)
             elif player == 'admin':
-                return u'%s scopre che stanotte %s aveva intenzione di utilizzare il proprio potere speciale.' % (self.player.full_name, self.target.full_name)
+                return u'%s scopre che stanotte %s aveva intenzione di utilizzare la propria abilità.' % (self.player.full_name, self.target.full_name)
             else:
                 return None
 
@@ -1117,7 +1117,7 @@ class NoMovementKnowledgeEvent(Event):
             if self.cause == STALKER:
                 return u'Scopri che stanotte %s non si è recat%s da nessuna parte.' % (self.target.full_name, self.target.oa)
             elif self.cause == KIDNAPPER:
-                return u'Scopri che stanotte %s non aveva intenzione di utilizzare alcun potere speciale.' % (self.target.full_name)
+                return u'Scopri che stanotte %s non aveva intenzione di utilizzare alcuna abilità.' % (self.target.full_name)
             elif self.cause == VOYEUR:
                 return u'Scopri che stanotte nessun personaggio si è recato da %s.' % (self.target.full_name)
             else:
@@ -1127,7 +1127,7 @@ class NoMovementKnowledgeEvent(Event):
             if self.cause == STALKER:
                 return u'%s scopre che stanotte %s non si è recat%s da nessuna parte.' % (self.player.full_name, self.target.full_name, self.target.oa)
             if self.cause == KIDNAPPER:
-                return u'%s scopre che stanotte %s non aveva intenzione di utilizzare alcun potere speciale.' % (self.player.full_name, self.target.full_name)
+                return u'%s scopre che stanotte %s non aveva intenzione di utilizzare alcuna abilità.' % (self.player.full_name, self.target.full_name)
             elif self.cause == VOYEUR:
                 return u'%s scopre che stanotte nessun personaggio si è recato da %s.' % (self.player.full_name, self.target.full_name)
             else:
@@ -1294,9 +1294,9 @@ class GhostificationFailedEvent(Event):
         oa = self.player.oa
 
         if player == self.player:
-            return u'Sembra che tu abbia aspettato troppo a morire: i poteri soprannaturali sono stati tutti assegnati, per cui sei condannat%s a rimanere un Fantasma.' % oa
+            return u'Sembra che tu abbia aspettato troppo a morire: i poteri sono stati tutti assegnati, per cui sei condannat%s a rimanere un Fantasma.' % oa
         elif player == 'admin':
-            return u'Il Fantasma %s non diventa uno Spettro per mancanza di poteri soprannaturali.' % self.player.full_name
+            return u'Il Fantasma %s non diventa uno Spettro per mancanza di poteri.' % self.player.full_name
         else:
             return None
 
