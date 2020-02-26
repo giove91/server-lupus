@@ -119,7 +119,7 @@ class Negromante(Negromante):
 
     # We need to redefine powers so they use the correct instance.
     def get_targets_role_class(self, dynamics):
-        powers = {Amnesia, Assoluzione, Confusione, Diffamazione, Illusione, Morte, Occultamento, Telepatia, Vita, Delusione}
+        powers = {Assoluzione, Confusione, Diffamazione, Illusione, Occultamento, Telepatia, Vita, Delusione}
         available_powers = powers - dynamics.used_ghost_powers
         return available_powers
 
@@ -141,7 +141,7 @@ class Spettrificazione(Spettrificazione):
 
     # Use the updated powers
     def get_targets_role_class(self, dynamics):
-        powers = {Amnesia, Assoluzione, Confusione, Diffamazione, Illusione, Morte, Occultamento, Telepatia, Vita, Delusione}
+        powers = {Assoluzione, Confusione, Diffamazione, Illusione, Occultamento, Telepatia, Vita, Delusione}
         available_powers = powers - dynamics.used_ghost_powers
         return available_powers
 
@@ -153,7 +153,7 @@ class Fantasma(Fantasma):
     knowledge_class = 1
 
     def get_valid_powers(self):
-        return [Amnesia, Assoluzione, Confusione, Diffamazione, Illusione, Morte, Occultamento, Telepatia]
+        return [Assoluzione, Confusione, Diffamazione, Illusione, Occultamento, Telepatia]
 
     def post_death(self, dynamics):
         powers = self.get_valid_powers()
@@ -169,9 +169,6 @@ class Fantasma(Fantasma):
 class Delusione(Delusione):
     team = LUPI
 
-class Amnesia(Amnesia):
-    team = LUPI
-
 class Assoluzione(Assoluzione):
     team = LUPI
 
@@ -182,9 +179,6 @@ class Confusione(Confusione):
     team = LUPI
 
 class Illusione(Illusione):
-    team = LUPI
-
-class Morte(Morte):
     team = LUPI
 
 class Occultamento(Occultamento):
