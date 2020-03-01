@@ -495,7 +495,7 @@ class TransformationEvent(Event):
         else:
             raise Exception ('Unknown cause for TransformationEvent')
 
-        assert self.role_class.team == self.player.team
+        # assert self.role_class.team == self.player.team 
 
         # Instantiate new role class and copy attributes
         player.role = self.role_class(player)
