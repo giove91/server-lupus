@@ -1248,7 +1248,7 @@ class TestRoleKnowledge(GameTest, TestCase):
         self.check_event(RoleKnowledgeEvent, {'player': self.investigatore, 'target': self.espansivo, 'role_class': Espansivo})
 
 class TestTrasformista(GameTest, TestCase):
-    roles = [Contadino, Massone, Massone, Trasformista, Messia, Lupo, Fattucchiera, Diavolo, Negromante]
+    roles = [Contadino, Massone, Massone, Trasformista, Messia, Lupo, Fattucchiera, Diavolo, Negromante, Negromante]
     spectral_sequence = []
 
     def test_trasformista_on_massone(self):
@@ -1352,6 +1352,49 @@ class TestTrasformista(GameTest, TestCase):
 
         self.check_event(TransformationEvent, {'player': self.trasformista, 'target': self.diavolo, 'role_class': Messia})
         self.assertIsInstance(self.trasformista.role, Messia)
+
+    def test_trasformista_on_spettro(self):
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.massone_a)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.negromante_a)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.negromante_a, self.massone_a, role_class=Telepatia)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.trasformista, self.massone_a)
+        self.advance_turn()
+
+        self.check_event(TransformationEvent, {'player': self.trasformista, 'target': self.massone_a, 'role_class': Massone})
+        self.assertIsInstance(self.trasformista.role, Massone)
+        self.assertEqual(self.trasformista.team, POPOLANI)
+        self.check_event(RoleKnowledgeEvent, None) # Doesn't know other massoni
+
+    def test_resurrected_trasformista_with_vita(self):
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.trasformista)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.massone_a)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.lupo, self.negromante_a)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.negromante_a, self.trasformista, role_class=Vita)
+        self.advance_turn(NIGHT)
+
+        self.usepower(self.trasformista, self.massone_a)
+        self.advance_turn()
+
+        self.check_event(TransformationEvent, {'player': self.trasformista, 'target': self.massone_a, 'role_class': Massone})
+        self.assertEqual(self.trasformista.team, NEGROMANTI)
+        self.assertIsInstance(self.trasformista.role, Massone)
+        self.check_event(RoleKnowledgeEvent, None) # Doesn't know other massoni
 
 class TestAlcolista(GameTest, TestCase):
     roles = [ Guardia, Veggente, Stalker, Lupo, Alcolista, Negromante ]
