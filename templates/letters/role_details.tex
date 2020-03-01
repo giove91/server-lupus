@@ -13,7 +13,7 @@ Il Cacciatore appartiene alla Fazione dei Popolani, ma gode di una pessima reput
 {% if player.role_name == "Sciamano" %}
 Gli ultimi tagli alla ricerca scientifica hanno dato il colpo di grazia agli esperimenti dello scienziato pazzo per cui lavoravi (anche la folla armata di torce e forconi non ha aiutato). E così, dopo anni di fedele servizio, ti sei trovato disoccupato e in piena crisi mistica: la condizione ideale per prenderti un anno sabbatico in India, cambiare il tuo nome da Aigor a Brahamavarta e diplomarti in pratiche sciamaniche di primo livello. Tornato al villaggio, avverti subito forti vibrazioni negative dovute allo stagionale attacco di licantropia. Anche se nessuno si fida di te, cerchi comunque di aiutare qualche anima in pena.
 
-Lo Sciamano è un mistico e appartiene alla Fazione dei Popolani, ma a causa del suo passato da Profanatore di Tombe ha aura nera. Ogni due notti, lo Sciamano può scegliere un personaggio morto e tormentarne lo spirito. Spezza l'Incantesimo eventualmente presente su di esso. Se un Negromante tenta di lanciare un'Incantesimo sul personaggio scelto quella notte, la sua abilità non ha effetto.
+Lo Sciamano è un mistico e appartiene alla Fazione dei Popolani, ma a causa del suo passato da Profanatore di Tombe ha aura nera. Ogni due notti, lo Sciamano può scegliere un personaggio morto e tormentarne lo spirito. Spezza l'Incantesimo eventualmente presente su di esso. Se un Negromante tenta di lanciare un Incantesimo sul personaggio scelto quella notte, la sua abilità non ha effetto.
 {% endif %}
 
 
@@ -82,6 +82,12 @@ Il Messia è un mistico e appartiene alla Fazione dei Popolani. Ha un'abilità a
 {% endif %}
 
 
+{% if player.role_name == "Spia" %}
+Rubare i progetti militari americani? Smascherare gli agenti del Mossad infiltrati nel governo? Scoprire i segreti degli oligarchi russi? Questi sono solo alcuni dei tuoi sogni nel cassetto: intanto, dopo aver fallito miseramente a pedinare il sottosegretario dell'agricoltura della Moldavia, il capo ti ha spedito in missione in questo villaggio sperduto.
+
+La Spia appartiene alla Fazione dei Popolani. Ogni notte, eccetto la prima, la Spia può scegliere un personaggio vivo e curiosare fra i suoi effetti personali. Scopre a chi era diretto il voto di tale personaggio durante l'ultima votazione.
+{% endif %}
+
 
 {% if player.role_name == "Stalker" %}
 Più appiccicoso della melassa, più insistente di una canzone degli One Direction, più fastidioso di una colonia di formiche rosse insediata nelle mutande. Una volta puntata una vittima la segui ovunque, e questo include anche il gabinetto, le atroci riunioni del club del libro e i ricevimenti del professor Beltram.
@@ -116,6 +122,12 @@ Il Voyeur appartiene alla Fazione dei Popolani. Ogni due notti, il Voyeur può s
 Di giorno solo le folte basette, le profonde occhiaie e la tendenza a grattarti col piede dietro l'orecchio tradiscono quello che diventi di notte: un terribile lupo mannaro! Sei una bestia assetata di sangue, nata per uccidere, e il tuo unico cruccio è che qualche volta i contadini armati di forconi ci azzeccano.
 
 I Lupi sono cattivi, brutti, hanno l'alito pesante e appartengono alla Fazione dei Lupi (ma dai). Ogni notte i Lupi possono scegliere un personaggio vivo da uccidere. Se tutti i Lupi che decidono di usare il proprio potere scelgono lo stesso personaggio, questi muore. Se almeno due Lupi indicano personaggi diversi, la loro abilità non ha alcun effetto.
+{% endif %}
+
+{% if player.role_name == "Alcolista" %}
+Dopo una sfolgorante carriera prima a capo del governo lussemburghese, poi della Commissione Europea, sei stato cacciato via e rimpiazzato da una baciapantofole della Merkel, circondato da indifferenza ed impopolarità. Trasferitoti nel villaggio, i lupi mannari hanno ti hanno convinto a sfogare la tua rabbia verso il mondo aiutandoli nel loro piano di sterminio. Di giorno sfrutti la tua esperienza nelle trattative durante le assemblee per abbindolare i popolani e trarli in inganno, mentre la notte vai in giro, annegando la disperazione nell'alcol.
+
+L'Alcolista appartiene alla Fazione dei Lupi, ma a causa del suo fascino irresistibile (?) la sua aura è bianca. Ogni notte, l'Alcolista può scegliere un personaggio, vivo o morto, e andare a visitarlo. Tuttavia, a causa dei fumi dell'alcol, il suo potere non ha effetto.
 {% endif %}
 
 {% if player.role_name == "Assassino" %}
@@ -160,9 +172,8 @@ Lo Stregone appartiene alla Fazione dei Lupi. Ogni notte, lo Stregone può scegl
 Candele nere, pennarello indelebile rosso per disegnare pentagrammi, un chilo e mezzo di gioielleria etnica: sei pronto a risvegliare i morti! Adesso devi solo creare l'evento su Facebook e invitare tutti i tuoi amici occultisti al cimitero per una seduta spiritica con finale a sorpresa. Certo, i bigotti del villaggio e quegli zoticoni dei lupi non capiranno la tua particolare spiritualità, ma potrai sempre evocare nuovi spettri per dare una spinta alla tua vita sociale.
 
 I Negromanti appartengono alla Fazione dei Negromanti (pensa un po') e hanno aura bianca. È complicato...
-        
+
 Ogni notte, ciascun Negromante può scegliere uno Spettro ed effettuare un Incantesimo (non già attivo) su di esso. Un eventuale Incantesimo precedentemente attivo su tale Spettro viene disattivato, e viene rimpiazzato dall’Incantesimo selezionato. Un Negromante può anche disattivare un Incantesimo attivo su tale Spettro senza attivarne uno nuovo.
 
 Quando un Negromante muore, ottiene un potere. Una sola volta durante l’arco della partita, un Negromante morto può scegliere un altro personaggio morto e selezionare un Incantesimo (non già attivo). Tale personaggio diventa uno Spettro e l’Incantesimo selezionato viene attivato su di esso. Ciascun Incantesimo può essere attivo su al più uno Spettro alla volta.
 {% endif %}
-
